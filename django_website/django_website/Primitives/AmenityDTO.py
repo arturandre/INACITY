@@ -1,0 +1,2 @@
+class AmenityDTO:
+    pass
