@@ -11,7 +11,7 @@ from django.conf.urls import include, url
 from django_website.views import hello
 
 urlpatterns = [
-    url(r'^hello$', hello),
+    url(r'^hello/?$', hello),
     url(r'^$', hello, name='hello'),
     # Examples:
     # url(r'^$', django_website.views.home, name='home'),
