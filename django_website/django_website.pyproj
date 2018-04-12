@@ -29,10 +29,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="django_website\GIS\MapMiner.py" />
+    <Compile Include="django_website\GIS\OSMMiner.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="django_website\GIS\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="django_website\Managers\MapMinerManager.py" />
-    <Compile Include="django_website\Primitives\AmenityDTO.py" />
-    <Compile Include="django_website\Primitives\Bound.py" />
-    <Compile Include="django_website\Primitives\StreetDTO.py" />
+    <Compile Include="django_website\Managers\__init__.py" />
+    <Compile Include="django_website\Primitives\Primitives.py" />
+    <Compile Include="django_website\Primitives\__init__.py" />
+    <Compile Include="django_website\views.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="manage.py" />
     <Compile Include="django_website\__init__.py" />
     <Compile Include="django_website\settings.py" />

@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import posixpath
 
+#When set to True, if the request URL does not match any of the patterns
+#in the URLconf and it doesn’t end in a slash, an HTTP redirect is issued to the
+#same URL with a slash appended. Note that the redirect may cause
+#any data submitted in a POST request to be lost.
+APPEND_SLASH = True
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

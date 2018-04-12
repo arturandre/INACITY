@@ -1,16 +1,22 @@
 import sys
 sys.path.insert(0, '../Primitives')
 
-import Bound, StreetDTO, AmenityDTO
+from django_website.Primitives.Primitives import *
 
 from typing import List
+from abc import ABC, abstractmethod
 
-class MapMiner:
+class MapMiner(ABC):
     """Abstract class representing a Map Miner to collect data from some GIS (Geographic Information System)."""
     def __init__(self):
-        raise NotImplementedError( "Abstract classes cannot be instantiated." )
-    def getStreets(region: Bound) -> List[type(StreetDTO)]:
-        raise NotImplementedError( "Not implemented." )
+        pass
 
+    @abstractmethod
+    def getStreets(region: Bound) -> List[type(StreetDTO)]:
+        pass
+        #raise NotImplementedError( "Not implemented." )
+
+    @abstractmethod
     def getAmenities(region: Bound, amenityType) -> List[type(AmenityDTO)]:
-        raise NotImplementedError( "Not implemented." )
+        pass
+        #raise NotImplementedError( "Not implemented." )

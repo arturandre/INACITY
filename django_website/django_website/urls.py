@@ -8,7 +8,11 @@ from django.conf.urls import include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
+from django_website.views import hello
+
 urlpatterns = [
+    url(r'^hello$', hello),
+    url(r'^$', hello, name='hello'),
     # Examples:
     # url(r'^$', django_website.views.home, name='home'),
     # url(r'^django_website/', include('django_website.django_website.urls')),
