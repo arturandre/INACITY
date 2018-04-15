@@ -8,11 +8,12 @@ from django.conf.urls import include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
-from django_website.views import hello
+from django_website.views import hello, home, hours_ahead
 
 urlpatterns = [
-    url(r'^hello/?$', hello),
-    url(r'^$', hello, name='hello'),
+    url(r'^$', home, name='root'),
+    url(r'^home/?$', home, name='home'),
+    url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
     # Examples:
     # url(r'^$', django_website.views.home, name='home'),
     # url(r'^django_website/', include('django_website.django_website.urls')),

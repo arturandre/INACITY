@@ -1,0 +1,16 @@
+sys
+decode_source
+resolve_name
+abc
+types
+spec_from_file_location
+_find_spec
+_resolve_name
+module_from_spec
+contextmanager
+cache_from_source
+spec_from_loader
+source_from_cache
+warnings
+MAGIC_NUMBER
+functools

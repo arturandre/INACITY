@@ -1,0 +1,15 @@
+Counter
+six
+_load_all_namespaces
+check_url_config
+unicode_literals
+register
+Warning
+E006
+check_url_settings
+get_warning_for_invalid_pattern
+check_resolver
+Tags
+check_url_namespaces_unique
+Error
+settings

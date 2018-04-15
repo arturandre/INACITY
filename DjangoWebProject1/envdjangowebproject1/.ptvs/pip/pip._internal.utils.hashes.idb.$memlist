@@ -1,0 +1,13 @@
+FAVORITE_HASH
+absolute_import
+iterkeys
+MissingHashes
+iteritems
+InstallationError
+STRONG_HASHES
+HashMissing
+Hashes
+read_chunks
+itervalues
+hashlib
+HashMismatch

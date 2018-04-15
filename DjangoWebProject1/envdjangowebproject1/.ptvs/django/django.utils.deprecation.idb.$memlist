@@ -1,0 +1,13 @@
+CallableTrue
+CallableFalse
+CallableBool
+absolute_import
+inspect
+MiddlewareMixin
+warnings
+RemovedInDjango21Warning
+DeprecationInstanceCheck
+RenameMethodsBase
+RemovedInNextVersionWarning
+warn_about_renamed_method
+RemovedInDjango20Warning

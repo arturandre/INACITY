@@ -1,0 +1,8 @@
+BaseDatabaseIntrospection
+FieldInfo
+force_text
+warnings
+DatabaseIntrospection
+RemovedInDjango21Warning
+cx_Oracle
+TableInfo

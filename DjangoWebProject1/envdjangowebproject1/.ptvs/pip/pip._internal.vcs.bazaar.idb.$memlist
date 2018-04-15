@@ -1,0 +1,12 @@
+urllib_parse
+Bazaar
+VersionControl
+rmtree
+absolute_import
+logging
+TempDirectory
+vcs
+os
+path_to_url
+display_path
+logger

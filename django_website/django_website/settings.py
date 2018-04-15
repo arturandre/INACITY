@@ -13,12 +13,6 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import posixpath
 
-#When set to True, if the request URL does not match any of the patterns
-#in the URLconf and it doesn’t end in a slash, an HTTP redirect is issued to the
-#same URL with a slash appended. Note that the redirect may cause
-#any data submitted in a POST request to be lost.
-APPEND_SLASH = True
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_website',
     # Add your apps here to enable them
     'django.contrib.admin',
     'django.contrib.auth',
@@ -63,7 +58,7 @@ ROOT_URLCONF = 'django_website.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,3 +124,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
+
+#When set to True, if the request URL does not match any of the patterns
+#in the URLconf and it doesn’t end in a slash, an HTTP redirect is issued to the
+#same URL with a slash appended. Note that the redirect may cause
+#any data submitted in a POST request to be lost.
+APPEND_SLASH = True

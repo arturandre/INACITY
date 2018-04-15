@@ -1,0 +1,8 @@
+textwrap
+absolute_import
+COMPLETION_SCRIPTS
+Command
+CompletionCommand
+BASE_COMPLETION
+get_prog
+sys

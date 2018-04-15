@@ -1,0 +1,16 @@
+truncate_name
+unicode_literals
+force_bytes
+strip_quotes
+BaseDatabaseOperations
+six
+InsertIdVar
+datetime
+settings
+Database
+re
+DatabaseOperations
+uuid
+Oracle_datetime
+force_text
+timezone

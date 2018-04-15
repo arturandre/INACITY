@@ -4,6 +4,8 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <Name>django_website</Name>
     <RootNamespace>django_website</RootNamespace>
+    <PythonRunWebServerCommandEnvironment>PYTHONPATH="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64"</PythonRunWebServerCommandEnvironment>
+    <PythonDebugWebServerCommandEnvironment>PYTHONPATH="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64"</PythonDebugWebServerCommandEnvironment>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -49,12 +51,30 @@
     <Compile Include="django_website\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="django_website\static\django_website\css\home.css" />
+    <Content Include="django_website\static\django_website\images\favicon.ico" />
+    <Content Include="django_website\static\django_website\images\favicon.png" />
+    <Content Include="django_website\static\django_website\images\flag_en-us.png" />
+    <Content Include="django_website\static\django_website\images\flag_fr.png" />
+    <Content Include="django_website\static\django_website\images\flag_pt-br.png" />
+    <Content Include="django_website\static\django_website\images\interscitylogo.png" />
+    <Content Include="django_website\static\django_website\images\logo.png" />
+    <Content Include="django_website\static\django_website\images\mslogo.png" />
+    <Content Include="django_website\static\django_website\images\questionmark.png" />
+    <Content Include="django_website\templates\hours_ahead.html" />
+    <Content Include="django_website\templates\home.html" />
+    <Content Include="django_website\templates\base.html" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="django_website\" />
     <Folder Include="django_website\GIS\" />
     <Folder Include="django_website\Managers\" />
+    <Folder Include="django_website\static\" />
+    <Folder Include="django_website\static\django_website\images\" />
+    <Folder Include="django_website\static\django_website\" />
+    <Folder Include="django_website\static\django_website\css\" />
+    <Folder Include="django_website\templates\" />
     <Folder Include="django_website\Primitives\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />

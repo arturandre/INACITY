@@ -1,0 +1,11 @@
+BaseDatabaseIntrospection
+FieldInfo
+FlexibleFieldLookupDict
+get_field_size
+warnings
+Index
+RemovedInDjango21Warning
+TableInfo
+DatabaseIntrospection
+re
+field_size_re

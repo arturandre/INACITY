@@ -1,0 +1,12 @@
+Any
+absolute_import
+logging
+_warnings_showwarning
+warnings
+RemovedInPip11Warning
+MYPY_CHECK_RUNNING
+RemovedInPip12Warning
+PipDeprecationWarning
+Pending
+_showwarning
+install_warning_logger

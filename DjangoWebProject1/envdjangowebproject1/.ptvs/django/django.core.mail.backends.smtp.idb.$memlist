@@ -1,0 +1,10 @@
+socket
+threading
+BaseEmailBackend
+settings
+ssl
+DNS_NAME
+EmailBackend
+sanitize_address
+force_str
+smtplib

@@ -1,0 +1,13 @@
+RemovedInDjango21Warning
+six
+time
+MemcachedCache
+force_str
+warnings
+PyLibMCCache
+cached_property
+pickle
+DEFAULT_TIMEOUT
+BaseCache
+BaseMemcachedCache
+re

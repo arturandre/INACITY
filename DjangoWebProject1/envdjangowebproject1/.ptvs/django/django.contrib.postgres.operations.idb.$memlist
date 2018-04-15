@@ -1,0 +1,8 @@
+UnaccentExtension
+Operation
+HStoreExtension
+CreateExtension
+TrigramExtension
+register_type_handlers
+BtreeGinExtension
+CITextExtension

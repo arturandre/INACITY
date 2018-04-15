@@ -1,0 +1,5 @@
+register_hstore
+register_type_handlers
+six
+ProgrammingError
+psycopg2
