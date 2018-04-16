@@ -3,15 +3,36 @@
 <head>
     {% load staticfiles %}
     <link rel="shortcut icon" type="image/png" href="{% static 'django_website/images/favicon.png' %}?v=2"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'django_website/css/home.css' %}"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" src="{% static 'django_website/scripts/base.js' %}"></script>
+    {% block scripts %}{% endblock %}
+
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar navbar-inverse">
-        <div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#"><img border="0" alt="INvestigate and Analyze a CITY" src="{% static 'django_website/images/logo_name.png' %}" height="51px"></a>
+        
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link" href="#">About</a>
+            <a class="nav-item nav-link" href="#">Contact</a>
+          </div>
+        </div>
+        <div class="navbar-nav navbar-right">
+                <a href="/fr"><img class="language-flag" border="0" alt="Langue française" src="{% static 'django_website/images/flag_fr.png' %}"></a>
+                <a href="/en-us"><img class="language-flag" border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}"></a>
+                <a href="/pt-br"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
+        </div>
+        <!--<div class="container-fluid">
             <div class="navbar-header">
                 <div class="row">
                     <div class="col-sm-12">
@@ -29,7 +50,7 @@
                 <li><a href="/en-us"><img border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}" width="20px" height="20px"></a></li>
                 <li><a href="/pt-br"><img border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}" width="20px" height="20px"></a></li>
             </ul>
-        </div>
+        </div>-->
     </nav>
     <div class="jumbotron container">
         <h1><img border="0" alt="Langue française" src="{% static 'django_website/images/logo.png' %}" width="100px"> INACITY</h1>

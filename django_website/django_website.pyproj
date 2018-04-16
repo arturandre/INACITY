@@ -4,8 +4,10 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <Name>django_website</Name>
     <RootNamespace>django_website</RootNamespace>
-    <PythonRunWebServerCommandEnvironment>PYTHONPATH="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64"</PythonRunWebServerCommandEnvironment>
-    <PythonDebugWebServerCommandEnvironment>PYTHONPATH="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64"</PythonDebugWebServerCommandEnvironment>
+    <PythonRunWebServerCommandEnvironment>PYTHONPATH="%Python36%"</PythonRunWebServerCommandEnvironment>
+    <PythonDebugWebServerCommandEnvironment>PYTHONPATH="C:\Users\Andre\AppData\Local\Programs\Python\Python36"</PythonDebugWebServerCommandEnvironment>
+    <InterpreterId>{dcd5f14b-123b-407b-8c74-7034c2151f78}</InterpreterId>
+    <InterpreterVersion>3.5</InterpreterVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -61,6 +63,8 @@
     <Content Include="django_website\static\django_website\images\logo.png" />
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
+    <Content Include="django_website\static\django_website\scripts\base.js" />
+    <Content Include="django_website\static\django_website\scripts\home.js" />
     <Content Include="django_website\templates\hours_ahead.html" />
     <Content Include="django_website\templates\home.html" />
     <Content Include="django_website\templates\base.html" />
@@ -74,8 +78,12 @@
     <Folder Include="django_website\static\django_website\images\" />
     <Folder Include="django_website\static\django_website\" />
     <Folder Include="django_website\static\django_website\css\" />
+    <Folder Include="django_website\static\django_website\scripts\" />
     <Folder Include="django_website\templates\" />
     <Folder Include="django_website\Primitives\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{dcd5f14b-123b-407b-8c74-7034c2151f78}\3.5" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 

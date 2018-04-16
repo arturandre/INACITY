@@ -1,13 +1,34 @@
 ﻿{% extends "base.html" %}
+{% block scripts %}
+{% load staticfiles %}
+
+<link rel="stylesheet" href="{% static 'django_website/css/home.css' %}"/>
+<script type="text/javascript" src="{% static 'django_website/scripts/home.js' %}"></script>
+
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m-xHYac&libraries=visualization,geometry"></script>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+{% endblock %}
+
 {% block title %}{{WebsiteName}} | Home{% endblock %}
 {% block content %}
     <div class="container">
-        <div class="col-sm-6 left-column">
-            <div class="text">mapside</div>
-        </div>
-        <div class="col-sm-6 right-column">
-            <div class="text">imageside</div>
-        </div>
-        
+  <div class="row">
+    <div class="col-sm left-column">
+         <div class="btn-group" role="group">
+           <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+           Map provider
+           </button>
+           <div class="dropdown-menu" aria-labelledby="btnMapProvider">
+             <a class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
+             <a class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
+           </div>
+         </div>
+       <div id="map"></div>
     </div>
+    <div class="col-sm right-column">
+      Image side
+    </div>
+  </div>
+</div>
+
 {% endblock %}
