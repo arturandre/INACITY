@@ -1,6 +1,7 @@
-import sys
-sys.path.insert(0, '../GIS')
-import MapMiner
+#import sys
+#sys.path.insert(0, '../GIS')
+
+from django_website.GIS.MapMiner import MapMiner
 from typing import List
 
 class MapMinerManager:

@@ -1,5 +1,5 @@
-import sys
-sys.path.insert(0, '../Primitives')
+#import sys
+#sys.path.insert(0, '../Primitives')
 
 from django_website.Primitives.Primitives import *
 

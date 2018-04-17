@@ -1,4 +1,16 @@
-﻿#btnMapProvider
+﻿.sponsor-logo{
+     height:60px;
+}
+
+.inacity-logo {
+    width:100px;
+}
+
+.inacity-brand-logo {
+    height:51px;
+}
+
+#btnMapProvider
 {
     margin:1rem 0;
 }

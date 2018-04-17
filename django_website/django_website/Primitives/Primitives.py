@@ -6,3 +6,6 @@ class Bound:
 
 class AmenityDTO:
     pass
+
+class ImageDTO:
+    pass

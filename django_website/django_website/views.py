@@ -1,9 +1,12 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
 from django.shortcuts import render
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse
 import datetime
 
+##############GLOBALS####################
 def merge_two_dicts(x, y):
     """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
@@ -11,6 +14,18 @@ def merge_two_dicts(x, y):
     return z
 
 TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
+##############GLOBALS####################
+
+def simple_upload(request):
+    local_vars = {}
+    htmlfile = 'simple_upload.html'
+    if request.method == 'POST' and 'myfile' in request.FILES:
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        local_vars = {'uploaded_file_url': uploaded_file_url}
+    return render(request, htmlfile, merge_two_dicts(TEMPLATE_GLOBAL_VARS, local_vars))
 
 def hello(request):
     return HttpResponse("Hello world")
