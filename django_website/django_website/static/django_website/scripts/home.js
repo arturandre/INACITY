@@ -1,9 +1,19 @@
-﻿//import OpenLayersHandler from 'OpenLayersHandler.js';
-
-var openLayersHandler = null;
+﻿var openLayersHandler = null;
 
 $(document).ready(function () {
-    //load_map('googlemaps');
-    openLayersHandler = new OpenLayersHandler('map');
-    //load_map_tiles();
+    openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
+    $('#btnOSMMapsTiles').addClass('disabled');
 });
+
+function changeMapProviderClick(mapProviderId, event)
+{
+    if (!event.srcElement && !event.id) return;
+    let elem_id = event.srcElement || event.id;
+    let element = $('#' + elem_id);
+    if (element.hasClass('disabled')) return;
+    element.siblings().each(function (it, val) {
+        $('#' + val.id).removeClass('disabled');
+    });
+    element.addClass('disabled');
+    openLayersHandler.changeMapProvider(mapProviderId);
+}

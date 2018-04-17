@@ -1,8 +1,11 @@
 ﻿let instance = null;
 
+/*HTMLDIVtarget: The DIV that will be the container of map tiles, the map itself in other words*/
+/*mapProviderId: osm_tiles: OSM Map, google_roadmap_tiles: Google Maps*/
+
 class OpenLayersHandler
 {
-    constructor(HTMLDIVtarget)
+    constructor(HTMLDIVtarget, defaultTileProvider)
     {
         if (!HTMLDIVtarget)
         {
@@ -33,7 +36,7 @@ class OpenLayersHandler
         });
         this.map = new ol.Map();
         this.map.setTarget(HTMLDIVtarget);
-        this.map.addLayer(this.sources['osm_tiles']);
+        this.map.addLayer(this.sources[defaultTileProvider] || this.sources['osm_tiles']);
         this.map.setView(this.view);
         this.map.renderSync();
 

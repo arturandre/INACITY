@@ -22,8 +22,9 @@
            Map provider
            </button>
            <div class="dropdown-menu" aria-labelledby="btnMapProvider">
-             <a class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
-             <a class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
+               <!--changeMapProviderClick@home.js-->
+             <a id="btnGoogleMapsTiles" onclick="changeMapProviderClick('google_roadmap_tiles', this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
+             <a id="btnOSMMapsTiles" onclick="changeMapProviderClick('osm_tiles', this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
            </div>
          </div>
        <div id="map"  class="map"></div>
