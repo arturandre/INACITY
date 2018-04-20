@@ -39,6 +39,9 @@
     <Compile Include="django_website\GIS\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="django_website\ImageFilters\commonFunctions.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="django_website\ImageFilters\GreeneryFilter.py">
       <SubType>Code</SubType>
     </Compile>
@@ -59,6 +62,7 @@
     <Compile Include="django_website\wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="django_website\static\django_website\css\base.css" />
     <Content Include="django_website\static\django_website\css\home.css" />
     <Content Include="django_website\static\django_website\images\favicon.ico" />
     <Content Include="django_website\static\django_website\images\favicon.png" />

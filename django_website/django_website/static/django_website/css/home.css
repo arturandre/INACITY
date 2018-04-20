@@ -1,14 +1,4 @@
-﻿.sponsor-logo{
-     height:60px;
-}
-
-.inacity-logo {
-    width:100px;
-}
-
-.inacity-brand-logo {
-    height:51px;
-}
+﻿
 
 #btnMapProvider
 {
@@ -21,17 +11,21 @@
 
 .left-column {
     width:50%;
-        /*padding-top:50%;*/
-    background-color:red;
     margin-right:15px;
     margin-bottom:auto;
+
+    border-color:#fb6868;
+    border-style:dashed;
+    border-width:1px;
 }
 .right-column {
     margin-left:15px;
     width:50%;
     padding-top:50%;
-    background-color:blue;
-
+    
+    border-color:#5e66ff;
+    border-style:dashed;
+    border-width:1px;
 }
 
 .text {
