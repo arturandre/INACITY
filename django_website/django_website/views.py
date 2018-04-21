@@ -29,7 +29,7 @@ def simple_upload(request):
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 def gsvtest(request):
-    contents = urllib.request.urlopen("http://localhost:3000/gsvtest").read()
+    contents = urllib.request.urlopen("http://localhost:1337/gsvtest").read()
     return HttpResponse(contents)
 
 def hello(request):
