@@ -9,7 +9,7 @@ class ImageFilter(ABC):
     @property
     @abstractmethod
     def filterName(self):
-        """This property represents the filter's name that'll be used in the UI"""
+        """This property represents the filter's name that'll be displayed in the UI"""
         pass
 
     @property

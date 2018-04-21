@@ -1,5 +1,6 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
+import urllib.request
 from django.shortcuts import render
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -7,13 +8,13 @@ from django.http import Http404, HttpResponse
 import datetime
 
 ##############GLOBALS####################
-def merge_two_dicts(x, y):
+def __merge_two_dicts(x, y):
     """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
     return z
 
-TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
+__TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 ##############GLOBALS####################
 
 def simple_upload(request):
@@ -25,9 +26,14 @@ def simple_upload(request):
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
         local_vars = {'uploaded_file_url': uploaded_file_url}
-    return render(request, htmlfile, merge_two_dicts(TEMPLATE_GLOBAL_VARS, local_vars))
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+def gsvtest(request):
+    contents = urllib.request.urlopen("http://localhost:3000/gsvtest").read()
+    return HttpResponse(contents)
 
 def hello(request):
+    
     return HttpResponse("Hello world")
 
 def home(request):
@@ -35,10 +41,10 @@ def home(request):
 
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
-    return render(request, htmlfile, merge_two_dicts(TEMPLATE_GLOBAL_VARS, local_vars))
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 def hours_ahead(request, hour_offset):
-    global TEMPLATE_GLOBAL_VARS
+    global __TEMPLATE_GLOBAL_VARS
     try:
         hour_offset = int(hour_offset)
     except ValueError:
@@ -47,4 +53,4 @@ def hours_ahead(request, hour_offset):
 
     htmlfile = 'hours_ahead.html'
     local_vars = {'hour_offset': hour_offset, 'next_time': next_time}
-    return render(request, htmlfile, merge_two_dicts(TEMPLATE_GLOBAL_VARS, local_vars))
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))

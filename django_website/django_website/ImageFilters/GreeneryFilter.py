@@ -17,12 +17,12 @@ class GreeneryFilter(ImageFilter):
     def __init__(self):
         return super().__init__()
 
+    @property
     def filterName(self):
         return "Greenery"
         pass
 
     @property
-    @abstractmethod
     def filterId(self):
         return "Greenery"
 

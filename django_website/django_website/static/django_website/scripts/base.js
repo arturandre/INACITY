@@ -1,4 +1,13 @@
-﻿function loadScript(url, callback) {
+﻿
+
+function loadScript(url, callback) {
+    /*////////////// SAMPLE OS USE ///////////
+    //Use this in any javascript environment (Rhino)
+    loadScript("http://your.cdn.com/second.js", function(){
+        //initialization code
+    });
+    
+    */
 
     var script = document.createElement("script")
     script.type = "text/javascript";
