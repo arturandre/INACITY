@@ -15,10 +15,10 @@
 {% block title %}{{WebsiteName}} | Home{% endblock %}
 {% block content %}
   
-  <div class="row">
+<div class="row">
     <div class="col-sm left-column">
-         <div class="btn-group" role="group">
-           <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+<div class="btn-group" role="group">
+           <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle provider-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
            Map provider
            </button>
            <div class="dropdown-menu" aria-labelledby="btnMapProvider">
@@ -27,10 +27,26 @@
              <a id="btnOSMMapsTiles" onclick="changeMapProviderClick('osm_tiles', this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
            </div>
          </div>
-       <div id="map"  class="map"></div>
+        </div>
+    <div class="col-sm right-column">
+        <div class="btn-group" role="group">
+           <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle provider-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+           Image provider
+           </button>
+           <div class="dropdown-menu" aria-labelledby="btnImageProvider">
+             <a id="btnGoogleStreetViewProvider" class="dropdown-item" href="javascript:void(0);">Google Street View</a>
+             <a id="btnProviderPlaceholder"  class="dropdown-item disabled" href="javascript:void(0);">Image Provider Placeholder</a>
+           </div>
+         </div>
+    </div>
+</div>
+
+  <div class="row">
+    <div class="col-sm left-column">
+       <div id="map" class="map"></div>
     </div>
     <div class="col-sm right-column">
-      Image side
+        <img id="imgUrbanPicture" src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac"/>
     </div>
   </div>
 

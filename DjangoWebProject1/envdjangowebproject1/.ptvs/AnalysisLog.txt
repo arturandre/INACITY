@@ -2952,3 +2952,8 @@ C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\Micro
 2018-04-14T18:37:59: Saving group "C:\Users\A\Documents\ProjetosDev\INACITY\INACITY_solution\DjangoWebProject1\envdjangowebproject1\Lib\site-packages\pytz"
 2018-04-14T18:37:59: End of group "C:\Users\A\Documents\ProjetosDev\INACITY\INACITY_solution\DjangoWebProject1\envdjangowebproject1\Lib\site-packages\pytz"
 2018-04-14T18:38:01: Deleting 0 files
+
+2018-04-21T19:20:56: Start analysis
+2018-04-21T19:20:57: [WARNING] Library was set explicitly - skipping path detection
+2018-04-21T19:20:57: IncludeModulesFromModulePath = win32com
+2018-04-21T19:21:04: Deleting 0 files

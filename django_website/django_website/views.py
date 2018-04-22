@@ -1,11 +1,14 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
 import urllib.request
+import requests
 from django.shortcuts import render
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse
 import datetime
+
+from django_website.Managers.ImageMinerManager import ImageMinerManager
 
 ##############GLOBALS####################
 def __merge_two_dicts(x, y):
@@ -27,10 +30,6 @@ def simple_upload(request):
         uploaded_file_url = fs.url(filename)
         local_vars = {'uploaded_file_url': uploaded_file_url}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-
-def gsvtest(request):
-    contents = urllib.request.urlopen("http://localhost:1337/gsvtest").read()
-    return HttpResponse(contents)
 
 def hello(request):
     

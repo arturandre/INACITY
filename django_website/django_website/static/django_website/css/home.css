@@ -1,6 +1,10 @@
-﻿
+﻿#imgUrbanPicture
+{
+    width:100%;
+    height:100%;
+}
 
-#btnMapProvider
+.provider-btn
 {
     margin:1rem 0;
 }
@@ -19,9 +23,9 @@
     border-width:1px;
 }
 .right-column {
-    margin-left:15px;
     width:50%;
-    padding-top:50%;
+    margin-left:15px;
+    margin-bottom:auto;
     
     border-color:#5e66ff;
     border-style:dashed;
@@ -40,9 +44,9 @@
 }
 
 #map {
-    height:400px;
+    /*Matches image size*/
+    height:523px;
     width: 100%;
-    /*height: 100%;*/
 }
 
 a.dropdown-item{

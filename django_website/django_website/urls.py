@@ -12,7 +12,6 @@ from django_website.views import *
 
 urlpatterns = [
     url(r'^$', home, name='root'),
-    url(r'^gsvtest/?$', gsvtest, name='gsvtest'),
     url(r'^home/?$', home, name='home'),
     url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
     url(r'^simple_upload/?$', simple_upload),
