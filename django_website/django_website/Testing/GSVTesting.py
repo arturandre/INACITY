@@ -1,4 +1,5 @@
 import requests
+from django_website.ImageMiners.GoogleStreetViewMiner import GoogleStreetViewMiner
 from django_website.Managers.ImageMinerManager import ImageMinerManager
 
 class GSVTesting(object):
@@ -34,7 +35,11 @@ class GSVTesting(object):
 
     def _gsvurltest(self):
         imageMiner = ImageMinerManager()
-        testurl = ImageMinerManager.testGoogleStreetViewMiner()
+        size = {"width": 640, "height": 640}
+        location = {"lat": -23.560271, "lon": -46.731295}
+        heading = 180
+        pitch=-0.76
+        GoogleStreetViewMiner._GoogleStreetViewMiner__imageURLBuilder(size, location, heading, pitch, GoogleStreetViewMiner._GoogleStreetViewMiner__key)
         return self.gsvurltestmock == testurl
 
 
