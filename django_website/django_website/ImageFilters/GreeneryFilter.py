@@ -13,20 +13,21 @@ from django_website.Primitives.Primitives import ImageDTO
 
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
+    
 
-    def __init__(self):
-        return super().__init__()
-
-    @property
-    def filterName(self):
-        return "Greenery"
-        pass
-
-    @property
-    def filterId(self):
-        return "Greenery"
+    filterName = "Greenery"
+    filterId = "Greenery"
 
     #Based on mt-li-espectral
-    def processImage(self, image: ImageDTO) -> ImageDTO:
+    def processImage(image: ImageDTO) -> ImageDTO:
         mask = mt_li_espectral(image.data)
-        return ImageDTO()
+        return ImageDTO(mask)
+
+    def _processImageMock() -> ImageDTO:
+        imageMock = ImageDTO(imageio.imread('django_website/Testing/gsvimagetestmock.png'))
+        mask = mt_li_espectral(imageMock.data)
+        imageMock.data[~mask, 1:2] = .0
+        imageMock.data[mask, 0] = .0
+        imageMock.data[mask, 2] = .0
+        retimg = imageMock.data
+        return retimg

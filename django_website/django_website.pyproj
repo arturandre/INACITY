@@ -35,11 +35,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="django_website\GIS\MapMiner.py" />
-    <Compile Include="django_website\GIS\OSMMiner.py">
+    <Compile Include="django_website\ImageFilters\__init__.py" />
+    <Compile Include="django_website\ImageMiners\__init__.py" />
+    <Compile Include="django_website\MapMiners\MapMiner.py" />
+    <Compile Include="django_website\MapMiners\OSMMiner.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="django_website\GIS\__init__.py">
+    <Compile Include="django_website\MapMiners\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\ImageFilters\commonFunctions.py">
@@ -55,6 +57,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\ImageMiners\ImageMiner.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="django_website\Managers\ImageFilterManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\Managers\ImageMinerManager.py">
@@ -95,11 +100,12 @@
     <Content Include="django_website\templates\home.html" />
     <Content Include="django_website\templates\base.html" />
     <Content Include="django_website\templates\simple_upload.html" />
+    <Content Include="django_website\Testing\gsvimagetestmock.png" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="django_website\" />
-    <Folder Include="django_website\GIS\" />
+    <Folder Include="django_website\MapMiners\" />
     <Folder Include="django_website\Managers\" />
     <Folder Include="django_website\ImageFilters\" />
     <Folder Include="django_website\media\" />

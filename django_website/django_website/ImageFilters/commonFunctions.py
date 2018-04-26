@@ -1,3 +1,6 @@
+import numpy as np
+from skimage import color
+
 ONE_THIRD = 1.0/3.0
 ONE_SIXTH = 1.0/6.0
 TWO_THIRD = 2.0/3.0

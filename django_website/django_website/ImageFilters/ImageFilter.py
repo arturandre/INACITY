@@ -3,20 +3,24 @@ from abc import ABC, abstractmethod
 
 class ImageFilter(ABC):
     """abstract class describing the common interface to all Image Filter classes"""
-    def __init__(self):
-        pass
 
-    @property
-    @abstractmethod
-    def filterName(self):
-        """This property represents the filter's name that'll be displayed in the UI"""
-        pass
+    _subclasses = []
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._subclasses.append(cls)
+        print(cls)
+        if cls.filterName is None:
+            raise NotImplementedError("filterName not defined in subclass: " + cls.__name__)
+        if cls.filterId is None:
+            raise NotImplementedError("filterId not defined in subclass: " + cls.__name__)
 
-    @property
-    @abstractmethod
-    def filterId(self):
-        """This property represents id used to catalog all available filters"""
-        pass
+    __all__ = ["filterName", "filterId", "processImage"]
+
+    """This property represents the filter's name that'll be displayed in the UI"""
+    filterName = None
+    
+    """This property represents id used to catalog all available filters"""
+    filterId = None
 
     @abstractmethod
     def processImage(self, image: ImageDTO) -> ImageDTO:
