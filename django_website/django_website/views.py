@@ -1,5 +1,6 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
+import json
 import urllib.request
 import requests
 from django.shortcuts import render
@@ -7,8 +8,11 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import Http404, HttpResponse
 import datetime
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django_website.Managers.ImageMinerManager import ImageMinerManager
+from django_website.Managers.ImageFilterManager import ImageFilterManager
+from scipy import misc
 
 ##############GLOBALS####################
 def __merge_two_dicts(x, y):
@@ -19,6 +23,24 @@ def __merge_two_dicts(x, y):
 
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 ##############GLOBALS####################
+
+@api_view(['GET', 'POST'])
+def integrationTest(request):
+    htmlfile = 'integrationTest.html'
+    local_vars = {'sample_key': 'sample_data'}
+    if request.method == 'GET':
+        return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+    elif request.method == 'POST':
+        jsondata = request.data
+        location = jsondata['location']
+        imageMinerManager = ImageMinerManager()
+        cLoc = location
+        d = imageMinerManager.ImageMiners['Google Street View'].getImageFromLocation(cLoc)
+
+        imageFilterManager = ImageFilterManager()
+        e = imageFilterManager.ImageFilters['Greenery'].processImage(d)
+        png = e.getPNG()
+        return HttpResponse(png, content_type='image/png')
 
 def simple_upload(request):
     local_vars = {}
@@ -36,8 +58,6 @@ def hello(request):
     return HttpResponse("Hello world")
 
 def home(request):
-    now = datetime.datetime.now()
-
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))

@@ -13,9 +13,12 @@ from django_website.views import *
 urlpatterns = [
     url(r'^$', home, name='root'),
     url(r'^home/?$', home, name='home'),
+    url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
     url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
     url(r'^simple_upload/?$', simple_upload),
     url(r'^media/.*$', simple_upload),
+
+    #REST API
 
     # Examples:
     # url(r'^$', django_website.views.home, name='home'),

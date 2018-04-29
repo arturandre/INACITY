@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "django_website", "django_website\django_website.pyproj", "{D098C9BD-C349-482F-AD99-D7C9D7149837}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CF784EB3-0EC0-4065-81D4-CA5A2D9DCA10} = {CF784EB3-0EC0-4065-81D4-CA5A2D9DCA10}
+	EndProjectSection
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "DjangoWebProject1", "DjangoWebProject1\DjangoWebProject1.pyproj", "{570B1994-FF30-446A-BBF6-D3265E3CC311}"
 EndProject

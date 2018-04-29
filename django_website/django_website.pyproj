@@ -8,9 +8,10 @@
     </PythonRunWebServerCommandEnvironment>
     <PythonDebugWebServerCommandEnvironment>
     </PythonDebugWebServerCommandEnvironment>
-    <InterpreterId>{431987a1-4581-43be-91cb-f277b2776ae4}</InterpreterId>
+    <InterpreterId>{dcd5f14b-123b-407b-8c74-7034c2151f78}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
-    <InterpreterPath>C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python36_64\python.exe</InterpreterPath>
+    <InterpreterPath>
+    </InterpreterPath>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -94,8 +95,10 @@
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
+    <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
     <Content Include="django_website\static\django_website\scripts\home.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
+    <Content Include="django_website\templates\integrationTest.html" />
     <Content Include="django_website\templates\hours_ahead.html" />
     <Content Include="django_website\templates\home.html" />
     <Content Include="django_website\templates\base.html" />
@@ -120,7 +123,7 @@
     <Folder Include="django_website\Primitives\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{431987a1-4581-43be-91cb-f277b2776ae4}\3.5" />
+    <InterpreterReference Include="{dcd5f14b-123b-407b-8c74-7034c2151f78}\3.5" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 
