@@ -1,4 +1,14 @@
-﻿.language-flag{
+﻿.active.active-list-item:not(:first-child){
+    border-top-color: #f19999;
+    border-top-width: 1px;
+    border-top-style: dashed;
+}
+
+.hidden{
+    display:none;
+}
+
+.language-flag{
     height:100%;
     width:100%;
 }

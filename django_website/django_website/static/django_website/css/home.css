@@ -1,33 +1,42 @@
-﻿#imgUrbanPicture
+﻿.region-div{
+    border-color:#4cff00;
+    border-style:dashed;
+    border-width:1px;
+}
+
+.map-div {
+    border-color:#fb6868;
+    border-style:dashed;
+    border-width:1px;
+}
+.image-div {
+    border-color:#5e66ff;
+    border-style:dashed;
+    border-width:1px;
+}
+
+#imgUrbanPicture
 {
     width:100%;
     height:100%;
 }
 
-.provider-btn
+.single-option-btn
 {
     margin:1rem 0;
 }
-
-
 
 .left-column {
     width:50%;
     margin-right:15px;
     margin-bottom:auto;
-
-    border-color:#fb6868;
-    border-style:dashed;
-    border-width:1px;
+    padding-bottom:15px;
 }
 .right-column {
     width:50%;
     margin-left:15px;
     margin-bottom:auto;
-    
-    border-color:#5e66ff;
-    border-style:dashed;
-    border-width:1px;
+    padding-bottom:15px;
 }
 
 .text {
