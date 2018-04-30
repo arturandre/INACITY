@@ -98,6 +98,7 @@
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
     <Content Include="django_website\static\django_website\scripts\home.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
+    <Content Include="django_website\templates\about.html" />
     <Content Include="django_website\templates\integrationTest.html" />
     <Content Include="django_website\templates\home.html" />
     <Content Include="django_website\templates\base.html" />

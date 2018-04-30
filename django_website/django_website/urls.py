@@ -13,6 +13,7 @@ from django_website.views import *
 urlpatterns = [
     url(r'^$', home, name='root'),
     url(r'^home/?$', home, name='home'),
+    url(r'^about/?$', about, name='about'),
     url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
     url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
     url(r'^simple_upload/?$', simple_upload),

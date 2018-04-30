@@ -29,3 +29,16 @@ function loadScript(url, callback) {
     script.src = url;
     document.getElementsByTagName("head")[0].appendChild(script);
 }
+
+$(document).ready(function () { 
+    $.each($("#divNavBar").children(), function (i, v) {
+        let urlpath = v.href.replace(/^.*\/\/[^\/]+/, '');
+        if (urlpath === window.location.pathname) {
+            $(v).addClass("active");
+            $(v).append(' <span class="sr-only">(current)</span>');
+        }
+        else {
+            $(v).removeClass("active");
+        }
+    });
+});

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block scripts %}
+{% load staticfiles %}
+{% endblock %}
+
+
+{% block title %}{{WebsiteName}} | About{% endblock %}
+
+{% block pageheader %}
+
+{% endblock %}
+
+{% block content %}
+<p>INACITY is a platform to collect and analyse urban images, that integrates Application Programming Interfaces (APIs), image retrieval systems, Geographical Information Systems (GISes), digital maps and Computer Vision techniques.</p>
+<p>It was created during <a href="http://vision.ime.usp.br/~arturao/">Artur André Oliveira</a> master's program at <a href="https://www.ime.usp.br/">IME-USP</a> and advised by <a href="https://www.ime.usp.br/hirata">Roberto Hirata Jr.</a></p>
+<p>You can download the <a href="http://vision.ime.usp.br/~arturao/INACITYDissertation.pdf">master's thesis (in portuguese)</a> with deeper analyses about the greenery image filters and also the <a href="https://github.com/arturandre/INACITY_groundtruth">groundtruth</a> used to estimate the filter's parameters and to compare their performance.</p>
+{% endblock %}

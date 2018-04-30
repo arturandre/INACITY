@@ -12,22 +12,30 @@
 
 
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m-xHYac&libraries=visualization,geometry"></script>
-
-
+<script type="text/javascript" src="{% static 'django_website/scripts/home.js' %}"></script>
 {% endblock %}
 
 {% block title %}{{WebsiteName}} | Home{% endblock %}
+
+{% block pageheader %}
+    <div class="container alert alert-warning text-center" role="alert">
+        A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.
+    </div>
+
+{% endblock %}
+
 {% block content %}
+
 <div class="btn-group" role="group">
-            <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-             Change mode
-           </button>
-           <div class="dropdown-menu" aria-labelledby="btnMapProvider">
-               <!--changeModeClick@home.js-->
-             <a id="btnMapMode" onclick="changeModeClick('Map', this)" class="dropdown-item" href="javascript:void(0);">Map Mode</a>
-             <a id="btnImageMode" onclick="changeModeClick('Image', this)" class="dropdown-item" href="javascript:void(0);">Image Mode</a>
-           </div>
-        </div>
+    <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Change mode
+    </button>
+    <div class="dropdown-menu" aria-labelledby="btnMapProvider">
+        <!--changeModeClick@home.js-->
+        <a id="btnMapMode" onclick="changeModeClick('Map', this)" class="dropdown-item" href="javascript:void(0);">Map Mode</a>
+        <a id="btnImageMode" onclick="changeModeClick('Image', this)" class="dropdown-item" href="javascript:void(0);">Image Mode</a>
+    </div>
+</div>
   <div class="row">
     <div class="col-sm left-column region-div hidden">
         <div class="btn-group" role="group">
@@ -94,5 +102,5 @@
     </div>
 </div>
 
-<script type="text/javascript" src="{% static 'django_website/scripts/home.js' %}"></script>
+
 {% endblock %}

@@ -24,6 +24,11 @@ def __merge_two_dicts(x, y):
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 ##############GLOBALS####################
 
+def about(request):
+    htmlfile = 'about.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
 @api_view(['GET', 'POST'])
 def integrationTest(request):
     htmlfile = 'integrationTest.html'

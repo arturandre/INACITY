@@ -23,10 +23,10 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
-            <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
-            <a class="nav-item nav-link" href="#">About</a>
-            <a class="nav-item nav-link" href="#">Contact</a>
+          <div id="divNavBar" class="navbar-nav">
+            <a class="nav-item nav-link active" href="/home">Home</a>
+            <a class="nav-item nav-link" href="/about">About</a>
+            <!--<a class="nav-item nav-link" href="/contact">Contact</a>-->
           </div>
         </div>
         <div class="navbar-nav navbar-right">
@@ -35,38 +35,41 @@
                 <a href="/pt-br"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
         </div>
     </nav>
-    <div class="jumbotron container">
-        <h1><img border="0" class="inacity-logo" alt="Logo" src="{% static 'django_website/images/logo.png' %}"> INACITY</h1>
-        <p class="lead">INvestigate and Analyze a CITY - INACITY</p>
-        <div class="row">
-            <div class="col-sm-2"><p>Sponsors:</p></div>
-            <div class="col-sm-5">
-                <a href="http://interscity.org/">
-                <img border="0" class="sponsor-logo" alt="Microsoft" src="{% static 'django_website/images/mslogo.png' %}">
-            </a>
-            </div>
-            <div class="col-sm-5">
-                <a href="https://www.microsoft.com/">
-                    <img border="0" class="sponsor-logo" alt="InterSCity" src="{% static 'django_website/images/interscitylogo.png' %}">
-                </a>
-            </div>
 
+    <div class="jumbotron row">
+        <div class="col-sm">
+          <h1><img border="0" class="inacity-logo" alt="Logo" src="{% static 'django_website/images/logo.png' %}"> INACITY</h1>
+          <p class="lead">INvestigate and Analyze a CITY - INACITY</p>
+        </div>
+        <div class="col-sm">
+           <!--<div class="row">-->
+                <h4>Sponsors:</h4>
+                <div class="sponsor-div">
+                    <a href="https://www.microsoft.com/">
+                        <img border="0" class="sponsor-logo" alt="Microsoft" src="{% static 'django_website/images/mslogo.png' %}">
+                    </a>
+                    <a href="http://interscity.org/">
+                        <img border="0" class="sponsor-logo" alt="InterSCity" src="{% static 'django_website/images/interscitylogo.png' %}">
+                    </a>
+                </div>
+          <!--</div>-->
         </div>
     </div>
 
-    
-    
-    <div class="container alert alert-warning text-center" role="alert">
-        A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.
-    </div>
+    {% block pageheader %}{% endblock %}
     <div class="container">
     {% block content %}{% endblock %}
     </div>
 
+    <div class="container">
+    <footer>
     {% block footer %}
     <hr>
-    <p>Thanks for visiting my site.</p>
+    <p>2018 - INACITY</p>
+            <p>We acknowledge Microsoft for a sponsorship through the Microsoft Azure
+Sponsorship and Google for their Streetview API.</p>
     {% endblock %}
-
+        </footer>
+        </div>
 </body>
 </html>
