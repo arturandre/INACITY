@@ -40,11 +40,13 @@
     <div class="col-sm left-column region-div hidden">
         <div class="btn-group" role="group">
            <button id="btn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           Future control
+           Geographic Data
            </button>
            <div class="dropdown-menu" aria-labelledby="btn">
-               <!--changeMapProviderClick@home.js-->
-             <a id="btn" onclick="" class="dropdown-item" href="javascript:void(0);">Future button</a>
+               <!--getGeographicalData@home.js-->
+             <a id="btnGetBusStops" onclick="getGeographicalData('BusStops', this)" class="dropdown-item" href="javascript:void(0);">Bus Stops</a>
+             <a id="btnGetPharmacies" onclick="getGeographicalData('Pharmacies', this)" class="dropdown-item" href="javascript:void(0);">Pharmacies</a>
+             <a id="btnGetSchools" onclick="getGeographicalData('Schools', this)" class="dropdown-item" href="javascript:void(0);">Schools</a>
            </div>
            
         </div>

@@ -49,6 +49,11 @@ $(document).ready(function () {
     $('#btnImageMode').addClass('disabled');
 });
 
+function getGeographicalData(geoDataType, event)
+{
+
+}
+
 function updateRegionsList(vectorevent) {
     let refresh = true;
     
