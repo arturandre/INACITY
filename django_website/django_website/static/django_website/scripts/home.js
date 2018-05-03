@@ -51,7 +51,19 @@ $(document).ready(function () {
 
 function getGeographicalData(geoDataType, event)
 {
+    switch(geoDataType)
+    {
+        case 'Bus Stops':
+            break;
+        case 'Pharmacies':
+            break;
+        case 'Schools':
+            break;
+        default:
+            console.error("Unlisted geoDataType!");
+            break;
 
+    }
 }
 
 function updateRegionsList(vectorevent) {
@@ -65,7 +77,7 @@ function updateRegionsList(vectorevent) {
                 {
                     'id': newId,
                     'name': 'Region ' + newId
-                };
+        };
             break;
         case 'removefeature':
             break;
@@ -89,7 +101,7 @@ function updateRegionsList(vectorevent) {
             item.on("click", region, regionListItemClick);
             vectorSource.getFeatureById(region.id).setStyle(null);
             $("#regionsList").append(item);
-        });
+    });
     }
 }
 

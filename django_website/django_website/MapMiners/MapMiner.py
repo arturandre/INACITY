@@ -1,6 +1,7 @@
 from django_website.Primitives.Primitives import *
 from abc import ABC, abstractmethod
 from typing import List
+from django.contrib.gis.geos import Polygon
 
 class MapMiner(ABC):
     """Abstract class representing a Map Miner adapter to collect data from some GIS (Geographic Information System)."""
@@ -26,9 +27,9 @@ class MapMiner(ABC):
     mapMinerId = None
 
     @abstractmethod
-    def getStreets(region: Bound) -> List[type(StreetDTO)]:
+    def getStreets(region: Polygon) -> List[type(StreetDTO)]:
         pass
 
     @abstractmethod
-    def getAmenities(region: Bound, amenityType) -> List[type(AmenityDTO)]:
+    def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         pass
