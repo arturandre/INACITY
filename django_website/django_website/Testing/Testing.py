@@ -23,7 +23,7 @@ class Testing(object):
 
     def testAll(self):
         try:
-            tests = [("osmminer_getStreets",self._osmminer_getStreets),("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
+            tests = [("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
             lastTest = 0
             for testNo, test in enumerate(tests):
                 lastTest = testNo

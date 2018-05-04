@@ -5,50 +5,55 @@ from datetime import datetime
 import json
 from itertools import groupby
 
+def parseTimeString(timestamp):
+        return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+
 class OSMObject(object):
-    """Base class for other OSM objects, based on http://osmcode.org/osmium-concepts/."""
-    
+    """Base class for other OSM objects:
+        Attribute Name: default value
+        version: 0
+        visible: True
+        timestamp: None
+        changeset: 0
+        user: '' #user's name
+        uid: 0 #user's id
+        """
+
+    _optDefAttributes={"version": 0, "visible": True, "timestamp": None, "changeset": 0,
+        "user": "", "uid": 0}
+
     ##  'tags' attribute is set as an empty dictionary so that it's possible to try 
     ##  to look up for a 'name' tag even when an (faulty) object doesn't have any tags
-    def __init__(self, id: int, tags={}):
+    def __init__(self, id: int, type:str, tags={}, **kwargs):
         self.id = id
         self.type = type
         self.tags = tags
-        self.version = 0
-        self.visible = True
-        self.timestamp = time.time()
-        self.changeset = 0
-        #UserName
-        self.user = ""
-        #User ID
-        self.uid = 0
-        
+        for kw in OSMObject._optDefAttributes:
+            setattr(self, kw, kwargs.get('kw') if kw in kwargs else OSMObject._optDefAttributes.get('kw'))
 
-    
-        
 
 class OSMNode(OSMObject):
     """Class used as an OpenStreetMap Node object wrapper"""
-    def __init__(self, id: int, lat: Decimal, lon: Decimal, tags={}):
-        super().__init__(id, tags)
+    def __init__(self, id: int, type: str, lat: Decimal, lon: Decimal, tags={}):
+        super().__init__(id, type, tags)
         self.lat = lat
         self.lon = lon
 
 class OSMWay(OSMObject):
     """Class used as an OpenStreetMap Way object wrapper"""
-    def __init__(self, id: int, nodes: List[int], tags={}):
-        super().__init__(id, tags)
+    def __init__(self, id: int, type,  nodes: List[int], tags={}):
+        super().__init__(id, type, tags)
         self.nodes = nodes
 
 class OSMRelation(OSMObject):
     """Class used as an OpenStreetMap Way object wrapper"""
-    def __init__(self, id: int, members: List[OSMObject], tags={}):
-        super().__init__(id, tags)
+    def __init__(self, id: int, type, members: List[OSMObject], tags={}):
+        super().__init__(id, type, tags)
         self.members = members
 
 class OSM3S:
     def __init__(self, timestamp_osm_base, copyright):
-        self.timestamp_osm_base = datetime.strptime(timestamp_osm_base, "%Y-%m-%dT%H:%M:%SZ")
+        self.timestamp_osm_base = parseTimeString(timestamp_osm_base)
         self.copyright = copyright
 
     #Class method
@@ -96,11 +101,11 @@ class OSMResult:
     #Class method
     def _ElementJsonToOSMObject(jsonDict):
         if jsonDict['type'] == 'node':
-            return OSMNode(jsonDict['id'], jsonDict['lat'], jsonDict['lon'], jsonDict.get('tags'))
+            return OSMNode(jsonDict['id'], jsonDict['type'], jsonDict['lat'], jsonDict['lon'], jsonDict.get('tags'))
         elif jsonDict['type'] == 'way':
-            return OSMWay(jsonDict['id'], jsonDict['nodes'], jsonDict.get('tags'))
+            return OSMWay(jsonDict['id'], jsonDict['type'], jsonDict['nodes'], jsonDict.get('tags'))
         elif jsonDict['type'] == 'relation':
-            return OSMRelation(jsonDict['id'], OSMResult._JsonMemberListToOSMRelationMember(jsonDict['members']), jsonDict.get('tags'))
+            return OSMRelation(jsonDict['id'], jsonDict['type'], OSMResult._JsonMemberListToOSMRelationMember(jsonDict['members']), jsonDict.get('tags'))
         else:
              raise Exception("OSM Element type (%s) not implemented!" % jsonDict['type'])
 

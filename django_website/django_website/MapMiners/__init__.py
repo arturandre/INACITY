@@ -1,2 +1,2 @@
-from .MapMiner import MapMiner
-from .OSMMiner import OSMMiner
+from .MapMiner import MapMiner as MapMiner
+from .OSMMiner import OSMMiner as OSMMiner
