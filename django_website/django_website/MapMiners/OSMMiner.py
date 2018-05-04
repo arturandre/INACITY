@@ -1,7 +1,7 @@
 from django.contrib.gis.geos import Polygon, GEOSGeometry
 import requests
 from typing import List
-from django_website.Primitives.Primitives import StreetDTO, AmenityDTO
+from django_website.Primitives.Primitives import PointDTO, StreetDTO, AmenityDTO
 from django_website.Primitives.OSMPrimitives import *
 from django_website.MapMiners import MapMiner
 from itertools import chain
@@ -20,28 +20,41 @@ class OSMMiner(MapMiner):
     mapMinerId = "osm"
     
     def getStreets(region: Polygon) -> List[type(StreetDTO)]:
+        """Collect a set of Ways (from OSM) and convert them to a list of StreetDTO"""
         jsonString = requests.get(OSMMiner._createCollectStreetsQuery(region)).content
         osmResult = OSMResult.fromJsonString(jsonString)
-        streets = {}
-        g = groupby(osmResult.Ways.values(), lambda x: x.tags.get('name'))
-        for k, group in g:
+        streetSegments = {}
+        data = sorted(osmResult.Ways.values(), key=lambda x: x.tags.get('name'))
+        g = groupby(data, lambda x: x.tags.get('name'))
+        for streetName, group in g:
             nodesList = [x.nodes for x in group]
             OSMMiner._mergeWays(nodesList)
-            streets[k] = nodesList
-        for k in streets:
-            for s in streets[k]:
-                for i in range(len(s)):
-                    s[i] = osmResult.Nodes[s[i]]
-        return streets
+            if streetName in streetSegments:
+                #debug only, used to check the necessity of sorting the streets before grouping
+                #print("Existing streetName detected! (%s)" % streetName)
+                streetSegments[streetName] = streetSegments[streetName] + nodesList
+            else:
+                streetSegments[streetName] = nodesList
+        StreetsDTOList = []
+        for streetName in streetSegments:
+            for segment in streetSegments[streetName]:
+                for nodeIndex in range(len(segment)):
+                    osmNode = osmResult.Nodes[segment[nodeIndex]]
+                    segment[nodeIndex] = PointDTO(osmNode.lat, osmNode.lon)
+            StreetsDTOList.append(StreetDTO(streetName, streetSegments[streetName]))
+            
+        return StreetsDTOList
 
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         raise NotImplementedError("Not implemented.")
 
     def _createCollectStreetsQuery(region: Polygon):
+        """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
         stringRegion = str(region.coords).replace("(", "").replace(")", "").replace(",", "")
-        return OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout) + '(way["highway"~".*"](poly:"' + stringRegion + '");way["surface"~".*"](poly:"' + stringRegion + '"););(way["fixme"](poly:"' + stringRegion + '")->.a;way["highway"="footway"](poly:"' + stringRegion + '")->.a;way["highway"="service"](poly:"' + stringRegion + '")->.a;way["highway"="steps"](poly:"' + stringRegion + '")->.a;way["name"!~".*"](poly:"' + stringRegion + '")->.a;)->.remove;(._; - .remove;);(._;>;);out;'
+        return OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout) + '(way["highway"~".*"](poly:"' + stringRegion + '");way["surface"="asphalt"](poly:"' + stringRegion + '"););(way["fixme"](poly:"' + stringRegion + '")->.a;way["highway"="footway"](poly:"' + stringRegion + '")->.a;way["highway"="service"](poly:"' + stringRegion + '")->.a;way["highway"="steps"](poly:"' + stringRegion + '")->.a;way["name"!~".*"](poly:"' + stringRegion + '")->.a;)->.remove;(._; - .remove;);(._;>;);out;'
 
-    def _mergeWays(nodesSegList): 
+    def _mergeWays(nodesSegList):
+        """Collapse a list of lists of nodes from ways into a single nodes list (if endpoint nodes, from different lists in the same way, are the same)"""
         while True:
             merged = False
             for i in reversed(range(len(nodesSegList))):

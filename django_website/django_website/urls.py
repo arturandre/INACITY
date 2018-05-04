@@ -8,6 +8,8 @@ from django.conf.urls import include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
+from rest_framework.documentation import include_docs_urls
+
 from django_website.views import *
 
 urlpatterns = [
@@ -18,6 +20,7 @@ urlpatterns = [
     url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
     url(r'^simple_upload/?$', simple_upload),
     url(r'^media/.*$', simple_upload),
+    url(r'^docs/', include_docs_urls(title="INACITY's API"))
 
     #REST API
 

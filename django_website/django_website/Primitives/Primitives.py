@@ -1,8 +1,29 @@
 import imageio
 import numpy as np
+from typing import List
+import json
 
-class StreetDTO:
-    pass
+class SimpleDTO(object):
+    def toJSON(self, compact=True):
+        if compact:
+            return json.dumps(self, default=lambda o: o.__dict__, 
+                sort_keys=True, separators=(',', ':'))
+        else:
+            return json.dumps(self, default=lambda o: o.__dict__, 
+                sort_keys=True, indent=4)
+
+
+class PointDTO(SimpleDTO):
+    """Geocoordinate used for communication"""
+    def __init__(self, lat, lon):
+        self.lat = lat
+        self.lon = lon
+
+class StreetDTO(SimpleDTO):
+    """Street representation used for communication"""
+    def __init__(self, name: str, segments: List[PointDTO]):
+        self.name = name
+        self.segments = segments
 
 class AmenityDTO:
     pass
