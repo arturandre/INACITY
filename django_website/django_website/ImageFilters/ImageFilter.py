@@ -8,7 +8,6 @@ class ImageFilter(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._subclasses.append(cls)
-        print(cls)
         if cls.filterName is None:
             raise NotImplementedError("filterName not defined in subclass: " + cls.__name__)
         if cls.filterId is None:
