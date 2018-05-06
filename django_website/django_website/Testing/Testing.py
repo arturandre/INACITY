@@ -24,10 +24,18 @@ class Testing(object):
     def testAll(self):
         try:
             tests = [("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
+            failedTests = []
             lastTest = 0
             for testNo, test in enumerate(tests):
                 lastTest = testNo
-                print("%s: %s" % (test[0], ("SUCCESS" if test[1]() else "FAIL")))
+                if (test[1]()):
+                    testResult = "SUCCESS"
+                else:
+                    failedTests.append(test[0])
+                    testResult = "FAIL"
+                print("%s: %s" % (test[0], testResult))
+            if len(failedTests) > 0:
+                print("Failed tests: %s" % ", ".join(failedTests))
         except:
             print("Implementation error in Testing:", sys.exc_info()[0])
             print("While testing: %s" % tests[lastTest][0])
