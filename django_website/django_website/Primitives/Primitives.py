@@ -4,6 +4,9 @@ from typing import List
 import json
 
 class SimpleDTO(object):
+    def __init__(self):
+        pass
+
     def toJSON(self, compact=True):
         if compact:
             return json.dumps(self, default=lambda o: o.__dict__, 

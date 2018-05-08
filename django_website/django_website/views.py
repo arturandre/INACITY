@@ -1,18 +1,24 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
-import json
-import urllib.request
+import sys
+
 import requests
 from django.shortcuts import render
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-from django.http import Http404, HttpResponse
-import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django_website.Managers.ImageMinerManager import ImageMinerManager
-from django_website.Managers.ImageFilterManager import ImageFilterManager
-from scipy import misc
+from django.http import Http404, HttpResponse, JsonResponse
+
+import json
+import datetime
+from django.contrib.gis.geos import GEOSGeometry, Polygon
+
+from django_website.Managers import *
+from django_website.Primitives import *
+
+
+########### TESTING ##################
+from django.core.files.storage import FileSystemStorage
+########### TESTING ##################
 
 ##############GLOBALS####################
 def __merge_two_dicts(x, y):
@@ -21,13 +27,48 @@ def __merge_two_dicts(x, y):
     z.update(y)
     return z
 
+def openLayersLonLatToLatLon(openLayerFeatureCollection: dict):
+    """Flips in place longitude and latitude coordinates ordering"""
+    type = openLayerFeatureCollection['type']
+    if type == 'FeatureCollection':
+        features = openLayerFeatureCollection['features']
+        for f in features:
+            for poly in f['geometry']['coordinates']:
+                for c in poly:
+                    lon = c[0]
+                    c[0] = c[1] #lat -> lon
+                    c[1] = lon  #lon -> lat
+    else:
+        raise NotImplementedError("Collection type not implemented!")
+    pass
+
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
+mapMinerManager = MapMinerManager()
 ##############GLOBALS####################
 
 def about(request):
     htmlfile = 'about.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['POST'])
+def getstreets(request):
+    if request.method == 'POST':
+        jsondata = request.data
+        try:
+            openLayerFeatureCollection = json.loads(jsondata['jsondata'])
+
+            #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
+            openLayersLonLatToLatLon(openLayerFeatureCollection);
+
+            pnt = GEOSGeometry(openLayerFeatureCollection['features'][0]['geometry'].__str__())
+            streetsDTOList = mapMinerManager.getStreets(Polygon.from_ewkt(pnt.ewkt))
+            streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
+            
+        except:
+            print("Unable to parse GeoJson as GEOSGeometry!");
+            print("Error in views.getstreets(): ", sys.exc_info()[0])
+    return JsonResponse(streetsDTOJsonList, safe=False)
 
 @api_view(['GET', 'POST'])
 def integrationTest(request):
@@ -65,16 +106,4 @@ def hello(request):
 def home(request):
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
-    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-
-def hours_ahead(request, hour_offset):
-    global __TEMPLATE_GLOBAL_VARS
-    try:
-        hour_offset = int(hour_offset)
-    except ValueError:
-        raise Http404()
-    next_time = datetime.datetime.now() + datetime.timedelta(hours=hour_offset)
-
-    htmlfile = 'hours_ahead.html'
-    local_vars = {'hour_offset': hour_offset, 'next_time': next_time}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))

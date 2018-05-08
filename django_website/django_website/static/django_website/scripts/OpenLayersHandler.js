@@ -31,6 +31,7 @@ class OpenLayersHandler
             'google_roadmap_tiles': new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
         };
         this.view = new ol.View({
+            //projection: 'EPSG:4326',
             center: ol.proj.fromLonLat([ime_usp_location.lon, ime_usp_location.lat]),
             zoom: initial_zoom_level
         });

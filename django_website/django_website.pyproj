@@ -8,7 +8,7 @@
     </PythonRunWebServerCommandEnvironment>
     <PythonDebugWebServerCommandEnvironment>
     </PythonDebugWebServerCommandEnvironment>
-    <InterpreterId>{56adaa9c-6c2f-4167-95b3-f19878333ef6}</InterpreterId>
+    <InterpreterId>{dcd5f14b-123b-407b-8c74-7034c2151f78}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <InterpreterPath>
     </InterpreterPath>
@@ -68,6 +68,7 @@
     </Compile>
     <Compile Include="django_website\Managers\MapMinerManager.py" />
     <Compile Include="django_website\Managers\__init__.py" />
+    <Compile Include="django_website\Primitives\OSMPrimitives.py" />
     <Compile Include="django_website\Primitives\Primitives.py" />
     <Compile Include="django_website\Primitives\__init__.py" />
     <Compile Include="django_website\Testing\mocks.py" />
@@ -91,12 +92,14 @@
     <Content Include="django_website\static\django_website\images\flag_pt-br.png" />
     <Content Include="django_website\static\django_website\images\interscitylogo.png" />
     <Content Include="django_website\static\django_website\images\logo.png" />
+    <Content Include="django_website\static\django_website\images\logo_name.png" />
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
     <Content Include="django_website\static\django_website\scripts\home.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
+    <Content Include="django_website\static\django_website\scripts\Primitives.js" />
     <Content Include="django_website\templates\about.html" />
     <Content Include="django_website\templates\integrationTest.html" />
     <Content Include="django_website\templates\home.html" />
@@ -122,7 +125,7 @@
     <Folder Include="django_website\Primitives\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{56adaa9c-6c2f-4167-95b3-f19878333ef6}\3.5" />
+    <InterpreterReference Include="{dcd5f14b-123b-407b-8c74-7034c2151f78}\3.5" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 

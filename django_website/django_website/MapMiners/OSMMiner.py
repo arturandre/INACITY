@@ -1,8 +1,7 @@
 from django.contrib.gis.geos import Polygon, GEOSGeometry
 import requests
 from typing import List
-from django_website.Primitives.Primitives import PointDTO, StreetDTO, AmenityDTO
-from django_website.Primitives.OSMPrimitives import *
+from django_website.Primitives import *
 from django_website.MapMiners import MapMiner
 from itertools import chain
 

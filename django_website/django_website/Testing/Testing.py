@@ -23,7 +23,7 @@ class Testing(object):
 
     def testAll(self):
         try:
-            tests = [("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
+            tests = [("mapMinerManager_getStreets", self._mapMinerManager_getStreets), ("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
             failedTests = []
             lastTest = 0
             for testNo, test in enumerate(tests):
@@ -49,13 +49,16 @@ class Testing(object):
         OSMMiner._mergeWays(waysNodes2)
         return (waysNodes == mergewaysmock) and (waysNodes2 == mergewaysmock2)
 
+    def _mapMinerManager_getStreets(self):
+        poly = Polygon.from_ewkt('SRID=4326;POLYGON ((-23.55850936300801 -46.73320055007934, -23.55473281722144 -46.73105478286743, -23.55276582331022 -46.73517465591431, -23.55654242561994 -46.73732042312622, -23.55850936300801 -46.73320055007934))')
+        streetsDTOList = MapMinerManager().getStreets(poly)
+        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
+        return streetsDTOJsonList == mapmanager_getstreetsmock
 
     def _osmminer_getStreets(self):
         poly = Polygon.from_ewkt('POLYGON ((-23.62227134253228 -46.63661956787109, -23.60017200992538 -46.63661956787109, -23.60017200992538 -46.60443305969238, -23.62227134253228 -46.60443305969238, -23.62227134253228 -46.63661956787109))')
         streetsDTOList = OSMMiner.getStreets(poly)
-        streetsDTOJsonList = ''
-        for i in streetsDTOList:
-            streetsDTOJsonList = streetsDTOJsonList+i.toJSON()
+        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
         return streetsDTOJsonList == getstreetsmock
 
     def _osmminer_collectStreetsQuery(self):

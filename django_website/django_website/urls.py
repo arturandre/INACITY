@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^home/?$', home, name='home'),
     url(r'^about/?$', about, name='about'),
     url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
-    url(r'^nexttime/(\d{1,2})/?$', hours_ahead),
+    url(r'^getstreets/?$', getstreets, name='getstreets'),
     url(r'^simple_upload/?$', simple_upload),
     url(r'^media/.*$', simple_upload),
     url(r'^docs/', include_docs_urls(title="INACITY's API"))

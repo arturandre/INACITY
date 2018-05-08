@@ -51,9 +51,23 @@ $(document).ready(function () {
 
 function getGeographicalData(geoDataType, event)
 {
+    var urlGeographicObject = "";
+    var selectedFeatures = [];
+    $.each(usersection.regions, function (index, region) {
+        if (!region.active) return;
+        selectedFeatures.push(vectorSource.getFeatureById(region.id));
+    });
+
+    var geoJsonFormatter = new ol.format.GeoJSON()
+    var geoJsonFeatures = geoJsonFormatter.writeFeatures(selectedFeatures, { 'featureProjection': 'EPSG:3857' });
+
     switch(geoDataType)
     {
+        case 'Streets':
+            urlGeographicObject = "/getstreets/";
+            break;
         case 'Bus Stops':
+            
             break;
         case 'Pharmacies':
             break;
@@ -64,6 +78,15 @@ function getGeographicalData(geoDataType, event)
             break;
 
     }
+    
+    $.post(urlGeographicObject, { 'jsondata': geoJsonFeatures }, function (data, textStatus, jqXHR) {
+        var DTOsJsonArray = $.parseJSON(data);
+        console.log("Sample of data:", data);
+        console.log("Sample of textStatus:", textStatus);
+        console.log("Sample of jqXHR:", jqXHR);
+    },
+        "json"
+        )
 }
 
 function updateRegionsList(vectorevent) {
@@ -76,7 +99,8 @@ function updateRegionsList(vectorevent) {
             usersection.regions[newId] =
                 {
                     'id': newId,
-                    'name': 'Region ' + newId
+                    'name': 'Region ' + newId,
+                    'active': false
         };
             break;
         case 'removefeature':
@@ -97,6 +121,8 @@ function updateRegionsList(vectorevent) {
             item.addClass('list-group-item');
             item.addClass('list-group-item-action');
             item.addClass('active-list-item');
+            if (region.active)
+                item.addClass('active');
             item.append(region.name);
             item.on("click", region, regionListItemClick);
             vectorSource.getFeatureById(region.id).setStyle(null);
@@ -109,6 +135,7 @@ function regionListItemClick(event) {
     let element = $(event.target);
     element.toggleClass("active");
     regionId = event.data.id;
+    usersection.regions[regionId].active = !usersection.regions[regionId].active;
     vectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
 }
 

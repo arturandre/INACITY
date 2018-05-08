@@ -1,3 +1,3 @@
-from .ImageFilterManager import ImageFilterManager
-from .ImageMinerManager import ImageMinerManager
-from .MapMinerManager import MapMinerManager
+from .ImageFilterManager import *
+from .ImageMinerManager import *
+from .MapMinerManager import *
