@@ -52,14 +52,7 @@ $(document).ready(function () {
 function getGeographicalData(geoDataType, event)
 {
     var urlGeographicObject = "";
-    var selectedFeatures = [];
-    $.each(usersection.regions, function (index, region) {
-        if (!region.active) return;
-        selectedFeatures.push(vectorSource.getFeatureById(region.id));
-    });
-
-    var geoJsonFormatter = new ol.format.GeoJSON()
-    var geoJsonFeatures = geoJsonFormatter.writeFeatures(selectedFeatures, { 'featureProjection': 'EPSG:3857' });
+    
 
     switch(geoDataType)
     {
@@ -79,14 +72,28 @@ function getGeographicalData(geoDataType, event)
 
     }
     
-    $.post(urlGeographicObject, { 'jsondata': geoJsonFeatures }, function (data, textStatus, jqXHR) {
-        var DTOsJsonArray = $.parseJSON(data);
-        console.log("Sample of data:", data);
-        console.log("Sample of textStatus:", textStatus);
-        console.log("Sample of jqXHR:", jqXHR);
-    },
-        "json"
-        )
+    var geoJsonFormatter = new ol.format.GeoJSON()
+    
+    $.each(usersection.regions, function (index, region) {
+        if (!region.active) return;
+        
+        var geoJsonFeatures = geoJsonFormatter.writeFeature(vectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
+        $.post(
+            urlGeographicObject,
+            { 'jsondata': geoJsonFeatures },
+            function (data, textStatus, jqXHR) {
+
+                //StreetDTO JSON Array
+                this.Streets = $.parseJSON(data);
+                console.log("Sample of data:", data);
+                console.log("Sample of textStatus:", textStatus);
+                console.log("Sample of jqXHR:", jqXHR);
+            }.bind(region),
+            "json"
+            );
+    });
+
+    
 }
 
 function updateRegionsList(vectorevent) {
@@ -121,11 +128,12 @@ function updateRegionsList(vectorevent) {
             item.addClass('list-group-item');
             item.addClass('list-group-item-action');
             item.addClass('active-list-item');
-            if (region.active)
-                item.addClass('active');
             item.append(region.name);
             item.on("click", region, regionListItemClick);
-            vectorSource.getFeatureById(region.id).setStyle(null);
+            if (region.active)
+                item.addClass('active');
+            else
+                vectorSource.getFeatureById(region.id).setStyle(null);
             $("#regionsList").append(item);
     });
     }

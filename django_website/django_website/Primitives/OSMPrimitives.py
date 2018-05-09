@@ -4,9 +4,24 @@ from typing import List
 from datetime import datetime
 import json
 from itertools import groupby
+from dateutil.parser import parse
 
-def parseTimeString(timestamp):
-        return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+def _ElementJsonToOSMObject(jsonDict):
+        if jsonDict['type'] == 'node':
+            return OSMNode(jsonDict['id'], jsonDict['type'], jsonDict['lat'], jsonDict['lon'], jsonDict.get('tags'))
+        elif jsonDict['type'] == 'way':
+            return OSMWay(jsonDict['id'], jsonDict['type'], jsonDict['nodes'], jsonDict.get('tags'))
+        elif jsonDict['type'] == 'relation':
+            return OSMRelation(jsonDict['id'], jsonDict['type'], _JsonMemberListToOSMRelationMember(jsonDict['members']), jsonDict.get('tags'))
+        else:
+             raise Exception("OSM Element type (%s) not implemented!" % jsonDict['type'])
+
+def _JsonMemberListToOSMRelationMember(self, jsonMemberList):
+        members = []
+        for member in jsonMemberList:
+            members.append(OSMRelationMember(member['type'], member['ref'], member['role']))
+        return members
+
 
 class OSMObject(object):
     """Base class for other OSM objects:
@@ -52,15 +67,14 @@ class OSMRelation(OSMObject):
         self.members = members
 
 class OSM3S:
-    def __init__(self, timestamp_osm_base, copyright):
-        self.timestamp_osm_base = parseTimeString(timestamp_osm_base)
+    def __init__(self, timestamp_osm_base = None, copyright = ""):
+        if not timestamp_osm_base is None:
+            self.timestamp_osm_base = parse(timestamp_osm_base)
         self.copyright = copyright
 
-    #Class method
     def JsonToOSM3S(jsonString):
-        return OSM3S.DictToOSM3S(json.loads(jsonString));
+        return DictToOSM3S(json.loads(jsonString));
 
-    #Class method
     def DictToOSM3S(jsonDict):
         return OSM3S(jsonDict['timestamp_osm_base'], jsonDict['copyright'])
 
@@ -71,7 +85,7 @@ class OSMRelationMember:
         self.role = role
 
 class OSMResult:
-    def __init__(self, version: float, generator: str, osm3s: OSM3S, elements: list):
+    def __init__(self, version: float, generator: str, osm3s: OSM3S, elements: list = []):
         self.version = version
         self.generator = generator
         self.osm3s = osm3s
@@ -79,18 +93,16 @@ class OSMResult:
         self.Ways = {}
         self.Relations = {}
         for element in elements:
-            osmObject = OSMResult._ElementJsonToOSMObject(element)
+            osmObject = _ElementJsonToOSMObject(element)
             if type(osmObject) is OSMNode: self.Nodes[osmObject.id] = osmObject
             elif type(osmObject) is OSMWay:
                 self.Ways[osmObject.id] = osmObject
             elif type(osmObject) is OSMRelation:
                 self.Relations[osmObject.id] = osmObject
 
-    #Class method
     def fromJsonString(jsonString):
         return OSMResult.fromJsonDict(json.loads(jsonString))
 
-    #Class method
     def fromJsonDict(jsonDict):
         version = jsonDict['version']
         generator = jsonDict['generator']
@@ -98,21 +110,4 @@ class OSMResult:
         return OSMResult(version, generator, osm3sDict, jsonDict['elements'])
         
 
-    #Class method
-    def _ElementJsonToOSMObject(jsonDict):
-        if jsonDict['type'] == 'node':
-            return OSMNode(jsonDict['id'], jsonDict['type'], jsonDict['lat'], jsonDict['lon'], jsonDict.get('tags'))
-        elif jsonDict['type'] == 'way':
-            return OSMWay(jsonDict['id'], jsonDict['type'], jsonDict['nodes'], jsonDict.get('tags'))
-        elif jsonDict['type'] == 'relation':
-            return OSMRelation(jsonDict['id'], jsonDict['type'], OSMResult._JsonMemberListToOSMRelationMember(jsonDict['members']), jsonDict.get('tags'))
-        else:
-             raise Exception("OSM Element type (%s) not implemented!" % jsonDict['type'])
-
-    #Class method
-    def _JsonMemberListToOSMRelationMember(jsonMemberList):
-        members = []
-        for member in jsonMemberList:
-            members.append(OSMRelationMember(member['type'], member['ref'], member['role']))
-        return members
             

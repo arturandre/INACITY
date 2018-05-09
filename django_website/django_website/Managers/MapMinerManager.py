@@ -33,7 +33,7 @@ class MapMinerManager(object):
         #TODO: Solve the conflation problem/create a heuristic to choose a MapMiner
         return self._MapMiners['OSMMiner'].getAmenities(region, amenityType)
 
-    @property
-    def MapMiners(self):
-        return self._MapMiners
+    #@property
+    #def MapMiners(self):
+    #    return self._MapMiners()
 

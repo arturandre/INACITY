@@ -12,6 +12,7 @@
     <InterpreterVersion>3.5</InterpreterVersion>
     <InterpreterPath>
     </InterpreterPath>
+    <WebBrowserPort>51718</WebBrowserPort>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>

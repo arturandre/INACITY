@@ -45,8 +45,8 @@ class Testing(object):
         waysNodes = [[413363713, 2462816571, 1933826524, 1934482852, 2462816559, 413363700, 2462816555, 413363703, 2466638005, 415141575], [415141575, 747616486, 413363695], [413363724, 5019878603, 1933826452, 2466638025, 413363698], [413363695, 1934482872, 413363753, 4619786582, 413363875, 2871610415, 1484707526, 415513180, 1484707528, 413363885, 2871604420, 2871604419, 2871604421, 413363697, 2871594853, 1484707546, 413363892], [413363724, 2466638020, 2462816574, 413363713]]
         waysNodes2 = [[26592911, 5478170514, 2421037071, 2463889833, 370854731], [370800617, 679604938, 370857290, 1067411044, 4369891157, 370800387, 1397984548, 2463889820, 370854749], [370854731, 1397984555, 370851863, 1397984521, 597252, 1067411510, 370852185, 370800024, 467944945, 1538575982, 5022184040, 5022184043, 1489531930, 5478170509, 415513351, 26592442, 142851213], [370854749, 2421037081, 2466086504, 26592435]]
 
-        OSMMiner._mergeWays(waysNodes)
-        OSMMiner._mergeWays(waysNodes2)
+        OSMMiner()._mergeWays(waysNodes)
+        OSMMiner()._mergeWays(waysNodes2)
         return (waysNodes == mergewaysmock) and (waysNodes2 == mergewaysmock2)
 
     def _mapMinerManager_getStreets(self):
@@ -63,7 +63,7 @@ class Testing(object):
 
     def _osmminer_collectStreetsQuery(self):
         poly = Polygon.from_ewkt('POLYGON ((-23.62227134253228 -46.63661956787109, -23.60017200992538 -46.63661956787109, -23.60017200992538 -46.60443305969238, -23.62227134253228 -46.60443305969238, -23.62227134253228 -46.63661956787109))')
-        jsonString = requests.get(OSMMiner._createCollectStreetsQuery(poly)).content
+        jsonString = requests.get(OSMMiner()._createCollectStreetsQuery(poly)).content
         getstreetsresult = json.loads(jsonString)
         jsonmock = json.loads(osmgetstreetsmock)
         try:
@@ -105,5 +105,5 @@ class Testing(object):
         location = {"lat": -23.560271, "lon": -46.731295}
         heading = 180
         pitch=-0.76
-        testurl = GoogleStreetViewMiner._GoogleStreetViewMiner__imageURLBuilder(size, location, heading, pitch, GoogleStreetViewMiner._GoogleStreetViewMiner__key)
+        testurl = GoogleStreetViewMiner()._imageURLBuilder(size, location, heading, pitch, GoogleStreetViewMiner._key)
         return gsvurltestmock == testurl

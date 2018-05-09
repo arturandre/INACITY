@@ -32,6 +32,9 @@ def openLayersLonLatToLatLon(openLayerFeatureCollection: dict):
     type = openLayerFeatureCollection['type']
     if type == 'FeatureCollection':
         features = openLayerFeatureCollection['features']
+    elif type == 'Feature':
+        features = [openLayerFeatureCollection]
+    if (type == 'FeatureCollection') or (type == 'Feature'):
         for f in features:
             for poly in f['geometry']['coordinates']:
                 for c in poly:
@@ -55,19 +58,24 @@ def about(request):
 def getstreets(request):
     if request.method == 'POST':
         jsondata = request.data
-        try:
-            openLayerFeatureCollection = json.loads(jsondata['jsondata'])
+        
+        openLayerFeatureCollection = json.loads(jsondata['jsondata'])
 
-            #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
-            openLayersLonLatToLatLon(openLayerFeatureCollection);
-
-            pnt = GEOSGeometry(openLayerFeatureCollection['features'][0]['geometry'].__str__())
-            streetsDTOList = mapMinerManager.getStreets(Polygon.from_ewkt(pnt.ewkt))
-            streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
+        #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
+        openLayersLonLatToLatLon(openLayerFeatureCollection);
+        regionsPoly = []
+        if 'features' in openLayerFeatureCollection:
+            #TODO: Fix pnt to be be a composition of geometries (['features'][0] -> ['features'][i])
+            for f in openLayerFeatureCollection['features']:
+                regionsPoly.append(Polygon.from_ewkt(f['geometry'].__str__().ewkt))
+            #pnt = GEOSGeometry(openLayerFeatureCollection['features'][0]['geometry'].__str__())
+        else:
+            regionsPoly.append(Polygon.from_ewkt(GEOSGeometry(openLayerFeatureCollection['geometry'].__str__()).ewkt))
+         
+        streetsDTOList = mapMinerManager.getStreets(regionsPoly)
+        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
             
-        except:
-            print("Unable to parse GeoJson as GEOSGeometry!");
-            print("Error in views.getstreets(): ", sys.exc_info()[0])
+        
     return JsonResponse(streetsDTOJsonList, safe=False)
 
 @api_view(['GET', 'POST'])

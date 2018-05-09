@@ -22,6 +22,6 @@ class ImageMiner(ABC):
     imageMinerId = None
 
     @abstractmethod
-    def getImageFromLocation(self, location):
+    def getImageFromLocation(location):
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass

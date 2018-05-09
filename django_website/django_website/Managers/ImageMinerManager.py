@@ -21,6 +21,3 @@ class ImageMinerManager(object):
     @property
     def ImageMiners(self):
         return self._ImageMiners
-
-    def testGoogleStreetViewMiner():
-        return GoogleStreetViewMiner._GoogleStreetViewMiner__testURL()

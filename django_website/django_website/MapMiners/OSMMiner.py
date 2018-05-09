@@ -4,24 +4,121 @@ from typing import List
 from django_website.Primitives import *
 from django_website.MapMiners import MapMiner
 from itertools import chain
+import re
+from dateutil.parser import parse
+from threading import Lock
+
+
+###### TESTING ################
+import time
+###### TESTING ################
+class OverpassRunningQuery:
+    def __init__(self):
+        self.pid = 0
+        self.spaceLimit = 0
+        self.timeLimit = 0
+        self.startTime = 0 #i.e. 2018-05-08T21:30:02Z
+
+class OverpassAPIStatus:
+    def __init__(self):
+        self.connectId = 0
+        self.currentTime = 0
+        self.rateLimit = 0
+        self.waitingTime = []
+        self.availableAfter = []
+        self.availableSlots = 0
+        self.runningQueries = []
+
+    def fromText(textMessage):
+        ret = OverpassAPIStatus()
+        lines = textMessage.split(r'\n')
+        if len(lines) < 4: return ret
+        m = re.search(r'Connected as: (\d+)$', lines[0])
+        if m: ret.connectId = int(m.group(1))
+        m = re.search(r'Current time: (.+?)$', lines[1])
+        if m: ret.currentTime = parse(m.group(1))
+        m = re.search(r'Rate limit: (\d+)$', lines[2])
+        if m: ret.rateLimit = int(m.group(1))
+        startAtLine = 3
+        for lineno, line in enumerate(lines[startAtLine:]):
+            m = re.search(r'^(\d+) slots available now.', line)
+            if m:
+                ret.availableSlots = int(m.group(1))
+                continue
+            m = re.search(r'Slot available after: (.+?), in (\d+?) seconds.', line)
+            if m:
+                ret.availableAfter.append(parse(m.group(1)))
+                ret.waitingTime.append(int(m.group(2)))
+                continue
+            if line == r'Currently running queries (pid, space limit, time limit, start time):':
+                for subline in lines[lineno+startAtLine+1:]:
+                    fields = subline.split('\t')
+                    if len(fields) != 4: continue
+                    ovpq = OverpassRunningQuery()
+                    ovpq.pid = int(fields[0])
+                    ovpq.spaceLimit = int(fields[1])
+                    ovpq.timeLimit = int(fields[2])
+                    ovpq.startTime = parse(fields[3])
+                    ret.runningQueries.append(ovpq)
+                break
+        return ret
 
 class OSMMiner(MapMiner):
     """OpenStreetMaps miner constructed using the Overpass API"""
 
     _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
+    _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
     _outFormat = "[out:json]"
     _timeout = "[timeout:25]"
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
+        #pass
 
     mapMinerName = "OSMMiner"
     
     mapMinerId = "osm"
+
+    _rateLimit = -1
+    _currentQueries = 0
     
-    def getStreets(region: Polygon) -> List[type(StreetDTO)]:
+    def _setRateLimit():
+        if OSMMiner._rateLimit <= 0:
+            statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+            ovpStatus = OverpassAPIStatus.fromText(statusMessage)
+            OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
+
+    def _waitForAvailableSlots():
+        while True:
+            statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+            ovpStatus = OverpassAPIStatus.fromText(statusMessage)
+            if ovpStatus.availableSlots > 0: break;
+            timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
+            time.sleep(timeToWait)
+            
+            
+                
+
+    def getStreets(region: List[Polygon]) -> List[type(StreetDTO)]:
         """Collect a set of Ways (from OSM) and convert them to a list of StreetDTO"""
-        jsonString = requests.get(OSMMiner._createCollectStreetsQuery(region)).content
-        osmResult = OSMResult.fromJsonString(jsonString)
+        overpassQueryUrl = OSMMiner._createCollectStreetsQuery(region);
+
+        mylock = Lock()
+        mylock.acquire()
+        OSMMiner._setRateLimit()
+        while True:
+            OSMMiner._waitForAvailableSlots()
+            if OSMMiner._currentQueries < OSMMiner._rateLimit:
+                break
+        OSMMiner._currentQueries += 1
+        print("added query: %d\n" % OSMMiner._currentQueries)
+        jsonString = requests.get(overpassQueryUrl).content
+        mylock.release()
+        OSMMiner._currentQueries -= 1
+        print("removed query: %d\n" % OSMMiner._currentQueries)
+        try:
+            osmResult = OSMResult.fromJsonString(jsonString)
+        except:
+            print("jsonString: %s" % jsonString)
         streetSegments = {}
         data = sorted(osmResult.Ways.values(), key=lambda x: x.tags.get('name'))
         g = groupby(data, lambda x: x.tags.get('name'))
@@ -47,10 +144,18 @@ class OSMMiner(MapMiner):
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         raise NotImplementedError("Not implemented.")
 
-    def _createCollectStreetsQuery(region: Polygon):
+    def _createCollectStreetsQuery(region: List[Polygon]):
         """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
-        stringRegion = str(region.coords).replace("(", "").replace(")", "").replace(",", "")
-        return OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout) + '(way["highway"~".*"](poly:"' + stringRegion + '");way["surface"="asphalt"](poly:"' + stringRegion + '"););(way["fixme"](poly:"' + stringRegion + '")->.a;way["highway"="footway"](poly:"' + stringRegion + '")->.a;way["highway"="service"](poly:"' + stringRegion + '")->.a;way["highway"="steps"](poly:"' + stringRegion + '")->.a;way["name"!~".*"](poly:"' + stringRegion + '")->.a;)->.remove;(._; - .remove;);(._;>;);out;'
+        header = OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout)
+        outresult = '(.allfiltered;>;);out;'
+        middle = ''
+        numRegion = 0
+        for r in region:
+            #numRegion += 1
+            stringRegion = str(r.coords).replace("(", "").replace(")", "").replace(",", "")
+            middle += '(way["highway"~".*"](poly:"' + stringRegion + '");way["surface"="asphalt"](poly:"' + stringRegion + '");)->.all;(way["fixme"](poly:"' + stringRegion + '")->.a;way["highway"="footway"](poly:"' + stringRegion + '")->.a;way["highway"="service"](poly:"' + stringRegion + '")->.a;way["highway"="steps"](poly:"' + stringRegion + '")->.a;way["name"!~".*"](poly:"' + stringRegion + '")->.a;)->.remove;(.all; - .remove;)->.allfiltered;'
+        ret = header+middle+outresult
+        return  ret
 
     def _mergeWays(nodesSegList):
         """Collapse a list of lists of nodes from ways into a single nodes list (if endpoint nodes, from different lists in the same way, are the same)"""
