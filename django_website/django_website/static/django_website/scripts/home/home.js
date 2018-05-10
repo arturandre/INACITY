@@ -83,36 +83,37 @@ function getGeographicalData(geoDataType, event) {
             function (data, textStatus, jqXHR) {
 
                 //StreetDTO JSON Array
-                this.Streets = $.parseJSON(data);
+                region.Streets = $.parseJSON(data);
                 //console.log("Sample of data:", data);
                 //console.log("Sample of textStatus:", textStatus);
                 //console.log("Sample of jqXHR:", jqXHR);
-
-                //Do job in background with workers if possible
-                if (window.Worker) {
-                    let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
-                    mWorker.onmessage = function (e) {
-                        //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
-                        this.allstreets = e.data; //Shallow copy (not reference)
-                        if (onstreetsconsolidated)
-                            onstreetsconsolidated();
-                    }.bind(usersection);
-                    mWorker.postMessage(usersection.regions);
-                }
-                else //if not then do in foreground
-                {
-                    //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
-                    usersection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets).slice();
-                    if (onstreetsconsolidated)
-                        onstreetsconsolidated();
-                }
-            }.bind(region),
+                consolidateStreets();
+                
+            },
             "json"
             );
     });
 
 }
 
+function consolidateStreets(){
+    //Do job in background with workers if possible
+    if (window.Worker) {
+        let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
+        mWorker.onmessage = function (e) {
+            //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
+            this.allstreets = e.data; //Shallow copy (not reference)
+        }.bind(usersection);
+        mWorker.postMessage(usersection.regions);
+    }
+    else //if not then do in foreground
+    {
+        //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
+        usersection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets).slice();
+        if (onstreetsconsolidated)
+            onstreetsconsolidated();
+    }
+}
 
 
 function updateRegionsList(vectorevent) {
@@ -157,102 +158,102 @@ function updateRegionsList(vectorevent) {
     }
 }
 
-function regionListItemClick(event) {
-    let element = $(event.target);
-    element.toggleClass("active");
-    regionId = event.data.id;
-    usersection.regions[regionId].active = !usersection.regions[regionId].active;
-    vectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
-}
-
-function changeModeClick(mode, event) {
-    if (!btnElementChecker(event)) return;
-    switch (mode) {
-        case 'Map':
-            $(".image-div").addClass('hidden');
-            $(".region-div").removeClass('hidden');
-            break;
-        case 'Image':
-            $(".region-div").addClass('hidden');
-            $(".image-div").removeClass('hidden');
-            break;
-        default:
-            console.error("Unknown mode selected!")
-            break;
+    function regionListItemClick(event) {
+        let element = $(event.target);
+        element.toggleClass("active");
+        regionId = event.data.id;
+        usersection.regions[regionId].active = !usersection.regions[regionId].active;
+        vectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
     }
-}
 
-function changeShapeClick(shapeType, event) {
-    if (!btnElementChecker(event)) return;
-    openLayersHandler.map.removeInteraction(drawInteraction);
-    let value = shapeType;
-    var geometryFunction;
-    switch (value) {
-        case 'Square':
-            value = 'Circle';
-            geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
-            break;
-        case 'Box':
-            value = 'Circle';
-            geometryFunction = ol.interaction.Draw.createBox();
-            break;
-        case 'Dodecagon':
-            value = 'Circle';
-            geometryFunction = function (coordinates, geometry) {
-                if (!geometry) {
-                    geometry = new ol.geom.Polygon(null);
-                }
-                var center = coordinates[0];
-                var last = coordinates[1];
-                var dx = center[0] - last[0];
-                var dy = center[1] - last[1];
-                var radius = Math.sqrt(dx * dx + dy * dy);
-                var rotation = Math.atan2(dy, dx);
-                var newCoordinates = [];
-                var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i) {
-                    var angle = rotation + i * 2 * Math.PI / numPoints;
-                    var offsetX = radius * Math.cos(angle);
-                    var offsetY = radius * Math.sin(angle);
-                    newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
-                }
-                newCoordinates.push(newCoordinates[0].slice());
-                geometry.setCoordinates([newCoordinates]);
-                return geometry;
-            };
-            break;
+    function changeModeClick(mode, event) {
+        if (!btnElementChecker(event)) return;
+        switch (mode) {
+            case 'Map':
+                $(".image-div").addClass('hidden');
+                $(".region-div").removeClass('hidden');
+                break;
+            case 'Image':
+                $(".region-div").addClass('hidden');
+                $(".image-div").removeClass('hidden');
+                break;
+            default:
+                console.error("Unknown mode selected!")
+                break;
+        }
     }
-    drawInteraction = new ol.interaction.Draw({
-        source: vectorSource,
-        type: value,
-        geometryFunction: geometryFunction
-    });
-    openLayersHandler.map.addInteraction(drawInteraction);
-}
 
-function changeMapProviderClick(mapProviderId, event) {
-    if (!btnElementChecker(event)) return;
-    openLayersHandler.changeMapProvider(mapProviderId);
-}
+    function changeShapeClick(shapeType, event) {
+        if (!btnElementChecker(event)) return;
+        openLayersHandler.map.removeInteraction(drawInteraction);
+        let value = shapeType;
+        var geometryFunction;
+        switch (value) {
+            case 'Square':
+                value = 'Circle';
+                geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+                break;
+            case 'Box':
+                value = 'Circle';
+                geometryFunction = ol.interaction.Draw.createBox();
+                break;
+            case 'Dodecagon':
+                value = 'Circle';
+                geometryFunction = function (coordinates, geometry) {
+                    if (!geometry) {
+                        geometry = new ol.geom.Polygon(null);
+                    }
+                    var center = coordinates[0];
+                    var last = coordinates[1];
+                    var dx = center[0] - last[0];
+                    var dy = center[1] - last[1];
+                    var radius = Math.sqrt(dx * dx + dy * dy);
+                    var rotation = Math.atan2(dy, dx);
+                    var newCoordinates = [];
+                    var numPoints = 12;
+                    for (var i = 0; i < numPoints; ++i) {
+                        var angle = rotation + i * 2 * Math.PI / numPoints;
+                        var offsetX = radius * Math.cos(angle);
+                        var offsetY = radius * Math.sin(angle);
+                        newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
+                    }
+                    newCoordinates.push(newCoordinates[0].slice());
+                    geometry.setCoordinates([newCoordinates]);
+                    return geometry;
+                };
+                break;
+        }
+        drawInteraction = new ol.interaction.Draw({
+            source: vectorSource,
+            type: value,
+            geometryFunction: geometryFunction
+        });
+        openLayersHandler.map.addInteraction(drawInteraction);
+    }
 
-function btnElementChecker(event) {
-    let element = getClickedElement(event);
-    if (!element) return;
-    if (element.hasClass('disabled')) return;
-    disableSiblings(element);
-    return element;
-}
+    function changeMapProviderClick(mapProviderId, event) {
+        if (!btnElementChecker(event)) return;
+        openLayersHandler.changeMapProvider(mapProviderId);
+    }
 
-function getClickedElement(event) {
-    if (!event.srcElement && !event.id) return;
-    let elem_id = event.srcElement || event.id;
-    let element = $('#' + elem_id);
-    return element;
-}
+    function btnElementChecker(event) {
+        let element = getClickedElement(event);
+        if (!element) return;
+        if (element.hasClass('disabled')) return;
+        disableSiblings(element);
+        return element;
+    }
 
-function disableSiblings(element) {
-    element.siblings().each(function (it, val) {
-        $('#' + val.id).removeClass('disabled');
-    });
-    element.addClass('disabled');
-}
+    function getClickedElement(event) {
+        if (!event.srcElement && !event.id) return;
+        let elem_id = event.srcElement || event.id;
+        let element = $('#' + elem_id);
+        return element;
+    }
+
+    function disableSiblings(element) {
+        element.siblings().each(function (it, val) {
+            $('#' + val.id).removeClass('disabled');
+        });
+        element.addClass('disabled');
+    }

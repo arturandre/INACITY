@@ -108,15 +108,15 @@ class OSMMiner(MapMiner):
         mylock = Lock()
         mylock.acquire()
         OSMMiner._setRateLimit()
-        while True:
-            OSMMiner._waitForAvailableSlots()
-            if OSMMiner._currentQueries < OSMMiner._rateLimit:
-                break
-        OSMMiner._currentQueries += 1
+        #while True:
+        OSMMiner._waitForAvailableSlots()
+        #    if OSMMiner._currentQueries < OSMMiner._rateLimit:
+        #        break
+        #OSMMiner._currentQueries += 1
         #print("added query: %d\n" % OSMMiner._currentQueries)
-        jsonString = requests.get(overpassQueryUrl).content
         mylock.release()
-        OSMMiner._currentQueries -= 1
+        jsonString = requests.get(overpassQueryUrl).content
+        #OSMMiner._currentQueries -= 1
         #print("removed query: %d\n" % OSMMiner._currentQueries)
         try:
             osmResult = OSMResult.fromJsonString(jsonString)
