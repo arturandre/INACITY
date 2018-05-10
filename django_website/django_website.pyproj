@@ -97,8 +97,10 @@
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
+    <Content Include="django_website\static\django_website\scripts\home\backgroundFunctions.js" />
+    <Content Include="django_website\static\django_website\scripts\home\worker.js" />
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
-    <Content Include="django_website\static\django_website\scripts\home.js" />
+    <Content Include="django_website\static\django_website\scripts\home\home.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
     <Content Include="django_website\static\django_website\scripts\Primitives.js" />
     <Content Include="django_website\templates\about.html" />
@@ -116,6 +118,7 @@
     <Folder Include="django_website\ImageFilters\" />
     <Folder Include="django_website\media\" />
     <Folder Include="django_website\ImageMiners\" />
+    <Folder Include="django_website\static\django_website\scripts\home\" />
     <Folder Include="django_website\Testing\" />
     <Folder Include="django_website\static\" />
     <Folder Include="django_website\static\django_website\images\" />

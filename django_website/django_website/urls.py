@@ -11,6 +11,7 @@ from django.conf.urls import include, url
 from rest_framework.documentation import include_docs_urls
 
 from django_website.views import *
+#from django.views.generic.base import TemplateView
 
 urlpatterns = [
     url(r'^$', home, name='root'),
@@ -20,7 +21,11 @@ urlpatterns = [
     url(r'^getstreets/?$', getstreets, name='getstreets'),
     url(r'^simple_upload/?$', simple_upload),
     url(r'^media/.*$', simple_upload),
-    url(r'^docs/', include_docs_urls(title="INACITY's API"))
+    url(r'^docs/', include_docs_urls(title="INACITY's API")),
+#    url(r'^home/worker.js', (TemplateView.as_view(
+#    template_name="home/worker.js",
+#    content_type='application/javascript',
+#)), name='worker.js'),
 
     #REST API
 

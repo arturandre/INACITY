@@ -4,6 +4,7 @@ var openLayersHandler = null;
 var vectorLayer = null;
 var vectorSource = null;
 var drawInteraction = null;
+var onstreetsconsolidation = function () { console.log('Streets consolidated, check at usersection.allstreets.'); }
 
 /*Settings*/
 var selectedRegionStyle = new ol.style.Style({
@@ -18,8 +19,7 @@ var selectedRegionStyle = new ol.style.Style({
 //Don't use this directly! For new identifiers use getNewId()
 var _localIDGenerator = 0;
 
-function getNewId()
-{
+function getNewId() {
     return _localIDGenerator++;
 }
 
@@ -27,6 +27,7 @@ function getNewId()
 /*User-section variables*/
 var usersection = {}
 usersection.regions = [];
+usersection.allstreets = [];
 
 $(document).ready(function () {
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
@@ -35,7 +36,7 @@ $(document).ready(function () {
         source: vectorSource
     });
     vectorLayer.setMap(openLayersHandler.map);
-    
+
     vectorSource.on('addfeature', updateRegionsList, vectorSource);
     vectorSource.on('removefeature', updateRegionsList, vectorSource);
     vectorSource.on('changefeature', updateRegionsList, vectorSource);
@@ -49,18 +50,16 @@ $(document).ready(function () {
     $('#btnImageMode').addClass('disabled');
 });
 
-function getGeographicalData(geoDataType, event)
-{
+function getGeographicalData(geoDataType, event) {
     var urlGeographicObject = "";
-    
 
-    switch(geoDataType)
-    {
+
+    switch (geoDataType) {
         case 'Streets':
             urlGeographicObject = "/getstreets/";
             break;
         case 'Bus Stops':
-            
+
             break;
         case 'Pharmacies':
             break;
@@ -71,12 +70,12 @@ function getGeographicalData(geoDataType, event)
             break;
 
     }
-    
+
     var geoJsonFormatter = new ol.format.GeoJSON()
-    
+
     $.each(usersection.regions, function (index, region) {
         if (!region.active) return;
-        
+
         var geoJsonFeatures = geoJsonFormatter.writeFeature(vectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
         $.post(
             urlGeographicObject,
@@ -85,20 +84,40 @@ function getGeographicalData(geoDataType, event)
 
                 //StreetDTO JSON Array
                 this.Streets = $.parseJSON(data);
-                console.log("Sample of data:", data);
-                console.log("Sample of textStatus:", textStatus);
-                console.log("Sample of jqXHR:", jqXHR);
+                //console.log("Sample of data:", data);
+                //console.log("Sample of textStatus:", textStatus);
+                //console.log("Sample of jqXHR:", jqXHR);
+
+                //Do job in background with workers if possible
+                if (window.Worker) {
+                    let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
+                    mWorker.onmessage = function (e) {
+                        //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
+                        this.allstreets = e.data; //Shallow copy (not reference)
+                        if (onstreetsconsolidated)
+                            onstreetsconsolidated();
+                    }.bind(usersection);
+                    mWorker.postMessage(usersection.regions);
+                }
+                else //if not then do in foreground
+                {
+                    //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
+                    usersection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets).slice();
+                    if (onstreetsconsolidated)
+                        onstreetsconsolidated();
+                }
             }.bind(region),
             "json"
             );
     });
 
-    
 }
+
+
 
 function updateRegionsList(vectorevent) {
     let refresh = true;
-    
+
     switch (vectorevent.type) {
         case 'addfeature':
             let newId = getNewId();
@@ -108,7 +127,7 @@ function updateRegionsList(vectorevent) {
                     'id': newId,
                     'name': 'Region ' + newId,
                     'active': false
-        };
+                };
             break;
         case 'removefeature':
             break;
@@ -120,10 +139,9 @@ function updateRegionsList(vectorevent) {
             console.error('Unknown event type!');
             break;
     }
-    if (refresh){
+    if (refresh) {
         $("#regionsList").empty();
-        $.each(usersection.regions, function (index, region)
-        {
+        $.each(usersection.regions, function (index, region) {
             let item = $(document.createElement('a'));
             item.addClass('list-group-item');
             item.addClass('list-group-item-action');
@@ -135,7 +153,7 @@ function updateRegionsList(vectorevent) {
             else
                 vectorSource.getFeatureById(region.id).setStyle(null);
             $("#regionsList").append(item);
-    });
+        });
     }
 }
 
@@ -225,8 +243,7 @@ function btnElementChecker(event) {
     return element;
 }
 
-function getClickedElement(event)
-{
+function getClickedElement(event) {
     if (!event.srcElement && !event.id) return;
     let elem_id = event.srcElement || event.id;
     let element = $('#' + elem_id);

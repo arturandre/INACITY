@@ -18,7 +18,8 @@ class SimpleDTO(object):
 
 class PointDTO(SimpleDTO):
     """Geocoordinate used for communication"""
-    def __init__(self, lat, lon):
+    def __init__(self, id, lat, lon):
+        self.id = id
         self.lat = lat
         self.lon = lon
 

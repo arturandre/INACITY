@@ -30,6 +30,7 @@ class OverpassAPIStatus:
         self.runningQueries = []
 
     def fromText(textMessage):
+        """Creates an OverpassAPIStatus object from the text description obtained at overpass/api/status"""
         ret = OverpassAPIStatus()
         lines = textMessage.split(r'\n')
         if len(lines) < 4: return ret
@@ -82,12 +83,14 @@ class OSMMiner(MapMiner):
     _currentQueries = 0
     
     def _setRateLimit():
+        """Check how many queries can be executed concurrently according to OverpassAPI Status"""
         if OSMMiner._rateLimit <= 0:
             statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
             ovpStatus = OverpassAPIStatus.fromText(statusMessage)
             OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
 
     def _waitForAvailableSlots():
+        """Collect status from OverpassAPI, available slots and current queries"""
         while True:
             statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
             ovpStatus = OverpassAPIStatus.fromText(statusMessage)
@@ -110,15 +113,15 @@ class OSMMiner(MapMiner):
             if OSMMiner._currentQueries < OSMMiner._rateLimit:
                 break
         OSMMiner._currentQueries += 1
-        print("added query: %d\n" % OSMMiner._currentQueries)
+        #print("added query: %d\n" % OSMMiner._currentQueries)
         jsonString = requests.get(overpassQueryUrl).content
         mylock.release()
         OSMMiner._currentQueries -= 1
-        print("removed query: %d\n" % OSMMiner._currentQueries)
+        #print("removed query: %d\n" % OSMMiner._currentQueries)
         try:
             osmResult = OSMResult.fromJsonString(jsonString)
         except:
-            print("jsonString: %s" % jsonString)
+            print("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
         streetSegments = {}
         data = sorted(osmResult.Ways.values(), key=lambda x: x.tags.get('name'))
         g = groupby(data, lambda x: x.tags.get('name'))
@@ -136,7 +139,7 @@ class OSMMiner(MapMiner):
             for segment in streetSegments[streetName]:
                 for nodeIndex in range(len(segment)):
                     osmNode = osmResult.Nodes[segment[nodeIndex]]
-                    segment[nodeIndex] = PointDTO(osmNode.lat, osmNode.lon)
+                    segment[nodeIndex] = PointDTO(osmNode.id, osmNode.lat, osmNode.lon)
             StreetsDTOList.append(StreetDTO(streetName, streetSegments[streetName]))
             
         return StreetsDTOList
