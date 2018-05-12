@@ -71,6 +71,7 @@ class OSMMiner(MapMiner):
     _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
     _outFormat = "[out:json]"
     _timeout = "[timeout:25]"
+    _lock = Lock()
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
         #pass
@@ -105,18 +106,19 @@ class OSMMiner(MapMiner):
         """Collect a set of Ways (from OSM) and convert them to a list of StreetDTO"""
         overpassQueryUrl = OSMMiner._createCollectStreetsQuery(region);
 
-        mylock = Lock()
-        mylock.acquire()
+        OSMMiner._lock.acquire()
         OSMMiner._setRateLimit()
-        #while True:
+        print("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
+        while OSMMiner._currentQueries >= OSMMiner._rateLimit:
+            time.sleep(1)
         OSMMiner._waitForAvailableSlots()
-        #    if OSMMiner._currentQueries < OSMMiner._rateLimit:
-        #        break
-        #OSMMiner._currentQueries += 1
+        OSMMiner._currentQueries += 1
+        ##DEBUG
         #print("added query: %d\n" % OSMMiner._currentQueries)
-        mylock.release()
+        OSMMiner._lock.release()
         jsonString = requests.get(overpassQueryUrl).content
-        #OSMMiner._currentQueries -= 1
+        OSMMiner._currentQueries -= 1
+        ##DEBUG
         #print("removed query: %d\n" % OSMMiner._currentQueries)
         try:
             osmResult = OSMResult.fromJsonString(jsonString)
