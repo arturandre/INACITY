@@ -6,7 +6,6 @@ var regionVectorSource = null;
 var streetVectorLayer = null;
 var streetVectorSource = null;
 var drawInteraction = null;
-var onstreetsconsolidation = function () { console.log('Streets consolidated, check at usersection.allstreets.'); }
 
 /*Settings*/
 var selectedRegionStyle = new ol.style.Style({
@@ -35,17 +34,15 @@ function getNewId() {
 
 
 /*User-section variables*/
-var usersection = {}
-usersection.regions = [];
-usersection.allstreets = [];
-
-/*Events*/
-onstreetsconsolidated = null;
+var usersection = new UserSection();
+//var usersection = {};
+//usersection.regions = [];
+//usersection.allstreets = [];
 
 /*Event Handlers*/
-onstreetsconsolidated = function () {
-    drawStreets(usersection.allstreets);
-}
+usersection.onstreetsconsolidated = function () {
+    drawStreets(this.allstreets);
+}.bind(usersection);
 
 $(document).ready(function () {
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
@@ -113,7 +110,8 @@ function getGeographicalData(geoDataType, event) {
                 //console.log("Sample of data:", data);
                 //console.log("Sample of textStatus:", textStatus);
                 //console.log("Sample of jqXHR:", jqXHR);
-                consolidateStreets(this /*usersection*/);
+                //consolidateStreets(this /*usersection*/);
+                this.consolidateStreets();/*usersection*/
             }.bind(usersection),
             "json"
             );
@@ -169,51 +167,6 @@ function drawStreets(ConsolidatedStreets)
         }
     }
 }
-
-function updateConsolidatedStreetsList(newList)
-{
-    for (let street in newList) {
-        if (street in usersection.allstreets) {
-            usersection.allstreets[street].regions = newList[street].regions;
-            if (usersection.allstreets[street].street.segments.length < newList[street].street.segments.length) {
-                usersection.allstreets[street].street.segments = newList[street].street.segments;
-            }
-        }
-        else {
-            usersection.allstreets[street] = newList[street];
-        }
-    }
-}
-
-function consolidateStreets(UserSection) {
-    //Do job in background with workers if possible
-    if (window.Worker) {
-        let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
-        mWorker.onmessage = function (e) {
-            //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
-            updateConsolidatedStreetsList(e.data);
-            if (onstreetsconsolidated)
-                onstreetsconsolidated();
-        }.bind(UserSection);
-        let auxConsolidatedList = {};
-        for (let sName in UserSection.allstreets)
-        {
-            let street = UserSection.allstreets[sName];
-            auxConsolidatedList[sName] = { 'street': street.street, 'regions': street.regions };
-        }
-        mWorker.postMessage([UserSection.regions, auxConsolidatedList]);
-    }
-    else //if not then do in foreground
-    {
-        //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
-        let newList = collapseStreetsFromRegionsList(regionsWithStreets, UserSection.allstreets);
-        updateConsolidatedStreetsList(newList);
-        //UserSection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets, UserSection.allstreets).slice();
-        if (onstreetsconsolidated)
-            onstreetsconsolidated();
-    }
-}
-
 
 function updateRegionsList(vectorevent) {
     let refresh = true;

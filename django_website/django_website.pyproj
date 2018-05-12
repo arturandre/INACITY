@@ -103,6 +103,7 @@
     <Content Include="django_website\static\django_website\scripts\home\home.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
     <Content Include="django_website\static\django_website\scripts\Primitives.js" />
+    <Content Include="django_website\static\django_website\scripts\UserSection.js" />
     <Content Include="django_website\templates\about.html" />
     <Content Include="django_website\templates\integrationTest.html" />
     <Content Include="django_website\templates\home.html" />
