@@ -1,7 +1,8 @@
-﻿// Syntax: collapseStreetsFromRegionsList(regionsWithStreets: [region])
+﻿// Syntax: collapseStreetsFromRegionsList(regionsWithStreets: [region], previousCollapsedList: region.allstreets = {})
 
-function collapseStreetsFromRegionsList(regionsWithStreets) {
-    let ret = {};
+function collapseStreetsFromRegionsList(regionsWithStreets, previousCollapsedList = {}) 
+{
+    let ret = previousCollapsedList;
     let artificialId = 0;
     for (regionIdx in regionsWithStreets) {
         for (streetIdx in regionsWithStreets[regionIdx].Streets) {
@@ -12,7 +13,7 @@ function collapseStreetsFromRegionsList(regionsWithStreets) {
             *  more than once it means that some of the selected regions are intersecting.
             *  In case of intersections the intersecting regions are registered.
             */
-            if (!street.name in ret) {
+            if (!(street.name in ret)) {
                 ret[street.name] = { 'street': street };
                 ret[street.name]['regions'] = [regionIdx];
             }

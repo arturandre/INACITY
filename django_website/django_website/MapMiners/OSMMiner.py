@@ -124,6 +124,7 @@ class OSMMiner(MapMiner):
             osmResult = OSMResult.fromJsonString(jsonString)
         except:
             print("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
+            raise AttributeError("Invalid jsonString")
         streetSegments = {}
         data = sorted(osmResult.Ways.values(), key=lambda x: x.tags.get('name'))
         g = groupby(data, lambda x: x.tags.get('name'))

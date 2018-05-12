@@ -39,6 +39,14 @@ var usersection = {}
 usersection.regions = [];
 usersection.allstreets = [];
 
+/*Events*/
+onstreetsconsolidated = null;
+
+/*Event Handlers*/
+onstreetsconsolidated = function () {
+    drawStreets(usersection.allstreets);
+}
+
 $(document).ready(function () {
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
     regionVectorSource = new ol.source.Vector({ wrapX: false });
@@ -89,7 +97,9 @@ function getGeographicalData(geoDataType, event) {
 
     var geoJsonFormatter = new ol.format.GeoJSON()
 
-    $.each(usersection.regions, function (index, region) {
+    for (let regionIdx in usersection.regions)
+    {
+        let region = usersection.regions[regionIdx];
         if (!region.active) return;
 
         var geoJsonFeatures = geoJsonFormatter.writeFeature(regionVectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
@@ -104,12 +114,10 @@ function getGeographicalData(geoDataType, event) {
                 //console.log("Sample of textStatus:", textStatus);
                 //console.log("Sample of jqXHR:", jqXHR);
                 consolidateStreets(this /*usersection*/);
-                drawStreets(this.allstreets /*usersection.allstreets*/)
-
-            }.bind(this /*usersection*/),
+            }.bind(usersection),
             "json"
             );
-    }.bind(usersection));
+    }
 
 }
 
@@ -127,29 +135,52 @@ function drawStreets(ConsolidatedStreets)
         *  if this street doesn't have an OpenLayers Feature object 
         *  then compute one from street's segments
         */
-        if (!cstreet.olFeature) 
-        {
-            for (let regionIdx in cstreet.regions) {
-                if (isRegionActive(cstreet.regions[regionIdx])) {
-                    for (let segmendIdx in cstreet.street.segments) {
-                        let segment = cstreet.street.segments[segmendIdx];
-                        let multiLineSegment = new ol.geom.MultiLineString();
-                        let olCoordinates = [];
-                        for (let coordIdx in segment) {
-                            let origCoord = cstreet.street.segments[segmendIdx];
-                            let destCoord = ol.proj.fromLonLat([origCoord.lon, origCoord.lat]);
-                            olCoordinates.push(destCoord);
-                        }
-                        let lineSegment = new ol.geom.LineString(olCoordinates);
-                    }
-                    multiLineSegment.appendLineString(lineSegment);
-                    let olfeature = new ol.Feature({ geometry: multiLineSegment })
-                    cstreet.olFeature = olfeature;
-                    streetVectorSource.addFeature(olfeature);
+        if (!cstreet.olFeature) {
 
-                    continue;
+            let multiLineSegment = new ol.geom.MultiLineString();
+            for (let segmendIdx in cstreet.street.segments) {
+                let segment = cstreet.street.segments[segmendIdx];
+                let olCoordinates = [];
+                for (let coordIdx in segment) {
+                    let origCoord = segment[coordIdx];
+                    let destCoord = ol.proj.fromLonLat([origCoord.lon, origCoord.lat]);
+                    olCoordinates.push(destCoord);
                 }
+                let lineSegment = new ol.geom.LineString(olCoordinates);
+                multiLineSegment.appendLineString(lineSegment);
             }
+            let olfeature = new ol.Feature({ geometry: multiLineSegment })
+            olfeature.setId(getNewId());
+            cstreet.olFeature = olfeature;
+        }
+        cstreetActive = false;
+        for (let regionIdx in cstreet.regions) {
+            if (isRegionActive(cstreet.regions[regionIdx])) {
+                cstreetActive = true;
+                break;
+            }
+        }
+        featureIsDrawed = streetVectorSource.getFeatureById(cstreet.olFeature.getId());
+        if (cstreetActive && !featureIsDrawed) {
+            streetVectorSource.addFeature(cstreet.olFeature);
+        }
+        else if (!cstreetActive && featureIsDrawed) {
+            streetVectorSource.removeFeature(cstreet.olFeature);
+        }
+    }
+}
+
+function updateConsolidatedStreetsList(newList)
+{
+    for (let street in newList) {
+        if (street in usersection.allstreets) {
+            usersection.allstreets[street].regions = newList[street].regions;
+            if (usersection.allstreets[street].street.segments.length < newList[street].street.segments.length) {
+                usersection.allstreets[street].street.segments = newList[street].street.segments;
+            }
+        }
+        else {
+            usersection.allstreets[street] = newList[street];
         }
     }
 }
@@ -160,14 +191,24 @@ function consolidateStreets(UserSection) {
         let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
         mWorker.onmessage = function (e) {
             //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
-            this.allstreets = e.data; //Shallow copy (not reference)
+            updateConsolidatedStreetsList(e.data);
+            if (onstreetsconsolidated)
+                onstreetsconsolidated();
         }.bind(UserSection);
-        mWorker.postMessage(UserSection.regions);
+        let auxConsolidatedList = {};
+        for (let sName in UserSection.allstreets)
+        {
+            let street = UserSection.allstreets[sName];
+            auxConsolidatedList[sName] = { 'street': street.street, 'regions': street.regions };
+        }
+        mWorker.postMessage([UserSection.regions, auxConsolidatedList]);
     }
     else //if not then do in foreground
     {
         //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
-        UserSection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets).slice();
+        let newList = collapseStreetsFromRegionsList(regionsWithStreets, UserSection.allstreets);
+        updateConsolidatedStreetsList(newList);
+        //UserSection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets, UserSection.allstreets).slice();
         if (onstreetsconsolidated)
             onstreetsconsolidated();
     }
@@ -179,7 +220,7 @@ function updateRegionsList(vectorevent) {
 
     switch (vectorevent.type) {
         case 'addfeature':
-            let newId = getNewId();
+            let newId = 'region' + getNewId();
             vectorevent.feature.setId(newId);
             usersection.regions[newId] =
                 {
@@ -200,7 +241,9 @@ function updateRegionsList(vectorevent) {
     }
     if (refresh) {
         $("#regionsList").empty();
-        $.each(usersection.regions, function (index, region) {
+        for (regionIdx in usersection.regions) {
+            let region = usersection.regions[regionIdx];
+
             let item = $(document.createElement('a'));
             item.addClass('list-group-item');
             item.addClass('list-group-item-action');
@@ -212,7 +255,7 @@ function updateRegionsList(vectorevent) {
             else
                 regionVectorSource.getFeatureById(region.id).setStyle(null);
             $("#regionsList").append(item);
-        });
+        }
     }
 }
 
@@ -222,6 +265,8 @@ function regionListItemClick(event) {
     regionId = event.data.id;
     usersection.regions[regionId].active = !usersection.regions[regionId].active;
     regionVectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
+    //TODO: Filter only the streets from the clicked region
+    drawStreets(usersection.allstreets);
 }
 
 function changeModeClick(mode, event) {
