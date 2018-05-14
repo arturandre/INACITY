@@ -21,6 +21,13 @@ def similar(a, b):
 class Testing(object):
     """Automated testing functions related to Google Street View image platform"""
 
+    _crs = {
+    "type": "name",
+    "properties": {
+        "name": "EPSG:4326"
+    }
+    }
+
     def testAll(self):
         try:
             tests = [("mapMinerManager_getStreets", self._mapMinerManager_getStreets), ("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
@@ -50,7 +57,7 @@ class Testing(object):
         return (waysNodes == mergewaysmock) and (waysNodes2 == mergewaysmock2)
 
     def _mapMinerManager_getStreets(self):
-        poly = Polygon.from_ewkt('SRID=4326;POLYGON ((-23.55850936300801 -46.73320055007934, -23.55473281722144 -46.73105478286743, -23.55276582331022 -46.73517465591431, -23.55654242561994 -46.73732042312622, -23.55850936300801 -46.73320055007934))')
+        poly = {"coordinates": [[-23.55850936300801, -46.73320055007934], [-23.55473281722144, -46.73105478286743], [-23.55276582331022, -46.73517465591431], [-23.55654242561994, -46.73732042312622], [-23.55850936300801, -46.73320055007934]], "type": "Polygon"}
         streetsDTOList = MapMinerManager().getStreets(poly)
         streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
         return streetsDTOJsonList == mapmanager_getstreetsmock

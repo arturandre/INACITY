@@ -1,9 +1,0 @@
-ContentTypesConfig
-pre_migrate
-check_generic_foreign_keys
-AppConfig
-checks
-inject_rename_contenttypes_operations
-_
-post_migrate
-create_contenttypes

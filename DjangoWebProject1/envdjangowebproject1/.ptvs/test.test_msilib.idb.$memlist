@@ -1,9 +1,0 @@
-msilib
-unlink
-os
-init_database
-MsiDatabaseTestCase
-Test_make_id
-TESTFN
-import_module
-unittest

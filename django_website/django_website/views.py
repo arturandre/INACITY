@@ -10,7 +10,10 @@ from django.http import Http404, HttpResponse, JsonResponse
 
 import json
 import datetime
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+#from django.contrib.gis.geos import GEOSGeometry, Polygon
+import geojson
+from geojson import Polygon, Feature, FeatureCollection
+import numpy as np
 
 from django_website.Managers import *
 from django_website.Primitives import *
@@ -26,6 +29,22 @@ def __merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+
+
+def flip_geojson_coordinates(geo):
+    if isinstance(geo, dict):
+        for k, v in geo.items():
+            if k == "coordinates":
+                z = np.asarray(geo[k])
+                f = z.flatten()
+                geo[k] = np.dstack((f[1::2], f[::2])).reshape(z.shape).tolist()
+            else:
+                flip_geojson_coordinates(v)
+    elif isinstance(geo, list):
+        for k in geo:
+            flip_geojson_coordinates(k)
 
 def openLayersLonLatToLatLon(openLayerFeatureCollection: dict):
     """Flips in place longitude and latitude coordinates ordering"""
@@ -57,26 +76,25 @@ def about(request):
 @api_view(['POST'])
 def getstreets(request):
     if request.method == 'POST':
-        jsondata = request.data
+        geojsondata = request.data
         
-        openLayerFeatureCollection = json.loads(jsondata['jsondata'])
+        #openLayerFeatureCollection = json.loads(jsondata['jsondata'])
+        geojsonObject = geojson.loads(geojsondata['geojsondata'])
+        flip_geojson_coordinates(geojsonObject)
 
         #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
-        openLayersLonLatToLatLon(openLayerFeatureCollection);
+        #openLayersLonLatToLatLon(openLayerFeatureCollection);
         regionsPoly = []
-        if 'features' in openLayerFeatureCollection:
-            #TODO: Fix pnt to be be a composition of geometries (['features'][0] -> ['features'][i])
-            for f in openLayerFeatureCollection['features']:
-                regionsPoly.append(Polygon.from_ewkt(f['geometry'].__str__().ewkt))
-            #pnt = GEOSGeometry(openLayerFeatureCollection['features'][0]['geometry'].__str__())
-        else:
-            regionsPoly.append(Polygon.from_ewkt(GEOSGeometry(openLayerFeatureCollection['geometry'].__str__()).ewkt))
-         
-        streetsDTOList = mapMinerManager.getStreets(regionsPoly)
-        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
+        if type(geojsonObject) is FeatureCollection:
+            for f in featureCollection['features']:
+                regionsPoly.append(f['geometry'])
+        elif type(geojsonObject) is Feature:
+            regionsPoly.append(geojsonObject['geometry'])
+        streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', regionsPoly)
+        #streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
             
         
-    return JsonResponse(streetsDTOJsonList, safe=False)
+    return JsonResponse(geojson.dumps(streetsGeoJson), safe=False)
 
 @api_view(['GET', 'POST'])
 def integrationTest(request):

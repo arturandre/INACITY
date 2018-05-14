@@ -1,4 +1,6 @@
-from django.contrib.gis.geos import Polygon, GEOSGeometry
+from geojson import Point, LineString, MultiLineString, Polygon, Feature, FeatureCollection
+
+
 import requests
 from typing import List
 from django_website.Primitives import *
@@ -13,6 +15,7 @@ from threading import Lock
 import time
 ###### TESTING ################
 class OverpassRunningQuery:
+    """Dedicated class to wrap Overpass status running queries data, if any is available"""
     def __init__(self):
         self.pid = 0
         self.spaceLimit = 0
@@ -20,6 +23,7 @@ class OverpassRunningQuery:
         self.startTime = 0 #i.e. 2018-05-08T21:30:02Z
 
 class OverpassAPIStatus:
+    """Dedicated class to wrap Overpass status data"""
     def __init__(self):
         self.connectId = 0
         self.currentTime = 0
@@ -72,6 +76,14 @@ class OSMMiner(MapMiner):
     _outFormat = "[out:json]"
     _timeout = "[timeout:25]"
     _lock = Lock()
+    #_OSMSRID = 3857 #EPSG:3857
+    _crs = {
+    "type": "name",
+    "properties": {
+        "name": "EPSG:3857"
+    }
+    }
+
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
         #pass
@@ -79,6 +91,14 @@ class OSMMiner(MapMiner):
     mapMinerName = "OSMMiner"
     
     mapMinerId = "osm"
+    _getStreets = None    
+    
+    def getAvailableQueries():
+        """Registry of available queries to any clients (i.e. frontend)"""
+        return [query for query in OSMMiner._availableQueries]
+            
+    def doQuery(queryName: str, regions: Polygon):
+        return OSMMiner._availableQueries[queryName](regions)
 
     _rateLimit = -1
     _currentQueries = 0
@@ -100,11 +120,11 @@ class OSMMiner(MapMiner):
             time.sleep(timeToWait)
             
             
-                
+    
 
-    def getStreets(region: List[Polygon]) -> List[type(StreetDTO)]:
+    def _getStreets(regions: List[Polygon]) -> List[type(StreetDTO)]:
         """Collect a set of Ways (from OSM) and convert them to a list of StreetDTO"""
-        overpassQueryUrl = OSMMiner._createCollectStreetsQuery(region);
+        overpassQueryUrl = OSMMiner._createCollectStreetsQuery(regions)
 
         OSMMiner._lock.acquire()
         OSMMiner._setRateLimit()
@@ -126,39 +146,50 @@ class OSMMiner(MapMiner):
             print("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
             raise AttributeError("Invalid jsonString")
         streetSegments = {}
+        
+        # Data needs to be sorted before being grouped, otherwise
+        # the same group may appear multiple times
         data = sorted(osmResult.Ways.values(), key=lambda x: x.tags.get('name'))
         g = groupby(data, lambda x: x.tags.get('name'))
         for streetName, group in g:
             nodesList = [x.nodes for x in group]
             OSMMiner._mergeWays(nodesList)
             if streetName in streetSegments:
-                #debug only, used to check the necessity of sorting the streets before grouping
-                #print("Existing streetName detected! (%s)" % streetName)
                 streetSegments[streetName] = streetSegments[streetName] + nodesList
             else:
                 streetSegments[streetName] = nodesList
-        StreetsDTOList = []
+        featuresList = []
         for streetName in streetSegments:
-            for segment in streetSegments[streetName]:
-                for nodeIndex in range(len(segment)):
-                    osmNode = osmResult.Nodes[segment[nodeIndex]]
-                    segment[nodeIndex] = PointDTO(osmNode.id, osmNode.lat, osmNode.lon)
-            StreetsDTOList.append(StreetDTO(streetName, streetSegments[streetName]))
+            featuresList.append(
+                Feature(properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
+                #Feature(crs=_crs, properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
+            )
+            #for segment in streetSegments[streetName]:
+            #    segment = LineString([Point(osmResult.Nodes[node].lon,
+            #        osmResult.Nodes[node].lat, srid=OSMMiner._OSMSRID) for node in segment])
+                #for nodeIndex in range(len(segment)):
+                #    osmNode = osmResult.Nodes[segment[nodeIndex]]
+                #    segment[nodeIndex] = Point(osmNode.lon, osmNode.lat, srid=OSMMiner._OSMSRID)
+                
+            #StreetsDTOList.append(StreetDTO(streetName, MultiLineString(streetSegments[streetName])))
             
-        return StreetsDTOList
+        return FeatureCollection(featuresList, crs=OSMMiner._crs)
+        #return StreetsDTOList
 
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         raise NotImplementedError("Not implemented.")
 
-    def _createCollectStreetsQuery(region: List[Polygon]):
+    def _createCollectStreetsQuery(regions: List[Polygon]):
         """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
         header = OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout)
         outresult = '(.allfiltered;>;);out;'
         middle = ''
         numRegion = 0
-        for r in region:
+        if not type(regions) is list: regions = [regions]
+        for r in regions:
             #numRegion += 1
-            stringRegion = str(r.coords).replace("(", "").replace(")", "").replace(",", "")
+            #stringRegion = str(r.coords).replace("(", "").replace(")", "").replace(",", "")
+            stringRegion = str(r.get('coordinates')).replace('[','').replace(']','').replace(',','')
             middle += '(way["highway"~".*"](poly:"' + stringRegion + '");way["surface"="asphalt"](poly:"' + stringRegion + '");)->.all;(way["fixme"](poly:"' + stringRegion + '")->.a;way["highway"="footway"](poly:"' + stringRegion + '")->.a;way["highway"="service"](poly:"' + stringRegion + '")->.a;way["highway"="steps"](poly:"' + stringRegion + '")->.a;way["name"!~".*"](poly:"' + stringRegion + '")->.a;)->.remove;(.all; - .remove;)->.allfiltered;'
         ret = header+middle+outresult
         return  ret
@@ -192,4 +223,6 @@ class OSMMiner(MapMiner):
                     break
             if not merged: break
         return nodesSegList
+    
+    _availableQueries = {'Streets': _getStreets}
     

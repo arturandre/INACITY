@@ -1,9 +1,0 @@
-python_2_unicode_compatible
-models
-ContentType
-unicode_literals
-force_text
-apps
-ContentTypeManager
-_
-defaultdict

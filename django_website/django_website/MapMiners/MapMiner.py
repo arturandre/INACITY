@@ -10,25 +10,49 @@ class MapMiner(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._subclasses.append(cls)
-        if cls.mapMinerName is None:
-            raise NotImplementedError("mapMinerName not defined in subclass: " + cls.__name__)
-        if cls.mapMinerId is None:
-            raise NotImplementedError("mapMinerId not defined in subclass: " + cls.__name__)
+        notImplementedFields = []
+        checkFields = [
+            (cls.mapMinerName, 'mapMinerName'),
+            (cls.mapMinerId, 'mapMinerId'),
+            ]
+        for i in range(len(checkFields)):
+            try:
+                if checkFields[i][0] is None:
+                    notImplementedFields.append(checkFields[i][1])
+            except NameError:
+                notImplementedFields.append(checkFields[i][1])
+        
+        if len(notImplementedFields) > 0:
+            errors = ", ".join(notImplementedFields)
+            raise NotImplementedError("%s not defined in subclass: %s" (errors, cls.__name__))
+        
 
     def __init__(self):
         pass
 
-    __all__ = ["mapMinerName", "mapMinerId", "getStreets", "getAmenities"]
+    __all__ = ["mapMinerName", "mapMinerId", "getAvailableQueries", "getAmenities"]
 
     """This property represents the filter's name that'll be displayed in the UI"""
     mapMinerName = None
 
     """This property represents id used to catalog all available filters"""
     mapMinerId = None
+    
+    @abstractmethod
+    def _availableQueries():
+        pass
+    
+    @abstractmethod
+    def getAvailableQueries():
+        pass
 
     @abstractmethod
-    def getStreets(region: Polygon) -> List[type(StreetDTO)]:
+    def doQuery(queryName: str, region: Polygon):
         pass
+    
+    #@abstractmethod
+    #def getStreets(region: Polygon) -> List[type(StreetDTO)]:
+    #    pass
 
     @abstractmethod
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:

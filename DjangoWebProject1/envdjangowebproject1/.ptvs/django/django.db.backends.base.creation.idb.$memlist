@@ -1,9 +1,0 @@
-TEST_DATABASE_PREFIX
-BaseDatabaseCreation
-serializers
-router
-input
-StringIO
-apps
-sys
-settings

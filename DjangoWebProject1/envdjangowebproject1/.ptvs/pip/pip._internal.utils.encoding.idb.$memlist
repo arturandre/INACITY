@@ -1,7 +1,0 @@
-locale
-re
-BOMS
-codecs
-auto_decode
-sys
-ENCODING_RE

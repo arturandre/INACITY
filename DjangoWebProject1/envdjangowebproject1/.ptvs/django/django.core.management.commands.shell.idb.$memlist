@@ -1,9 +1,0 @@
-select
-BaseCommand
-CommandError
-OrderedSet
-warnings
-Command
-os
-RemovedInDjango20Warning
-sys

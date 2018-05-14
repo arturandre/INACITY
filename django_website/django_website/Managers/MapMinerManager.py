@@ -1,4 +1,4 @@
-from django.contrib.gis.geos import Polygon, GEOSGeometry
+from geojson import Polygon, FeatureCollection
 from typing import List
 
 from django_website.Primitives import *
@@ -17,16 +17,21 @@ class MapMinerManager(object):
         return MapMinerManager.__instance
 
     def registerMapMiner(self, mapMiner: MapMiner):
-        if mapMiner.mapMinerName in self._MapMiners:
-          return
-        self._MapMiners[mapMiner.mapMinerName] = mapMiner
+        if not mapMiner.mapMinerName in self._MapMiners:
+            self._MapMiners[mapMiner.mapMinerName] = mapMiner
+        pass
 
+    def getAvailableMapMinersAndQueries():
+        return {mapMiner: mapMiner.getAvailableQueries() for mapMiner in self._MapMiners}
 
+    def requestQueryToMapMiner(self, mapMinerName: str, query: str, region: [Polygon]) -> List[FeatureCollection]:
+        """Delegate the requested query call to the selected MapMiner"""
+        return self._MapMiners[mapMinerName].doQuery(query, region)
     
-    def getStreets(self, region: Polygon) -> List[type(StreetDTO)]:
-        """Delegate the getStreets call to a MapMiner"""
-        #TODO: Solve the conflation problem/create a heuristic to choose a MapMiner
-        return self._MapMiners['OSMMiner'].getStreets(region)
+    #def getStreets(self, region: Polygon) -> List[type(StreetDTO)]:
+    #    """Delegate the getStreets call to a MapMiner"""
+    #    #TODO: Solve the conflation problem/create a heuristic to choose a MapMiner
+    #    return self._MapMiners['OSMMiner'].getStreets(region)
 
     def getAmenities(self, region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         """Delegate the getAmenities call to a MapMiner"""

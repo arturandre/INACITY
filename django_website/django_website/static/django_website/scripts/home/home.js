@@ -35,9 +35,6 @@ function getNewId() {
 
 /*User-section variables*/
 var usersection = new UserSection();
-//var usersection = {};
-//usersection.regions = [];
-//usersection.allstreets = [];
 
 /*Event Handlers*/
 usersection.onstreetsconsolidated = function () {
@@ -102,16 +99,10 @@ function getGeographicalData(geoDataType, event) {
         var geoJsonFeatures = geoJsonFormatter.writeFeature(regionVectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
         $.post(
             urlGeographicObject,
-            { 'jsondata': geoJsonFeatures },
+            { 'geojsondata': geoJsonFeatures },
             function (data, textStatus, jqXHR) {
-
-                //StreetDTO JSON Array
                 region.Streets = $.parseJSON(data);
-                //console.log("Sample of data:", data);
-                //console.log("Sample of textStatus:", textStatus);
-                //console.log("Sample of jqXHR:", jqXHR);
-                //consolidateStreets(this /*usersection*/);
-                this.consolidateStreets();/*usersection*/
+                this.consolidateStreets(); /*usersection*/
             }.bind(usersection),
             "json"
             );
@@ -218,7 +209,6 @@ function regionListItemClick(event) {
     regionId = event.data.id;
     usersection.regions[regionId].active = !usersection.regions[regionId].active;
     regionVectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
-    //TODO: Filter only the streets from the clicked region
     drawStreets(usersection.allstreets);
 }
 
