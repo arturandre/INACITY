@@ -21,4 +21,7 @@ def run(verbose=True):
         GeoSampa_BusStops, pontoonibus_shp, geosampa_busstops_mapping,
         source_srs=29183, transform=True, encoding='utf-8',
     )
-    lm.save(strict=True, verbose=verbose)
+    if GeoSampa_BusStops.objects.count() == 0:
+        lm.save(strict=True, verbose=verbose)
+    else:
+        print("GeoSampa_BusStops has data already. Loading canceled!")

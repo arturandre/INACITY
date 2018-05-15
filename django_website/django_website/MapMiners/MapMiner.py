@@ -2,6 +2,7 @@ from django_website.Primitives.Primitives import *
 from abc import ABC, abstractmethod
 from typing import List
 from django.contrib.gis.geos import Polygon
+from geojson import FeatureCollection
 
 class MapMiner(ABC):
     """Abstract class representing a Map Miner adapter to collect data from some GIS (Geographic Information System)."""
@@ -14,6 +15,7 @@ class MapMiner(ABC):
         checkFields = [
             (cls.mapMinerName, 'mapMinerName'),
             (cls.mapMinerId, 'mapMinerId'),
+            (cls._availableQueries, '_availableQueries'),
             ]
         for i in range(len(checkFields)):
             try:
@@ -24,36 +26,40 @@ class MapMiner(ABC):
         
         if len(notImplementedFields) > 0:
             errors = ", ".join(notImplementedFields)
-            raise NotImplementedError("%s not defined in subclass: %s" (errors, cls.__name__))
+            raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
         
-
-    def __init__(self):
-        pass
-
-    __all__ = ["mapMinerName", "mapMinerId", "getAvailableQueries", "getAmenities"]
+    __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
 
     """This property represents the filter's name that'll be displayed in the UI"""
     mapMinerName = None
 
     """This property represents id used to catalog all available filters"""
     mapMinerId = None
-    
-    @abstractmethod
-    def _availableQueries():
-        pass
-    
-    @abstractmethod
-    def getAvailableQueries():
-        pass
 
-    @abstractmethod
-    def doQuery(queryName: str, region: Polygon):
-        pass
+    """This property represents the possible queries the user can make to a specific MapMiner"""
+    _availableQueries = None    
+
+    @classmethod
+    def getAvailableQueries(cls):
+        """Registry of available queries to any clients (i.e. frontend)"""
+        return [query for query in cls._availableQueries]
     
-    #@abstractmethod
-    #def getStreets(region: Polygon) -> List[type(StreetDTO)]:
-    #    pass
+    @classmethod
+    def doQuery(cls, queryName: str, regions: FeatureCollection):
+        """Execute a queries registered query"""
+        if not type(regions) is FeatureCollection: regions = FeatureCollection(regions)
+        if not type(regions['features']) is list: regions['features'] = [regions['features']]
+        
+        return cls._availableQueries[queryName](cls._preFormatInput(regions))
+
+    def _preFormatInput(GeoJsonInput: FeatureCollection):
+        return GeoJsonInput
 
     @abstractmethod
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         pass
+
+    
+
+    
+    

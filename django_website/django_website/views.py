@@ -13,7 +13,6 @@ import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
-import numpy as np
 
 from django_website.Managers import *
 from django_website.Primitives import *
@@ -33,36 +32,8 @@ def __merge_two_dicts(x, y):
 
 
 
-def flip_geojson_coordinates(geo):
-    if isinstance(geo, dict):
-        for k, v in geo.items():
-            if k == "coordinates":
-                z = np.asarray(geo[k])
-                f = z.flatten()
-                geo[k] = np.dstack((f[1::2], f[::2])).reshape(z.shape).tolist()
-            else:
-                flip_geojson_coordinates(v)
-    elif isinstance(geo, list):
-        for k in geo:
-            flip_geojson_coordinates(k)
 
-def openLayersLonLatToLatLon(openLayerFeatureCollection: dict):
-    """Flips in place longitude and latitude coordinates ordering"""
-    type = openLayerFeatureCollection['type']
-    if type == 'FeatureCollection':
-        features = openLayerFeatureCollection['features']
-    elif type == 'Feature':
-        features = [openLayerFeatureCollection]
-    if (type == 'FeatureCollection') or (type == 'Feature'):
-        for f in features:
-            for poly in f['geometry']['coordinates']:
-                for c in poly:
-                    lon = c[0]
-                    c[0] = c[1] #lat -> lon
-                    c[1] = lon  #lon -> lat
-    else:
-        raise NotImplementedError("Collection type not implemented!")
-    pass
+
 
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 mapMinerManager = MapMinerManager()
@@ -80,17 +51,17 @@ def getstreets(request):
         
         #openLayerFeatureCollection = json.loads(jsondata['jsondata'])
         geojsonObject = geojson.loads(geojsondata['geojsondata'])
-        flip_geojson_coordinates(geojsonObject)
+        
 
         #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
         #openLayersLonLatToLatLon(openLayerFeatureCollection);
-        regionsPoly = []
-        if type(geojsonObject) is FeatureCollection:
-            for f in featureCollection['features']:
-                regionsPoly.append(f['geometry'])
-        elif type(geojsonObject) is Feature:
-            regionsPoly.append(geojsonObject['geometry'])
-        streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', regionsPoly)
+        #regionsPoly = []
+        #if type(geojsonObject) is FeatureCollection:
+            #for f in featureCollection['features']:
+                #regionsPoly.append(f['geometry'])
+        #elif type(geojsonObject) is Feature:
+            #regionsPoly.append(geojsonObject['geometry'])
+        streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', geojsonObject)
         #streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
             
         

@@ -8,8 +8,6 @@ class GeoSampa_BusStops(models.Model):
     address = models.CharField(max_length=150)
     description = models.CharField(max_length=150)
     name = models.CharField(max_length=150)
-#    lon = models.FloatField()
-#    lat = models.FloatField()
     
     # GeoDjango-specific: a geometry field (PointField)
     mpoint = models.PointField(srid=29183)
