@@ -1,9 +1,7 @@
-﻿// Syntax: collapseStreetsFromRegionsList(regionsWithStreets: [region], previousCollapsedList: region.allstreets | {})
+﻿// Syntax: collapseStreetsFromRegionsList(regionsWithStreets: [region], previousCollapsedList: usersection.allstreets | {})
 
 function collapseStreetsFromRegionsList(regionsWithStreets, previousCollapsedList) 
 {
-    
-    let artificialId = 0;
     for (regionIdx in regionsWithStreets) {
         for (streetIdx in regionsWithStreets[regionIdx].Streets['features']) {
             street = regionsWithStreets[regionIdx].Streets['features'][streetIdx];
@@ -17,15 +15,12 @@ function collapseStreetsFromRegionsList(regionsWithStreets, previousCollapsedLis
                 previousCollapsedList[street['properties'].name] = { 'street': street };
                 previousCollapsedList[street['properties'].name]['regions'] = [regionIdx];
             }
-                /*  
-                *   There's no need to check if a region is already registered before pushing it.]
-                *   It can't be pushed twice.
-                */
             else
             {
                 if (previousCollapsedList[street['properties'].name]['regions'].indexOf(regionIdx) < 0)
                     previousCollapsedList[street['properties'].name]['regions'].push(regionIdx);
-                if (previousCollapsedList[street['properties'].name].street.geometry.coordinates.length < street.geometry.coordinates.length) {
+                if (previousCollapsedList[street['properties'].name].street
+                        .geometry.coordinates.length < street.geometry.coordinates.length) {
                     previousCollapsedList[street['properties'].name].street = street;
                 }
             }

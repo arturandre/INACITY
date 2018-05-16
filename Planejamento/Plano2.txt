@@ -1,0 +1,5 @@
+The client request the MapMiners available and their respective available features
+The server collects the available MapMiners with their Queries and send a list to the client
+The client populates Lists from which the user can choose:
+- A MapMiner and a Feature from that MapMiner OR
+- A Feature and which MapMiners have that Feature available

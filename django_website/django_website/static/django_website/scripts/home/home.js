@@ -6,8 +6,10 @@ var regionVectorSource = null;
 var streetVectorLayer = null;
 var streetVectorSource = null;
 var drawInteraction = null;
+var usersection = null;
 
-/*Settings*/
+/* Settings Region */
+
 var selectedRegionStyle = new ol.style.Style({
     fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
     stroke: new ol.style.Stroke({
@@ -24,25 +26,25 @@ var transparentStyle = new ol.style.Style({
     })
 });
 
+
 /*Auxiliar functions*/
 //Don't use this directly! For new identifiers use getNewId()
 var _localIDGenerator = 0;
 
-function getNewId() {
+function getNewId()
+{
     return _localIDGenerator++;
 }
 
 
-/*User-section variables*/
-var usersection = new UserSection();
 
-/*Event Handlers*/
-usersection.onstreetsconsolidated = function () {
-    drawStreets(this.allstreets);
-}.bind(usersection);
 
-$(document).ready(function () {
+
+
+$(document).ready(function ()
+{
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
+    usersection = new UserSection('regionsList');
     regionVectorSource = new ol.source.Vector({ wrapX: false });
     regionVectorLayer = new ol.layer.Vector({
         source: regionVectorSource
@@ -55,9 +57,17 @@ $(document).ready(function () {
     });
     streetVectorLayer.setMap(openLayersHandler.map);
 
+    /*Event Handlers*/
     regionVectorSource.on('addfeature', updateRegionsList, regionVectorSource);
     regionVectorSource.on('removefeature', updateRegionsList, regionVectorSource);
     regionVectorSource.on('changefeature', updateRegionsList, regionVectorSource);
+    usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
+    usersection.onregionlistitemclick = function (region)
+    {
+        regionVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+        drawStreets(this.streets);
+    };
+
 
     //Default selections:
     /*
@@ -68,11 +78,13 @@ $(document).ready(function () {
     $('#btnImageMode').addClass('disabled');
 });
 
-function getGeographicalData(geoDataType, event) {
+function getGeographicalData(geoDataType, event)
+{
     var urlGeographicObject = "";
 
 
-    switch (geoDataType) {
+    switch (geoDataType)
+    {
         case 'Streets':
             urlGeographicObject = "/getstreets/";
             break;
@@ -90,16 +102,18 @@ function getGeographicalData(geoDataType, event) {
     }
 
     var geoJsonFormatter = new ol.format.GeoJSON()
-
-    for (let regionIdx in usersection.regions) {
-        let region = usersection.regions[regionIdx];
-        if (!region.active) return;
+    //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
+    for (let regionIdx in usersection.getRegions())
+    {
+        let region = usersection.getRegionById(regionIdx);
+        if (!region.active) continue;
 
         var geoJsonFeatures = geoJsonFormatter.writeFeature(regionVectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
         $.post(
             urlGeographicObject,
             { 'geojsondata': geoJsonFeatures },
-            function (data, textStatus, jqXHR) {
+            function (data, textStatus, jqXHR)
+            {
                 region.Streets = $.parseJSON(data);
                 this.consolidateStreets(); /*usersection*/
             }.bind(usersection),
@@ -110,59 +124,50 @@ function getGeographicalData(geoDataType, event) {
 }
 
 
-function isRegionActive(regionId) {
-    return usersection.regions[regionId].active == true;
-}
 
 function drawStreets(ConsolidatedStreets)
-    //ConsolidatedStreets have the 'regions' property indicating to which regions a street belongs
+    /* ConsolidatedStreets have the 'regions' property indicating to which regions a street belongs */
 {
-    for (let cstreetIdx in ConsolidatedStreets) {
+    for (let cstreetIdx in ConsolidatedStreets)
+    {
         let cstreet = ConsolidatedStreets[cstreetIdx];
-        /*
-        *  if this street doesn't have an OpenLayers Feature object 
-        *  then compute one from street's segments
-        */
-        /*if (!cstreet.olFeature) {
 
-            let multiLineSegment = new ol.geom.MultiLineString();
-            for (let segmendIdx in cstreet.street.segments) {
-                let segment = cstreet.street.segments[segmendIdx];
-                let olCoordinates = [];
-                for (let coordIdx in segment) {
-                    let origCoord = segment[coordIdx];
-                    let destCoord = ol.proj.fromLonLat([origCoord.lon, origCoord.lat]);
-                    olCoordinates.push(destCoord);
-                }
-                let lineSegment = new ol.geom.LineString(olCoordinates);
-                multiLineSegment.appendLineString(lineSegment);
-            }
-            let olfeature = new ol.Feature({ geometry: multiLineSegment })
-            olfeature.setId(getNewId());
-            cstreet.olFeature = olfeature;
-        }*/
+        /* Check if cstreet belongs to any active region */
         cstreetActive = false;
-        for (let regionIdx in cstreet.regions) {
-            if (isRegionActive(cstreet.regions[regionIdx])) {
+        for (let regionIdx in cstreet.regions)
+        {
+            if (usersection.getRegionById(cstreet.regions[regionIdx]).active)
+            {
                 cstreetActive = true;
                 break;
             }
         }
-        if (!cstreet.street.id) {
+
+        /*
+        *  By default streets (FeatureCollections of MultiLineStrings) doesn't come with IDs from the server,
+        *  so it's important to add an "id" property to facilitate to reference during drawing/erasing tasks.
+        */
+        if (!cstreet.street.id)
+        {
+            /* OpenLayers Features are different from GeoJson in that it has methods used by OpenLayers */
             let olGeoJson = new ol.format.GeoJSON({ featureProjection: usersection.regions[cstreet.regions[0]].Streets.crs.properties.name });
             cstreet.street.id = getNewId();
             let olFeature = olGeoJson.readFeature(cstreet.street);
             streetVectorSource.addFeature(olFeature);
         }
-        else {
-            featureIsDrawed = streetVectorSource.getFeatureById(cstreet.street.id);
-            if (cstreetActive && !featureIsDrawed) {
+        else
+        {
+            if (cstreetActive && !cstreet.street.drawed)
+            {
                 let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
                 cFeature.setStyle(null);
+                cstreet.street.drawed = true;
             }
-            else if (!cstreetActive && featureIsDrawed) {
+            else if (!cstreetActive && cstreet.street.drawed)
+            {
                 let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
                 cFeature.setStyle(transparentStyle);
+                cstreet.street.drawed = false;
             }
         }
 
@@ -170,62 +175,56 @@ function drawStreets(ConsolidatedStreets)
     }
 }
 
-function updateRegionsList(vectorevent) {
-    let refresh = true;
+function disableSiblings(element)
+{
+    element.siblings().each(function (it, val)
+    {
+        $('#' + val.id).removeClass('disabled');
+    });
+    element.addClass('disabled');
+}
 
-    switch (vectorevent.type) {
+function updateRegionsList(vectorevent)
+{
+    switch (vectorevent.type)
+    {
         case 'addfeature':
-            let newId = 'region' + getNewId();
-            vectorevent.feature.setId(newId);
-            usersection.regions[newId] =
-                {
-                    'id': newId,
-                    'name': 'Region ' + newId,
-                    'active': false
-                };
+            let idNumber = getNewId();
+            let regionId = 'region' + idNumber;
+            vectorevent.feature.setId(regionId);
+            vectorevent.feature.setProperties({ 'type': 'region' });
+            usersection.createNewRegion(regionId, `Region ${idNumber}`, false);
             break;
         case 'removefeature':
+            if (f.getProperties()['type'] === 'region')
+            {
+                let featureId = vectorevent.getId();
+                usersection.removeRegion(featureId);
+            }
             break;
         case 'changefeature':
-            refresh = false;
             break;
         default:
-            refresh = false;
             console.error('Unknown event type!');
             break;
     }
-    if (refresh) {
-        $("#regionsList").empty();
-        for (regionIdx in usersection.regions) {
-            let region = usersection.regions[regionIdx];
-
-            let item = $(document.createElement('a'));
-            item.addClass('list-group-item');
-            item.addClass('list-group-item-action');
-            item.addClass('active-list-item');
-            item.append(region.name);
-            item.on("click", region, regionListItemClick);
-            if (region.active)
-                item.addClass('active');
-            else
-                regionVectorSource.getFeatureById(region.id).setStyle(null);
-            $("#regionsList").append(item);
-        }
-    }
+    
 }
 
-function regionListItemClick(event) {
-    let element = $(event.target);
-    element.toggleClass("active");
-    regionId = event.data.id;
-    usersection.regions[regionId].active = !usersection.regions[regionId].active;
-    regionVectorSource.getFeatureById(regionId).setStyle(element.hasClass("active") ? selectedRegionStyle : null);
-    drawStreets(usersection.allstreets);
+/* Click Event Region*/
+function getClickedElement(event)
+{
+    if (!event.srcElement && !event.id) return;
+    let elem_id = event.srcElement || event.id;
+    let element = $('#' + elem_id);
+    return element;
 }
 
-function changeModeClick(mode, event) {
+function changeModeClick(mode, event)
+{
     if (!btnElementChecker(event)) return;
-    switch (mode) {
+    switch (mode)
+    {
         case 'Map':
             $(".image-div").addClass('hidden');
             $(".region-div").removeClass('hidden');
@@ -240,12 +239,14 @@ function changeModeClick(mode, event) {
     }
 }
 
-function changeShapeClick(shapeType, event) {
+function changeShapeClick(shapeType, event)
+{
     if (!btnElementChecker(event)) return;
     openLayersHandler.map.removeInteraction(drawInteraction);
     let value = shapeType;
     var geometryFunction;
-    switch (value) {
+    switch (value)
+    {
         case 'Square':
             value = 'Circle';
             geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
@@ -256,8 +257,10 @@ function changeShapeClick(shapeType, event) {
             break;
         case 'Dodecagon':
             value = 'Circle';
-            geometryFunction = function (coordinates, geometry) {
-                if (!geometry) {
+            geometryFunction = function (coordinates, geometry)
+            {
+                if (!geometry)
+                {
                     geometry = new ol.geom.Polygon(null);
                 }
                 var center = coordinates[0];
@@ -268,7 +271,8 @@ function changeShapeClick(shapeType, event) {
                 var rotation = Math.atan2(dy, dx);
                 var newCoordinates = [];
                 var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i) {
+                for (var i = 0; i < numPoints; ++i)
+                {
                     var angle = rotation + i * 2 * Math.PI / numPoints;
                     var offsetX = radius * Math.cos(angle);
                     var offsetY = radius * Math.sin(angle);
@@ -288,12 +292,14 @@ function changeShapeClick(shapeType, event) {
     openLayersHandler.map.addInteraction(drawInteraction);
 }
 
-function changeMapProviderClick(mapProviderId, event) {
+function changeMapProviderClick(mapProviderId, event)
+{
     if (!btnElementChecker(event)) return;
     openLayersHandler.changeMapProvider(mapProviderId);
 }
 
-function btnElementChecker(event) {
+function btnElementChecker(event)
+{
     let element = getClickedElement(event);
     if (!element) return;
     if (element.hasClass('disabled')) return;
@@ -301,16 +307,3 @@ function btnElementChecker(event) {
     return element;
 }
 
-function getClickedElement(event) {
-    if (!event.srcElement && !event.id) return;
-    let elem_id = event.srcElement || event.id;
-    let element = $('#' + elem_id);
-    return element;
-}
-
-function disableSiblings(element) {
-    element.siblings().each(function (it, val) {
-        $('#' + val.id).removeClass('disabled');
-    });
-    element.addClass('disabled');
-}

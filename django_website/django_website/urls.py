@@ -14,14 +14,28 @@ from django_website.views import *
 #from django.views.generic.base import TemplateView
 
 urlpatterns = [
+    # Pages
     url(r'^$', home, name='root'),
     url(r'^home/?$', home, name='home'),
     url(r'^about/?$', about, name='about'),
-    url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
+
+    # Docs
+    url(r'^docs/', include_docs_urls(title="INACITY's API")),
+
+    # API Calls
+    url(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
     url(r'^getstreets/?$', getstreets, name='getstreets'),
+    
+    # Testing 
+    url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
+
+
+
+    ######## TESTING ######## 
     url(r'^simple_upload/?$', simple_upload),
     url(r'^media/.*$', simple_upload),
-    url(r'^docs/', include_docs_urls(title="INACITY's API")),
+    ######## TESTING ######## 
+
 #    url(r'^home/worker.js', (TemplateView.as_view(
 #    template_name="home/worker.js",
 #    content_type='application/javascript',

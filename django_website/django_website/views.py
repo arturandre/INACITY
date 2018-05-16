@@ -29,12 +29,6 @@ def __merge_two_dicts(x, y):
     z.update(y)
     return z
 
-
-
-
-
-
-
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 mapMinerManager = MapMinerManager()
 ##############GLOBALS####################
@@ -43,6 +37,10 @@ def about(request):
     htmlfile = 'about.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['GET'])
+def getavailablemapminers(request):
+    return JsonResponse(json.dumps(mapMinerManager.getAvailableMapMinersAndQueries()), safe=False)
 
 @api_view(['POST'])
 def getstreets(request):

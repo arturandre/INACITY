@@ -1,4 +1,5 @@
 import geojson
+from geojson import FeatureCollection, MultiPoint
 import django.contrib.gis.geos as geos
 from django_website.MapMiners import MapMiner
 from django_website.models import GeoSampa_BusStops
