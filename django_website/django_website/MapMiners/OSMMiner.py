@@ -180,7 +180,6 @@ class OSMMiner(MapMiner):
 
     def _createCollectStreetsQuery(regions: FeatureCollection):
         """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
-        print(regions)
         header = OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout)
         outresult = '(.allfiltered;>;);out;'
         middle = ''

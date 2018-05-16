@@ -91,8 +91,7 @@ function getGeographicalData(geoDataType, event) {
 
     var geoJsonFormatter = new ol.format.GeoJSON()
 
-    for (let regionIdx in usersection.regions)
-    {
+    for (let regionIdx in usersection.regions) {
         let region = usersection.regions[regionIdx];
         if (!region.active) return;
 
@@ -124,7 +123,7 @@ function drawStreets(ConsolidatedStreets)
         *  if this street doesn't have an OpenLayers Feature object 
         *  then compute one from street's segments
         */
-        if (!cstreet.olFeature) {
+        /*if (!cstreet.olFeature) {
 
             let multiLineSegment = new ol.geom.MultiLineString();
             for (let segmendIdx in cstreet.street.segments) {
@@ -141,7 +140,7 @@ function drawStreets(ConsolidatedStreets)
             let olfeature = new ol.Feature({ geometry: multiLineSegment })
             olfeature.setId(getNewId());
             cstreet.olFeature = olfeature;
-        }
+        }*/
         cstreetActive = false;
         for (let regionIdx in cstreet.regions) {
             if (isRegionActive(cstreet.regions[regionIdx])) {
@@ -149,13 +148,25 @@ function drawStreets(ConsolidatedStreets)
                 break;
             }
         }
-        featureIsDrawed = streetVectorSource.getFeatureById(cstreet.olFeature.getId());
-        if (cstreetActive && !featureIsDrawed) {
-            streetVectorSource.addFeature(cstreet.olFeature);
+        if (!cstreet.street.id) {
+            let olGeoJson = new ol.format.GeoJSON({ featureProjection: usersection.regions[cstreet.regions[0]].Streets.crs.properties.name });
+            cstreet.street.id = getNewId();
+            let olFeature = olGeoJson.readFeature(cstreet.street);
+            streetVectorSource.addFeature(olFeature);
         }
-        else if (!cstreetActive && featureIsDrawed) {
-            streetVectorSource.removeFeature(cstreet.olFeature);
+        else {
+            featureIsDrawed = streetVectorSource.getFeatureById(cstreet.street.id);
+            if (cstreetActive && !featureIsDrawed) {
+                let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
+                cFeature.setStyle(null);
+            }
+            else if (!cstreetActive && featureIsDrawed) {
+                let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
+                cFeature.setStyle(transparentStyle);
+            }
         }
+
+
     }
 }
 

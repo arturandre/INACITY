@@ -10,27 +10,30 @@
     }
 
     consolidateStreets() {
+        //let auxConsolidatedList = {};
+        //for (let sName in this.allstreets) {
+        //    let street = this.allstreets[sName];
+        //    auxConsolidatedList[sName] = { 'street': street.street, 'regions': street.regions };
+        //}
         //Do job in background with workers if possible
         if (window.Worker) {
             let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
             mWorker.onmessage = function (e) {
                 //e.data = collapseStreetsFromRegionsList(regionsWithStreets) -> [only streets]
-                this.updateConsolidatedStreetsList(e.data);
+                //this.updateConsolidatedStreetsList(e.data);
+                this.allstreets = e.data;
                 if (this.onstreetsconsolidated)
                     this.onstreetsconsolidated();
             }.bind(this);
-            let auxConsolidatedList = {};
-            for (let sName in this.allstreets) {
-                let street = this.allstreets[sName];
-                auxConsolidatedList[sName] = { 'street': street.street, 'regions': street.regions };
-            }
-            mWorker.postMessage([this.regions, auxConsolidatedList]);
+            mWorker.postMessage([this.regions, this.allstreets]);
         }
         else //if not then do in foreground
         {
             //Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'
-            let newList = collapseStreetsFromRegionsList(regionsWithStreets, this.allstreets);
-            this.updateConsolidatedStreetsList(newList);
+            //let newList = collapseStreetsFromRegionsList(regionsWithStreets, this.allstreets);
+            //Works IN-PLACE in this case without workers
+            collapseStreetsFromRegionsList(regionsWithStreets, this.allstreets);
+            //this.updateConsolidatedStreetsList(newList);
             //UserSection.allstreets = collapseStreetsFromRegionsList(regionsWithStreets, UserSection.allstreets).slice();
             if (this.onstreetsconsolidated)
                 this.onstreetsconsolidated();
