@@ -7,6 +7,7 @@ var streetVectorLayer = null;
 var streetVectorSource = null;
 var drawInteraction = null;
 var usersection = null;
+var availableMapMiners = [];
 
 /* Settings Region */
 
@@ -43,8 +44,9 @@ function getNewId()
 
 $(document).ready(function ()
 {
+    /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
-    usersection = new UserSection('regionsList');
+
     regionVectorSource = new ol.source.Vector({ wrapX: false });
     regionVectorLayer = new ol.layer.Vector({
         source: regionVectorSource
@@ -57,10 +59,15 @@ $(document).ready(function ()
     });
     streetVectorLayer.setMap(openLayersHandler.map);
 
-    /*Event Handlers*/
+    /*OpenLayers Event Handlers*/
     regionVectorSource.on('addfeature', updateRegionsList, regionVectorSource);
     regionVectorSource.on('removefeature', updateRegionsList, regionVectorSource);
     regionVectorSource.on('changefeature', updateRegionsList, regionVectorSource);
+
+    /* UserSection init*/
+    usersection = new UserSection('regionsList');
+
+    /*UserSection Event Handlers*/
     usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
     usersection.onregionlistitemclick = function (region)
     {
@@ -68,6 +75,18 @@ $(document).ready(function ()
         drawStreets(this.streets);
     };
 
+    /* Fields population */
+    $.get(
+            "/getavailablemapminers/",
+            null,
+            function (data, textStatus, jqXHR)
+            {
+                availableMapMiners = data;
+                updateAvailableMapMinersAndFeatures();
+            },
+            "json"
+            );
+    
 
     //Default selections:
     /*
@@ -96,9 +115,8 @@ function getGeographicalData(geoDataType, event)
         case 'Schools':
             break;
         default:
-            console.error("Unlisted geoDataType!");
-            break;
-
+            console.error(`Error: Unlisted geoDataType '${geoDataType}'.`);
+            return;
     }
 
     var geoJsonFormatter = new ol.format.GeoJSON()
@@ -123,7 +141,36 @@ function getGeographicalData(geoDataType, event)
 
 }
 
+/* UI Functions */
 
+function setMapMiner(event) { let mapMinerName = event.data; throw Error("Not implemented"); }
+function setMapFeature(event) { let mapFeatureName = event.data; throw Error("Not implemented"); }
+
+function updateAvailableMapMinersAndFeatures()
+{
+    let mapMinerDiv = $(`#mapMinerDiv`);
+    let mapFeatureDiv = $(`#mapFeatureDiv`);
+    for (let mapMinerName in availableMapMiners)
+    {
+        let mapMiner = $(document.createElement('a'));
+        mapMiner.addClass('dropdown-mapMiner');
+        mapMiner.append(mapMinerName);
+        mapMiner.on("click", mapMinerName, this.setMapMiner.bind(this));
+        mapMiner.attr("href", "javascript:void(0);");
+        mapMinerDiv.append(mapMiner);
+        //<a id="btnGetStreets" onclick="getGeographicalData('Streets', this)" class="dropdown-item" href="javascript:void(0);">Streets</a>
+        for (let feature in availableMapMiners[mapMiner])
+        {
+            let mapFeature = $(document.createElement('a'));
+            mapFeature.addClass('dropdown-mapFeature');
+            mapFeature.append(feature);
+            mapFeature.on("click", mapFeature, this.setMapFeature.bind(this));
+            mapFeature.attr("href", "javascript:void(0);");
+            mapFeatureDiv.append(mapFeature);
+        }
+    }
+    
+}
 
 function drawStreets(ConsolidatedStreets)
     /* ConsolidatedStreets have the 'regions' property indicating to which regions a street belongs */
