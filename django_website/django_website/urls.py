@@ -24,8 +24,9 @@ urlpatterns = [
 
     # API Calls
     url(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
+    url(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
     url(r'^getstreets/?$', getstreets, name='getstreets'),
-    
+
     # Testing 
     url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
 

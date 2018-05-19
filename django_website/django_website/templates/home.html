@@ -41,31 +41,31 @@
 </div>
   <div class="row">
     <div class="col-sm left-column region-div hidden">
-        <div class="btn-group" role="group">
-           <button id="btn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           Map Miner
-           </button>
-           <div id="mapMinerDiv" class="dropdown-menu" aria-labelledby="btn">
-               <!--getGeographicalData@home.js-->
-           </div>
+        <div class="row">
+            <div class="col-sm">
+                <div class="btn-group" role="group">
+                   <button id="mapMinerBtn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   Map Miner
+                   </button>
+                   <div id="mapMinerDiv" class="dropdown-menu" aria-labelledby="mapMinerBtn">
+                   </div>
            
-        </div>
-        <div class="btn-group" role="group">
-           <button id="btn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           Feature
-           </button>
-           <div id="mapFeatureDiv" class="dropdown-menu" aria-labelledby="btn">
-               <!--getGeographicalData@home.js-->
-           <!--
-             <a id="btnGetStreets" onclick="getGeographicalData('Streets', this)" class="dropdown-item" href="javascript:void(0);">Streets</a>
-             <a id="btnGetBusStops" onclick="getGeographicalData('BusStops', this)" class="dropdown-item" href="javascript:void(0);">Bus Stops</a>
-             <a id="btnGetPharmacies" onclick="getGeographicalData('Pharmacies', this)" class="dropdown-item" href="javascript:void(0);">Pharmacies</a>
-             <a id="btnGetSchools" onclick="getGeographicalData('Schools', this)" class="dropdown-item" href="javascript:void(0);">Schools</a>
-           -->
-           </div>
+                </div>
+                <div class="btn-group" role="group">
+                   <button id="mapFeatureBtn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   Feature
+                   </button>
+                   <div id="mapFeatureDiv" class="dropdown-menu" aria-labelledby="mapFeatureBtn">
+                   </div>
            
+                </div>
+                <button id="btnClearSelections" onclick="clearSelections(this)" type="button" class="btn btn-danger hidden">Clear selections</button>
+            </div>
+            <div>
+                <button id="btnExecuteQuery" onclick="executeQuery(this)" type="button" class="btn btn-warning hidden">Execute Query</button>
+            </div>
         </div>
-        
+
     </div>
     <div class="col-sm left-column map-div">
         <div class="btn-group" role="group">

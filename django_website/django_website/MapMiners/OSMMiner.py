@@ -121,7 +121,7 @@ class OSMMiner(MapMiner):
         return GeoJsonInput
 
     def _getStreets(regions: FeatureCollection) -> MultiLineString:
-        """Collect a set of Ways (from OSM) and convert them to a list of StreetDTO"""
+        """Collect a set of Ways (from OSM) and convert them to a MultiLineString"""
 
         overpassQueryUrl = OSMMiner._createCollectStreetsQuery(regions)
 
@@ -160,7 +160,7 @@ class OSMMiner(MapMiner):
         featuresList = []
         for streetName in streetSegments:
             featuresList.append(
-                Feature(properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
+                Feature(id=streetName, properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
                 #Feature(crs=_crs, properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
             )
             #for segment in streetSegments[streetName]:
@@ -201,18 +201,27 @@ class OSMMiner(MapMiner):
             merged = False
             for i in reversed(range(len(nodesSegList))):
                 for j in reversed(range(i)):
-                  if (nodesSegList[i][0] == nodesSegList[j][0]) or (nodesSegList[i][-1] == nodesSegList[j][-1]): #heads-heads / tails-tails
-                    del nodesSegList[i][0]
+                  if (nodesSegList[i][0] == nodesSegList[j][0]): #heads-heads
+                    #Remove repeated element from the second list
+                    del nodesSegList[j][0]
                     nodesSegList[j] = [x for x in chain([y for y in reversed(nodesSegList[i])], nodesSegList[j])]
                     merged = True
                     break
+                  elif (nodesSegList[i][-1] == nodesSegList[j][-1]): #tails-tails
+                    #Remove repeated element from the second list
+                    del nodesSegList[j][-1]
+                    nodesSegList[j] = [x for x in chain(nodesSegList[j], [y for y in reversed(nodesSegList[i])])]
+                    merged = True
+                    break
                   elif nodesSegList[i][-1] == nodesSegList[j][0]: #tails-heads
-                    del nodesSegList[i][-1]
+                    #Remove repeated element from the second list
+                    del nodesSegList[j][0]
                     nodesSegList[j] = [x for x in chain(nodesSegList[i], nodesSegList[j])]
                     merged = True
                     break
                   elif nodesSegList[i][0] == nodesSegList[j][-1]: #heads-tails
-                    del nodesSegList[i][0]
+                    #Remove repeated element from the second list
+                    del nodesSegList[j][-1]
                     nodesSegList[j] = [x for x in chain(nodesSegList[j], nodesSegList[i])]
                     merged = True
                     break

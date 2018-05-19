@@ -68,11 +68,10 @@ $(document).ready(function ()
     usersection = new UserSection('regionsList');
 
     /*UserSection Event Handlers*/
-    usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
+    //usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
     usersection.onregionlistitemclick = function (region)
     {
         regionVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-        drawStreets(this.streets);
     };
 
     /* Fields population */
@@ -82,11 +81,11 @@ $(document).ready(function ()
             function (data, textStatus, jqXHR)
             {
                 availableMapMiners = data;
-                updateAvailableMapMinersAndFeatures();
+                setAvailableMapMinersAndFeatures();
             },
             "json"
             );
-    
+
 
     //Default selections:
     /*
@@ -97,127 +96,240 @@ $(document).ready(function ()
     $('#btnImageMode').addClass('disabled');
 });
 
-function getGeographicalData(geoDataType, event)
+/* UI Functions */
+
+var UIState = {}
+UIState.SelectedMapMiner = null;
+UIState.SelectedMapFeature = null;
+
+function executeQuery(event)
 {
-    var urlGeographicObject = "";
+    //TODO: Create some animation/panel to display the request progress
+    let btnExecuteQuery = getClickedElement(event);
 
 
-    switch (geoDataType)
-    {
-        case 'Streets':
-            urlGeographicObject = "/getstreets/";
-            break;
-        case 'Bus Stops':
-
-            break;
-        case 'Pharmacies':
-            break;
-        case 'Schools':
-            break;
-        default:
-            console.error(`Error: Unlisted geoDataType '${geoDataType}'.`);
-            return;
-    }
-
-    var geoJsonFormatter = new ol.format.GeoJSON()
     //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-    for (let regionIdx in usersection.getRegions())
+    var geoJsonFormatter = new ol.format.GeoJSON();
+
+    let noSelectedRegions = true;
+
+    for (let regionIdx in usersection.regions)
     {
         let region = usersection.getRegionById(regionIdx);
+
         if (!region.active) continue;
 
+        noSelectedRegions = false;
+
+        if (UIState.SelectedMapMiner === null)
+        {
+            alert("Please, select a Map Miner to continue.");
+            return;
+        }
+        if (UIState.SelectedMapMiner === null)
+        {
+            alert("Please, select a Feature to continue.");
+            return;
+        }
+
+        /* To avoid race conditions during the ajax call */
+        let selectedMapMiner = UIState.SelectedMapMiner;
+        let selectedMapFeature = UIState.SelectedMapFeature;
+
+
         var geoJsonFeatures = geoJsonFormatter.writeFeature(regionVectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
-        $.post(
-            urlGeographicObject,
-            { 'geojsondata': geoJsonFeatures },
+        var that = this; /* window */
+        $.get
+            (
+            "/getmapminerfeatures/",
+            {
+                "mapMinerName": selectedMapMiner,
+                "featureName": selectedMapFeature,
+                "regions": geoJsonFeatures,
+            },
             function (data, textStatus, jqXHR)
             {
-                region.Streets = $.parseJSON(data);
-                this.consolidateStreets(); /*usersection*/
-            }.bind(usersection),
+                let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                let layer = this.getLayerById(layerId);
+                if (!layer)
+                {
+                    layer = this.createLayer(layerId);
+                }
+
+                //Update only if the region now has more features than before
+                if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length)
+                {
+                    layer.featureCollection = data;
+                }
+
+                that.drawLayer(layer); /* window */
+
+                console.log(data);
+            }.bind(region)
+            ,
             "json"
             );
     }
 
+    if (noSelectedRegions)
+    {
+        alert("No region selected. Please, select a region to make a request.")
+    }
 }
 
-/* UI Functions */
+function clearSelections(event)
+{
+    let btnClearSelections = getClickedElement(event);
+    btnClearSelections.addClass("hidden");
+    $(`#btnExecuteQuery`).addClass("hidden");
 
-function setMapMiner(event) { let mapMinerName = event.data; throw Error("Not implemented"); }
-function setMapFeature(event) { let mapFeatureName = event.data; throw Error("Not implemented"); }
+    let mapMinerBtn = $(`#mapMinerBtn`);
+    let mapFeatureBtn = $(`#mapFeatureBtn`);
+    mapMinerBtn.html("Map Miner");
+    mapFeatureBtn.html("Feature");
+    mapMinerBtn.addClass("btn-secondary");
+    mapFeatureBtn.addClass("btn-secondary");
+    mapMinerBtn.removeClass("btn-success");
+    mapFeatureBtn.removeClass("btn-success");
 
-function updateAvailableMapMinersAndFeatures()
+
+
+    UIState.SelectedMapMiner = null;
+    UIState.SelectedMapFeature = null;
+    setAvailableMapMinersAndFeatures();
+}
+
+function selectMapMiner(event)
+{
+    let mapMinerDiv = $(`#mapMinerDiv`);
+    let mapMinerBtn = $(`#mapMinerBtn`);
+    $(`#btnClearSelections`).removeClass("hidden");
+    $(`#btnExecuteQuery`).removeClass("hidden");
+    mapMinerBtn.addClass("btn-success");
+    mapMinerBtn.removeClass("btn-secondary");
+
+
+
+    let mapMinerName = event.data;
+
+
+
+    UIState.SelectedMapMiner = mapMinerName;
+    mapMinerBtn.html(mapMinerName);
+
+    setFeaturesFromMapMiner(mapMinerName, true);
+}
+
+function selectMapFeature(event)
+{
+    let mapFeatureDiv = $(`#mapFeatureDiv`);
+    let mapFeatureBtn = $(`#mapFeatureBtn`);
+    $(`#btnClearSelections`).removeClass("hidden");
+    $(`#btnExecuteQuery`).removeClass("hidden");
+
+    mapFeatureBtn.addClass("btn-success");
+    mapFeatureBtn.removeClass("btn-secondary");
+
+
+    let mapFeatureName = event.data;
+
+    UIState.SelectedMapFeature = mapFeatureName;
+    mapFeatureBtn.html(mapFeatureName);
+    setMinersFromFeatures(mapFeatureName, true);
+}
+
+function setMinersFromFeatures(FeatureName)
+{
+    let mapMinerDiv = $(`#mapMinerDiv`);
+    mapMinerDiv.empty();
+    for (let mapMinerName in availableMapMiners)
+    {
+        if (availableMapMiners[mapMinerName].indexOf(FeatureName) != -1)
+        {
+            let mapMiner = $(document.createElement('a'));
+            mapMiner.addClass('dropdown-item');
+            mapMiner.append(mapMinerName);
+            mapMiner.click(mapMinerName, this.selectMapMiner.bind(this));
+            mapMiner.attr("href", "javascript:void(0);");
+            mapMinerDiv.append(mapMiner);
+        }
+    }
+}
+
+function setFeaturesFromMapMiner(MapMinerName, clearFeatures)
+{
+    //TODO: Remove this way of define default value without warnings
+    if (typeof (clearFeatures) === "undefined") clearFeatures = false;
+
+    let mapFeatureDiv = $(`#mapFeatureDiv`);
+    if (clearFeatures) mapFeatureDiv.empty();
+
+    for (let featureIdx in availableMapMiners[MapMinerName])
+    {
+        let feature = availableMapMiners[MapMinerName][featureIdx];
+        let mapFeature = $(document.createElement('a'));
+        mapFeature.addClass('dropdown-item');
+        mapFeature.append(feature);
+        mapFeature.click(feature, this.selectMapFeature.bind(this));
+        mapFeature.attr("href", "javascript:void(0);");
+        mapFeatureDiv.append(mapFeature);
+    }
+}
+
+function setAvailableMapMinersAndFeatures()
 {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapFeatureDiv = $(`#mapFeatureDiv`);
+    mapMinerDiv.empty();
+    mapFeatureDiv.empty();
     for (let mapMinerName in availableMapMiners)
     {
         let mapMiner = $(document.createElement('a'));
-        mapMiner.addClass('dropdown-mapMiner');
+        mapMiner.addClass('dropdown-item');
         mapMiner.append(mapMinerName);
-        mapMiner.on("click", mapMinerName, this.setMapMiner.bind(this));
+        mapMiner.click(mapMinerName, this.selectMapMiner.bind(this));
         mapMiner.attr("href", "javascript:void(0);");
         mapMinerDiv.append(mapMiner);
-        //<a id="btnGetStreets" onclick="getGeographicalData('Streets', this)" class="dropdown-item" href="javascript:void(0);">Streets</a>
-        for (let feature in availableMapMiners[mapMiner])
-        {
-            let mapFeature = $(document.createElement('a'));
-            mapFeature.addClass('dropdown-mapFeature');
-            mapFeature.append(feature);
-            mapFeature.on("click", mapFeature, this.setMapFeature.bind(this));
-            mapFeature.attr("href", "javascript:void(0);");
-            mapFeatureDiv.append(mapFeature);
-        }
+        setFeaturesFromMapMiner(mapMinerName, false);
     }
-    
+
 }
 
-function drawStreets(ConsolidatedStreets)
-    /* ConsolidatedStreets have the 'regions' property indicating to which regions a street belongs */
+function drawLayer(layer)
 {
-    for (let cstreetIdx in ConsolidatedStreets)
+    if (!layer) { console.warn("Undefined layer!"); return; }
+    let featureCollection = layer.featureCollection;
+    let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
+
+    for (let featureIdx in featureCollection.features)
     {
-        let cstreet = ConsolidatedStreets[cstreetIdx];
-
-        /* Check if cstreet belongs to any active region */
-        cstreetActive = false;
-        for (let regionIdx in cstreet.regions)
-        {
-            if (usersection.getRegionById(cstreet.regions[regionIdx]).active)
-            {
-                cstreetActive = true;
-                break;
-            }
-        }
-
-        /*
-        *  By default streets (FeatureCollections of MultiLineStrings) doesn't come with IDs from the server,
-        *  so it's important to add an "id" property to facilitate to reference during drawing/erasing tasks.
-        */
-        if (!cstreet.street.id)
-        {
-            /* OpenLayers Features are different from GeoJson in that it has methods used by OpenLayers */
-            let olGeoJson = new ol.format.GeoJSON({ featureProjection: usersection.regions[cstreet.regions[0]].Streets.crs.properties.name });
-            cstreet.street.id = getNewId();
-            let olFeature = olGeoJson.readFeature(cstreet.street);
-            streetVectorSource.addFeature(olFeature);
-        }
+        let feature = featureCollection.features[featureIdx];
+        if (usersection.featuresByLayerIndex[layer.id][feature.id].drawed) continue;
         else
         {
-            if (cstreetActive && !cstreet.street.drawed)
-            {
-                let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
-                cFeature.setStyle(null);
-                cstreet.street.drawed = true;
-            }
-            else if (!cstreetActive && cstreet.street.drawed)
-            {
-                let cFeature = streetVectorSource.getFeatureById(cstreet.street.id);
-                cFeature.setStyle(transparentStyle);
-                cstreet.street.drawed = false;
-            }
+            let olFeature = olGeoJson.readFeature(feature);
+            regionVectorSource.addFeature(olFeature);
+            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = true;
         }
 
+    }
+}
+
+function removeLayer(layer)
+{
+    if (!layer) { console.warn("Undefined layer!"); return; }
+    let featureCollection = layer.featureCollection;
+
+    for (let featureIdx in featureCollection.features)
+    {
+        let feature = featureCollection.features[featureIdx];
+        if (!usersection.featuresByLayerIndex[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
+        else
+        {
+            let olFeature = regionVectorSource.getFeatureById(feature.id);
+            regionVectorSource.removeFeature(olFeature);
+            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = false;
+        }
 
     }
 }
@@ -236,14 +348,45 @@ function updateRegionsList(vectorevent)
     switch (vectorevent.type)
     {
         case 'addfeature':
-            let idNumber = getNewId();
-            let regionId = 'region' + idNumber;
-            vectorevent.feature.setId(regionId);
-            vectorevent.feature.setProperties({ 'type': 'region' });
-            usersection.createNewRegion(regionId, `Region ${idNumber}`, false);
+            //TODO: Associate features created in the frontend with some tag (e.g. "region")
+            if (!vectorevent.feature.getId())
+            {
+                let idNumber = getNewId();
+                let regionId = 'region' + idNumber;
+                vectorevent.feature.setId(regionId);
+                vectorevent.feature.setProperties({ 'type': 'region' });
+                let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
+                newRegion.onactivechange = function (region)
+                {
+                    /*
+                    *  TODO:
+                    *  Create a panel/mechanism to:
+                    *  - Draw a single layer from a single region,
+                    *  - Draw multiple layers with the same id present in different regions
+                    */
+                    if (region.active)
+                    {
+                        for (let layerIdx in region.layers)
+                        {
+                            let layer = region.layers[layerIdx];
+                            //drawLayer@home.js
+                            drawLayer(layer);
+                        }
+                    }
+                    else
+                    {
+                        for (let layerIdx in region.layers)
+                        {
+                            let layer = region.layers[layerIdx];
+                            //removeLayer@home.js
+                            removeLayer(layer);
+                        }
+                    }
+                }
+            }
             break;
         case 'removefeature':
-            if (f.getProperties()['type'] === 'region')
+            if (vectorevent.feature.getProperties()['type'] === 'region')
             {
                 let featureId = vectorevent.getId();
                 usersection.removeRegion(featureId);
@@ -255,7 +398,7 @@ function updateRegionsList(vectorevent)
             console.error('Unknown event type!');
             break;
     }
-    
+
 }
 
 /* Click Event Region*/

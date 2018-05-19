@@ -40,28 +40,25 @@ def about(request):
 
 @api_view(['GET'])
 def getavailablemapminers(request):
-    return JsonResponse(json.dumps(mapMinerManager.getAvailableMapMinersAndQueries()), safe=False)
+    ret = mapMinerManager.getAvailableMapMinersAndQueries()
+    return JsonResponse(ret)
 
+@api_view(['GET'])
+def getmapminerfeatures(request):
+    mapMinerName = request.GET.get("mapMinerName")
+    query = request.GET.get("featureName")
+    region = geojson.loads(request.GET.get("regions"))
+    
+    ret = mapMinerManager.requestQueryToMapMiner(mapMinerName, query, region);
+    return JsonResponse(ret)
+    #return JsonResponse(geojson.dumps(ret), safe=False)
+    
 @api_view(['POST'])
 def getstreets(request):
-    if request.method == 'POST':
-        geojsondata = request.data
-        
-        #openLayerFeatureCollection = json.loads(jsondata['jsondata'])
-        geojsonObject = geojson.loads(geojsondata['geojsondata'])
-        
+    geojsondata = request.data
+    geojsonObject = geojson.loads(geojsondata['geojsondata'])
 
-        #OpenLayers use Lon/Lat ordering, so it's necessary to flip the coordinates order
-        #openLayersLonLatToLatLon(openLayerFeatureCollection);
-        #regionsPoly = []
-        #if type(geojsonObject) is FeatureCollection:
-            #for f in featureCollection['features']:
-                #regionsPoly.append(f['geometry'])
-        #elif type(geojsonObject) is Feature:
-            #regionsPoly.append(geojsonObject['geometry'])
-        streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', geojsonObject)
-        #streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
-            
+    streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', geojsonObject)
         
     return JsonResponse(geojson.dumps(streetsGeoJson), safe=False)
 

@@ -1,4 +1,42 @@
-﻿class Region
+﻿class Layer
+{
+    constructor(id)
+    {
+        this._id = id;
+        this._featureCollection = null;
+
+        this.onfeaturecollectionchange = null;
+    }
+
+    get id() { return this._id; }
+    get featureCollection() { return this._featureCollection; }
+    set featureCollection(newFeatureCollection)
+    {
+        let triggerFeatureCollectionChange = false;
+        if (this._featureCollection !== newFeatureCollection)
+        {
+            triggerFeatureCollectionChange = true;
+        }
+        /* Keep state */
+        let drawedState = this._featureCollection ? this._featureCollection.drawed : undefined;
+
+        this._featureCollection = newFeatureCollection;
+
+        /* Restore state */
+        this._featureCollection.drawed = drawedState;
+
+
+        if (triggerFeatureCollectionChange)
+        {
+            if (this.onfeaturecollectionchange)
+            {
+                this.onfeaturecollectionchange(this);
+            }
+        }
+    }
+}
+
+class Region
 {
     constructor(id, name, active)
     {
@@ -6,8 +44,44 @@
         this._id = id;
         this._name = name;
 
+        /* Events */
+        /*
+        *  Syntax: onactivechange = function (region) {}
+        *  Triggered when "active" property's value changes.
+        */
+        this.onactivechange = null;
+        /* 
+        *  Syntax: onaddlayer = function (layer) {} 
+        *  Triggered when a new layer is created in this region
+        */
+        this.onaddlayer = null;
+
+        /* 
+        *  Each layer is named after a MapMiner and a Feature
+        *  concatenated by an underscore.
+        *  Each layer contains a collection of regions 
+        *  named 'regions' and a listOfFeatures
+        *  with all the features collapsed into a single list.
+        */
+        this._layers = {};
+
         //Using setter to verify type consistency
         this.active = active;
+    }
+
+    createLayer(id)
+    {
+        if (!(id in this._layers))
+        {
+            let newLayer = new Layer(id);
+            this._layers[id] = newLayer;
+            if (this.onaddlayer) { this.onaddlayer(newLayer); }
+            return newLayer;
+        }
+        else
+        {
+            throw Error(`id: '${id}' already present in layers list!`);
+        }
     }
 
     toggleActive()
@@ -18,12 +92,20 @@
 
     get id() { return this._id; }
     get name() { return this._name; }
+    get layers() { return this._layers; }
+    getLayerById(id) { return this._layers[id]; }
+
     get active() { return this._active; }
     set active(newState)
     {
         if (typeof (newState) !== "boolean")
             throw Error(`newState parameter type should be boolean, but is: ${typeof (newState)}`);
+        let triggerActiveChange = this._active !== newState;
         this._active = newState;
+        if (this.onactivechange)
+        {
+            this.onactivechange(this);
+        }
     }
 }
 
@@ -34,16 +116,35 @@ class UserSection
         this.setTarget(regionsDivId);
 
         /* Events Region */
-        /* Called when all the streets from all the regions are collapsed into .allstreets array */
-        this.onstreetsconsolidated = null;
+
+        /*
+        *  Syntax: onregionlistitemclick = function (region)
+        *  Triggered by a mouse click event in the user interface
+        */
         this.onregionlistitemclick = null;
 
-
-        /* Feature collections with Polygons representing regions of interest*/
+        /* 
+        *  Feature collections with Polygons 
+        *  representing regions of interest
+        */
         this._regions = {};
 
-        /* A list, without duplicates, of all streets collected in the regions of interest */
-        this._allstreets = {};
+        /* 
+        *  An index of all features from all regions grouped by layerId
+        */
+        this._featuresByLayerIndex = {};
+    }
+
+    get featuresByLayerIndex() { return this._featuresByLayerIndex; }
+
+    isFeatureActive(layerId, featureId)
+    {
+        for (let regionIdx in this.featuresByLayerIndex[layerId][featureId].regions)
+        {
+            let regionId = this.featuresByLayerIndex[layerId][featureId].regions[regionIdx];
+            if (this.regions[regionId].active) return true;
+        }
+        return false;
     }
 
     setTarget(regionsDivId)
@@ -55,6 +156,7 @@ class UserSection
     updateRegionsDiv()
     {
         this._target.empty();
+
         for (let regionIdx in this._regions)
         {
             let region = this._regions[regionIdx];
@@ -71,6 +173,7 @@ class UserSection
                 regionVectorSource.getFeatureById(region.id).setStyle(null);
             this._target.append(item);
         }
+
     }
 
     _regionListItemClickHandler(event)
@@ -83,16 +186,25 @@ class UserSection
         {
             this.onregionlistitemclick(region);
         }
-        
+
     }
 
-    createNewRegion(id, name, active)
+    createRegion(id, name, active)
     {
         //active default is false
         if (!(id in this._regions))
         {
-            this._regions[id] = new Region(id, name, active);
+            let newRegion = new Region(id, name, active);
+            this._regions[id] = newRegion;
+            newRegion.onaddlayer = function (layer)
+            {
+                layer.onfeaturecollectionchange = function (layer)
+                {
+                    this.updateFeatureIndex(layer.id);
+                }.bind(this); /* UserSection */
+            }.bind(this); /* UserSection */
             this.updateRegionsDiv();
+            return newRegion;
         }
         else
         {
@@ -112,51 +224,44 @@ class UserSection
         }
     }
 
-    getRegions()
-    {
-        return this._regions;
-    }
+    get regions() { return this._regions; }
 
-    getRegionById(regionId)
-    {
-        return this._regions[regionId];
-    }
+    getRegionById(regionId) { return this._regions[regionId]; }
 
-    get streets()
+    updateFeatureIndex(layerId)
     {
-        return this._allstreets;
-    }
-
-    getStreetByName(name)
-    {
-        return this._allstreets[name];
-    }
-
-    consolidateStreets()
-    {
-        /* Do job in background with workers if possible */
-        if (window.Worker)
+        for (let regionIdx in this.regions)
         {
-            let mWorker = new Worker('/static/django_website/scripts/home/worker.js');
-            mWorker.onmessage = function (e)
+            let region = this.regions[regionIdx];
+            let layer = region.layers[layerId];
+            if (!layer) continue;
+            let flIndex = this._featuresByLayerIndex[layerId];
+            if (!flIndex) flIndex = this._featuresByLayerIndex[layerId] = {};
+            for (let featureIdx in layer.featureCollection.features)
             {
-                this._allstreets = e.data;
-                if (this.onstreetsconsolidated)
-                    this.onstreetsconsolidated();
-            }.bind(this);
-            mWorker.postMessage([this._regions, this._allstreets]);
+                let feature = layer.featureCollection.features[featureIdx];
+                if (!flIndex[feature.id]) flIndex[feature.id] =
+                    {
+                        'feature': feature,
+                        'regions': [regionIdx]
+                    };
+                else
+                {
+                    //Update the feature in flIndex only if the new feature has more coordinates
+                    if (flIndex[feature.id].feature.geometry.coordinates.length < feature.geometry.coordinates.length)
+                    {
+                        flIndex[feature.id].feature = feature;
+                    }
+                    //If this feature appears in different regions then keep track of the regions where it appears
+                    if (flIndex[feature.id].regions.indexOf(regionIdx) === -1)
+                    {
+                        flIndex[feature.id].regions.push(regionIdx);
+                    }
+                }
+            }
+
+
         }
-            /* if it's not possible to the it with workers then do it in foreground */
-        else
-        {
-            /*
-            *  Shallow copied to avoid change 'Streets' attribute from 'usersection.regions'.
-            *  Works IN-PLACE when not using workers.
-            */
-            //collapseStreetsFromRegionsList@backgroundFunctions.js
-            collapseStreetsFromRegionsList(regionsWithStreets, this._allstreets);
-            if (this.onstreetsconsolidated)
-                this.onstreetsconsolidated();
-        }
+
     }
 }
