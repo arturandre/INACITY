@@ -3,10 +3,11 @@ from abc import ABC, abstractmethod
 from typing import List
 from django.contrib.gis.geos import Polygon
 from geojson import FeatureCollection
+from django.contrib.gis.gdal import SpatialReference, CoordTransform
 
 class MapMiner(ABC):
     """Abstract class representing a Map Miner adapter to collect data from some GIS (Geographic Information System)."""
-
+    _destcrs = SpatialReference(3857) # OpenLayers defauls srid
     _subclasses = []
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -16,6 +17,7 @@ class MapMiner(ABC):
             (cls.mapMinerName, 'mapMinerName'),
             (cls.mapMinerId, 'mapMinerId'),
             (cls._availableQueries, '_availableQueries'),
+            (cls._destcrs, '_destcrs'),
             ]
         for i in range(len(checkFields)):
             try:
@@ -39,6 +41,10 @@ class MapMiner(ABC):
     """This property represents the possible queries the user can make to a specific MapMiner"""
     _availableQueries = None    
 
+    """This property represents the source GIS srid"""
+    _basecrs = None
+
+
     @classmethod
     def getAvailableQueries(cls):
         """Registry of available queries to any clients (i.e. frontend)"""
@@ -52,8 +58,15 @@ class MapMiner(ABC):
         
         return cls._availableQueries[queryName](cls._preFormatInput(regions))
 
+    @classmethod
+    def _reproject(cls, geosobject):
+        trans = CoordTransform(cls._basecrs, MapMiner._destcrs)
+        return geosobject.transform(trans);
+
+
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         return GeoJsonInput
+
 
     @abstractmethod
     def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:

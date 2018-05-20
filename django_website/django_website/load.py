@@ -7,8 +7,6 @@ geosampa_busstops_mapping = {
     'address' : 'pt_enderec',
     'description' : 'pt_descric',
     'name' : 'pt_nome',
-#    'lon' : 'lon',
-#    'lat' : 'lat',
     'mpoint' : 'POINT',
 }
 

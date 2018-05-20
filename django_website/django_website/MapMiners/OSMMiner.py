@@ -1,6 +1,5 @@
 from geojson import Point, LineString, MultiLineString, Polygon, Feature, FeatureCollection
-
-
+from django.contrib.gis.gdal import SpatialReference
 import requests
 from typing import List
 from django_website.Primitives import *
@@ -16,6 +15,8 @@ from django_website.geofunctions import flip_geojson_coordinates
 class OSMMiner(MapMiner):
     """OpenStreetMaps miner constructed using the Overpass API"""
     #EPSG:3857
+    #Since OpenLayers and OSMMiner use the same SRID no convertion is needed
+    _basecrs = SpatialReference(3857)
  
     class OverpassRunningQuery:
         """Dedicated class to wrap Overpass status running queries data, if any is available"""
@@ -79,7 +80,7 @@ class OSMMiner(MapMiner):
     _timeout = "[timeout:25]"
     _lock = Lock()
     
-    
+    _destcrs = SpatialReference(3857)
     _crs = {
     "type": "name",
     "properties": {
@@ -160,18 +161,14 @@ class OSMMiner(MapMiner):
         featuresList = []
         for streetName in streetSegments:
             featuresList.append(
-                Feature(id=streetName, properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
-                #Feature(crs=_crs, properties={'name':streetName}, geometry=MultiLineString([LineString([Point([osmResult.Nodes[n].lon, osmResult.Nodes[n].lat]) for n in s]) for s in streetSegments[streetName]]))
+                Feature(id=streetName, 
+                    properties={'name':streetName}, 
+                    geometry=MultiLineString([LineString([
+                    Point([osmResult.Nodes[n].lon, 
+                    osmResult.Nodes[n].lat]) for n in s]) 
+                    for s in streetSegments[streetName]]))
             )
-            #for segment in streetSegments[streetName]:
-            #    segment = LineString([Point(osmResult.Nodes[node].lon,
-            #        osmResult.Nodes[node].lat, srid=OSMMiner._OSMSRID) for node in segment])
-                #for nodeIndex in range(len(segment)):
-                #    osmNode = osmResult.Nodes[segment[nodeIndex]]
-                #    segment[nodeIndex] = Point(osmNode.lon, osmNode.lat, srid=OSMMiner._OSMSRID)
-                
-            #StreetsDTOList.append(StreetDTO(streetName, MultiLineString(streetSegments[streetName])))
-            
+           
         return FeatureCollection(featuresList, crs=OSMMiner._crs)
         #return StreetsDTOList
 

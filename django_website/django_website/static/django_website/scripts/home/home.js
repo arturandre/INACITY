@@ -109,7 +109,7 @@ function executeQuery(event)
 
 
     //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-    var geoJsonFormatter = new ol.format.GeoJSON();
+    let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
     let noSelectedRegions = true;
 
@@ -137,15 +137,23 @@ function executeQuery(event)
         let selectedMapFeature = UIState.SelectedMapFeature;
 
 
-        var geoJsonFeatures = geoJsonFormatter.writeFeature(regionVectorSource.getFeatureById(region.id), { 'featureProjection': 'EPSG:3857' });
-        var that = this; /* window */
+        let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
+
+        geoJsonFeatures.crs = {
+            "type": "name",
+            "properties": {
+                "name": "EPSG:4326"
+            }
+        };
+
+        let that = this; /* window */
         $.get
             (
             "/getmapminerfeatures/",
             {
                 "mapMinerName": selectedMapMiner,
                 "featureName": selectedMapFeature,
-                "regions": geoJsonFeatures,
+                "regions": JSON.stringify(geoJsonFeatures),
             },
             function (data, textStatus, jqXHR)
             {
@@ -163,8 +171,6 @@ function executeQuery(event)
                 }
 
                 that.drawLayer(layer); /* window */
-
-                console.log(data);
             }.bind(region)
             ,
             "json"
@@ -307,7 +313,7 @@ function drawLayer(layer)
         if (usersection.featuresByLayerIndex[layer.id][feature.id].drawed) continue;
         else
         {
-            let olFeature = olGeoJson.readFeature(feature);
+            let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
             regionVectorSource.addFeature(olFeature);
             usersection.featuresByLayerIndex[layer.id][feature.id].drawed = true;
         }

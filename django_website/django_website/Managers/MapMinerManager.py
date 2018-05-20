@@ -27,18 +27,9 @@ class MapMinerManager(object):
     def requestQueryToMapMiner(self, mapMinerName: str, query: str, region: FeatureCollection) -> List[FeatureCollection]:
         """Delegate the requested query call to the selected MapMiner"""
         return self._MapMiners[mapMinerName].doQuery(query, region)
-    
-    #def getStreets(self, region: Polygon) -> List[type(StreetDTO)]:
-    #    """Delegate the getStreets call to a MapMiner"""
-    #    #TODO: Solve the conflation problem/create a heuristic to choose a MapMiner
-    #    return self._MapMiners['OSMMiner'].getStreets(region)
 
     def getAmenities(self, region: Polygon, amenityType) -> List[type(AmenityDTO)]:
         """Delegate the getAmenities call to a MapMiner"""
         #TODO: Solve the conflation problem/create a heuristic to choose a MapMiner
         return self._MapMiners['OSMMiner'].getAmenities(region, amenityType)
-
-    #@property
-    #def MapMiners(self):
-    #    return self._MapMiners()
 
