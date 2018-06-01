@@ -1,3 +1,5 @@
+#django_website.Testing
+
 from django_website.Testing.mocks import *
 import requests
 import sys
@@ -19,18 +21,23 @@ def similar(a, b):
 
 
 class Testing(object):
-    """Automated testing functions related to Google Street View image platform"""
+    """Automated testing functions related to Google Street View image platform
 
-    _crs = {
-    "type": "name",
-    "properties": {
-        "name": "EPSG:4326"
-    }
-    }
+    How to use:
+    from django_website.Testing.Testing import * 
+    Testing().testAll()
+"""
+    sampleregion = {"crs": {"properties": {"name": "EPSG:4326"}, "type": "name"}, "features": [{"geometry": {"coordinates": [[[-46.70459747314453, -23.536094368220105], [-46.69953346252441, -23.523424616467295], [-46.713352203369126, -23.51878135855857], [-46.71841621398925, -23.531451557329774], [-46.70459747314453, -23.536094368220105]]], "type": "Polygon"}, "id": "region0", "properties": {"type": "region"}, "type": "Feature"}], "type": "FeatureCollection"}
+
 
     def testAll(self):
         try:
-            tests = [("mapMinerManager_getStreets", self._mapMinerManager_getStreets), ("osmminer_getStreets",self._osmminer_getStreets), ("gsvtest", self._gsvtest), ("gsvimagetest", self._gsvimagetest), ("gsvurltest", self._gsvurltest), ("osmminer_collectStreetsQuery", self._osmminer_collectStreetsQuery)]
+            tests = [
+                ("mapMinerManager_requestQueryToMapMiner", 
+                self._mapMinerManager_requestQueryToMapMiner),
+                ("gsvtest", self._gsvtest), 
+                ("gsvimagetest", self._gsvimagetest),
+                ("gsvurltest", self._gsvurltest)]
             failedTests = []
             lastTest = 0
             for testNo, test in enumerate(tests):
@@ -43,6 +50,8 @@ class Testing(object):
                 print("%s: %s" % (test[0], testResult))
             if len(failedTests) > 0:
                 print("Failed tests: %s" % ", ".join(failedTests))
+            else:
+                print("All tests have been passed.")
         except:
             print("Implementation error in Testing:", sys.exc_info()[0])
             print("While testing: %s" % tests[lastTest][0])
@@ -56,31 +65,10 @@ class Testing(object):
         OSMMiner()._mergeWays(waysNodes2)
         return (waysNodes == mergewaysmock) and (waysNodes2 == mergewaysmock2)
 
-    def _mapMinerManager_getStreets(self):
-        poly = {"coordinates": [[-23.55850936300801, -46.73320055007934], [-23.55473281722144, -46.73105478286743], [-23.55276582331022, -46.73517465591431], [-23.55654242561994, -46.73732042312622], [-23.55850936300801, -46.73320055007934]], "type": "Polygon"}
-        streetsDTOList = MapMinerManager().getStreets(poly)
-        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
-        return streetsDTOJsonList == mapmanager_getstreetsmock
+    def _mapMinerManager_requestQueryToMapMiner(self):
+        streets = MapMinerManager().requestQueryToMapMiner(OSMMiner.mapMinerName, 'Streets', Testing.sampleregion)
+        return streets.__str__() == mapminermanager_getstreetsmock
 
-    def _osmminer_getStreets(self):
-        poly = Polygon.from_ewkt('POLYGON ((-23.62227134253228 -46.63661956787109, -23.60017200992538 -46.63661956787109, -23.60017200992538 -46.60443305969238, -23.62227134253228 -46.60443305969238, -23.62227134253228 -46.63661956787109))')
-        streetsDTOList = OSMMiner.getStreets(poly)
-        streetsDTOJsonList = '[' + ",".join(map(lambda x: x.toJSON(), streetsDTOList)) + ']'
-        return streetsDTOJsonList == getstreetsmock
-
-    def _osmminer_collectStreetsQuery(self):
-        poly = Polygon.from_ewkt('POLYGON ((-23.62227134253228 -46.63661956787109, -23.60017200992538 -46.63661956787109, -23.60017200992538 -46.60443305969238, -23.62227134253228 -46.60443305969238, -23.62227134253228 -46.63661956787109))')
-        jsonString = requests.get(OSMMiner()._createCollectStreetsQuery(poly)).content
-        getstreetsresult = json.loads(jsonString)
-        jsonmock = json.loads(osmgetstreetsmock)
-        try:
-            del getstreetsresult['osm3s']
-            del jsonmock['osm3s']
-        except KeyError:
-            print("Error in _osmminer_collectStreetsQuery while trying to delete osm3s keys.")
-            pass
-        #As OSM is updated the similarity tends to decrease (2018-05-04: similarity=0.9994953100293219)
-        return similar(getstreetsresult.__str__(), jsonmock.__str__()) > 0.9
 
 
     def _gsvtest(self):
@@ -107,10 +95,9 @@ class Testing(object):
         return summed == 0
 
     def _gsvurltest(self):
-        imageMiner = ImageMinerManager()
         size = {"width": 640, "height": 640}
         location = {"lat": -23.560271, "lon": -46.731295}
         heading = 180
         pitch=-0.76
-        testurl = GoogleStreetViewMiner()._imageURLBuilder(size, location, heading, pitch, GoogleStreetViewMiner._key)
+        testurl = GoogleStreetViewMiner._imageURLBuilder(size, location, heading, pitch, GoogleStreetViewMiner._key)
         return gsvurltestmock == testurl

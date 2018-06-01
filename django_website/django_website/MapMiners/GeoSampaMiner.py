@@ -38,6 +38,9 @@ class GeoSampaMiner(MapMiner):
                 geometry=Point(busStop.mpoint)))
         return FeatureCollection(featuresList, crs=GeoSampaMiner._crs)
 
+    def _initialize(cls):
+        pass
+
     _availableQueries = {"BusStops": _getBusStops}
 
 

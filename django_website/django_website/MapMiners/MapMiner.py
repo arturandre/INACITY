@@ -5,6 +5,7 @@ from django.contrib.gis.geos import Polygon
 from geojson import FeatureCollection
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 
+
 class MapMiner(ABC):
     """Abstract class representing a Map Miner adapter to collect data from some GIS (Geographic Information System)."""
     _destcrs = SpatialReference(3857) # OpenLayers defauls srid
@@ -29,7 +30,9 @@ class MapMiner(ABC):
         if len(notImplementedFields) > 0:
             errors = ", ".join(notImplementedFields)
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
-        
+    
+        cls._initialize(cls)
+    
     __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
 
     """This property represents the filter's name that'll be displayed in the UI"""
@@ -44,6 +47,9 @@ class MapMiner(ABC):
     """This property represents the source GIS srid"""
     _basecrs = None
 
+    @classmethod
+    def _initialize(cls):
+        pass
 
     @classmethod
     def getAvailableQueries(cls):
@@ -68,9 +74,7 @@ class MapMiner(ABC):
         return GeoJsonInput
 
 
-    @abstractmethod
-    def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
-        pass
+
 
     
 

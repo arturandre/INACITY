@@ -11,7 +11,7 @@ class GoogleStreetViewMiner(ImageMiner):
     __all__ = ["imageMinerName", "imageMinerId", "getImageFromLocation"]
 
     _baseurl = "https://maps.googleapis.com/maps/api/streetview"
-    _key = "AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m - xHYac"
+    _key = "AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"
     
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")

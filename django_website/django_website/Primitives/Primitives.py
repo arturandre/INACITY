@@ -2,6 +2,7 @@ import imageio
 import numpy as np
 from typing import List
 import json
+import geojson
 
 class SimpleDTO(object):
     def __init__(self):
@@ -16,23 +17,9 @@ class SimpleDTO(object):
                 sort_keys=True, indent=4)
 
 
-class PointDTO(SimpleDTO):
-    """Geocoordinate used for communication"""
-    def __init__(self, id, lat, lon):
-        self.id = id
-        self.lat = lat
-        self.lon = lon
-
-class StreetDTO(SimpleDTO):
-    """Street representation used for communication"""
-    def __init__(self, name: str, segments: List[PointDTO]):
-        self.name = name
-        self.segments = segments
-
-class AmenityDTO:
-    pass
 
 class ImageDTO:
+    """Object responsible for keeping image and panorama's data"""
     def __init__(self, data: imageio.core.util.Image):
         self.data = data
         if data.dtype == 'uint8':
@@ -40,6 +27,7 @@ class ImageDTO:
         self.size = {'width': 0, 'height': 0, 'channels': 0}
         self.size['channels'] = data.ndim
         self.size['width'], self.size['height'], *_ = data.shape
+        self.location = geojson.Point()
     def getPNG(self):
         outdata = self.data.copy();
         if outdata.dtype != 'uint8':

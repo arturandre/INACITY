@@ -8,6 +8,7 @@ from itertools import chain
 import re
 from dateutil.parser import parse
 from threading import Lock
+import sys
 
 from django_website.geofunctions import flip_geojson_coordinates
 
@@ -77,7 +78,7 @@ class OSMMiner(MapMiner):
     _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
     _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
     _outFormat = "[out:json]"
-    _timeout = "[timeout:25]"
+    _timeout = "[timeout:60]"
     _lock = Lock()
     
     _destcrs = SpatialReference(3857)
@@ -91,6 +92,12 @@ class OSMMiner(MapMiner):
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
         #pass
+
+    def _initialize(cls):
+        module = sys.modules[__name__]
+        setattr(module, "OSMMiner", cls)
+        OSMMiner._setRateLimit()
+        pass
 
     mapMinerName = "OSMMiner"
     
@@ -107,6 +114,8 @@ class OSMMiner(MapMiner):
             statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
             ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
             OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
+        if OSMMiner._rateLimit <= 0:
+            raise ValueError("Couldn't set the rateLimit value!")
 
     def _waitForAvailableSlots():
         """Collect status from OverpassAPI, available slots and current queries"""
@@ -127,7 +136,6 @@ class OSMMiner(MapMiner):
         overpassQueryUrl = OSMMiner._createCollectStreetsQuery(regions)
 
         OSMMiner._lock.acquire()
-        OSMMiner._setRateLimit()
         print("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
         while OSMMiner._currentQueries >= OSMMiner._rateLimit:
             time.sleep(1)
@@ -171,9 +179,6 @@ class OSMMiner(MapMiner):
            
         return FeatureCollection(featuresList, crs=OSMMiner._crs)
         #return StreetsDTOList
-
-    def getAmenities(region: Polygon, amenityType) -> List[type(AmenityDTO)]:
-        raise NotImplementedError("Not implemented.")
 
     def _createCollectStreetsQuery(regions: FeatureCollection):
         """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
