@@ -18,4 +18,9 @@ router.get('/', function (req, res) {
 
 router.get('/gsvtest', (req, res) => res.send(gsv))
 
+router.get('/findgsvpano', function (req, res) {
+    var sv = new gsv.maps.StreetViewService();
+    res.send(sv);
+});
+
 module.exports = router;

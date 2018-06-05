@@ -18,7 +18,7 @@ class SimpleDTO(object):
 
 
 
-class ImageDTO:
+class GeoImage:
     """Object responsible for keeping image and panorama's data"""
     def __init__(self, data: imageio.core.util.Image):
         self.data = data
@@ -28,6 +28,10 @@ class ImageDTO:
         self.size['channels'] = data.ndim
         self.size['width'], self.size['height'], *_ = data.shape
         self.location = geojson.Point()
+        self.heading = 0
+        self.pitch = 0
+        self.metadata = {} #Json Structured list
+
     def getPNG(self):
         outdata = self.data.copy();
         if outdata.dtype != 'uint8':

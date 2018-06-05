@@ -1,3 +1,6 @@
+from geojson import Polygon, FeatureCollection
+from typing import List
+
 from django_website.ImageMiners.ImageMiner import ImageMiner
 
 class ImageMinerManager(object):
@@ -14,9 +17,16 @@ class ImageMinerManager(object):
         return ImageMinerManager.__instance
 
     def registerImageMiner(self, miner: ImageMiner):
-        if miner.imageMinerName in self._ImageMiners:
-          pass
-        self._ImageMiners[miner.imageMinerName] = miner
+        if not miner.imageMinerName in self._ImageMiners:
+            self._ImageMiners[miner.imageMinerName] = miner
+        pass
+
+
+    def requestGeoImageToImageMiner(self, imageMinerName: str, locations: FeatureCollection) -> List[FeatureCollection]:
+        """Delegate request to the selected image miner"""
+        return self._ImageMiners[imageMinerName].getGeoImagesFromLocations(locations)
+        
+        
 
     @property
     def ImageMiners(self):
