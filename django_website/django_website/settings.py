@@ -79,14 +79,15 @@ WSGI_APPLICATION = 'django_website.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#        'NAME': 'INACITYdb',
-#        'USER': 'postgres',
-#        'PASSWORD': '1234',
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'INACITYdb',
+        'USER': 'postgres',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+    }
+}
 
 
 # Password validation
