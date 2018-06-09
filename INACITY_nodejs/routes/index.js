@@ -103,4 +103,9 @@ router.get('/gsvtest2', function (req, res) {
     //res.send(gsv.google.maps);
 });
 
+router.get('/findgsvpano', function (req, res) {
+    var sv = new gsv.maps.StreetViewService();
+    res.send(sv);
+});
+
 module.exports = router;
