@@ -14,7 +14,10 @@ import datetime
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
 
-from django_website.Managers import *
+from django_website.Managers.MapMinerManager import MapMinerManager
+from django_website.Managers.ImageMinerManager import ImageMinerManager
+from django_website.Managers.ImageFilterManager import ImageFilterManager
+
 from django_website.Primitives import *
 
 
@@ -30,6 +33,7 @@ def __merge_two_dicts(x, y):
     return z
 
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
+imageMinerManager = ImageMinerManager()
 mapMinerManager = MapMinerManager()
 ##############GLOBALS####################
 
@@ -52,6 +56,15 @@ def getmapminerfeatures(request):
     ret = mapMinerManager.requestQueryToMapMiner(mapMinerName, query, region);
     return JsonResponse(ret)
     #return JsonResponse(geojson.dumps(ret), safe=False)
+
+@api_view(['GET'])
+def getimagesforfeaturecollection(request):
+    imageMinerName = request.GET.get("imageMinerName")
+    featureCollection = geojson.loads(request.GET.get("featureCollection"))
+    
+    ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection);
+    return Response(ret)
+
     
 @api_view(['POST'])
 def getstreets(request):

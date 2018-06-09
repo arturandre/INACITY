@@ -8,7 +8,7 @@
     </PythonRunWebServerCommandEnvironment>
     <PythonDebugWebServerCommandEnvironment>
     </PythonDebugWebServerCommandEnvironment>
-    <InterpreterId>{dcd5f14b-123b-407b-8c74-7034c2151f78}</InterpreterId>
+    <InterpreterId>{f0b99efa-9a71-4b82-958e-7c871c5b6093}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <InterpreterPath>
     </InterpreterPath>
@@ -145,7 +145,7 @@
     <Folder Include="django_website\Primitives\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{dcd5f14b-123b-407b-8c74-7034c2151f78}\3.5" />
+    <InterpreterReference Include="{f0b99efa-9a71-4b82-958e-7c871c5b6093}\3.5" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 

@@ -18,12 +18,12 @@ class ImageMiner(ABC):
     def __init__(self):
         pass
 
-    __all__ = ["imageMinerName", "imageMinerId", "getImageFromLocation"]
+    __all__ = ["imageMinerName", "imageMinerId", "getImageForFeatureCollection"]
 
     imageMinerName = None
     imageMinerId = None
 
     @abstractmethod
-    def getImageFromLocation(location: FeatureCollection)->List[ImageDTO]:
+    def getImageForFeatureCollection(location: FeatureCollection)->List[ImageDTO]:
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass

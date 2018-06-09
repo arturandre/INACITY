@@ -23,8 +23,16 @@ urlpatterns = [
     url(r'^docs/', include_docs_urls(title="INACITY's API")),
 
     # API Calls
+    #Returns lists for map miners and map features in the frontend
     url(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
+
+    #Get GIS data related to a particular type of feature inside a given region
     url(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
+
+    #Used to collect images for a given set of GIS features called FeatureCollection
+    url(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
+    
+    #TODO: Remove this (used previously for testing)
     url(r'^getstreets/?$', getstreets, name='getstreets'),
 
     # Testing 

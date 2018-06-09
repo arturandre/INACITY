@@ -1,4 +1,7 @@
 from django_website.ImageMiners.ImageMiner import ImageMiner
+from geojson import FeatureCollection
+from typing import List
+from django_website.Primitives.Primitives import ImageDTO
 
 class ImageMinerManager(object):
     """Mediator class instantiated as a singleton responsible for managing all the image platforms adaptors implemented"""
@@ -21,3 +24,6 @@ class ImageMinerManager(object):
     @property
     def ImageMiners(self):
         return self._ImageMiners
+
+    def getImageForFeatureCollection(self, imageMinerName, featureCollection: FeatureCollection)->List[ImageDTO]:
+        return self._ImageMiners[imageMinerName].getImageForFeatureCollection(featureCollection)

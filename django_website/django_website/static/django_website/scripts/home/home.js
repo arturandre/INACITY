@@ -39,7 +39,46 @@ function getNewId()
 
 
 
+/********************TESTING*************************/
+function callTest()
+{
+    let geoJsonFC = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "properties": {
+                "capacity": "10",
+                "type": "U-Rack",
+                "mount": "Surface"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-46.731261, -23.560239]
+            }
+        }]
+    };
 
+    $.get
+            (
+            "/getimagesforfeaturecollection/",
+            {
+                "imageMinerName": "Google Street View",
+                "featureCollection": JSON.stringify(geoJsonFC),
+            },
+            function (data, textStatus, jqXHR)
+            {
+
+                console.log(data);
+                console.log(textStatus);
+                console.log(jqXHR);
+
+            }
+            ,
+            "json"
+            );
+}
+
+/*********************************************/
 
 
 $(document).ready(function ()
@@ -113,21 +152,18 @@ function executeQuery(event)
 
     let noSelectedRegions = true;
 
-    for (let regionIdx in usersection.regions)
-    {
+    for (let regionIdx in usersection.regions) {
         let region = usersection.getRegionById(regionIdx);
 
         if (!region.active) continue;
 
         noSelectedRegions = false;
 
-        if (UIState.SelectedMapMiner === null)
-        {
+        if (UIState.SelectedMapMiner === null) {
             alert("Please, select a Map Miner to continue.");
             return;
         }
-        if (UIState.SelectedMapMiner === null)
-        {
+        if (UIState.SelectedMapMiner === null) {
             alert("Please, select a Feature to continue.");
             return;
         }
@@ -159,14 +195,12 @@ function executeQuery(event)
             {
                 let layerId = selectedMapMiner + "_" + selectedMapFeature;
                 let layer = this.getLayerById(layerId);
-                if (!layer)
-                {
+                if (!layer) {
                     layer = this.createLayer(layerId);
                 }
 
                 //Update only if the region now has more features than before
-                if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length)
-                {
+                if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
                     layer.featureCollection = data;
                 }
 
@@ -177,8 +211,7 @@ function executeQuery(event)
             );
     }
 
-    if (noSelectedRegions)
-    {
+    if (noSelectedRegions) {
         alert("No region selected. Please, select a region to make a request.")
     }
 }
@@ -248,10 +281,8 @@ function setMinersFromFeatures(FeatureName)
 {
     let mapMinerDiv = $(`#mapMinerDiv`);
     mapMinerDiv.empty();
-    for (let mapMinerName in availableMapMiners)
-    {
-        if (availableMapMiners[mapMinerName].indexOf(FeatureName) != -1)
-        {
+    for (let mapMinerName in availableMapMiners) {
+        if (availableMapMiners[mapMinerName].indexOf(FeatureName) != -1) {
             let mapMiner = $(document.createElement('a'));
             mapMiner.addClass('dropdown-item');
             mapMiner.append(mapMinerName);
@@ -270,8 +301,7 @@ function setFeaturesFromMapMiner(MapMinerName, clearFeatures)
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     if (clearFeatures) mapFeatureDiv.empty();
 
-    for (let featureIdx in availableMapMiners[MapMinerName])
-    {
+    for (let featureIdx in availableMapMiners[MapMinerName]) {
         let feature = availableMapMiners[MapMinerName][featureIdx];
         let mapFeature = $(document.createElement('a'));
         mapFeature.addClass('dropdown-item');
@@ -288,8 +318,7 @@ function setAvailableMapMinersAndFeatures()
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     mapMinerDiv.empty();
     mapFeatureDiv.empty();
-    for (let mapMinerName in availableMapMiners)
-    {
+    for (let mapMinerName in availableMapMiners) {
         let mapMiner = $(document.createElement('a'));
         mapMiner.addClass('dropdown-item');
         mapMiner.append(mapMinerName);
@@ -307,12 +336,10 @@ function drawLayer(layer)
     let featureCollection = layer.featureCollection;
     let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
-    for (let featureIdx in featureCollection.features)
-    {
+    for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
         if (usersection.featuresByLayerIndex[layer.id][feature.id].drawed) continue;
-        else
-        {
+        else {
             let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
             regionVectorSource.addFeature(olFeature);
             usersection.featuresByLayerIndex[layer.id][feature.id].drawed = true;
@@ -326,12 +353,10 @@ function removeLayer(layer)
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
 
-    for (let featureIdx in featureCollection.features)
-    {
+    for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
         if (!usersection.featuresByLayerIndex[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
-        else
-        {
+        else {
             let olFeature = regionVectorSource.getFeatureById(feature.id);
             regionVectorSource.removeFeature(olFeature);
             usersection.featuresByLayerIndex[layer.id][feature.id].drawed = false;
@@ -351,12 +376,10 @@ function disableSiblings(element)
 
 function updateRegionsList(vectorevent)
 {
-    switch (vectorevent.type)
-    {
+    switch (vectorevent.type) {
         case 'addfeature':
             //TODO: Associate features created in the frontend with some tag (e.g. "region")
-            if (!vectorevent.feature.getId())
-            {
+            if (!vectorevent.feature.getId()) {
                 let idNumber = getNewId();
                 let regionId = 'region' + idNumber;
                 vectorevent.feature.setId(regionId);
@@ -370,19 +393,15 @@ function updateRegionsList(vectorevent)
                     *  - Draw a single layer from a single region,
                     *  - Draw multiple layers with the same id present in different regions
                     */
-                    if (region.active)
-                    {
-                        for (let layerIdx in region.layers)
-                        {
+                    if (region.active) {
+                        for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
                             //drawLayer@home.js
                             drawLayer(layer);
                         }
                     }
-                    else
-                    {
-                        for (let layerIdx in region.layers)
-                        {
+                    else {
+                        for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
                             //removeLayer@home.js
                             removeLayer(layer);
@@ -392,8 +411,7 @@ function updateRegionsList(vectorevent)
             }
             break;
         case 'removefeature':
-            if (vectorevent.feature.getProperties()['type'] === 'region')
-            {
+            if (vectorevent.feature.getProperties()['type'] === 'region') {
                 let featureId = vectorevent.getId();
                 usersection.removeRegion(featureId);
             }
@@ -419,8 +437,7 @@ function getClickedElement(event)
 function changeModeClick(mode, event)
 {
     if (!btnElementChecker(event)) return;
-    switch (mode)
-    {
+    switch (mode) {
         case 'Map':
             $(".image-div").addClass('hidden');
             $(".region-div").removeClass('hidden');
@@ -441,8 +458,7 @@ function changeShapeClick(shapeType, event)
     openLayersHandler.map.removeInteraction(drawInteraction);
     let value = shapeType;
     var geometryFunction;
-    switch (value)
-    {
+    switch (value) {
         case 'Square':
             value = 'Circle';
             geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
@@ -455,8 +471,7 @@ function changeShapeClick(shapeType, event)
             value = 'Circle';
             geometryFunction = function (coordinates, geometry)
             {
-                if (!geometry)
-                {
+                if (!geometry) {
                     geometry = new ol.geom.Polygon(null);
                 }
                 var center = coordinates[0];
@@ -467,8 +482,7 @@ function changeShapeClick(shapeType, event)
                 var rotation = Math.atan2(dy, dx);
                 var newCoordinates = [];
                 var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i)
-                {
+                for (var i = 0; i < numPoints; ++i) {
                     var angle = rotation + i * 2 * Math.PI / numPoints;
                     var offsetX = radius * Math.cos(angle);
                     var offsetY = radius * Math.sin(angle);

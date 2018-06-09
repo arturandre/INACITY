@@ -5,6 +5,10 @@ from io import BytesIO
 import numpy as np
 from django_website.Primitives.Primitives import ImageDTO
 
+from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, FeatureCollection
+from typing import List
+
+
 class GoogleStreetViewMiner(ImageMiner):
     """Google Street View wrapper"""
 
@@ -12,6 +16,8 @@ class GoogleStreetViewMiner(ImageMiner):
 
     _baseurl = "https://maps.googleapis.com/maps/api/streetview"
     _key = "AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"
+    _GSVNodeBaseURL = "http://localhost:3000/"
+    _GSVNodeCollectFCPanoramasURL = "http://localhost:3000/collectfcpanoramas"
     
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
@@ -19,6 +25,11 @@ class GoogleStreetViewMiner(ImageMiner):
 
     imageMinerName = "Google Street View"
     imageMinerId = "gsminer"
+    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[ImageDTO]:
+        """Receives a feature collection of point/line or their multi equivalents and returns a list of ImageDTO's"""
+        gsvpanoramas = requests.post(GoogleStreetViewMiner._GSVNodeCollectFCPanoramasURL, json=featureCollection)
+        #TODO: Format the return into a List[ImageDTO]
+        return gsvpanoramas
 
     def getImageFromLocation(location, size={'width':640, 'height':640}, heading=0, pitch=0, key=None):
         if key is None:
