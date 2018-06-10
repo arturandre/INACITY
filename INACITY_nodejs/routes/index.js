@@ -6,14 +6,12 @@
 var express = require('express');
 var router = express.Router();
 
-
-
 const google = require('./gsv_mykey.js').google;
 const streetViewService = new google.maps.StreetViewService();
 const maxRadius = 10;
 
 function getPanoramaForFeature(feature) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
 
         let coordinates = feature.geometry.coordinates;
         console.log(coordinates);
@@ -91,9 +89,10 @@ router.get('/', function (req, res) {
     res.render('index', { title: 'Express' });
 });
 
-router.get('/gsvtest', (req, res) => res.send(gsv));
+router.get('/gsvtest', (req, res) => res.send(google));
+router.get('/gsvtest2', (req, res) => res.send(streetViewService));
 
-router.get('/gsvtest2', function (req, res) {
+router.get('/gsvtest3', function (req, res) {
     let myLatlng = new google.maps.LatLng(-23.560239, -46.731261);
     streetViewService.getPanoramaByLocation(myLatlng, 50, function (data, status) {
         let ret = "data:\n" + data + "\n Status \n" + status;

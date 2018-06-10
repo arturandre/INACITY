@@ -1,4 +1,4 @@
-from django_website.Primitives.Primitives import ImageDTO
+from django_website.Primitives.Primitives import GeoImage
 from abc import ABC, abstractmethod
 
 class ImageFilter(ABC):
@@ -22,7 +22,7 @@ class ImageFilter(ABC):
     filterId = None
 
     @abstractmethod
-    def processImage(self, image: ImageDTO) -> ImageDTO:
+    def processImage(self, image: GeoImage) -> GeoImage:
         pass
 
     

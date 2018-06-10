@@ -26,10 +26,10 @@ class GoogleStreetViewMiner(ImageMiner):
 
     imageMinerName = "Google Street View"
     imageMinerId = "gsminer"
-    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[ImageDTO]:
-        """Receives a feature collection of point/line or their multi equivalents and returns a list of ImageDTO's"""
+    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[GeoImage]:
+        """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
         gsvpanoramas = requests.post(GoogleStreetViewMiner._GSVNodeCollectFCPanoramasURL, json=featureCollection)
-        #TODO: Format the return into a List[ImageDTO]
+        #TODO: Format the return into a List[GeoImage]
         return gsvpanoramas
 
     def getGeoImagesFromLocations(locations: FeatureCollection):
@@ -40,7 +40,7 @@ class GoogleStreetViewMiner(ImageMiner):
                 or (geom is LineString) or (geom is MultiLineString):
                 for coordinate in geom.get('coordinates'):
                     #TODO: GET A PANORAMA
-                    panorama = 
+                    #panorama = 
                     pass
                 pass
             
@@ -52,8 +52,8 @@ class GoogleStreetViewMiner(ImageMiner):
             key = GoogleStreetViewMiner._key
         imageURL = GoogleStreetViewMiner._imageURLBuilder(size, location, heading, pitch, key)
         data = requests.get(imageURL).content
-        imageDTO = ImageDTO(imageio.imread(BytesIO(data)))
-        return imageDTO
+        GeoImage = GeoImage(imageio.imread(BytesIO(data)))
+        return GeoImage
         
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac

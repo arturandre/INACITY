@@ -8,7 +8,7 @@ from scipy import misc, ndimage
 
 from .ImageFilter import *
 from .commonFunctions import mt_li_espectral
-from django_website.Primitives.Primitives import ImageDTO
+from django_website.Primitives.Primitives import GeoImage
 
 
 class GreeneryFilter(ImageFilter):
@@ -19,12 +19,12 @@ class GreeneryFilter(ImageFilter):
     filterId = "Greenery"
 
     #Based on mt-li-espectral
-    def processImage(image: ImageDTO) -> ImageDTO:
+    def processImage(image: GeoImage) -> GeoImage:
         mask = mt_li_espectral(image.data)
-        return ImageDTO(mask)
+        return GeoImage(mask)
 
-    def _processImageMock() -> ImageDTO:
-        imageMock = ImageDTO(imageio.imread('django_website/Testing/gsvimagetestmock.png'))
+    def _processImageMock() -> GeoImage:
+        imageMock = GeoImage(imageio.imread('django_website/Testing/gsvimagetestmock.png'))
         mask = mt_li_espectral(imageMock.data)
         imageMock.data[~mask, 1:2] = .0
         imageMock.data[mask, 0] = .0

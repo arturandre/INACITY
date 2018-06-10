@@ -1,4 +1,4 @@
-from django_website.Primitives.Primitives import ImageDTO
+from django_website.Primitives.Primitives import GeoImage
 from abc import ABC, abstractmethod
 from typing import List
 from geojson import FeatureCollection
@@ -24,6 +24,6 @@ class ImageMiner(ABC):
     imageMinerId = None
 
     @abstractmethod
-    def getImageForFeatureCollection(location: FeatureCollection)->List[ImageDTO]:
+    def getImageForFeatureCollection(location: FeatureCollection)->List[GeoImage]:
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass
