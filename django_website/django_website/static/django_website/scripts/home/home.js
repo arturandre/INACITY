@@ -32,16 +32,15 @@ var transparentStyle = new ol.style.Style({
 //Don't use this directly! For new identifiers use getNewId()
 var _localIDGenerator = 0;
 
-function getNewId()
-{
+function getNewId() {
     return _localIDGenerator++;
 }
 
 
 
 /********************TESTING*************************/
-function callTest()
-{
+var mytestjson = undefined;
+function callTest() {
     let geoJsonFC = {
         "type": "FeatureCollection",
         "features": [{
@@ -58,31 +57,26 @@ function callTest()
         }]
     };
 
-    $.get
-            (
-            "/getimagesforfeaturecollection/",
-            {
-                "imageMinerName": "Google Street View",
-                "featureCollection": JSON.stringify(geoJsonFC),
-            },
-            function (data, textStatus, jqXHR)
-            {
+    $.ajax({
+        dataType: "json",
+        url: "/getimagesforfeaturecollection/",
+        data: {
+            "imageMinerName": "Google Street View",
+            "featureCollection": JSON.stringify(geoJsonFC),
+        },
+        success: function (data, textStatus, jqXHR) {
+            mytestjson = data;
+            console.log(data);
+            console.log(textStatus);
+            console.log(jqXHR);
 
-                console.log(data);
-                console.log(textStatus);
-                console.log(jqXHR);
-
-            }
-            ,
-            "json"
-            );
+        }});
 }
 
 /*********************************************/
 
 
-$(document).ready(function ()
-{
+$(document).ready(function () {
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
 
@@ -108,8 +102,7 @@ $(document).ready(function ()
 
     /*UserSection Event Handlers*/
     //usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
-    usersection.onregionlistitemclick = function (region)
-    {
+    usersection.onregionlistitemclick = function (region) {
         regionVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
     };
 
@@ -117,8 +110,7 @@ $(document).ready(function ()
     $.get(
             "/getavailablemapminers/",
             null,
-            function (data, textStatus, jqXHR)
-            {
+            function (data, textStatus, jqXHR) {
                 availableMapMiners = data;
                 setAvailableMapMinersAndFeatures();
             },
@@ -141,8 +133,7 @@ var UIState = {}
 UIState.SelectedMapMiner = null;
 UIState.SelectedMapFeature = null;
 
-function executeQuery(event)
-{
+function executeQuery(event) {
     //TODO: Create some animation/panel to display the request progress
     let btnExecuteQuery = getClickedElement(event);
 
@@ -191,8 +182,7 @@ function executeQuery(event)
                 "featureName": selectedMapFeature,
                 "regions": JSON.stringify(geoJsonFeatures),
             },
-            function (data, textStatus, jqXHR)
-            {
+            function (data, textStatus, jqXHR) {
                 let layerId = selectedMapMiner + "_" + selectedMapFeature;
                 let layer = this.getLayerById(layerId);
                 if (!layer) {
@@ -216,8 +206,7 @@ function executeQuery(event)
     }
 }
 
-function clearSelections(event)
-{
+function clearSelections(event) {
     let btnClearSelections = getClickedElement(event);
     btnClearSelections.addClass("hidden");
     $(`#btnExecuteQuery`).addClass("hidden");
@@ -238,8 +227,7 @@ function clearSelections(event)
     setAvailableMapMinersAndFeatures();
 }
 
-function selectMapMiner(event)
-{
+function selectMapMiner(event) {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapMinerBtn = $(`#mapMinerBtn`);
     $(`#btnClearSelections`).removeClass("hidden");
@@ -259,8 +247,7 @@ function selectMapMiner(event)
     setFeaturesFromMapMiner(mapMinerName, true);
 }
 
-function selectMapFeature(event)
-{
+function selectMapFeature(event) {
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     let mapFeatureBtn = $(`#mapFeatureBtn`);
     $(`#btnClearSelections`).removeClass("hidden");
@@ -277,8 +264,7 @@ function selectMapFeature(event)
     setMinersFromFeatures(mapFeatureName, true);
 }
 
-function setMinersFromFeatures(FeatureName)
-{
+function setMinersFromFeatures(FeatureName) {
     let mapMinerDiv = $(`#mapMinerDiv`);
     mapMinerDiv.empty();
     for (let mapMinerName in availableMapMiners) {
@@ -293,8 +279,7 @@ function setMinersFromFeatures(FeatureName)
     }
 }
 
-function setFeaturesFromMapMiner(MapMinerName, clearFeatures)
-{
+function setFeaturesFromMapMiner(MapMinerName, clearFeatures) {
     //TODO: Remove this way of define default value without warnings
     if (typeof (clearFeatures) === "undefined") clearFeatures = false;
 
@@ -312,8 +297,7 @@ function setFeaturesFromMapMiner(MapMinerName, clearFeatures)
     }
 }
 
-function setAvailableMapMinersAndFeatures()
-{
+function setAvailableMapMinersAndFeatures() {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     mapMinerDiv.empty();
@@ -330,8 +314,7 @@ function setAvailableMapMinersAndFeatures()
 
 }
 
-function drawLayer(layer)
-{
+function drawLayer(layer) {
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
     let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
@@ -348,8 +331,7 @@ function drawLayer(layer)
     }
 }
 
-function removeLayer(layer)
-{
+function removeLayer(layer) {
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
 
@@ -365,17 +347,14 @@ function removeLayer(layer)
     }
 }
 
-function disableSiblings(element)
-{
-    element.siblings().each(function (it, val)
-    {
+function disableSiblings(element) {
+    element.siblings().each(function (it, val) {
         $('#' + val.id).removeClass('disabled');
     });
     element.addClass('disabled');
 }
 
-function updateRegionsList(vectorevent)
-{
+function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
             //TODO: Associate features created in the frontend with some tag (e.g. "region")
@@ -385,8 +364,7 @@ function updateRegionsList(vectorevent)
                 vectorevent.feature.setId(regionId);
                 vectorevent.feature.setProperties({ 'type': 'region' });
                 let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
-                newRegion.onactivechange = function (region)
-                {
+                newRegion.onactivechange = function (region) {
                     /*
                     *  TODO:
                     *  Create a panel/mechanism to:
@@ -426,16 +404,14 @@ function updateRegionsList(vectorevent)
 }
 
 /* Click Event Region*/
-function getClickedElement(event)
-{
+function getClickedElement(event) {
     if (!event.srcElement && !event.id) return;
     let elem_id = event.srcElement || event.id;
     let element = $('#' + elem_id);
     return element;
 }
 
-function changeModeClick(mode, event)
-{
+function changeModeClick(mode, event) {
     if (!btnElementChecker(event)) return;
     switch (mode) {
         case 'Map':
@@ -452,8 +428,7 @@ function changeModeClick(mode, event)
     }
 }
 
-function changeShapeClick(shapeType, event)
-{
+function changeShapeClick(shapeType, event) {
     if (!btnElementChecker(event)) return;
     openLayersHandler.map.removeInteraction(drawInteraction);
     let value = shapeType;
@@ -469,8 +444,7 @@ function changeShapeClick(shapeType, event)
             break;
         case 'Dodecagon':
             value = 'Circle';
-            geometryFunction = function (coordinates, geometry)
-            {
+            geometryFunction = function (coordinates, geometry) {
                 if (!geometry) {
                     geometry = new ol.geom.Polygon(null);
                 }
@@ -502,14 +476,12 @@ function changeShapeClick(shapeType, event)
     openLayersHandler.map.addInteraction(drawInteraction);
 }
 
-function changeMapProviderClick(mapProviderId, event)
-{
+function changeMapProviderClick(mapProviderId, event) {
     if (!btnElementChecker(event)) return;
     openLayersHandler.changeMapProvider(mapProviderId);
 }
 
-function btnElementChecker(event)
-{
+function btnElementChecker(event) {
     let element = getClickedElement(event);
     if (!element) return;
     if (element.hasClass('disabled')) return;

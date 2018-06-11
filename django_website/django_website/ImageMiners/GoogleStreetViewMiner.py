@@ -1,4 +1,3 @@
-from geojson import FeatureCollection, Polygon, MultiPolygon, LineString, MultiLineString
 from django_website.ImageMiners.ImageMiner import ImageMiner
 import requests
 import imageio
@@ -8,6 +7,7 @@ from django_website.Primitives.Primitives import GeoImage
 
 from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, FeatureCollection
 from typing import List
+import json
 
 
 class GoogleStreetViewMiner(ImageMiner):
@@ -29,8 +29,15 @@ class GoogleStreetViewMiner(ImageMiner):
     def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[GeoImage]:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
         gsvpanoramas = requests.post(GoogleStreetViewMiner._GSVNodeCollectFCPanoramasURL, json=featureCollection)
-        #TODO: Format the return into a List[GeoImage]
-        return gsvpanoramas
+        pdicts = json.loads(gsvpanoramas.text)
+        ret = []
+        for feature in pdicts:
+            for coordinateData in feature:
+                geoImage = GeoImage();
+                geoImage.location = Point([coordinateData['lon'], coordinateData['lat']])
+                geoImage.metadata = coordinateData
+                ret.append(geoImage);
+        return ret
 
     def getGeoImagesFromLocations(locations: FeatureCollection):
         """Collect images based on a collection of GeoJson features"""

@@ -9,7 +9,13 @@ var router = express.Router();
 const google = require('./gsv_mykey.js').google;
 const streetViewService = new google.maps.StreetViewService();
 const maxRadius = 10;
-
+/**
+ * This function receives a geojson feature (not featurecollection) and for
+ * each of its coordinates tries to find a panorama.
+ * This function returns an array of panoramas structured as a JSON e.g.:
+ * [{data: {}, status: "OK"}, ...]
+ * @param feature A geojson feature object with 1+ coordinates
+ */
 function getPanoramaForFeature(feature) {
     return new Promise(function (resolve) {
 
@@ -17,7 +23,7 @@ function getPanoramaForFeature(feature) {
         console.log(coordinates);
         console.log("3");
         let ret = [];
-        if (coordinates[0] > 0) //Encapsulates both cases when it's zero or undefined
+        if (typeof (coordinates[0]) !== "number") //Encapsulates both cases when it's zero or undefined
         {
             let numCalls = coordinates.length;
             for (let i = 0; i < coordinates.length; i++) {
@@ -42,7 +48,7 @@ function getPanoramaForFeature(feature) {
             let latlng = new google.maps.LatLng(lat, lon);
             streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status) {
                 console.log("5");
-                ret.push({ data: data, status: status });
+                ret.push({ 'data': data, 'status': status });
                 console.log("5.1");
                 console.log(ret);
                 resolve(ret);
@@ -50,16 +56,57 @@ function getPanoramaForFeature(feature) {
         }
     });
 }
+/**
+ * This function creates a PanoramaDTO from the location object
+ * obtained through a call to the GSV's api to get panoramas ("data" field)
+ * @param gsvlocation
+ */
+function gsvLocationParser(gsvlocation)
+{
+    //Location object example:
+    //{latLng: _.K, shortDescription: "1576 R. do Lago", description: "1576 R. do Lago, São Paulo", pano: "-a6qbIWS7Op13QSWHAYzYA"}
+    let PanoramaDTO = {
+        lat: gsvlocation.latLng.lat(),
+        lon: gsvlocation.latLng.lng(),
+        shortDescription: gsvlocation.shortDescription,
+        description: gsvlocation.description,
+        pano: gsvlocation.pano
+    };
+    return PanoramaDTO;
+}
+
+/**
+ * This function receives a collection (array) of panoramas obtained by a call to
+ * GSV's API and returns a collection of PanoramaDTOs.
+ * @param gsvPanoramaArray
+ */
+function gsvPanoramaArrayToPanoramaDTOArray(gsvPanoramaArray)
+{
+    let ret = [];
+    for (let coordIdx = 0; coordIdx < gsvPanoramaArray.length; coordIdx++) {
+        let coord = gsvPanoramaArray[coordIdx];
+        if (coord.status === "OK") {
+            ret.push(gsvLocationParser(coord.data.location));
+        }
+        else {
+            continue;
+        }
+    }
+    return ret;
+}
 
 /* POST Api*/
 router.post('/collectfcpanoramas', function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
     geojson = req.body;
     console.log("1");
     if (geojson.type === 'Feature') {
         console.log("2");
         getPanoramaForFeature(geojson).then(function (r) {
+            
             console.log("6");
-            res.send(r);
+            let jsonString = JSON.stringify(gsvPanoramaArrayToPanoramaDTOArray(r));
+            res.send(jsonString);
         });
     }
     else if (geojson.type === 'FeatureCollection') {
@@ -69,10 +116,11 @@ router.post('/collectfcpanoramas', function (req, res) {
         for (let fi = 0; fi < features.length; fi++) {
             let feature = features[fi];
             getPanoramaForFeature(feature).then(function (r) {
-                ret.push(r);
+                ret.push(gsvPanoramaArrayToPanoramaDTOArray(r));
                 nCalls -= 1;
+                let jsonString = JSON.stringify(ret);
                 if (nCalls == 0) {
-                    res.send(ret);
+                    res.send(jsonString);
                 }
             });
         }

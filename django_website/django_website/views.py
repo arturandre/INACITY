@@ -63,6 +63,8 @@ def getimagesforfeaturecollection(request):
     featureCollection = geojson.loads(request.GET.get("featureCollection"))
     
     ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection);
+    for idx, geoImage in enumerate(ret):
+        ret[idx] = geoImage.toJSON()
     return Response(ret)
 
     
