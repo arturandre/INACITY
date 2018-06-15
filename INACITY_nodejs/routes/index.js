@@ -3,18 +3,65 @@
 
 //var gsvPath = path.join(__dirname, '..', 'gsv_mykey.js');
 //var gsvString = fs.readFileSync(gsvPath, 'utf8');
+
+const promiseFinally = require('promise.prototype.finally');
+
+// Add `finally()` to `Promise.prototype`
+promiseFinally.shim();
+
+
 var express = require('express');
 var router = express.Router();
 
 const google = require('./gsv_mykey.js').google;
 const streetViewService = new google.maps.StreetViewService();
 const maxRadius = 10;
+
+/**
+ * Auxiliar function to print errors caught.
+ * @param err - {message: ..., stack: ...}
+ * @param locationDescription - String to indicate where the exception was caught
+ */
+function defaultError(err, locationDescription)
+{
+	console.error(`Error caught at ${locationDescription}.`);
+	console.error(err);
+}
+
+/**
+ * Return a StreetViewPanoramaData object from 
+ * lonLatCoordinate position if available
+ * @param lonLatCoordinate - {lon: float, lat: float}
+ */
+function getPanoramaByLocation(lonLatCoordinate)
+{
+	return new Promise(function (resolve, reject) {
+		let lon = lonLatCoordinate[0];
+        let lat = lonLatCoordinate[1];
+		let latlng = new google.maps.LatLng(lat, lon);
+		streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
+		{
+			//resolve({ data: data, status: status });
+			if (status === "OK")
+			{
+				let parsedData = streetViewPanoramaDataParser(data);
+				resolve(parsedData);
+			}
+			else
+			{
+				reject(status);
+			}
+			
+		});
+	});
+}
+
 /**
  * This function receives a geojson feature (not featurecollection) and for
  * each of its coordinates tries to find a panorama.
- * This function returns an array of panoramas structured as a JSON e.g.:
- * [{data: {}, status: "OK"}, ...]
- * @param feature A geojson feature object with 1+ coordinates
+ * This function returns an array of StreetViewPanoramaData e.g.:
+ * [{location: {...}, copyright: ...}]
+ * @param feature A geojson feature object with one or more coordinates
  */
 function getPanoramaForFeature(feature) {
     return new Promise(function (resolve) {
@@ -23,70 +70,96 @@ function getPanoramaForFeature(feature) {
         console.log(coordinates);
         console.log("3");
         let ret = [];
-        if (typeof (coordinates[0]) !== "number") //Encapsulates both cases when it's zero or undefined
+		let numCalls = 1;
+		if (typeof (coordinates[0]) !== "number") //Encapsulates both cases when it's zero or undefined
         {
-            let numCalls = coordinates.length;
-            for (let i = 0; i < coordinates.length; i++) {
-                let coordinate = coordinates[i];
-                let lon = coordinate[0];
-                let lat = coordinate[1];
-                let latlng = new google.maps.LatLng(lat, lon);
-                streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status) {
-                    ret.push({ data: data, status: status });
-                    numCalls -= 1;
-                    if (numCalls == 0) {
-                        resolve(ret);
-                    }
-                });
-            }
-        }
-        else {
-            console.log("4");
-
-            let lon = coordinates[0];
-            let lat = coordinates[1];
-            let latlng = new google.maps.LatLng(lat, lon);
-            streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status) {
-                console.log("5");
-                ret.push({ 'data': data, 'status': status });
-                console.log("5.1");
-                console.log(ret);
-                resolve(ret);
-            });
-        }
+			numCalls = coordinates.length;
+			for (let i = 0; i < coordinates.length; i++) {
+				let lonLatCoordinate = coordinates[i];
+				getPanoramaForLonLatCoordinate(lonLatCoordinate);
+			}
+		}
+		else
+		{
+			let lonLatCoordinate = coordinates;
+			getPanoramaForLonLatCoordinate(lonLatCoordinate);
+		}
+		
+		function getPanoramaForLonLatCoordinate(lonLatCoordinate)
+		{
+			let p = getPanoramaByLocation(lonLatCoordinate);
+			p.then(
+					function(streetViewPanoramaData)
+					{
+						ret.push(streetViewPanoramaData);
+					},
+					function(failedStatus)
+					{
+						console.warn(`Status for coordinates(lon: ${lonLatCoordinate[0]}, lat: ${lonLatCoordinate[1]}): ${failedStatus}`);
+					}
+				)
+				.catch(
+					function(err)
+					{
+						defaultError(err, "getPanoramaForFeature");
+						throw new Error(err);
+					}
+				)
+				.finally(
+					function(){
+					
+						numCalls -= 1;
+						if (numCalls == 0) {
+						   resolve(ret);
+						}
+					}
+				);
+				
+		}
     });
 }
 /**
- * This function creates a PanoramaDTO from the location object
+ * This function creates a StreetViewPanoramaData from the location object
  * obtained through a call to the GSV's api to get panoramas ("data" field)
- * @param gsvlocation
+ * @param data is a complex object returned by the StreetViewService
  */
-function gsvLocationParser(gsvlocation)
+function streetViewPanoramaDataParser(data)
 {
     //Location object example:
     //{latLng: _.K, shortDescription: "1576 R. do Lago", description: "1576 R. do Lago, São Paulo", pano: "-a6qbIWS7Op13QSWHAYzYA"}
-    let PanoramaDTO = {
-        lat: gsvlocation.latLng.lat(),
-        lon: gsvlocation.latLng.lng(),
-        shortDescription: gsvlocation.shortDescription,
-        description: gsvlocation.description,
-        pano: gsvlocation.pano
-    };
-    return PanoramaDTO;
+	let gsvlocation = data.location;
+	
+    let StreetViewPanoramaData = 
+	{
+		location:
+		{
+			lat: gsvlocation.latLng.lat(),
+			lon: gsvlocation.latLng.lng(),
+			shortDescription: gsvlocation.shortDescription,
+			description: gsvlocation.description,
+			pano: gsvlocation.pano
+		},
+		copyright: data.copyright,
+		links: data.links,
+		tiles: data.tiles,
+		time: data.time
+	};
+    return StreetViewPanoramaData;
 }
 
 /**
- * This function receives a collection (array) of panoramas obtained by a call to
- * GSV's API and returns a collection of PanoramaDTOs.
- * @param gsvPanoramaArray
+ * This function receives a collection (array) of "Data" objects obtained
+ * through the StreetViewService API and returns a collection of
+ * StreetViewPanoramaData.
+ * @param gsvArrayOfData - [{data: ..., status: 'OK' }]
  */
-function gsvPanoramaArrayToPanoramaDTOArray(gsvPanoramaArray)
+function formatStreetViewPanoramaDataArray(gsvArrayOfData)
 {
     let ret = [];
-    for (let coordIdx = 0; coordIdx < gsvPanoramaArray.length; coordIdx++) {
-        let coord = gsvPanoramaArray[coordIdx];
+    for (let coordIdx = 0; coordIdx < gsvArrayOfData.length; coordIdx++) {
+        let coord = gsvArrayOfData[coordIdx];
         if (coord.status === "OK") {
-            ret.push(gsvLocationParser(coord.data.location));
+            ret.push(streetViewPanoramaDataParser(coord.data));
         }
         else {
             continue;
@@ -102,12 +175,14 @@ router.post('/collectfcpanoramas', function (req, res) {
     console.log("1");
     if (geojson.type === 'Feature') {
         console.log("2");
-        getPanoramaForFeature(geojson).then(function (r) {
-            
-            console.log("6");
-            let jsonString = JSON.stringify(gsvPanoramaArrayToPanoramaDTOArray(r));
-            res.send(jsonString);
-        });
+        getPanoramaForFeature(geojson).then(
+			function (streetViewPanoramaDataArray) {
+				
+				console.log("6");
+				let jsonString = JSON.stringify(streetViewPanoramaDataArray);
+				res.send(jsonString);
+			}, (err) => defaultError(err, "router post /collectfcpanoramas")
+		);
     }
     else if (geojson.type === 'FeatureCollection') {
         let features = geojson.features;
@@ -115,14 +190,18 @@ router.post('/collectfcpanoramas', function (req, res) {
         let nCalls = features.length;
         for (let fi = 0; fi < features.length; fi++) {
             let feature = features[fi];
-            getPanoramaForFeature(feature).then(function (r) {
-                ret.push(gsvPanoramaArrayToPanoramaDTOArray(r));
-                nCalls -= 1;
-                let jsonString = JSON.stringify(ret);
-                if (nCalls == 0) {
-                    res.send(jsonString);
-                }
-            });
+            getPanoramaForFeature(feature)
+			.then(
+				function (streetViewPanoramaDataArray) 
+				{
+					ret.push(streetViewPanoramaDataArray);
+					nCalls -= 1;
+					let jsonString = JSON.stringify(ret);
+					if (nCalls == 0) {
+						res.send(jsonString);
+					}
+				}, (err) => defaultError(err, "router post /collectfcpanoramas")
+			);
         }
     }
     else {

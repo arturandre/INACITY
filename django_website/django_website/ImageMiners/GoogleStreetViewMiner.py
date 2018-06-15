@@ -9,6 +9,11 @@ from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, Fea
 from typing import List
 import json
 
+class Size():
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
 
 class GoogleStreetViewMiner(ImageMiner):
     """Google Street View wrapper"""
@@ -33,10 +38,18 @@ class GoogleStreetViewMiner(ImageMiner):
         ret = []
         for feature in pdicts:
             for coordinateData in feature:
+                location = coordinateData['location']
                 geoImage = GeoImage();
-                geoImage.location = Point([coordinateData['lon'], coordinateData['lat']])
+                geoImage.id = location['pano']
+                geoImage.location = Point([location['lon'], location['lat']])
+                geoImage.heading = coordinateData['tiles']['centerHeading']
+                geoImage.pitch = coordinateData['tiles']['originPitch']
                 geoImage.metadata = coordinateData
-                ret.append(geoImage);
+                imageURL = GoogleStreetViewMiner._imageURLBuilderForGeoImage(geoImage)
+                imageRawData = requests.get(imageURL).content
+                imageData = imageio.imread(BytesIO(imageRawData))
+                geoImage.setData(imageData)
+                ret.append(geoImage)
         return ret
 
     def getGeoImagesFromLocations(locations: FeatureCollection):
@@ -54,19 +67,36 @@ class GoogleStreetViewMiner(ImageMiner):
         ret = [GeoImage()]
         return ret
 
-    def getImageFromLocation(location, size={'width':640, 'height':640}, heading=0, pitch=0, key=None):
-        if key is None:
-            key = GoogleStreetViewMiner._key
-        imageURL = GoogleStreetViewMiner._imageURLBuilder(size, location, heading, pitch, key)
+    def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
+        if key is None: key = GoogleStreetViewMiner._key
+        if size is None: size = Size(640, 640)
+        imageURL = GoogleStreetViewMiner._imageURLBuilderLocation(size, location, heading, pitch, key)
         data = requests.get(imageURL).content
         GeoImage = GeoImage(imageio.imread(BytesIO(data)))
         return GeoImage
         
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
-    def _imageURLBuilder(size, location, heading, pitch, key):
-        return GoogleStreetViewMiner._baseurl + GoogleStreetViewMiner._queryStringBuilder(size, location, heading, pitch, key)
+    def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
+        return GoogleStreetViewMiner._baseurl + GoogleStreetViewMiner._queryStringBuilderLocation(size, location, heading, pitch, key)
 
-    def _queryStringBuilder(size, location, heading, pitch, key):
-        return "?size=%dx%d&location=%f,%f&heading=%f&pitch=%f&key=%s"% (size['width'],size['height'],location['lat'], location['lon'], heading,pitch,key)
-     
+    def _queryStringBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
+        return "?size=%dx%d&location=%f,%f&heading=%f&pitch=%f&key=%s"% (size.width, size.height, location['lat'], location['lon'], heading,pitch,key)
+    
+    def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size=None, key: str=None):
+        if size is None: size = Size(640, 640)
+        if key is None: key = GoogleStreetViewMiner._key
+        return GoogleStreetViewMiner._imageURLBuilder(
+            size,
+            geoImage.id,
+            geoImage.heading,
+            geoImage.pitch,
+            GoogleStreetViewMiner._key)
+ 
+    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
+        return GoogleStreetViewMiner._baseurl + GoogleStreetViewMiner._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
+
+    def _queryStringBuilderPanorama(size: Size, panoid: str, heading: float, pitch: float, key: str):
+        return "?size=%dx%d&pano=%s&heading=%f&pitch=%f&key=%s" % (size.width,size.height, panoid, heading,pitch,key)
+

@@ -21,6 +21,7 @@ class SimpleDTO(object):
 class GeoImage(SimpleDTO):
     """Object responsible for keeping image and panorama's data"""
     def __init__(self):
+        self.id = None
         self.location = geojson.Point()
         self.heading = 0
         self.pitch = 0
