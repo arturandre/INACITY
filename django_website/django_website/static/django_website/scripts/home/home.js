@@ -189,7 +189,7 @@ function executeQuery(event) {
                     layer = this.createLayer(layerId);
                 }
 
-                //Update only if the region now has more features than before
+                //Update only if the layer now has more features than before
                 if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
                     layer.featureCollection = data;
                 }
@@ -331,12 +331,17 @@ function drawLayer(layer) {
     }
 }
 
+
 function removeLayer(layer) {
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
 
     for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
+        /*
+        Each individual feature needs to be checked because it
+        can belong to more than one layer (from differente regions)
+        */
         if (!usersection.featuresByLayerIndex[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
         else {
             let olFeature = regionVectorSource.getFeatureById(feature.id);
@@ -357,7 +362,6 @@ function disableSiblings(element) {
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
-            //TODO: Associate features created in the frontend with some tag (e.g. "region")
             if (!vectorevent.feature.getId()) {
                 let idNumber = getNewId();
                 let regionId = 'region' + idNumber;
@@ -365,12 +369,6 @@ function updateRegionsList(vectorevent) {
                 vectorevent.feature.setProperties({ 'type': 'region' });
                 let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
                 newRegion.onactivechange = function (region) {
-                    /*
-                    *  TODO:
-                    *  Create a panel/mechanism to:
-                    *  - Draw a single layer from a single region,
-                    *  - Draw multiple layers with the same id present in different regions
-                    */
                     if (region.active) {
                         for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];

@@ -61,7 +61,7 @@
                 </div>
                 <button id="btnClearSelections" onclick="clearSelections(this)" type="button" class="btn btn-danger hidden">Clear selections</button>
             </div>
-            <div>
+            <div class="horizontal-padding">
                 <button id="btnExecuteQuery" onclick="executeQuery(this)" type="button" class="btn btn-warning hidden">Execute Query</button>
             </div>
         </div>
@@ -93,15 +93,22 @@
         
     </div>
     <div class="col-sm right-column image-div">
-        <div class="btn-group" role="group">
-           <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           Image provider
-           </button>
-           <div class="dropdown-menu" aria-labelledby="btnImageProvider">
-             <a id="btnGoogleStreetViewProvider" class="dropdown-item" href="javascript:void(0);">Google Street View</a>
-             <a id="btnProviderPlaceholder"  class="dropdown-item disabled" href="javascript:void(0);">Image Provider Placeholder</a>
-           </div>
+        <div class="row">
+            <div class="col-sm">
+                <div class="btn-group" role="group">
+                   <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   Image provider
+                   </button>
+                   <div class="dropdown-menu" aria-labelledby="btnImageProvider">
+                     <a id="btnGoogleStreetViewProvider" class="dropdown-item" href="javascript:void(0);">Google Street View</a>
+                     <a id="btnProviderPlaceholder"  class="dropdown-item disabled" href="javascript:void(0);">Image Provider Placeholder</a>
+                   </div>
          </div>
+            </div>
+            <div class="horizontal-padding">
+                <button id="btnCollectImages" onclick="getImages(this)" type="button" class="btn btn-success hidden">Get Images</button>
+            </div>
+        </div>
     </div>
   </div>
 <div class="row">

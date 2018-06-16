@@ -1,4 +1,9 @@
-﻿.region-div{
+﻿.horizontal-padding {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.region-div{
     border-color:#4cff00;
     border-style:dashed;
     border-width:1px;
