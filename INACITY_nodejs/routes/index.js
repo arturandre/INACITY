@@ -13,12 +13,12 @@ var express = require('express');
 var router = express.Router();
 
 /**
-* Google maps component wrapper
+* Google services component wrapper
 * @const
 */
 const google = require('./gsv_mykey.js').google;
 /**
-* [StreetViewService]{@link https://developers.google.com/maps/documentation/javascript/streetview#StreetViewService} component used to collect the panoramas
+* StreetViewService component used to collect the panoramas
 * @see StreetViewPanoramaData
 * @const {google.maps.StreetViewService}
 */
@@ -80,25 +80,63 @@ function getPanoramaByLocation(lonLatCoordinate)
  * @returns {Promise} Promise object representing an array of StreetViewPanoramaData.
  */
 function getPanoramaForFeature(feature) {
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
+		let geometryType = feature.geometry.type;
 
         let coordinates = feature.geometry.coordinates;
         console.log(coordinates);
         console.log("3");
         let ret = [];
-		let numCalls = 1;
-		if (typeof (coordinates[0]) !== "number") //Encapsulates both cases when it's zero or undefined
+		let numCalls = 0;
+		if (geometryType === "MultiPolygon")
+		{
+			//Number of Polygons
+			for (let i = 0; i < coordinates.length; i++) 
+			{   //Number of LineStrings/Linear Rings
+				for (let j = 0; j < coordinates[i].length; j++) 
+				{   //Number of coordinates [(lon, lat)]
+					numCalls += coordinates[i][j].length;
+					for (let k = 0; k < coordinates[i][j].length; j++) {
+						let lonLatCoordinate = coordinates[i][j];
+						getPanoramaForLonLatCoordinate(lonLatCoordinate);
+					}
+				}
+			}
+		}
+		else if (
+		geometryType === "MultiLineString" ||
+		geometryType === "Polygon"
+		)
+		{
+			//Number of LineStrings/Linear Rings
+			for (let i = 0; i < coordinates.length; i++) 
+			{   //Number of coordinates [(lon, lat)]
+				numCalls += coordinates[i].length;
+				for (let j = 0; j < coordinates[i].length; j++) {
+					let lonLatCoordinate = coordinates[i][j];
+					getPanoramaForLonLatCoordinate(lonLatCoordinate);
+				}
+			}
+		}
+		else if (geometryType === "LineString" || geometryType === "MultiPoint")
         {
 			numCalls = coordinates.length;
-			for (let i = 0; i < coordinates.length; i++) {
+			//Number of coordinates [(lon, lat)]
+			for (let i = 0; i < coordinates.length; i++) {x
 				let lonLatCoordinate = coordinates[i];
 				getPanoramaForLonLatCoordinate(lonLatCoordinate);
 			}
 		}
-		else
+		else if (geometryType === "Point")
 		{
+			numCalls = 1;
 			let lonLatCoordinate = coordinates;
 			getPanoramaForLonLatCoordinate(lonLatCoordinate);
+		}
+		else
+		{
+			console.error(`Geometry type (${geometryType}) not recognized!`);
+			reject(`Geometry type (${geometryType}) not recognized!`);
 		}
 		
 		/** Inner function used to avoid code duplication */
@@ -169,10 +207,10 @@ function streetViewPanoramaDataParser(data)
 
 /**
  * This function receives a collection (array) of "Data" objects obtained
- * through the [StreetViewService]{@link https://developers.google.com/maps/documentation/javascript/streetview#StreetViewService} API and returns a collection of
+ * through the StreetViewService API and returns a collection of
  * StreetViewPanoramaData.
  * @param {StreetViewResponse[]} gsvArrayOfData - [{data: ..., status: 'OK' }]
- * @param {DataObject} StreetViewResponse.data - Data object from [StreetViewService]{@link https://developers.google.com/maps/documentation/javascript/streetview#StreetViewService} API to be converted to StreetViewPanoramaData.
+ * @param {DataObject} StreetViewResponse.data - Data object from StreetViewService API to be converted to StreetViewPanoramaData.
  * @param {string} StreetViewResponse.status - String indicating the status of the request. Can be 'OK' for successfull requests, 'NOTFOUNT' if there's not a panorama within a radius of [maxRadius]{@link module:node/routes/index~maxRadius} from the [location] used in the request.
  */
 function formatStreetViewPanoramaDataArray(gsvArrayOfData)
