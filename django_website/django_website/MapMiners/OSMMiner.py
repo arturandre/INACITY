@@ -14,6 +14,9 @@ from django_website.geofunctions import flip_geojson_coordinates
 
 
 class OSMMiner(MapMiner):
+    mapMinerName = "OpenStreetMap"
+    mapMinerId = "osm"
+
     """OpenStreetMaps miner constructed using the Overpass API"""
     #EPSG:3857
     #Since OpenLayers and OSMMiner use the same SRID no convertion is needed
@@ -99,9 +102,6 @@ class OSMMiner(MapMiner):
         OSMMiner._setRateLimit()
         pass
 
-    mapMinerName = "OSMMiner"
-    
-    mapMinerId = "osm"
     _getStreets = None    
     
 

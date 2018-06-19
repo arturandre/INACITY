@@ -8,6 +8,7 @@ var streetVectorSource = null;
 var drawInteraction = null;
 var usersection = null;
 var availableMapMiners = [];
+var availableImageMiners = [];
 
 /* Settings Region */
 
@@ -70,7 +71,8 @@ function callTest() {
             console.log(textStatus);
             console.log(jqXHR);
 
-        }});
+        }
+    });
 }
 
 /*********************************************/
@@ -101,7 +103,6 @@ $(document).ready(function () {
     usersection = new UserSection('regionsList');
 
     /*UserSection Event Handlers*/
-    //usersection.onstreetsconsolidated = function () { drawStreets(this.streets); };
     usersection.onregionlistitemclick = function (region) {
         regionVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
     };
@@ -113,6 +114,15 @@ $(document).ready(function () {
             function (data, textStatus, jqXHR) {
                 availableMapMiners = data;
                 setAvailableMapMinersAndFeatures();
+            },
+            "json"
+            );
+    $.get(
+            "/getavailableimageminers/",
+            null,
+            function (data, textStatus, jqXHR) {
+                availableImageMiners = data;
+                setAvailableImageMiners();
             },
             "json"
             );
@@ -132,6 +142,7 @@ $(document).ready(function () {
 var UIState = {}
 UIState.SelectedMapMiner = null;
 UIState.SelectedMapFeature = null;
+UIState.SelectedImageProvider = null;
 
 function executeQuery(event) {
     //TODO: Create some animation/panel to display the request progress
@@ -227,28 +238,21 @@ function clearSelections(event) {
     setAvailableMapMinersAndFeatures();
 }
 
-function selectMapMiner(event) {
+function selectMapMiner(mapMinerId) {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapMinerBtn = $(`#mapMinerBtn`);
     $(`#btnClearSelections`).removeClass("hidden");
     $(`#btnExecuteQuery`).removeClass("hidden");
     mapMinerBtn.addClass("btn-success");
     mapMinerBtn.removeClass("btn-secondary");
+    
+    UIState.SelectedMapMiner = mapMinerId;
+    mapMinerBtn.html(availableMapMiners[mapMinerId].name);
 
-
-
-    let mapMinerName = event.data;
-
-
-
-    UIState.SelectedMapMiner = mapMinerName;
-    mapMinerBtn.html(mapMinerName);
-
-    setFeaturesFromMapMiner(mapMinerName, true);
+    setFeaturesFromMapMiner(availableMapMiners[mapMinerId], true);
 }
 
-function selectMapFeature(event) {
-    let mapFeatureDiv = $(`#mapFeatureDiv`);
+function selectMapFeature(mapFeatureName) {
     let mapFeatureBtn = $(`#mapFeatureBtn`);
     $(`#btnClearSelections`).removeClass("hidden");
     $(`#btnExecuteQuery`).removeClass("hidden");
@@ -256,45 +260,56 @@ function selectMapFeature(event) {
     mapFeatureBtn.addClass("btn-success");
     mapFeatureBtn.removeClass("btn-secondary");
 
-
-    let mapFeatureName = event.data;
-
     UIState.SelectedMapFeature = mapFeatureName;
     mapFeatureBtn.html(mapFeatureName);
-    setMinersFromFeatures(mapFeatureName, true);
+    setMinersFromFeatures(mapFeatureName);
 }
 
 function setMinersFromFeatures(FeatureName) {
     let mapMinerDiv = $(`#mapMinerDiv`);
     mapMinerDiv.empty();
-    for (let mapMinerName in availableMapMiners) {
-        if (availableMapMiners[mapMinerName].indexOf(FeatureName) != -1) {
-            let mapMiner = $(document.createElement('a'));
-            mapMiner.addClass('dropdown-item');
-            mapMiner.append(mapMinerName);
-            mapMiner.click(mapMinerName, this.selectMapMiner.bind(this));
-            mapMiner.attr("href", "javascript:void(0);");
+    for (let mapMinerIdx in availableMapMiners) {
+        if (availableMapMiners[mapMinerIdx].features.indexOf(FeatureName) != -1) {
+            let mapMiner = create_dropDown_aButton(availableMapMiners[mapMinerIdx].name, mapMinerIdx, this.selectMapMiner);
             mapMinerDiv.append(mapMiner);
         }
     }
 }
 
-function setFeaturesFromMapMiner(MapMinerName, clearFeatures) {
+function setFeaturesFromMapMiner(MapMiner, clearFeatures) {
     //TODO: Remove this way of define default value without warnings
     if (typeof (clearFeatures) === "undefined") clearFeatures = false;
+
+    let MapMinerFeatures = MapMiner.features;
 
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     if (clearFeatures) mapFeatureDiv.empty();
 
-    for (let featureIdx in availableMapMiners[MapMinerName]) {
-        let feature = availableMapMiners[MapMinerName][featureIdx];
-        let mapFeature = $(document.createElement('a'));
-        mapFeature.addClass('dropdown-item');
-        mapFeature.append(feature);
-        mapFeature.click(feature, this.selectMapFeature.bind(this));
-        mapFeature.attr("href", "javascript:void(0);");
+    for (let featureIdx in MapMiner.features) {
+        let featureName = MapMiner.features[featureIdx];
+        let mapFeature = create_dropDown_aButton(featureName, featureName, this.selectMapFeature);
         mapFeatureDiv.append(mapFeature);
     }
+}
+
+function setAvailableImageMiners() {
+    let imageMinerDiv = $(`#imageProviderDiv`);
+    imageMinerDiv.empty();
+    for (let imageMinerIdx in availableImageMiners) {
+        let imageMinerName = availableImageMiners[imageMinerIdx].name;
+        let imageMiner = create_dropDown_aButton(imageMinerName, imageMinerIdx, this.changeImageProviderClick);
+        imageMinerDiv.append(imageMiner);
+    }
+
+}
+
+function create_dropDown_aButton(label, optValue, clickHandler) {
+    let button = $(document.createElement('a'));
+    button.addClass('dropdown-item');
+    button.append(label);
+    button.attr("href", "javascript:void(0);");
+    button.click(null, clickHandler.bind(this, optValue));
+    return button;
 }
 
 function setAvailableMapMinersAndFeatures() {
@@ -302,14 +317,10 @@ function setAvailableMapMinersAndFeatures() {
     let mapFeatureDiv = $(`#mapFeatureDiv`);
     mapMinerDiv.empty();
     mapFeatureDiv.empty();
-    for (let mapMinerName in availableMapMiners) {
-        let mapMiner = $(document.createElement('a'));
-        mapMiner.addClass('dropdown-item');
-        mapMiner.append(mapMinerName);
-        mapMiner.click(mapMinerName, this.selectMapMiner.bind(this));
-        mapMiner.attr("href", "javascript:void(0);");
+    for (let mapMinerId in availableMapMiners) {
+        let mapMiner = create_dropDown_aButton(availableMapMiners[mapMinerId].name, mapMinerId, this.selectMapMiner);
         mapMinerDiv.append(mapMiner);
-        setFeaturesFromMapMiner(mapMinerName, false);
+        setFeaturesFromMapMiner(availableMapMiners[mapMinerId], false);
     }
 
 }
@@ -403,10 +414,15 @@ function updateRegionsList(vectorevent) {
 
 /* Click Event Region*/
 function getClickedElement(event) {
-    if (!event.srcElement && !event.id) return;
-    let elem_id = event.srcElement || event.id;
-    let element = $('#' + elem_id);
-    return element;
+    if (event.currentTarget) {
+        return $(event.currentTarget);
+    }
+    else if (event.srcElement || event.id) {
+        let elem_id = event.srcElement || event.id || event.currentTarget;
+        let element = $('#' + elem_id);
+        return element;
+    }
+
 }
 
 function changeModeClick(mode, event) {
@@ -474,11 +490,34 @@ function changeShapeClick(shapeType, event) {
     openLayersHandler.map.addInteraction(drawInteraction);
 }
 
+/**
+* Handler for changing map tiles.
+* @param {string} imageProviderId - Id defined in the back-end ImageMiner
+* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+*/
+function changeImageProviderClick(imageProviderId, event) {
+    if (!btnElementChecker(event)) return;
+    UIState.SelectedImageProvider = imageProviderId;
+}
+
+
+
+/**
+* Handler for changing map tiles.
+* @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
+* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+*/
 function changeMapProviderClick(mapProviderId, event) {
     if (!btnElementChecker(event)) return;
     openLayersHandler.changeMapProvider(mapProviderId);
 }
 
+/**
+* Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).
+* If the target (i.e. button) can't be defined "undefined" is returned.
+* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+* @returns {Element|undefined} - See [Element]{@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
+*/
 function btnElementChecker(event) {
     let element = getClickedElement(event);
     if (!element) return;

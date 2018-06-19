@@ -20,14 +20,14 @@ class ImageMinerManager(object):
         return ImageMinerManager.__instance
 
     def registerImageMiner(self, miner: ImageMiner):
-        if not miner.imageMinerName in self._ImageMiners:
-            self._ImageMiners[miner.imageMinerName] = miner
+        if not miner.imageMinerId in self._ImageMiners:
+            self._ImageMiners[miner.imageMinerId] = miner
         pass
 
 
-    def requestGeoImageToImageMiner(self, imageMinerName: str, locations: FeatureCollection) -> List[FeatureCollection]:
+    def requestGeoImageToImageMiner(self, imageMinerId: str, locations: FeatureCollection) -> List[FeatureCollection]:
         """Delegate request to the selected image miner"""
-        return self._ImageMiners[imageMinerName].getGeoImagesFromLocations(locations)
+        return self._ImageMiners[imageMinerId].getGeoImagesFromLocations(locations)
         
         
 
@@ -35,5 +35,8 @@ class ImageMinerManager(object):
     def ImageMiners(self):
         return self._ImageMiners
 
-    def getImageForFeatureCollection(self, imageMinerName, featureCollection: FeatureCollection)->List[GeoImage]:
-        return self._ImageMiners[imageMinerName].getImageForFeatureCollection(featureCollection)
+    def getAvailableImageMiners(self):
+        return {imageMinerId: {'name': self._ImageMiners[imageMinerId].imageMinerName} for imageMinerId in self._ImageMiners}
+
+    def getImageForFeatureCollection(self, imageMinerId, featureCollection: FeatureCollection)->List[GeoImage]:
+        return self._ImageMiners[imageMinerId].getImageForFeatureCollection(featureCollection)

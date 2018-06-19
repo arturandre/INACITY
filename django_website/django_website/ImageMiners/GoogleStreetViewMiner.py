@@ -52,21 +52,6 @@ class GoogleStreetViewMiner(ImageMiner):
                 ret.append(geoImage)
         return ret
 
-    def getGeoImagesFromLocations(locations: FeatureCollection):
-        """Collect images based on a collection of GeoJson features"""
-        for feature in regions['features']:
-            geom = feature['geometry']
-            if (geom is Polygon) or (geom is MultiPolygon)\
-                or (geom is LineString) or (geom is MultiLineString):
-                for coordinate in geom.get('coordinates'):
-                    #TODO: GET A PANORAMA
-                    #panorama = 
-                    pass
-                pass
-            
-        ret = [GeoImage()]
-        return ret
-
     def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
         if key is None: key = GoogleStreetViewMiner._key
         if size is None: size = Size(640, 640)

@@ -17,13 +17,13 @@ class MapMinerManager(object):
         return MapMinerManager.__instance
 
     def registerMapMiner(self, mapMiner: MapMiner):
-        if not mapMiner.mapMinerName in self._MapMiners:
-            self._MapMiners[mapMiner.mapMinerName] = mapMiner
+        if not mapMiner.mapMinerId in self._MapMiners:
+            self._MapMiners[mapMiner.mapMinerId] = mapMiner
         pass
 
     def getAvailableMapMinersAndQueries(self):
-        return {mapMiner: self._MapMiners[mapMiner].getAvailableQueries() for mapMiner in self._MapMiners}
+        return {mapMinerId: {'name': self._MapMiners[mapMinerId].mapMinerName, 'features': self._MapMiners[mapMinerId].getAvailableQueries()} for mapMinerId in self._MapMiners}
 
-    def requestQueryToMapMiner(self, mapMinerName: str, query: str, region: FeatureCollection) -> List[FeatureCollection]:
+    def requestQueryToMapMiner(self, mapMinerId: str, query: str, region: FeatureCollection) -> List[FeatureCollection]:
         """Delegate the requested query call to the selected MapMiner"""
-        return self._MapMiners[mapMinerName].doQuery(query, region)
+        return self._MapMiners[mapMinerId].doQuery(query, region)

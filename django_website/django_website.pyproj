@@ -24,7 +24,7 @@
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
-    <LaunchProvider>Django launcher</LaunchProvider>
+    <LaunchProvider>Web launcher</LaunchProvider>
     <DjangoSettingsModule>django_website.settings</DjangoSettingsModule>
     <OutputPath>.</OutputPath>
   </PropertyGroup>

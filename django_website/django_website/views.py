@@ -48,6 +48,13 @@ def getavailablemapminers(request):
     return JsonResponse(ret)
 
 @api_view(['GET'])
+def getavailableimageminers(request):
+    ret = imageMinerManager.getAvailableImageMiners()
+    return JsonResponse(ret)
+
+
+
+@api_view(['GET'])
 def getmapminerfeatures(request):
     mapMinerName = request.GET.get("mapMinerName")
     query = request.GET.get("featureName")

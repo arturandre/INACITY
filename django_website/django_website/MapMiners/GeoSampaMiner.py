@@ -7,6 +7,10 @@ from django_website.models import GeoSampa_BusStops
 
 
 class GeoSampaMiner(MapMiner):
+    mapMinerName = "GeoSampa"
+    mapMinerId = "geosampa"
+
+
     """Miner for the GeoSampa's database"""
     _basecrs = SpatialReference(29183)
     _crs = {
@@ -16,8 +20,6 @@ class GeoSampaMiner(MapMiner):
         }
         }
 
-    mapMinerName = "GeoSampa"
-    mapMinerId = "GEOSAMPA"
     def _getBusStops(regions: FeatureCollection) -> [Point]:
         ret = GeoSampa_BusStops.objects.all()[:0]
         for feature in regions['features']:
