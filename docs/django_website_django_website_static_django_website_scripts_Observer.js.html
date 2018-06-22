@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: StreetViewPanoramaData</title>
+    <title>JSDoc: Source: django_website/django_website/static/django_website/scripts/Observer.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,152 +17,79 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: StreetViewPanoramaData</h1>
+    <h1 class="page-title">Source: django_website/django_website/static/django_website/scripts/Observer.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-        
-            
-        
-    
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>﻿/**
+ * Observer module contains classes used to implement the Observer Pattern
+ * and allow the creation of events and eventHandlers
+ * @module Observer
+ */
 
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">StreetViewPanoramaData module contains classes used by the StreetViewPanoramaData class.This class encapsulates the data obtained by the StreetViewServices API related to apanorama.</div>
-        
+/**
+* This class keeps a list of _observers and dispatch (notify) them about
+* some event with some parameters
+* @param {string[]} eventNames - All the event names this class dispatches
+*/
+class Subject {
 
-        
-            
+    constructor()
+    {
+        //this._eventNames = eventNames;
+        //this._observers = {};
+    }
 
+    static registerEventNames(eventNames)
+    {
+        this._eventNames = eventNames;
+    }
 
+    /**
+    * Listens for an event named "eventName"
+    * @param {string} eventName - The event name
+    * @param {function} listener - The listener function
+    * @param {object} opt_this - The object to use as this in listener
+    */
+    static on(eventName, listener, opt_this)
+    {
+        if (this._eventNames.indexOf(eventName) &lt; 0)
+        {
+            throw Error("Event name not registered.");
+        }
+        if (typeof listener !== 'function')
+        {
+            throw Error("Listener should be a function.");
+        }
+        if (!this._observers[eventName]) this._observers[eventName] = [];
+        this._observers[eventName].push({listener: listener, opt_this: opt_this});
+    }
 
+    static notify(eventName, data) {
+        for (const listenerIdx in this._observers[eventName])
+        {
+            let listenerRecord = this._observers[eventName][listenerIdx];
+            if (listenerRecord.opt_this)
+            {
+                (listenerRecord.listener.bind(listenerRecord.opt_this))(data);
+            }
+            else
+            {
+                listenerRecord.listener(data);
+            }
+        }
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-StreetViewPanoramaData-Link.html">Link</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-StreetViewPanoramaData-Time.html">Time</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+Subject._eventNames = [];
+Subject._observers = {};</code></pre>
+        </article>
+    </section>
 
 
 

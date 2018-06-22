@@ -108,25 +108,63 @@ function getPanoramaByLocation(lonLatCoordinate)
  * @returns {Promise} Promise object representing an array of StreetViewPanoramaData.
  */
 function getPanoramaForFeature(feature) {
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
+		let geometryType = feature.geometry.type;
 
         let coordinates = feature.geometry.coordinates;
         console.log(coordinates);
         console.log("3");
         let ret = [];
-		let numCalls = 1;
-		if (typeof (coordinates[0]) !== "number") //Encapsulates both cases when it's zero or undefined
+		let numCalls = 0;
+		if (geometryType === "MultiPolygon")
+		{
+			//Number of Polygons
+			for (let i = 0; i &lt; coordinates.length; i++) 
+			{   //Number of LineStrings/Linear Rings
+				for (let j = 0; j &lt; coordinates[i].length; j++) 
+				{   //Number of coordinates [(lon, lat)]
+					numCalls += coordinates[i][j].length;
+					for (let k = 0; k &lt; coordinates[i][j].length; j++) {
+						let lonLatCoordinate = coordinates[i][j];
+						getPanoramaForLonLatCoordinate(lonLatCoordinate);
+					}
+				}
+			}
+		}
+		else if (
+		geometryType === "MultiLineString" ||
+		geometryType === "Polygon"
+		)
+		{
+			//Number of LineStrings/Linear Rings
+			for (let i = 0; i &lt; coordinates.length; i++) 
+			{   //Number of coordinates [(lon, lat)]
+				numCalls += coordinates[i].length;
+				for (let j = 0; j &lt; coordinates[i].length; j++) {
+					let lonLatCoordinate = coordinates[i][j];
+					getPanoramaForLonLatCoordinate(lonLatCoordinate);
+				}
+			}
+		}
+		else if (geometryType === "LineString" || geometryType === "MultiPoint")
         {
 			numCalls = coordinates.length;
-			for (let i = 0; i &lt; coordinates.length; i++) {
+			//Number of coordinates [(lon, lat)]
+			for (let i = 0; i &lt; coordinates.length; i++) {x
 				let lonLatCoordinate = coordinates[i];
 				getPanoramaForLonLatCoordinate(lonLatCoordinate);
 			}
 		}
-		else
+		else if (geometryType === "Point")
 		{
+			numCalls = 1;
 			let lonLatCoordinate = coordinates;
 			getPanoramaForLonLatCoordinate(lonLatCoordinate);
+		}
+		else
+		{
+			console.error(`Geometry type (${geometryType}) not recognized!`);
+			reject(`Geometry type (${geometryType}) not recognized!`);
 		}
 		
 		/** Inner function used to avoid code duplication */
@@ -301,13 +339,13 @@ module.exports = router;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Region.html#event:onactivechange">onactivechange</a></li><li><a href="module-UserSection-Region.html#event:onaddlayer">onaddlayer</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#btnElementChecker">btnElementChecker</a></li><li><a href="global.html#changeImageProviderClick">changeImageProviderClick</a></li><li><a href="global.html#changeMapProviderClick">changeMapProviderClick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 17 2018 18:10:10 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jun 22 2018 01:29:06 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

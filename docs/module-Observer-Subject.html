@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: gsvSize</title>
+    <title>JSDoc: Class: Subject</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: gsvSize</h1>
+    <h1 class="page-title">Class: Subject</h1>
 
     
 
@@ -29,9 +29,9 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a>~</span>gsvSize<span class="signature">(b<span class="signature-attributes">opt</span>, f<span class="signature-attributes">opt</span>, height<span class="signature-attributes">opt</span>, width<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-Observer.html">Observer</a>~</span>Subject<span class="signature">(eventNames)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Class representing sizes for tileSize and worldSize</div>
+            <div class="class-description">This class keeps a list of _observers and dispatch (notify) them aboutsome event with some parameters</div>
         
     
 </header>
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="gsvSize"><span class="type-signature"></span>new gsvSize<span class="signature">(b<span class="signature-attributes">opt</span>, f<span class="signature-attributes">opt</span>, height<span class="signature-attributes">opt</span>, width<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Subject"><span class="type-signature"></span>new Subject<span class="signature">(eventNames)</span><span class="type-signature"></span></h4>
     
 
     
@@ -74,11 +74,7 @@
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -90,156 +86,23 @@
 
         <tr>
             
-                <td class="name"><code>b</code></td>
+                <td class="name"><code>eventNames</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                    "px"
-                
-                </td>
-            
 
-            <td class="description last">Unknow</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>f</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    "px"
-                
-                </td>
-            
-
-            <td class="description last">Unknow</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>height</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    512
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>width</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">int</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    512
-                
-                </td>
-            
-
-            <td class="description last"></td>
+            <td class="description last">All the event names this class dispatches</td>
         </tr>
 
     
@@ -280,7 +143,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line75">line 75</a>
+        <a href="django_website_django_website_static_django_website_scripts_Observer.js.html">django_website/django_website/static/django_website/scripts/Observer.js</a>, <a href="django_website_django_website_static_django_website_scripts_Observer.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -334,7 +197,7 @@
     
 
     
-    <h4 class="name" id=".fromJson"><span class="type-signature">(static) </span>fromJson<span class="signature">(parameters)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".on"><span class="type-signature">(static) </span>on<span class="signature">(eventName, listener, opt_this)</span><span class="type-signature"></span></h4>
     
 
     
@@ -342,7 +205,7 @@
 
 
 <div class="description">
-    Class initializer
+    Listens for an event named "eventName"
 </div>
 
 
@@ -378,13 +241,13 @@
 
         <tr>
             
-                <td class="name"><code>parameters</code></td>
+                <td class="name"><code>eventName</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">json</span>
+<span class="param-type">string</span>
 
 
             
@@ -394,7 +257,53 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">The event name</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listener</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The listener function</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opt_this</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The object to use as this in listener</td>
         </tr>
 
     
@@ -435,7 +344,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line87">line 87</a>
+        <a href="django_website_django_website_static_django_website_scripts_Observer.js.html">django_website/django_website/static/django_website/scripts/Observer.js</a>, <a href="django_website_django_website_static_django_website_scripts_Observer.js.html#line31">line 31</a>
     </li></ul></dd>
     
 

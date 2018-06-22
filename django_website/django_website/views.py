@@ -56,11 +56,11 @@ def getavailableimageminers(request):
 
 @api_view(['GET'])
 def getmapminerfeatures(request):
-    mapMinerName = request.GET.get("mapMinerName")
+    mapMinerId = request.GET.get("mapMinerId")
     query = request.GET.get("featureName")
     region = geojson.loads(request.GET.get("regions"))
     
-    ret = mapMinerManager.requestQueryToMapMiner(mapMinerName, query, region);
+    ret = mapMinerManager.requestQueryToMapMiner(mapMinerId, query, region);
     return JsonResponse(ret)
     #return JsonResponse(geojson.dumps(ret), safe=False)
 

@@ -4,7 +4,6 @@
  * @module UserSection
  */
 
-
 /**
  * Each layer is named after a MapMiner and a Feature
  * concatenated by an underscore.
@@ -13,29 +12,20 @@
  * with all the features collapsed into a single list.
  * Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)
  * related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)
+ * @param {string} id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+ * @param {bool} active - Indicates if this layers is currently active (e.g. drawed over the map)
  */
-class Layer
+class Layer extends Subject
 {
 
-    /**
-     * @constructor
-     * @param {string} id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
-     */
-    constructor(id)
+    constructor(id, active)
     {
+        super();
+
         this._id = id;
         this._featureCollection = null;
-        this._active = false;
-
-        /** @event */
-        /** Triggered when a new set of features is assined to the [featureCollection]{@link module:UserSection~Layer#featureCollection} member. */
-        this.onfeaturecollectionchange = null;
-        /** @event */
-        /** Triggered when the [active]{@link module:UserSection~Layer#active} property changes (It wont trigger if the assined value is the current value). */
-        this.onactivechange = null;
+        this._active = !!active;
     }
-    /** @acess public */
-    /** The active property controls wheter the features should or not be rendered */
     get active() { return this._active; }
 
     /** 
@@ -43,17 +33,28 @@ class Layer
      */
     get id() { return this._id; }
 
-    /** 
-     * Represents all the geographical features (e.g. Streets) in this layer
-     */
+    
     get featureCollection() { return this._featureCollection; }
 
-
+    /**
+     * The active property controls wheter the features should or not be rendered 
+     * @acess public 
+     * @fires [activechange]{@link module:UserSection~Layer#activechange}
+     */
     set active(newActiveState) {
         let triggered = (newActiveState !== this._active);
         this._active = newActiveState;
-        if (triggered && this.onactivechange) this.onactivechange();
+        if (triggered)
+        {
+            Layer.notify('activechange', this);
+        }
     }
+
+    /** 
+     * Represents all the geographical features (e.g. Streets) in this layer
+     * @acess public 
+     * @fires [featurecollectionchange]{@link module:UserSection~Layer#featurecollectionchange}
+     */
     set featureCollection(newFeatureCollection)
     {
         let triggered = (this._featureCollection !== newFeatureCollection);
@@ -69,12 +70,28 @@ class Layer
 
         if (triggered)
         {
-            if (this.onfeaturecollectionchange)
-            {
-                this.onfeaturecollectionchange(this);
-            }
+
+            Layer.notify('featurecollectionchange', this);
         }
     }
+}
+
+/** Triggered when a new set of features is assined to the [featureCollection]{@link module:UserSection~Layer#featureCollection} member.
+* @event module:UserSection~Layer#featurecollectionchange
+* @param {Layer}
+*/
+/**
+* Triggered when the [active]{@link module:UserSection~Layer#active} property changes (It wont trigger if the assined value is the current value).
+* @event module:UserSection~Layer#activechange
+* @param {Layer}
+*/
+//Singleton approach
+if (!Layer.init) {
+    Layer.init = true;
+    Layer.registerEventNames([
+    'featurecollectionchange',
+    'activechange',
+    ]);
 }
 
 /**
@@ -84,30 +101,16 @@ class Layer
 * @param {string} name - Region display name.
 * @param {boolean} active - Represents if the region is in user's current selection or not.
 */
-class Region
+class Region extends Subject
 {
     constructor(id, name, active)
     {
+        super();
+        
+        
         active = typeof (active) === 'undefined' ? false : active;
         this._id = id;
         this._name = name;
-
-        /** 
-         * Triggered when "active" property's value changes.
-         * @event
-         * @type {Region}
-         * @property {boolean} active - Indicates if this region is active or not.
-         * @property {string} id - Indicates the id of the region [de]activated.
-         * @property {string} name - Indicates the display name of this region.
-         */
-        this.onactivechange = null;
-
-        /** 
-        *  Triggered when a new [Layer]{@link module:UserSection~Layer} is created (through [createLayer]{@link module:UserSection~Region#createLayer}) in this region
-        * @event
-        * @type {Layer}
-        */
-        this.onaddlayer = null;
         
         this._layers = {};
         
@@ -115,15 +118,15 @@ class Region
     }
     /** Creates a new Layer with the specified id
     * @param {string} id - Layer's identifier 
-    * @fires [onaddlayer]{@link module:UserSection~Region#onaddlayer}
+    * @fires [addlayer]{@link module:UserSection~Region#addlayer}
     */
     createLayer(id)
     {
         if (!(id in this._layers))
         {
-            let newLayer = new Layer(id);
+            let newLayer = new Layer(id, this.active);
             this._layers[id] = newLayer;
-            if (this.onaddlayer) { this.onaddlayer(newLayer); }
+            Region.notify('addlayer', newLayer);
             return newLayer;
         }
         else
@@ -133,7 +136,7 @@ class Region
     }
 
     /** [De]activate a region for displaying or colleting geographical features. 
-     * @fires [onactivechange]{@link module:UserSection~Region#onactivechange}
+     * @fires [activechange]{@link module:UserSection~Region#activechange}
      */
     toggleActive()
     {
@@ -160,7 +163,7 @@ class Region
 
     /**
      * @type {boolean}
-     * @fires [onactivechange]{@link module:UserSection~Region#onactivechange}
+     * @fires [activechange]{@link module:UserSection~Region#activechange}
      */
     set active(newState)
     {
@@ -168,42 +171,61 @@ class Region
             throw Error(`newState parameter type should be boolean, but is: ${typeof (newState)}`);
         let triggerActiveChange = this._active !== newState;
         this._active = newState;
-        if (this.onactivechange)
+        for (const layerIdx in this._layers)
         {
-            this.onactivechange(this);
+            this._layers[layerIdx].active = newState;
         }
+        Region.notify('activechange', this);
     }
+}
+
+/** 
+* Triggered by a mouse click event in the user interface
+* @event module:UserSection~Region#activechange
+* @type {Region}
+* @property {Region} region - The region object [de]activated.
+* @property {boolean} region.active - Indicates if this region is active or not.
+* @property {string} region.id - Indicates the id of the region [de]activated.
+* @property {string} region.name - Indicates the display name of this region.
+*/
+/** 
+*  Triggered when a new [Layer]{@link module:UserSection~Layer} is created (through [createLayer]{@link module:UserSection~Region#createLayer}) in this region
+* @event module:UserSection~Region#addlayer
+* @type {Layer}
+* @property {Layer} layer - The new layer object
+* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
+* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+*/
+//Singleton approach
+if (!Region.init) {
+    Region.init = true;
+    Region.registerEventNames([
+    'activechange',
+    'addlayer',
+    ]);
 }
 
 /**
 * Keeps track of several user inputs
+* @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
-class UserSection
+class UserSection extends Subject
 {
     constructor(regionsDivId)
     {
+        super();
         this.setTarget(regionsDivId);
 
-        /** Events Region */
-
-        /*
-        *  Syntax: onregionlistitemclick = function (region)
-        *  Triggered by a mouse click event in the user interface
-        */
-        this.onregionlistitemclick = null;
-
-        /** 
-        *  Feature collections with Polygons 
-        *  representing regions of interest
-        */
         this._regions = {};
 
-        /** 
-        *  An index of all features from all regions grouped by layerId
-        */
+        
         this._featuresByLayerIndex = {};
     }
 
+    /** 
+    * An index of all features from all regions grouped by layerId
+    */
     get featuresByLayerIndex() { return this._featuresByLayerIndex; }
 
     /**
@@ -257,11 +279,7 @@ class UserSection
         element.toggleClass("active");
         let region = event.data;
         region.toggleActive();
-        if (this.onregionlistitemclick)
-        {
-            this.onregionlistitemclick(region);
-        }
-
+        UserSection.notify('regionlistitemclick', region);
     }
 
     createRegion(id, name, active)
@@ -271,13 +289,20 @@ class UserSection
         {
             let newRegion = new Region(id, name, active);
             this._regions[id] = newRegion;
-            newRegion.onaddlayer = function (layer)
-            {
-                layer.onfeaturecollectionchange = function (layer)
+
+            Region.on('addlayer', function (_) {
+                Layer.on('featurecollectionchange', function (layer) {
+                    this.updateFeatureIndex(layer.id); /* UserSection */
+                }, this);
+            }, this);
+
+
+            Region.on('addlayer', function(_){
+                Layer.on('featurecollectionchange', function (layer)
                 {
-                    this.updateFeatureIndex(layer.id);
-                }.bind(this); /** UserSection */
-            }.bind(this); /** UserSection */
+                    this.updateFeatureIndex(layer.id); /* UserSection */
+                }, this); 
+            }, this);
             this.updateRegionsDiv();
             return newRegion;
         }
@@ -299,8 +324,15 @@ class UserSection
         }
     }
 
+    /** 
+    *  Feature collections with Polygons representing regions of interest
+    */
     get regions() { return this._regions; }
 
+    /** 
+    * Feature collections with Polygons representing regions of interest
+    * @param {string} regionId - The id of the region
+    */
     getRegionById(regionId) { return this._regions[regionId]; }
 
     updateFeatureIndex(layerId)
@@ -339,4 +371,20 @@ class UserSection
         }
 
     }
+}
+
+/**
+* Triggered by a mouse click event in the user interface
+* @event module:UserSection~UserSection#regionlistitemclick
+* @type {module:UserSection~Region}
+* @property {Region} region - Indicates if this region is active or not.
+* @property {boolean} region.active - Indicates if this region is active or not.
+* @property {string} region.id - Indicates the id of the region [de]activated.
+* @property {string} region.name - Indicates the display name of this region.
+*/
+if (!UserSection.init) {
+    UserSection.init = true;
+    UserSection.registerEventNames([
+    'regionlistitemclick',
+    ]);
 }

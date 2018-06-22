@@ -8,7 +8,7 @@
     </PythonRunWebServerCommandEnvironment>
     <PythonDebugWebServerCommandEnvironment>
     </PythonDebugWebServerCommandEnvironment>
-    <InterpreterId>{f0b99efa-9a71-4b82-958e-7c871c5b6093}</InterpreterId>
+    <InterpreterId>{56adaa9c-6c2f-4167-95b3-f19878333ef6}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <InterpreterPath>
     </InterpreterPath>
@@ -116,6 +116,7 @@
     <Content Include="django_website\static\django_website\scripts\home\worker.js" />
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
     <Content Include="django_website\static\django_website\scripts\home\home.js" />
+    <Content Include="django_website\static\django_website\scripts\Observer.js" />
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
     <Content Include="django_website\static\django_website\scripts\Primitives.js" />
     <Content Include="django_website\static\django_website\scripts\UserSection.js" />
@@ -145,7 +146,7 @@
     <Folder Include="django_website\Primitives\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="{f0b99efa-9a71-4b82-958e-7c871c5b6093}\3.5" />
+    <InterpreterReference Include="{56adaa9c-6c2f-4167-95b3-f19878333ef6}\3.5" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Django.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 
