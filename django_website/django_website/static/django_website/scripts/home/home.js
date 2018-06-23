@@ -82,7 +82,6 @@ function callTest() {
 $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
-    //$('[data-toggle="popover"]').tooltip('show');
 
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
@@ -188,78 +187,162 @@ function updateLayersHintList() {
     }
 }
 
-function executeQuery(event) {
-    //TODO: Create some animation/panel to display the request progress
-    let btnExecuteQuery = getClickedElement(event);
-
-
-    //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-    let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
-    let noSelectedRegions = true;
-
-    for (let regionIdx in usersection.regions) {
-        let region = usersection.getRegionById(regionIdx);
-
-        if (!region.active) continue;
-
-        noSelectedRegions = false;
-
-        if (UIState.SelectedMapMiner === null) {
-            alert("Please, select a Map Miner to continue.");
-            return;
-        }
-        if (UIState.SelectedMapMiner === null) {
-            alert("Please, select a Feature to continue.");
-            return;
-        }
-
-        /* To avoid race conditions during the ajax call */
-        let selectedMapMiner = UIState.SelectedMapMiner;
-        let selectedMapFeature = UIState.SelectedMapFeature;
-
-
-        let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
-
-        geoJsonFeatures.crs = {
-            "type": "name",
-            "properties": {
-                "name": "EPSG:4326"
-            }
-        };
-
-        let that = this; /* window */
-        $.get
-            (
-            "/getmapminerfeatures/",
-            {
-                "mapMinerId": selectedMapMiner,
-                "featureName": selectedMapFeature,
-                "regions": JSON.stringify(geoJsonFeatures),
-            },
-            function (data, textStatus, jqXHR) {
-                let layerId = selectedMapMiner + "_" + selectedMapFeature;
-                let layer = this.getLayerById(layerId);
-                if (!layer) {
-                    layer = this.createLayer(layerId);
-                }
-
-                //Update only if the layer now has more features than before
-                if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
-                    layer.featureCollection = data;
-                }
-
-                that.drawLayer(layer); /* window */
-            }.bind(region)
-            ,
-            "json"
-            );
-    }
-
-    if (noSelectedRegions) {
-        alert("No region selected. Please, select a region to make a request.")
+/**
+* Changes the html of buttons to indicate it's busy.
+* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function setLoadingText(jqElement)
+{
+    let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
+    jqElement.data('original-text', jqElement.html());
+    jqElement.html(loadingText);
+}
+/**
+* Changes the html of buttons back to its unbusy state.
+* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function unsetLoadingText(jqElement)
+{
+    if (jqElement.data('original-text'))
+    {
+        jqElement.html(jqElement.data('original-text'));
     }
 }
+
+function getImages(event)
+{
+    let btnCollectImages = getClickedElement(event);
+    try
+    {
+        setLoadingText(btnCollectImages);
+
+        //To avoid racing conditions
+        let selectedImageProvider = UIState.SelectedImageProvider;
+        let numCalls = 0;
+        for (const regionIdx in usersection.regions)
+        {
+            let region = usersection.regions[regionIdx];
+            numCalls += region.layers.length;
+            for (const layerIdx in region.layers)
+            {
+                let layer = region.layers[layerIdx];
+                
+                $.post('/getimagesforfeaturecollection/',
+                {
+                    'imageMinerName': selectedImageProvider,
+                    'featureCollection': JSON.stringify(layer.featureCollection),
+                    'regionId': regionIdx,
+                    'layerId': layerIdx
+                },
+                function (data, textStatus, jqXHR) {
+                    console.log(data);
+                    console.log(textStatus);
+                    console.log(jqXHR);
+                    numCalls -= 1;
+                    if (numCalls == 0)
+                    {
+                        unsetLoadingText(btnCollectImages);
+                    }
+                },
+                'json'
+                );
+            }
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnCollectImages);
+        throw err;
+    }
+}
+
+function executeQuery(event) {
+    let btnExecuteQuery = getClickedElement(event);
+
+    try
+    {
+        setLoadingText(btnExecuteQuery);
+
+        //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
+        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        let noSelectedRegions = true;
+
+        for (let regionIdx in usersection.regions) {
+            let region = usersection.getRegionById(regionIdx);
+
+            if (!region.active) continue;
+
+            noSelectedRegions = false;
+
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Map Miner to continue.");
+                unsetLoadingText(jqElement);
+                return;
+            }
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Feature to continue.");
+                unsetLoadingText(jqElement);
+                return;
+            }
+        
+            /* To avoid race conditions during the ajax call */
+            let selectedMapMiner = UIState.SelectedMapMiner;
+            let selectedMapFeature = UIState.SelectedMapFeature;
+
+
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
+
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+
+            let that = this; /* window */
+        
+            $.get
+                (
+                "/getmapminerfeatures/",
+                {
+                    "mapMinerId": selectedMapMiner,
+                    "featureName": selectedMapFeature,
+                    "regions": JSON.stringify(geoJsonFeatures),
+                },
+                function (data, textStatus, jqXHR) {
+                    let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                    let layer = this.getLayerById(layerId);
+                    if (!layer) {
+                        layer = this.createLayer(layerId);
+                    }
+
+                    //Update only if the layer now has more features than before
+                    if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
+                        layer.featureCollection = data;
+                    }
+
+                    that.drawLayer(layer); /* window */
+                    unsetLoadingText(btnExecuteQuery);
+                }.bind(region)
+                ,
+                "json"
+                );
+        
+        }
+
+        if (noSelectedRegions) {
+            alert("No region selected. Please, select a region to make a request.")
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnExecuteQuery);
+        throw err;
+    }
+}
+
+
 
 function clearSelections(event) {
     let btnClearSelections = getClickedElement(event);

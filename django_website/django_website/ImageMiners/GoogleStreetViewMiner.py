@@ -4,7 +4,7 @@ import imageio
 from io import BytesIO
 import numpy as np
 from django_website.Primitives.Primitives import GeoImage
-
+import geojson
 from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, FeatureCollection
 from typing import List
 import json
@@ -31,26 +31,29 @@ class GoogleStreetViewMiner(ImageMiner):
 
     imageMinerName = "Google Street View"
     imageMinerId = "gsminer"
-    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[GeoImage]:
+    #def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[GeoImage]:
+    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
         gsvpanoramas = requests.post(GoogleStreetViewMiner._GSVNodeCollectFCPanoramasURL, json=featureCollection)
-        pdicts = json.loads(gsvpanoramas.text)
-        ret = []
-        for feature in pdicts:
-            for coordinateData in feature:
-                location = coordinateData['location']
-                geoImage = GeoImage();
-                geoImage.id = location['pano']
-                geoImage.location = Point([location['lon'], location['lat']])
-                geoImage.heading = coordinateData['tiles']['centerHeading']
-                geoImage.pitch = coordinateData['tiles']['originPitch']
-                geoImage.metadata = coordinateData
-                imageURL = GoogleStreetViewMiner._imageURLBuilderForGeoImage(geoImage)
-                imageRawData = requests.get(imageURL).content
-                imageData = imageio.imread(BytesIO(imageRawData))
-                geoImage.setData(imageData)
-                ret.append(geoImage)
-        return ret
+        featureCollection = geojson.loads(gsvpanoramas.text)
+        #ret = []
+        #for feature in featureCollection['features']:
+        #    for coordinateData in feature:
+        #        location = coordinateData['location']
+        #        geoImage = GeoImage();
+        #        geoImage.id = location['pano']
+        #        geoImage.location = Point([location['lon'], location['lat']])
+        #        geoImage.heading = coordinateData['tiles']['centerHeading']
+        #        geoImage.pitch = coordinateData['tiles']['originPitch']
+        #        geoImage.metadata = coordinateData
+        #        imageURL = GoogleStreetViewMiner._imageURLBuilderForGeoImage(geoImage)
+        #        geoImage.metadata['imageURL'] = imageURL
+        #        #imageRawData = requests.get(imageURL).content
+        #        #imageData = imageio.imread(BytesIO(imageRawData))
+        #        #geoImage.setData(imageData)
+        #        ret.append(geoImage)
+        #return ret
+        return featureCollection
 
     def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
         if key is None: key = GoogleStreetViewMiner._key

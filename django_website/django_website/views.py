@@ -64,15 +64,19 @@ def getmapminerfeatures(request):
     return JsonResponse(ret)
     #return JsonResponse(geojson.dumps(ret), safe=False)
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getimagesforfeaturecollection(request):
-    imageMinerName = request.GET.get("imageMinerName")
-    featureCollection = geojson.loads(request.GET.get("featureCollection"))
+    jsondata = request.data
+    imageMinerName = jsondata['imageMinerName']
+    featureCollection = geojson.loads(jsondata['featureCollection'])
+    regionId = jsondata['regionId']
+    layerId = jsondata['layerId']
     
-    ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection);
-    for idx, geoImage in enumerate(ret):
-        ret[idx] = geoImage.toJSON()
-    return Response(ret)
+    ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    #for idx, geoImage in enumerate(ret):
+    #    ret[idx] = geoImage.toJSON()
+    #return Response(ret)
+    return JsonResponse(ret)
 
     
 @api_view(['POST'])

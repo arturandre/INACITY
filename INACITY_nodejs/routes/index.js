@@ -35,10 +35,9 @@ const maxRadius = 10;
  * @param {Error} err - {message: ..., stack: ...}
  * @param {string} locationDescription - String to indicate where the exception was caught
  */
-function defaultError(err, locationDescription)
-{
-	console.error(`Error caught at ${locationDescription}.`);
-	console.error(err);
+function defaultError(err, locationDescription) {
+    console.error(`Error caught at ${locationDescription}.`);
+    console.error(err);
 }
 
 /**
@@ -48,129 +47,123 @@ function defaultError(err, locationDescription)
  * @param {float} lonLatCoordinate.lon - Longitude in degrees
  * @param {float} lonLatCoordinate.lat - Latitude in degrees
  */
-function getPanoramaByLocation(lonLatCoordinate)
-{
-	return new Promise(function (resolve, reject) {
-		let lon = lonLatCoordinate[0];
+function getPanoramaByLocation(lonLatCoordinate) {
+    return new Promise(function (resolve, reject) {
+        let lon = lonLatCoordinate[0];
         let lat = lonLatCoordinate[1];
-		let latlng = new google.maps.LatLng(lat, lon);
-		streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
-		{
-			//resolve({ data: data, status: status });
-			if (status === "OK")
-			{
-				let parsedData = streetViewPanoramaDataParser(data);
-				resolve(parsedData);
-			}
-			else
-			{
-				reject(status);
-			}
-			
-		});
-	});
+        let latlng = new google.maps.LatLng(lat, lon);
+        streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status) {
+            //resolve({ data: data, status: status });
+            if (status === "OK") {
+                let parsedData = streetViewPanoramaDataParser(data);
+                resolve(parsedData);
+            }
+            else {
+                reject(status);
+            }
+
+        });
+    });
 }
 
 /**
- * Receives a [GeoJson Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2} (not a FeatureCollection) and for
- * each of its coordinates tries to find a panorama.
- * This function returns an array of StreetViewPanoramaData e.g.:
- * [{location: {...}, copyright: ...}]
- * @param {Feature} feature - [GeoJson Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2} object with one or more coordinates
- * @returns {Promise} Promise object representing an array of StreetViewPanoramaData.
+ * Receives a [GeoJson Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2}
+ * (not a FeatureCollection) and for each of its coordinates tries to find a panorama.
+ * This function returns the input feature with a new property(geoImages)
+ * with the same structure as the coordinates property and each value represents
+ * a StreetViewPanoramaData for each coordinate. e.g.:
+ * features[0].properties.geoImages[x][y][z] corresponds to the coordinate at
+ * features[0].coordinates[x][y][z]
+ * @param {Feature} feature - [GeoJson Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2}
+ * object with one or more coordinates
+ * @returns {Promise} Promise object with the input feature with a new property (geoImages).
  */
 function getPanoramaForFeature(feature) {
     return new Promise(function (resolve, reject) {
-		let geometryType = feature.geometry.type;
+        let geometryType = feature.geometry.type;
 
         let coordinates = feature.geometry.coordinates;
-        console.log(coordinates);
-        console.log("3");
-        let ret = [];
-		let numCalls = 0;
-		if (geometryType === "MultiPolygon")
-		{
-			//Number of Polygons
-			for (let i = 0; i < coordinates.length; i++) 
-			{   //Number of LineStrings/Linear Rings
-				for (let j = 0; j < coordinates[i].length; j++) 
-				{   //Number of coordinates [(lon, lat)]
-					numCalls += coordinates[i][j].length;
-					for (let k = 0; k < coordinates[i][j].length; j++) {
-						let lonLatCoordinate = coordinates[i][j];
-						getPanoramaForLonLatCoordinate(lonLatCoordinate);
-					}
-				}
-			}
-		}
-		else if (
-		geometryType === "MultiLineString" ||
-		geometryType === "Polygon"
-		)
-		{
-			//Number of LineStrings/Linear Rings
-			for (let i = 0; i < coordinates.length; i++) 
-			{   //Number of coordinates [(lon, lat)]
-				numCalls += coordinates[i].length;
-				for (let j = 0; j < coordinates[i].length; j++) {
-					let lonLatCoordinate = coordinates[i][j];
-					getPanoramaForLonLatCoordinate(lonLatCoordinate);
-				}
-			}
-		}
-		else if (geometryType === "LineString" || geometryType === "MultiPoint")
-        {
-			numCalls = coordinates.length;
-			//Number of coordinates [(lon, lat)]
-			for (let i = 0; i < coordinates.length; i++) {x
-				let lonLatCoordinate = coordinates[i];
-				getPanoramaForLonLatCoordinate(lonLatCoordinate);
-			}
-		}
-		else if (geometryType === "Point")
-		{
-			numCalls = 1;
-			let lonLatCoordinate = coordinates;
-			getPanoramaForLonLatCoordinate(lonLatCoordinate);
-		}
-		else
-		{
-			console.error(`Geometry type (${geometryType}) not recognized!`);
-			reject(`Geometry type (${geometryType}) not recognized!`);
-		}
-		
-		/** Inner function used to avoid code duplication */
-		function getPanoramaForLonLatCoordinate(lonLatCoordinate)
-		{
-			let p = getPanoramaByLocation(lonLatCoordinate);
-			p.then(
-					function(streetViewPanoramaData)
-					{
-						ret.push(streetViewPanoramaData);
-					},
-					function(failedStatus)
-					{
-						console.warn(`Status for coordinates(lon: ${lonLatCoordinate[0]}, lat: ${lonLatCoordinate[1]}): ${failedStatus}`);
-					}
-				)
-				.catch(
-					function(err)
-					{
-						defaultError(err, "getPanoramaForFeature");
-						throw new Error(err);
-					}
-				)
-				.finally(
-					function(){
-					
-						numCalls -= 1;
-						if (numCalls == 0) {
-						   resolve(ret);
-						}
-					}
-				);
-				
-		}
+        let geoImages = feature.properties.geoImages = new Array();
+        let numCalls = 0;
+        if (geometryType === "MultiPolygon") {
+            //Number of Polygons
+            for (let i = 0; i < coordinates.length; i++) {   //Number of LineStrings/Linear Rings
+                geoImages[i] = new Array(coordinates[i].length);
+                for (let j = 0; j < coordinates[i].length; j++) {   //Number of coordinates [(lon, lat)]
+                    let coordsLen = coordinates[i][j].length;
+                    numCalls += coordsLen;
+                    geoImages[i][j] = new Array(coordsLen);
+                    for (let k = 0; k < coordsLen; j++) {
+                        let lonLatCoordinate = coordinates[i][j];
+                        setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages[i][j], k);
+                    }
+                }
+            }
+        }
+        else if (
+            geometryType === "MultiLineString" ||
+            geometryType === "Polygon"
+        ) {
+            //Number of LineStrings/Linear Rings
+            for (let i = 0; i < coordinates.length; i++) {   //Number of coordinates [(lon, lat)]
+                let coordsLen = coordinates[i].length;
+                geoImages[i] = new Array(coordsLen);
+                numCalls += coordsLen;
+                for (let j = 0; j < coordsLen; j++) {
+                    let lonLatCoordinate = coordinates[i][j];
+                    setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages[i], j);
+                }
+            }
+        }
+        else if (geometryType === "LineString" || geometryType === "MultiPoint") {
+            let coordsLen = coordinates.length;
+            numCalls = coordsLen;
+            //Number of coordinates [(lon, lat)]
+            for (let i = 0; i < coordsLen; i++) {
+                x
+                let lonLatCoordinate = coordinates[i];
+                setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages, i);
+            }
+        }
+        else if (geometryType === "Point") {
+            numCalls = 1;
+            let lonLatCoordinate = coordinates;
+            setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages, 0);
+        }
+        else {
+            console.error(`Geometry type (${geometryType}) not recognized!`);
+            reject(`Geometry type (${geometryType}) not recognized!`);
+        }
+
+        /** Inner function used to avoid code duplication */
+        function setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImagesArray, position) {
+            let p = getPanoramaByLocation(lonLatCoordinate);
+            p.then(
+                function (streetViewPanoramaData) {
+                    geoImagesArray[position] = streetViewPanoramaData;
+                },
+                function (failedStatus) {
+                    geoImagesArray[position] = failedStatus;
+                    console.warn(`Status for coordinates(lon: ${lonLatCoordinate[0]}, lat: ${lonLatCoordinate[1]}): ${failedStatus}`);
+                }
+            )
+                .catch(
+                function (err) {
+                    defaultError(err, "getPanoramaForFeature");
+                    throw new Error(err);
+                }
+                )
+                .finally(
+                function () {
+
+                    numCalls -= 1;
+                    if (numCalls == 0) {
+                        resolve(feature);
+                    }
+                }
+                );
+
+        }
     });
 }
 /**
@@ -181,27 +174,26 @@ function getPanoramaForFeature(feature) {
  * @param {DataObject} data -  A complex object returned by the StreetViewService
  * @returns {module:StreetViewPanoramaData~StreetViewPanoramaData} StreetViewPanoramaData representing a parsed version without functions of the 'data' input.
  */
-function streetViewPanoramaDataParser(data)
-{
+function streetViewPanoramaDataParser(data) {
     //Location object example:
     //{latLng: _.K, shortDescription: "1576 R. do Lago", description: "1576 R. do Lago, São Paulo", pano: "-a6qbIWS7Op13QSWHAYzYA"}
-	let gsvlocation = data.location;
-	
-    let StreetViewPanoramaData = 
-	{
-		location:
-		{
-			lat: gsvlocation.latLng.lat(),
-			lon: gsvlocation.latLng.lng(),
-			shortDescription: gsvlocation.shortDescription,
-			description: gsvlocation.description,
-			pano: gsvlocation.pano
-		},
-		copyright: data.copyright,
-		links: data.links,
-		tiles: data.tiles,
-		time: data.time
-	};
+    let gsvlocation = data.location;
+
+    let StreetViewPanoramaData =
+        {
+            location:
+            {
+                lat: gsvlocation.latLng.lat(),
+                lon: gsvlocation.latLng.lng(),
+                shortDescription: gsvlocation.shortDescription,
+                description: gsvlocation.description,
+                pano: gsvlocation.pano
+            },
+            copyright: data.copyright,
+            links: data.links,
+            tiles: data.tiles,
+            time: data.time
+        };
     return StreetViewPanoramaData;
 }
 
@@ -213,8 +205,7 @@ function streetViewPanoramaDataParser(data)
  * @param {DataObject} StreetViewResponse.data - Data object from StreetViewService API to be converted to StreetViewPanoramaData.
  * @param {string} StreetViewResponse.status - String indicating the status of the request. Can be 'OK' for successfull requests, 'NOTFOUNT' if there's not a panorama within a radius of [maxRadius]{@link module:node/routes/index~maxRadius} from the [location] used in the request.
  */
-function formatStreetViewPanoramaDataArray(gsvArrayOfData)
-{
+function formatStreetViewPanoramaDataArray(gsvArrayOfData) {
     let ret = [];
     for (let coordIdx = 0; coordIdx < gsvArrayOfData.length; coordIdx++) {
         let coord = gsvArrayOfData[coordIdx];
@@ -239,36 +230,32 @@ function formatStreetViewPanoramaDataArray(gsvArrayOfData)
 router.post('/collectfcpanoramas', function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     geojson = req.body;
-    console.log("1");
     if (geojson.type === 'Feature') {
-        console.log("2");
         getPanoramaForFeature(geojson).then(
-			function (streetViewPanoramaDataArray) {
-				
-				console.log("6");
-				let jsonString = JSON.stringify(streetViewPanoramaDataArray);
-				res.send(jsonString);
-			}, (err) => defaultError(err, "router post /collectfcpanoramas")
-		);
+            function (featureAndIndex) { /* Index will be null in this case */
+                let featureWithGeoImage = featureAndIndex[0];
+                let jsonString = JSON.stringify(featureWithGeoImage);
+                res.send(jsonString);
+            }, (err) => defaultError(err, "router post /collectfcpanoramas")
+        );
     }
     else if (geojson.type === 'FeatureCollection') {
         let features = geojson.features;
-        let ret = [];
         let nCalls = features.length;
-        for (let fi = 0; fi < features.length; fi++) {
-            let feature = features[fi];
-            getPanoramaForFeature(feature)
-			.then(
-				function (streetViewPanoramaDataArray) 
-				{
-					ret.push(streetViewPanoramaDataArray);
-					nCalls -= 1;
-					let jsonString = JSON.stringify(ret);
-					if (nCalls == 0) {
-						res.send(jsonString);
-					}
-				}, (err) => defaultError(err, "router post /collectfcpanoramas")
-			);
+        for (let featureIdx = 0; featureIdx < features.length; featureIdx++) {
+            getPanoramaForFeature(features[featureIdx])
+                .then(
+                function (_) {
+                    //let featureWithGeoImage = featureAndIndex[0];
+                    //let featureIdx = featureAndIndex[1];
+                    //geojson[featureIdx] = featureWithGeoImage;
+                    nCalls -= 1;
+                    if (nCalls == 0) {
+                        let jsonString = JSON.stringify(geojson);
+                        res.send(jsonString);
+                    }
+                }, (err) => defaultError(err, "router post /collectfcpanoramas")
+                );
         }
     }
     else {

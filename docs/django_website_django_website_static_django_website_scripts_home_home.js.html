@@ -110,7 +110,6 @@ function callTest() {
 $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
-    //$('[data-toggle="popover"]').tooltip('show');
 
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
@@ -216,78 +215,133 @@ function updateLayersHintList() {
     }
 }
 
-function executeQuery(event) {
-    //TODO: Create some animation/panel to display the request progress
-    let btnExecuteQuery = getClickedElement(event);
-
-
-    //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-    let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
-    let noSelectedRegions = true;
-
-    for (let regionIdx in usersection.regions) {
-        let region = usersection.getRegionById(regionIdx);
-
-        if (!region.active) continue;
-
-        noSelectedRegions = false;
-
-        if (UIState.SelectedMapMiner === null) {
-            alert("Please, select a Map Miner to continue.");
-            return;
-        }
-        if (UIState.SelectedMapMiner === null) {
-            alert("Please, select a Feature to continue.");
-            return;
-        }
-
-        /* To avoid race conditions during the ajax call */
-        let selectedMapMiner = UIState.SelectedMapMiner;
-        let selectedMapFeature = UIState.SelectedMapFeature;
-
-
-        let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
-
-        geoJsonFeatures.crs = {
-            "type": "name",
-            "properties": {
-                "name": "EPSG:4326"
-            }
-        };
-
-        let that = this; /* window */
-        $.get
-            (
-            "/getmapminerfeatures/",
-            {
-                "mapMinerId": selectedMapMiner,
-                "featureName": selectedMapFeature,
-                "regions": JSON.stringify(geoJsonFeatures),
-            },
-            function (data, textStatus, jqXHR) {
-                let layerId = selectedMapMiner + "_" + selectedMapFeature;
-                let layer = this.getLayerById(layerId);
-                if (!layer) {
-                    layer = this.createLayer(layerId);
-                }
-
-                //Update only if the layer now has more features than before
-                if (!layer.featureCollection || layer.featureCollection.features.length &lt; data.features.length) {
-                    layer.featureCollection = data;
-                }
-
-                that.drawLayer(layer); /* window */
-            }.bind(region)
-            ,
-            "json"
-            );
-    }
-
-    if (noSelectedRegions) {
-        alert("No region selected. Please, select a region to make a request.")
+/**
+* Changes the html of buttons to indicate it's busy.
+* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function setLoadingText(jqElement)
+{
+    let loadingText = '&lt;i class="far fa-compass fa-spin">&lt;/i> Loading...';
+    jqElement.data('original-text', jqElement.html());
+    jqElement.html(loadingText);
+}
+/**
+* Changes the html of buttons back to its unbusy state.
+* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function unsetLoadingText(jqElement)
+{
+    if (jqElement.data('original-text'))
+    {
+        jqElement.html(jqElement.data('original-text'));
     }
 }
+
+function getImages(event)
+{
+    let btnCollectImages = getClickedElement(event);
+    try
+    {
+        setLoadingText(btnCollectImages);
+
+
+
+        unsetLoadingText(btnCollectImages);
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnCollectImages);
+        throw err;
+    }
+}
+
+function executeQuery(event) {
+    let btnExecuteQuery = getClickedElement(event);
+
+    try
+    {
+        setLoadingText(btnExecuteQuery);
+
+        //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
+        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        let noSelectedRegions = true;
+
+        for (let regionIdx in usersection.regions) {
+            let region = usersection.getRegionById(regionIdx);
+
+            if (!region.active) continue;
+
+            noSelectedRegions = false;
+
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Map Miner to continue.");
+                unsetLoadingText(jqElement);
+                return;
+            }
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Feature to continue.");
+                unsetLoadingText(jqElement);
+                return;
+            }
+        
+            /* To avoid race conditions during the ajax call */
+            let selectedMapMiner = UIState.SelectedMapMiner;
+            let selectedMapFeature = UIState.SelectedMapFeature;
+
+
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
+
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+
+            let that = this; /* window */
+        
+            $.get
+                (
+                "/getmapminerfeatures/",
+                {
+                    "mapMinerId": selectedMapMiner,
+                    "featureName": selectedMapFeature,
+                    "regions": JSON.stringify(geoJsonFeatures),
+                },
+                function (data, textStatus, jqXHR) {
+                    let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                    let layer = this.getLayerById(layerId);
+                    if (!layer) {
+                        layer = this.createLayer(layerId);
+                    }
+
+                    //Update only if the layer now has more features than before
+                    if (!layer.featureCollection || layer.featureCollection.features.length &lt; data.features.length) {
+                        layer.featureCollection = data;
+                    }
+
+                    that.drawLayer(layer); /* window */
+                    unsetLoadingText(btnExecuteQuery);
+                }.bind(region)
+                ,
+                "json"
+                );
+        
+        }
+
+        if (noSelectedRegions) {
+            alert("No region selected. Please, select a region to make a request.")
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnExecuteQuery);
+        throw err;
+    }
+}
+
+
 
 function clearSelections(event) {
     let btnClearSelections = getClickedElement(event);
@@ -614,13 +668,13 @@ function btnElementChecker(event) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#btnElementChecker">btnElementChecker</a></li><li><a href="global.html#changeImageProviderClick">changeImageProviderClick</a></li><li><a href="global.html#changeMapProviderClick">changeMapProviderClick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#btnElementChecker">btnElementChecker</a></li><li><a href="global.html#changeImageProviderClick">changeImageProviderClick</a></li><li><a href="global.html#changeMapProviderClick">changeMapProviderClick</a></li><li><a href="global.html#setLoadingText">setLoadingText</a></li><li><a href="global.html#unsetLoadingText">unsetLoadingText</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jun 22 2018 01:29:06 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jun 22 2018 17:13:55 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>
