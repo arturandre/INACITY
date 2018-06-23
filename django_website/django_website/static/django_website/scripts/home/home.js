@@ -86,6 +86,7 @@ $(document).ready(function () {
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
 
+
     regionVectorSource = new ol.source.Vector({ wrapX: false });
     regionVectorLayer = new ol.layer.Vector({
         source: regionVectorSource
@@ -219,10 +220,12 @@ function getImages(event)
         //To avoid racing conditions
         let selectedImageProvider = UIState.SelectedImageProvider;
         let numCalls = 0;
+        let noLayers = true;
         for (const regionIdx in usersection.regions)
         {
             let region = usersection.regions[regionIdx];
             numCalls += region.layers.length;
+            if (numCalls > 0) noLayers = false;
             for (const layerIdx in region.layers)
             {
                 let layer = region.layers[layerIdx];
@@ -253,6 +256,11 @@ function getImages(event)
     {
         unsetLoadingText(btnCollectImages);
         throw err;
+    }
+    if (noLayers)
+    {
+        unsetLoadingText(btnCollectImages);
+        alert("None feature selected. Aborting.")
     }
 }
 

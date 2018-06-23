@@ -30,7 +30,13 @@ function loadScript(url, callback) {
     document.getElementsByTagName("head")[0].appendChild(script);
 }
 
-$(document).ready(function () { 
+$(document).ready(function () {
+    $('body').on('wheel', function (event) {
+        if (event.shiftKey)
+        {
+            event.preventDefault();
+        }
+    });
     $.each($("#divNavBar").children(), function (i, v) {
         let urlpath = v.href.replace(/^.*\/\/[^\/]+/, '');
         if (urlpath === window.location.pathname) {

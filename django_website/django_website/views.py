@@ -73,9 +73,6 @@ def getimagesforfeaturecollection(request):
     layerId = jsondata['layerId']
     
     ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection)
-    #for idx, geoImage in enumerate(ret):
-    #    ret[idx] = geoImage.toJSON()
-    #return Response(ret)
     return JsonResponse(ret)
 
     
