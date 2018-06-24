@@ -13,13 +13,20 @@ class Subject {
 
     constructor()
     {
-        //this._eventNames = eventNames;
-        //this._observers = {};
+        //this._eventNames = [];
+        //this._observers = new Object();
     }
 
+    /**
+     * Register at class level the eventNames that the subclass can dispatch events for
+     * and creates, also at class level, a dictionary of observers.
+     * @param {string[]} eventNames - The names of the events the subclass will dispatch.
+     */
     static registerEventNames(eventNames)
     {
+        /* this is the subclass */
         this._eventNames = eventNames;
+        this._observers = {};
     }
 
     /**
@@ -58,5 +65,5 @@ class Subject {
     }
 }
 
-Subject._eventNames = [];
-Subject._observers = {};
+//Subject._eventNames = [];
+//Subject._observers = {};

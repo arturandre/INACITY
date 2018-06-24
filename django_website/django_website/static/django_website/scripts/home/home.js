@@ -1,17 +1,79 @@
-﻿/*Global variables*/
+﻿/**
+* Responsible for the interaction management at the home page
+* @module "home.js"
+*/
 
+
+
+//#region Global variables
+
+/**
+ * Responsible for keeping user selections.
+ * @todo Make it a class.
+ * @param {string} SelectedMapMiner - Selected map miner's id
+ * @param {string} SelectedMapFeature - Selected map features's id
+ * @param {string} SelectedImageProvider - Selected image providers' id
+ */
+var UIState = {}
+UIState.SelectedMapMiner = null;
+UIState.SelectedMapFeature = null;
+UIState.SelectedImageProvider = null;
+
+/** 
+* Handler for the OpenLayers object
+* @type {OpenLayersHandler}
+* @see {@link module:OpenLayersHandler~OpenLayersHandler}
+*/
 var openLayersHandler = null;
-var regionVectorLayer = null;
-var regionVectorSource = null;
-var streetVectorLayer = null;
-var streetVectorSource = null;
+
+/**
+* Used as the global vector layer
+* @param {ol.layer.Vector}
+* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+*/
+var globalVectorLayer = null;
+/**
+* Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
+* @type {ol.layer.Vector}
+* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+*/
+var globalVectorSource = null;
+/**
+* Used as a global auxiliary variable to allow drawing interactions over the map
+* @type {ol.interaction.Draw}
+* @see [ol.interaction.Draw]{@link https://openlayers.org/en/latest/apidoc/ol.interaction.Draw.html}
+*/
 var drawInteraction = null;
+
+/**
+* Usersection variable used to keep the state of objects collected
+* @type {UserSection}
+* @see {@link module:UserSection~UserSection}
+*/
 var usersection = null;
+
+/**
+* List of available map miners as informed by the server (e.g. {osm: {features: ..., name: OpenStreetMap}})
+* @type {object[]}
+*/
 var availableMapMiners = [];
+
+/**
+* List of available image providers as informed by the server (e.g. Google Street View)
+* @type {object[]}
+*/
 var availableImageMiners = [];
 
-/* Settings Region */
+//#endregion Global variables
 
+//#region Styles
+
+/**
+ * Style used to mark a select(active) region
+ * @const
+ * @param {ol.style.Style}
+ * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
+ */
 var selectedRegionStyle = new ol.style.Style({
     fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
     stroke: new ol.style.Stroke({
@@ -20,6 +82,12 @@ var selectedRegionStyle = new ol.style.Style({
     })
 });
 
+/**
+ * Auxiliar style to give transparency for OpenLayers' features
+ * @const
+ * @param {ol.style.Style}
+ * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
+ */
 var transparentStyle = new ol.style.Style({
     fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.0)' }),
     stroke: new ol.style.Stroke({
@@ -28,15 +96,26 @@ var transparentStyle = new ol.style.Style({
     })
 });
 
+//#endregion Styles 
 
-/*Auxiliar functions*/
-//Don't use this directly! For new identifiers use getNewId()
+//#region Auxiliar functions
+
+/**
+ * Used as an auxiliary variable for the [getNewId]{@link module:"home.js"~getNewId} function.
+ * Don't use this directly! For new identifiers use [getNewId]{@link module:"home.js"~getNewId} function.
+ * @private
+ */
 var _localIDGenerator = 0;
 
+/**
+ * Used to generate an incremental unique id (not randomized!)
+ * @returns {number} The incremented (by 1) value of [_localIDGenerator]{@link module:"home.js"~_localIDGenerator}
+ */
 function getNewId() {
     return _localIDGenerator++;
 }
 
+//#endregion Auxiliar functions
 
 
 //TODO: Rewrite this as a testing unit in the Testing module
@@ -78,40 +157,69 @@ function callTest() {
 
 /*********************************************/
 
-
+/**
+ * JQuery ready function used to initialize variables
+ */
 $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
 
+    initializeOpenLayers();
+
+    initializeUserSection();
+
+    getServerParameters();
+
+    setDefaults();
+});
+
+//#region Initializer functions
+
+/**
+ * Auxiliar function used to initialize OpenLayers related objects and events
+ */
+function initializeOpenLayers()
+{
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
 
-
-    regionVectorSource = new ol.source.Vector({ wrapX: false });
-    regionVectorLayer = new ol.layer.Vector({
-        source: regionVectorSource
+    globalVectorSource = new ol.source.Vector({ wrapX: false });
+    globalVectorLayer = new ol.layer.Vector({
+        source: globalVectorSource
     });
-    regionVectorLayer.setMap(openLayersHandler.map);
-
-    streetVectorSource = new ol.source.Vector({ wrapX: false });
-    streetVectorLayer = new ol.layer.Vector({
-        source: streetVectorSource
-    });
-    streetVectorLayer.setMap(openLayersHandler.map);
+    globalVectorLayer.setMap(openLayersHandler.map);
 
     /*OpenLayers Event Handlers*/
-    regionVectorSource.on('addfeature', updateRegionsList, regionVectorSource);
-    regionVectorSource.on('removefeature', updateRegionsList, regionVectorSource);
-    regionVectorSource.on('changefeature', updateRegionsList, regionVectorSource);
+    globalVectorSource.on('addfeature', updateRegionsList, globalVectorSource);
+    globalVectorSource.on('removefeature', updateRegionsList, globalVectorSource);
+    globalVectorSource.on('changefeature', updateRegionsList, globalVectorSource);
 
+}
+
+/**
+ * Auxiliar function to initialize UserSection related objects and events
+ */
+function initializeUserSection()
+{
     /* UserSection init*/
     usersection = new UserSection('regionsList');
 
     /*UserSection Event Handlers*/
     /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
     UserSection.on('regionlistitemclick', updateLayersHintList);
+    UserSection.on('featuresmerged', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
+    
     Layer.on('featurecollectionchange', updateLayersHintList);
+    Layer.on('featurecollectionchange', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
+}
 
+
+
+/**
+ * Auxiliar function to populate field's based on server retrieved parameters
+ */
+function getServerParameters()
+{
     /* Fields population */
     $.get(
             "/getavailablemapminers/",
@@ -131,8 +239,13 @@ $(document).ready(function () {
             },
             "json"
             );
+}
 
-
+/**
+ * Auxiliar function to set default options of the UI.
+ */
+function setDefaults()
+{
     //Default selections:
     /*
     * Tiles provider - OpenStreetMap
@@ -140,15 +253,139 @@ $(document).ready(function () {
     */
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
-});
+}
 
-/* UI Functions */
+//#endregion Initializer functions
 
-var UIState = {}
-UIState.SelectedMapMiner = null;
-UIState.SelectedMapFeature = null;
-UIState.SelectedImageProvider = null;
+//#region Caller functions
 
+function getImages(event)
+{
+    let btnCollectImages = getClickedElement(event);
+    let noLayers = true;
+
+    //To avoid racing conditions
+    let selectedImageProvider = UIState.SelectedImageProvider;
+    let numCalls = 0;
+    try
+    {
+        setLoadingText(btnCollectImages);
+        for (const regionIdx in usersection.regions)
+        {
+            let region = usersection.regions[regionIdx];
+            numCalls += Object.keys(region.layers).length;
+            if (numCalls > 0) noLayers = false;
+            for (const layerIdx in region.layers)
+            {
+                let layer = region.layers[layerIdx];
+                
+                $.ajax('/getimagesforfeaturecollection/',
+                {
+                    method: 'POST',
+                    processData: false,
+                    data: JSON.stringify({
+                        'imageMinerName': selectedImageProvider,
+                        'featureCollection': JSON.stringify(layer.featureCollection),
+                        'regionId': regionIdx,
+                        'layerId': layerIdx
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: 'json',
+                    context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
+                    success: function (data, textStatus, jqXHR) {
+                        usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
+
+                    },
+                    error: function ( jqXHR, textStatus, errorThrown) 
+                    {
+                        defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
+                    },
+                    complete: function  (jqXHR, textStatus)
+                    {
+                        numCalls -= 1;
+                        if (numCalls == 0)
+                        {
+                            unsetLoadingText(btnCollectImages);
+                        }                    
+                    },
+                },
+                'json'
+                );
+            }
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnCollectImages);
+        throw err;
+    }
+    if (noLayers)
+    {
+        unsetLoadingText(btnCollectImages);
+        alert("None feature selected. Canceled.")
+    }
+}
+
+function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+{
+    return new Promise(function (resolve){
+        let that = this; /* window */
+        $.ajax
+            (
+            "/getmapminerfeatures/",
+            {
+                method: 'POST',
+                data: JSON.stringify({
+                    "mapMinerId": selectedMapMiner,
+                    "featureName": selectedMapFeature,
+                    "regions": JSON.stringify(geoJsonFeatures),
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    //let region = this;
+                    //let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                    //let layer = region.getLayerById(layerId); 
+                    //if (!layer) {
+                    //    layer = region.createLayer(layerId);
+                    //}
+
+                    //Update only if the layer now has more features than before
+                    //if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
+                    //}
+                    resolve(data);
+                }.bind(region),
+                error: function ( jqXHR, textStatus, errorThrown) 
+                {
+                    defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
+                    reject();
+                },
+            });
+    });
+}
+
+//#endregion Caller functions
+
+//#region Auxiliar functions for caller functions
+
+/**
+* Auxiliar function to display to the user eventual errors during ajax calls
+* @param {string} textStatus - The type of error that occurred and an optional exception object, if one occurred. Possible values for the second argument (besides null) are "timeout", "error", "abort", and "parsererror".
+* @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
+* @see {@link http://api.jquery.com/jquery.ajax/}
+*/
+function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
+{
+    alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
+    if (errorThrown)
+    {
+        throw errorThrown;
+    }
+}
+
+//#endregion Auxiliar functions for caller functions
+
+//#region UI Functions 
 
 function updateLayersHintList() {
     let hintLayers = [];
@@ -157,7 +394,7 @@ function updateLayersHintList() {
     for (const regionId in usersection.regions)
     {
         let region = usersection.regions[regionId];
-        regionVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+        globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
         if (region.active)
         {
             for (const layerIdx in region.layers)
@@ -186,191 +423,6 @@ function updateLayersHintList() {
         //Get Images Button
         $('#btnCollectImages').attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'))
     }
-}
-
-/**
-* Changes the html of buttons to indicate it's busy.
-* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
-*/
-function setLoadingText(jqElement)
-{
-    let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
-    jqElement.data('original-text', jqElement.html());
-    jqElement.html(loadingText);
-}
-/**
-* Changes the html of buttons back to its unbusy state.
-* @param {Element} jqElement - An jquery element representing an html component (usually a button in this case)
-*/
-function unsetLoadingText(jqElement)
-{
-    if (jqElement.data('original-text'))
-    {
-        jqElement.html(jqElement.data('original-text'));
-    }
-}
-
-function getImages(event)
-{
-    let btnCollectImages = getClickedElement(event);
-    try
-    {
-        setLoadingText(btnCollectImages);
-
-        //To avoid racing conditions
-        let selectedImageProvider = UIState.SelectedImageProvider;
-        let numCalls = 0;
-        let noLayers = true;
-        for (const regionIdx in usersection.regions)
-        {
-            let region = usersection.regions[regionIdx];
-            numCalls += region.layers.length;
-            if (numCalls > 0) noLayers = false;
-            for (const layerIdx in region.layers)
-            {
-                let layer = region.layers[layerIdx];
-                
-                $.post('/getimagesforfeaturecollection/',
-                {
-                    'imageMinerName': selectedImageProvider,
-                    'featureCollection': JSON.stringify(layer.featureCollection),
-                    'regionId': regionIdx,
-                    'layerId': layerIdx
-                },
-                function (data, textStatus, jqXHR) {
-                    console.log(data);
-                    console.log(textStatus);
-                    console.log(jqXHR);
-                    numCalls -= 1;
-                    if (numCalls == 0)
-                    {
-                        unsetLoadingText(btnCollectImages);
-                    }
-                },
-                'json'
-                );
-            }
-        }
-    }
-    catch(err)
-    {
-        unsetLoadingText(btnCollectImages);
-        throw err;
-    }
-    if (noLayers)
-    {
-        unsetLoadingText(btnCollectImages);
-        alert("None feature selected. Aborting.")
-    }
-}
-
-function executeQuery(event) {
-    let btnExecuteQuery = getClickedElement(event);
-
-    try
-    {
-        setLoadingText(btnExecuteQuery);
-
-        //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
-        let noSelectedRegions = true;
-
-        for (let regionIdx in usersection.regions) {
-            let region = usersection.getRegionById(regionIdx);
-
-            if (!region.active) continue;
-
-            noSelectedRegions = false;
-
-            if (UIState.SelectedMapMiner === null) {
-                alert("Please, select a Map Miner to continue.");
-                unsetLoadingText(jqElement);
-                return;
-            }
-            if (UIState.SelectedMapMiner === null) {
-                alert("Please, select a Feature to continue.");
-                unsetLoadingText(jqElement);
-                return;
-            }
-        
-            /* To avoid race conditions during the ajax call */
-            let selectedMapMiner = UIState.SelectedMapMiner;
-            let selectedMapFeature = UIState.SelectedMapFeature;
-
-
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([regionVectorSource.getFeatureById(region.id)]);
-
-            geoJsonFeatures.crs = {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            };
-
-            let that = this; /* window */
-        
-            $.get
-                (
-                "/getmapminerfeatures/",
-                {
-                    "mapMinerId": selectedMapMiner,
-                    "featureName": selectedMapFeature,
-                    "regions": JSON.stringify(geoJsonFeatures),
-                },
-                function (data, textStatus, jqXHR) {
-                    let layerId = selectedMapMiner + "_" + selectedMapFeature;
-                    let layer = this.getLayerById(layerId);
-                    if (!layer) {
-                        layer = this.createLayer(layerId);
-                    }
-
-                    //Update only if the layer now has more features than before
-                    if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
-                        layer.featureCollection = data;
-                    }
-
-                    that.drawLayer(layer); /* window */
-                    unsetLoadingText(btnExecuteQuery);
-                }.bind(region)
-                ,
-                "json"
-                );
-        
-        }
-
-        if (noSelectedRegions) {
-            alert("No region selected. Please, select a region to make a request.")
-        }
-    }
-    catch(err)
-    {
-        unsetLoadingText(btnExecuteQuery);
-        throw err;
-    }
-}
-
-
-
-function clearSelections(event) {
-    let btnClearSelections = getClickedElement(event);
-    btnClearSelections.addClass("hidden");
-    $(`#btnExecuteQuery`).addClass("hidden");
-
-    let mapMinerBtn = $(`#mapMinerBtn`);
-    let mapFeatureBtn = $(`#mapFeatureBtn`);
-    mapMinerBtn.html("Map Miner");
-    mapFeatureBtn.html("Feature");
-    mapMinerBtn.addClass("btn-secondary");
-    mapFeatureBtn.addClass("btn-secondary");
-    mapMinerBtn.removeClass("btn-success");
-    mapFeatureBtn.removeClass("btn-success");
-
-
-
-    UIState.SelectedMapMiner = null;
-    UIState.SelectedMapFeature = null;
-    setAvailableMapMinersAndFeatures();
 }
 
 function selectMapMiner(mapMinerId) {
@@ -438,15 +490,6 @@ function setAvailableImageMiners() {
 
 }
 
-function create_dropDown_aButton(label, optValue, clickHandler) {
-    let button = $(document.createElement('a'));
-    button.addClass('dropdown-item');
-    button.append(label);
-    button.attr("href", "javascript:void(0);");
-    button.click(null, clickHandler.bind(this, optValue));
-    return button;
-}
-
 function setAvailableMapMinersAndFeatures() {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapFeatureDiv = $(`#mapFeatureDiv`);
@@ -460,23 +503,38 @@ function setAvailableMapMinersAndFeatures() {
 
 }
 
-function drawLayer(layer) {
+function drawLayer(layer, forceRedraw) {
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
     let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
     for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
-        if (usersection.featuresByLayerIndex[layer.id][feature.id].drawed) continue;
+
+        if (!usersection.isFeatureActive(layer.id, feature.id)) continue;
+
+        if (usersection.featuresByLayerId[layer.id][feature.id].drawed){
+            if (forceRedraw)
+            {
+                let olFeature = globalVectorSource.getFeatureById(feature.id);
+                globalVectorSource.removeFeature(olFeature);
+                olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                globalVectorSource.addFeature(olFeature);
+                usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
         else {
             let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-            regionVectorSource.addFeature(olFeature);
-            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = true;
+            globalVectorSource.addFeature(olFeature);
+            usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
         }
 
     }
 }
-
 
 function removeLayer(layer) {
     if (!layer) { console.warn("Undefined layer!"); return; }
@@ -488,13 +546,39 @@ function removeLayer(layer) {
         Each individual feature needs to be checked because it
         can belong to more than one layer (from differente regions)
         */
-        if (!usersection.featuresByLayerIndex[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
+        if (!usersection.featuresByLayerId[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
         else {
-            let olFeature = regionVectorSource.getFeatureById(feature.id);
-            regionVectorSource.removeFeature(olFeature);
-            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = false;
+            let olFeature = globalVectorSource.getFeatureById(feature.id);
+            globalVectorSource.removeFeature(olFeature);
+            usersection.featuresByLayerId[layer.id][feature.id].drawed = false;
         }
 
+    }
+}
+
+//#endregion UI Functions
+
+//#region UI Auxiliary Functions
+
+/**
+* Changes the html of buttons to indicate it's busy.
+* @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function setLoadingText(jqElement)
+{
+    let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
+    jqElement.data('original-text', jqElement.html());
+    jqElement.html(loadingText);
+}
+/**
+* Changes the html of buttons back to its unbusy state.
+* @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
+*/
+function unsetLoadingText(jqElement)
+{
+    if (jqElement.data('original-text'))
+    {
+        jqElement.html(jqElement.data('original-text'));
     }
 }
 
@@ -503,6 +587,121 @@ function disableSiblings(element) {
         $('#' + val.id).removeClass('disabled');
     });
     element.addClass('disabled');
+}
+
+function create_dropDown_aButton(label, optValue, clickHandler) {
+    let button = $(document.createElement('a'));
+    button.addClass('dropdown-item');
+    button.append(label);
+    button.attr("href", "javascript:void(0);");
+    button.click(null, clickHandler.bind(this, optValue));
+    return button;
+}
+
+function clearSelections(event) {
+    let btnClearSelections = getClickedElement(event);
+    btnClearSelections.addClass("hidden");
+    $(`#btnExecuteQuery`).addClass("hidden");
+
+    let mapMinerBtn = $(`#mapMinerBtn`);
+    let mapFeatureBtn = $(`#mapFeatureBtn`);
+    mapMinerBtn.html("Map Miner");
+    mapFeatureBtn.html("Feature");
+    mapMinerBtn.addClass("btn-secondary");
+    mapFeatureBtn.addClass("btn-secondary");
+    mapMinerBtn.removeClass("btn-success");
+    mapFeatureBtn.removeClass("btn-success");
+
+
+
+    UIState.SelectedMapMiner = null;
+    UIState.SelectedMapFeature = null;
+    setAvailableMapMinersAndFeatures();
+}
+
+//#endregion UI Auxiliary Functions
+
+//#region Event Handlers
+
+/**
+ * Function used to collect map features, from the server,
+ * based on [UIState.SelectedMapMiner]{@link module:"home.js"~UIState.SelectedMapMiner}
+ * and [UIState.SelectedMapFeature]{@link module:"home.js"~UIState.SelectedMapFeature}
+ * @param {Event} event - Event object generated by clicking over the 'btnExecuteQuery' DOMElement button.
+ */
+function executeQuery(event) {
+    let btnExecuteQuery = getClickedElement(event);
+    
+    /* To avoid race conditions during the ajax call */
+    let selectedMapMiner = UIState.SelectedMapMiner;
+    let selectedMapFeature = UIState.SelectedMapFeature;
+
+    let noSelectedRegions = true;
+    let numCalls = 0;
+    try
+    {
+        setLoadingText(btnExecuteQuery);
+
+        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        
+        for (let regionIdx in usersection.regions) {
+            let region = usersection.getRegionById(regionIdx);
+
+            if (!region.active) continue;
+            let layerId = selectedMapMiner + "_" + selectedMapFeature;
+            let layer = region.getLayerById(layerId);
+            if (layer) continue;
+            layer = region.createLayer(layerId);
+
+
+            numCalls = numCalls + 1;
+            noSelectedRegions = false;
+
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Map Miner to continue.");
+                unsetLoadingText(btnExecuteQuery);
+                return;
+            }
+            if (UIState.SelectedMapFeature === null) {
+                alert("Please, select a Feature to continue.");
+                unsetLoadingText(btnExecuteQuery);
+                return;
+            }
+        
+            
+
+
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
+
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+            getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+            .then(function(data){
+                layer.featureCollection = data;
+                numCalls = numCalls - 1;
+                if (numCalls == 0)
+                {
+                    unsetLoadingText(btnExecuteQuery);
+                }
+            })
+            .catch(function (err) {
+                defaultAjaxErrorHandler('executeQuery', "error", err);
+            });
+        }
+
+        if (noSelectedRegions) {
+            alert("No region selected. Please, select a region to make a request.")
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnExecuteQuery);
+        defaultAjaxErrorHandler('executeQuery', null, err);
+    }
 }
 
 function updateRegionsList(vectorevent) {
@@ -515,6 +714,7 @@ function updateRegionsList(vectorevent) {
                 vectorevent.feature.setProperties({ 'type': 'region' });
                 let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
                 Region.on('activechange', function (region) {
+                    globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
                     if (region.active) {
                         for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
@@ -547,7 +747,6 @@ function updateRegionsList(vectorevent) {
 
 }
 
-/* Click Event Region*/
 function getClickedElement(event) {
     if (event.currentTarget) {
         return $(event.currentTarget);
@@ -618,13 +817,12 @@ function changeShapeClick(shapeType, event) {
             break;
     }
     drawInteraction = new ol.interaction.Draw({
-        source: regionVectorSource,
+        source: globalVectorSource,
         type: value,
         geometryFunction: geometryFunction
     });
     openLayersHandler.map.addInteraction(drawInteraction);
 }
-
 /**
 * Handler for changing map tiles.
 * @param {string} imageProviderId - Id defined in the back-end ImageMiner
@@ -640,9 +838,6 @@ function changeImageProviderClick(imageProviderId, event) {
 
     imageProviderBtn.html(availableImageMiners[imageProviderId].name);
 }
-
-
-
 /**
 * Handler for changing map tiles.
 * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
@@ -653,11 +848,15 @@ function changeMapProviderClick(mapProviderId, event) {
     openLayersHandler.changeMapProvider(mapProviderId);
 }
 
+//#endregion Event Handlers
+
+//#region Auxiliar Functions for Event Handlers
+
 /**
 * Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).
 * If the target (i.e. button) can't be defined "undefined" is returned.
 * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
-* @returns {Element|undefined} - See [Element]{@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
+* @returns {DOMElement|undefined} - See [Element]{@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
 */
 function btnElementChecker(event) {
     let element = getClickedElement(event);
@@ -666,4 +865,6 @@ function btnElementChecker(event) {
     disableSiblings(element);
     return element;
 }
+
+//#endregion Auxiliar Functions for Event Handlers
 

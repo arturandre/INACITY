@@ -1,8 +1,16 @@
-﻿let instance = null;
+﻿/**
+* Responsible for handling several OpenLayers properties
+* @module OpenLayersHandler
+*/
 
-/*HTMLDIVtarget: The DIV that will be the container of map tiles, the map itself in other words*/
-/*mapProviderId: osm_tiles: OSM Map, google_roadmap_tiles: Google Maps*/
+let instance = null;
 
+/**
+* Responsible for handling several OpenLayers properties
+* @param {string} HTMLDIVtarget - The DOMElement div's id that will be the container of map tiles, the map itself in other words
+* @param {string} mapProviderId - Id of the map tiles recognized by OpenLayers. Options include: 'osm_tiles' 
+* for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
+*/
 class OpenLayersHandler
 {
     constructor(HTMLDIVtarget, defaultTileProvider)

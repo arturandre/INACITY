@@ -70,7 +70,6 @@ class Layer extends Subject
 
         if (triggered)
         {
-
             Layer.notify('featurecollectionchange', this);
         }
     }
@@ -207,6 +206,19 @@ if (!Region.init) {
 }
 
 /**
+ * Simple class for holding features and their respective regions
+ * @param {}
+ */
+class FeatureRegions
+{
+    constructor(feature, regions)
+    {
+        this.feature = feature;
+        this.regions = regions;
+    }
+}
+
+/**
 * Keeps track of several user inputs
 * @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
@@ -220,25 +232,29 @@ class UserSection extends Subject
         this._regions = {};
 
         
-        this._featuresByLayerIndex = {};
+        this._featuresByLayerId = {};
+        
+        Layer.on('featurecollectionchange', function (layer) {
+            this.updateFeatureIndex(layer.id); /* UserSection */
+        }, this);
     }
 
     /** 
     * An index of all features from all regions grouped by layerId
     */
-    get featuresByLayerIndex() { return this._featuresByLayerIndex; }
+    get featuresByLayerId() { return this._featuresByLayerId; }
 
     /**
-     * Check into the "featuresByLayerIndex" dictionary if these particular 
-     * layer and feature belongs to an active region
+     * Check into the "featuresByLayerId" dictionary if these particular 
+     * layer and feature belongs to some active region
      * @param layerId - The id of the layer
      * @param featureId - The (numerical) id of the feature
      */
     isFeatureActive(layerId, featureId)
     {
-        for (let regionIdx in this.featuresByLayerIndex[layerId][featureId].regions)
+        for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions)
         {
-            let regionId = this.featuresByLayerIndex[layerId][featureId].regions[regionIdx];
+            let regionId = this.featuresByLayerId[layerId][featureId].regions[regionIdx];
             if (this.regions[regionId].active) return true;
         }
         return false;
@@ -266,8 +282,6 @@ class UserSection extends Subject
             item.on("click", region, this._regionListItemClickHandler.bind(this));
             if (region.active)
                 item.addClass('active');
-            else
-                regionVectorSource.getFeatureById(region.id).setStyle(null);
             this._target.append(item);
         }
 
@@ -290,19 +304,6 @@ class UserSection extends Subject
             let newRegion = new Region(id, name, active);
             this._regions[id] = newRegion;
 
-            Region.on('addlayer', function (_) {
-                Layer.on('featurecollectionchange', function (layer) {
-                    this.updateFeatureIndex(layer.id); /* UserSection */
-                }, this);
-            }, this);
-
-
-            Region.on('addlayer', function(_){
-                Layer.on('featurecollectionchange', function (layer)
-                {
-                    this.updateFeatureIndex(layer.id); /* UserSection */
-                }, this); 
-            }, this);
             this.updateRegionsDiv();
             return newRegion;
         }
@@ -335,56 +336,179 @@ class UserSection extends Subject
     */
     getRegionById(regionId) { return this._regions[regionId]; }
 
+    /**
+     * Updates the [featuresByLayerId]{@link module:UserSection~UserSection#featuresByLayerId} member.
+     * If MultiLineString Features (e.g. streets) from different layers are merged together this method
+     * triggers an [featuresmerged]{@link module:UserSection~UserSection.featuresmerged} event.
+     * @param {string} layerId - The id of the layer with untracked features
+     * @fires module:UserSection~UserSection.featuresmerged
+     */
     updateFeatureIndex(layerId)
     {
         for (let regionIdx in this.regions)
         {
+            let triggerFeaturesMerged = false;
             let region = this.regions[regionIdx];
             let layer = region.layers[layerId];
-            if (!layer) continue;
-            let flIndex = this._featuresByLayerIndex[layerId];
-            if (!flIndex) flIndex = this._featuresByLayerIndex[layerId] = {};
+            if (!layer || !layer.featureCollection) continue;
+            let featureRegionsIndex = this._featuresByLayerId[layerId];
+            if (!featureRegionsIndex) featureRegionsIndex = this._featuresByLayerId[layerId] = {};
             for (let featureIdx in layer.featureCollection.features)
             {
                 let feature = layer.featureCollection.features[featureIdx];
-                if (!flIndex[feature.id]) flIndex[feature.id] =
-                    {
-                        'feature': feature,
-                        'regions': [regionIdx]
-                    };
+                if (!featureRegionsIndex[feature.id])
+                {
+                    featureRegionsIndex[feature.id] = new FeatureRegions(feature, [regionIdx]);
+                }   
                 else
                 {
-                    //Update the feature in flIndex only if the new feature has more coordinates
-                    if (flIndex[feature.id].feature.geometry.coordinates.length < feature.geometry.coordinates.length)
+                    if (featureRegionsIndex[feature.id].feature === feature) continue;
+
+                    /*
+                    If the different parts of the same multilinearstring feature appears in different layers
+                    then they are joined together
+                    */
+                    mergeInPlaceMultilineStringFeatures(featureRegionsIndex[feature.id].feature, feature);
+                    triggerFeaturesMerged = true;
+                    if (featureRegionsIndex[feature.id].regions.indexOf(regionIdx) === -1)
                     {
-                        flIndex[feature.id].feature = feature;
-                    }
-                    //If this feature appears in different regions then keep track of the regions where it appears
-                    if (flIndex[feature.id].regions.indexOf(regionIdx) === -1)
-                    {
-                        flIndex[feature.id].regions.push(regionIdx);
+                        /*
+                         * After a merge it's necessary to update other regions that also contains
+                         * the merged feature
+                         */
+                        for (let regionIdxAux in featureRegionsIndex[feature.id].regions)
+                        {
+                            let auxRegion = this.regions[featureRegionsIndex[feature.id].regions[regionIdxAux]];
+                            auxRegion.layers[layerId].featureCollection.features[featureIdx] = feature;
+                        }
+                        featureRegionsIndex[feature.id].regions.push(regionIdx);
                     }
                 }
             }
-
-
+            if (triggerFeaturesMerged)
+            {
+                UserSection.notify('featuresmerged', layer);
+            }
         }
+        
 
     }
 }
 
+//#region GeoJson functions TODO: Transfer them to a more appropriate place
+
+
+/**
+ * Auxiliar function to compare Longitude and Latitude coordinate arrays
+ * @todo Transfer it to a more appropriate place
+ * @param {float[]} lonLat1 - Array with 2 values
+ * @param {float[]} lonLat2 - Array with 2 values
+ */
+function compareCoordinates(lonLat1, lonLat2)
+{
+    return ((lonLat1[0] === lonLat2[0]) && (lonLat1[1] === lonLat2[1]));
+}
+
+/**
+ * Used for merging (in-place) the same feature present in different layers (e.g. A long street with different parts belonging to different layers)
+ * @todo Transfer it to a more appropriate place
+ * @param {Feature} feature1 - A MultiLineString Feature (e.g. a street)
+ * @param {Feature} feature2 - A MultiLineString Feature (e.g. a street)
+ */
+function mergeInPlaceMultilineStringFeatures(feature1, feature2)
+{
+    let allLineStrings = [];
+    for (let i = 0; i < feature1.geometry.coordinates.length; i++)
+        allLineStrings.push(feature1.geometry.coordinates[i]);
+    for (let i = 0; i < feature2.geometry.coordinates.length; i++)
+        allLineStrings.push(feature2.geometry.coordinates[i]);
+    let merged = false;
+    while(true){
+        merged = false;
+        for (let i = allLineStrings.length-1; i > 0; i--)
+        {
+            for (let j = i-1; j >= 0; j--)
+            {
+                //First check if the strings are equal
+                if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0])
+                    &&
+                    compareCoordinates(allLineStrings[i][allLineStrings[i].length -1], 
+                    allLineStrings[j][allLineStrings[j].length-1])) //heads-heads and tails-tails
+                {
+                    merged = true;
+                    break;
+                }
+                else if (compareCoordinates(allLineStrings[i][0],allLineStrings[j][0])){ //heads-heads
+                    //Remove repeated element from the second list
+                    allLineStrings[j].splice(0, 1);
+                    allLineStrings[j] = allLineStrings[i].reverse().concat(allLineStrings[j]);
+                    merged = true;
+                    break;
+                }
+                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length -1],
+                    allLineStrings[j][allLineStrings[j].length-1])){ //tails-tails
+                    //Remove repeated element from the second list
+                    allLineStrings[j].splice(allLineStrings[j].length-1, 1);
+                    allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i].reverse());
+                    merged = true;
+                    break;
+                }
+                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length -1], allLineStrings[j][0])){ //tails-heads
+                    //Remove repeated element from the second list
+                    allLineStrings[j].splice(0, 1);
+                    allLineStrings[j] = allLineStrings[i].concat(allLineStrings[j]);
+                    merged = true;
+                    break;
+                }
+                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][allLineStrings[j].length-1])){ //heads-tails
+                    //Remove repeated element from the second list
+                    allLineStrings[j].splice(allLineStrings[j].length-1, 1);
+                    allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i]);
+                    merged = true;
+                    break;
+                }
+            }
+            if (merged){
+                //debugging only
+                //print("deleted: ", nodesSegList[i])
+                //print("merged: ", nodesSegList[j])
+                allLineStrings.splice(i, 1);
+                break;
+            }
+        }
+        if (!merged)
+        {
+            break;
+        }
+    }
+    feature1.geometry.coordinates = feature2.geometry.coordinates = allLineStrings;
+}
+
+//#endregion GeoJson functions TODO: Transfer them to a more appropriate place
+
 /**
 * Triggered by a mouse click event in the user interface
-* @event module:UserSection~UserSection#regionlistitemclick
+* @event module:UserSection~UserSection.regionlistitemclick
 * @type {module:UserSection~Region}
 * @property {Region} region - Indicates if this region is active or not.
 * @property {boolean} region.active - Indicates if this region is active or not.
 * @property {string} region.id - Indicates the id of the region [de]activated.
 * @property {string} region.name - Indicates the display name of this region.
 */
+
+/**
+* Triggered when MultiLineString Features are joined together
+* @event module:UserSection~UserSection.featuresmerged
+* @type {Layer}
+* @property {Layer} layer - The new layer object
+* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
+* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+*/
 if (!UserSection.init) {
     UserSection.init = true;
     UserSection.registerEventNames([
     'regionlistitemclick',
+    'featuresmerged',
     ]);
 }

@@ -54,25 +54,25 @@ def getavailableimageminers(request):
 
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getmapminerfeatures(request):
-    mapMinerId = request.GET.get("mapMinerId")
-    query = request.GET.get("featureName")
-    region = geojson.loads(request.GET.get("regions"))
+    jsondata = request.data
+    mapMinerId = jsondata["mapMinerId"]
+    query = jsondata["featureName"]
+    region = geojson.loads(jsondata["regions"])
     
     ret = mapMinerManager.requestQueryToMapMiner(mapMinerId, query, region);
     return JsonResponse(ret)
-    #return JsonResponse(geojson.dumps(ret), safe=False)
 
 @api_view(['POST'])
 def getimagesforfeaturecollection(request):
     jsondata = request.data
     imageMinerName = jsondata['imageMinerName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
-    regionId = jsondata['regionId']
-    layerId = jsondata['layerId']
-    
-    ret = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    ret = {}
+    ret['featureCollection'] = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    ret['regionId'] = jsondata['regionId'];
+    ret['layerId'] = jsondata['layerId'];
     return JsonResponse(ret)
 
     

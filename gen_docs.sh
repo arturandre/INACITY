@@ -1,1 +1,1 @@
-jsdoc -c ./conf.json --verbose
+jsdoc -c ./conf.json --verbose --private

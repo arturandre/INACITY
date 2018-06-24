@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Time</title>
+    <title>JSDoc: Class: OpenLayersHandler</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: Time</h1>
+    <h1 class="page-title">Class: OpenLayersHandler</h1>
 
     
 
@@ -29,9 +29,9 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a>~</span>Time<span class="signature">()</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-OpenLayersHandler.html">OpenLayersHandler</a>~</span>OpenLayersHandler<span class="signature">(HTMLDIVtarget, mapProviderId)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">Each instance of this class represents a differentpanorama for the a same location, but created in adifferent moment (e.g. years ago).</div>
+            <div class="class-description">Responsible for handling several OpenLayers properties</div>
         
     
 </header>
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="Time"><span class="type-signature"></span>new Time<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="OpenLayersHandler"><span class="type-signature"></span>new OpenLayersHandler<span class="signature">(HTMLDIVtarget, mapProviderId)</span><span class="type-signature"></span></h4>
     
 
     
@@ -59,6 +59,78 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>HTMLDIVtarget</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The DOMElement div's id that will be the container of map tiles, the map itself in other words</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mapProviderId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Id of the map tiles recognized by OpenLayers. Options include: 'osm_tiles' for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -94,7 +166,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line13">line 13</a>
+        <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html">django_website/django_website/static/django_website/scripts/OpenLayersHandler.js</a>, <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html#line14">line 14</a>
     </li></ul></dd>
     
 
@@ -138,274 +210,7 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
 
-        
-            
-<h4 class="name" id="Af"><span class="type-signature"></span>Af<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Timestamp
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line20">line 20</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="ng"><span class="type-signature"></span>ng<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Panorama id
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line22">line 22</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id=".fromJson"><span class="type-signature">(static) </span>fromJson<span class="signature">(parameters)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Class initializer {parameters}
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>parameters</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Constains the Af (timestamp) and ng (panorama id) properties</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line29">line 29</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
     
 
     
