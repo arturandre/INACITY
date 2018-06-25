@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a>~</span>StreetViewPanoramaData<span class="signature">()</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a>~</span>StreetViewPanoramaData<span class="signature">(location, copyright<span class="signature-attributes">opt</span>, links<span class="signature-attributes">opt</span>, tiles, time<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
         
             <div class="class-description">This class represents the panorama data retrieved bythe StreetViewService API.</div>
         
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="StreetViewPanoramaData"><span class="type-signature"></span>new StreetViewPanoramaData<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="StreetViewPanoramaData"><span class="type-signature"></span>new StreetViewPanoramaData<span class="signature">(location, copyright<span class="signature-attributes">opt</span>, links<span class="signature-attributes">opt</span>, tiles, time<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -59,6 +59,930 @@
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>location</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">LatLng</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">Object used to keep track of the coordinates
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>lon</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0
+                
+                </td>
+            
+
+            <td class="description last">Longitude</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>lat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0
+                
+                </td>
+            
+
+            <td class="description last">Latitude</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>shortDescription</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Usually a simple address for this coordinate</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>description</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Usually the full address including the city</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>pano</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">PanoramaId as reported by the API</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>copyright</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Copyright data as informed by the API (e.g. '© 2018 Google')</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>links</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Link></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    []
+                
+                </td>
+            
+
+            <td class="description last">Array of panoramas connected to this one (for navigation)
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>description</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Simplified street address</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>heading</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    -1
+                
+                </td>
+            
+
+            <td class="description last">Heading angle of the vehicle</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>pano</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Panorama Id</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tiles</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Tile</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Tile data (used to compose the panorama view)
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>centerHeading</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    -1
+                
+                </td>
+            
+
+            <td class="description last">Heading (horizontal angle) of the vehicle</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>originHeading</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    -1
+                
+                </td>
+            
+
+            <td class="description last">Unknow (usually same as centerHeading)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>originPitch</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">float</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    -1
+                
+                </td>
+            
+
+            <td class="description last">Pitch (vertical angle) of the vehicle</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tileSize</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">gsvSize</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Maybe it's the size (in pixels) of the tile used to compose the panorama view</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>worldSize</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">gsvSize</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Unknow</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>time</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Time></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    []
+                
+                </td>
+            
+
+            <td class="description last">Others panoramas to this same location (used by Google's time machine)
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>Af</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Time stamp (e.g. '2013-08-01T03:00:00.000Z')</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>ng</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -94,7 +1018,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line193">line 193</a>
+        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line153">line 153</a>
     </li></ul></dd>
     
 
@@ -138,556 +1062,9 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="copyright"><span class="type-signature"></span>copyright<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Google copyright string
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line200">line 200</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="links"><span class="type-signature"></span>links<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Links array indicating connected panoramas
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line203">line 203</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="location"><span class="type-signature"></span>location<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    LatLng object indication the position where this panorama was created
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line197">line 197</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="tiles"><span class="type-signature"></span>tiles<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Tile data
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line206">line 206</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="time"><span class="type-signature"></span>time<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Time array with other panoramas (from the past) for this same location
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line208">line 208</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
 
     
         <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id=".fromParameters"><span class="type-signature">(static) </span>fromParameters<span class="signature">(location, copyright, links, tiles, time)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>location</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">LatLng</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Object used to keep track of the coordinates</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>copyright</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">sting</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Copyright data as informed by the API</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>links</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;Link></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Array of panoramas connected to this one (for navigation)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>tiles</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Tile</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Tile data (used to compose the panorama view)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>time</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Time</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Others panoramas to this same location (used by Google's time machine)</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line220">line 220</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    An instance fufilled of StreetViewPanoramaData
-</div>
-
-
-
-    
-
-
-
-
 
         
             
@@ -793,7 +1170,7 @@
 
             
 
-            <td class="description last">Google's LatLng object
+            <td class="description last"><a href="https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng">Google's LatLng</a> object
                 <h6>Properties</h6>
                 
 
@@ -1074,12 +1451,19 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line245">line 245</a>
+        <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html">INACITY_nodejs/models/StreetViewPanoramaData.js</a>, <a href="INACITY_nodejs_models_StreetViewPanoramaData.js.html#line185">line 185</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng">Google's LatLng</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -1128,13 +1512,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Jun 23 2018 18:14:56 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

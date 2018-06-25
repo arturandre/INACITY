@@ -9,59 +9,42 @@
  * Each instance of this class represents a different
  * panorama for the a same location, but created in a
  * different moment (e.g. years ago).
+ * @param {Date} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
+ * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
 class Time {
-    /**
-     * @constructor
-     */
-    constructor()
+    constructor(parameters)
     {
-        /** Timestamp */
-        this.Af = null;
-        /** Panorama id */
-        this.ng = null;
-    }
-
-    /**
-     * Class initializer {parameters}
-     * @param {json} parameters - Constains the Af (timestamp) and ng (panorama id) properties
-     */
-    static fromJson(parameters)
-    {
-        this.Af = parameters.Af;
-        this.ng = parameters.ng;
+		var defaults = {
+			Af: null,
+			ng: null
+		};
+		parameters = parameters || defaults;
+        this.Af = (parameters.Af || defaults.Af);
+        this.ng = (parameters.ng || defaults.ng);
     }
 }
 
 /**
  * Each Link contains information to the panoramas directly connected to
  * the current StreetViewPanoramaData
- * @param {string} description - Simplified street address
- * @param {float} heading - Heading angle of the vehicle
- * @param {string} pano - Panorama Id
+ * @param {string} [description=null] - Simplified street address
+ * @param {float} [heading=-1] - Heading angle of the vehicle
+ * @param {string} [pano=null] - Panorama Id
  */
 class Link
 {
-    constructor(description = null, heading = -1, pano = null)
+    constructor(parameters)
     {
-        /** Simplified street address */
-        this.description = description;
-        /** Heading angle of the vehicle */
-        this.heading = heading;
-        /** Panorama Id */
-        this.pano = pano;
-    }
-
-    /**
-     * Class initializer
-     * @param {json} parameters
-     */
-    static fromJson(parameters)
-    {
-        let newLink = new Link();
-        newLink.description = parameters.description;
-        newLink.heading = parameters.heading;
-        newLink.pano = parameters.pano;
+		var defaults = {
+			description: null,
+			heading: -1,
+			pano: null
+		};
+		parameters = parameters || defaults;
+        this.description = (parameters.description || defaults.description);
+        this.heading = (parameters.heading || defaults.heading);
+        this.pano = (parameters.pano || defaults.pano);
     }
 }
 
@@ -73,23 +56,18 @@ class Link
 * @param {int} [width=512]
 */
 class gsvSize {
-    constructor(b = "px", f = "px", height = 512, width = 512) {
-        this.b = b;
-        this.f = f;
-        this.height = height;
-        this.width = width;
-    }
-
-    /**
-     * Class initializer
-     * @param {json} parameters
-     */
-    static fromJson(parameters)
-    {
-        this.b = parameters.b;
-        this.f = parameters.f;
-        this.height = parameters.height;
-        this.width = parameters.width;
+    constructor(parameters) {
+		var defaults = {
+			b: "px",
+			f: "px",
+			height: 512,
+			width: 512
+		};
+		parameters = parameters || defaults;
+        this.b = (parameters.b || defaults.b);
+        this.f = (parameters.f || defaults.f);
+        this.height = (parameters.height || defaults.height);
+        this.width = (parameters.width || defaults.width);
     }
 }
 
@@ -104,133 +82,99 @@ class gsvSize {
  */
 class Tile
 {
-    constructor(centerHeading = -1, originHeading = -1, originPitch = -1, tileSize = null, worldSize = null)
+    constructor(parameters)
     {
-        /** Heading (horizontal angle) of the vehicle */
-        this.centerHeading = centerHeading;
-        /** Unknow (usually same as centerHeading) */
-        this.originHeading = originHeading;
-        /** Pitch (vertical angle) of the vehicle */
-        this.originPitch = originPitch;
-        /** Maybe it's the size (in pixels) of the tile used to compose the panorama view */
-        this.tileSize = tileSize || new gsvSize();
-        /** Unknow */
-        this.worldSize = worldSize || new gsvSize();
-    }
-
-    /**
-     * Class initializer
-     * @param {json} parameters
-     */
-    static fromJson(parameters)
-    {
-        this.centerHeading = parameters.centerHeading;
-        this.originHeading = parameters.originHeading;
-        this.originPitch = parameters.originPitch;
-        this.tileSize = gsvSize.fromParameters(parameters.tileSize);
-        this.worldSize = gsvSize.fromParameters(parameters.worldSize);
+        var defaults = {
+                centerHeading: -1,
+                originHeading: -1,
+                originPitch: -1,
+                tileSize: null,
+                worldSize: null
+            };
+		parameters = parameters || defaults;
+        this.centerHeading = (parameters.centerHeading || defaults.centerHeading);
+        this.originHeading = (parameters.originHeading || defaults.originHeading);
+        this.originPitch = (parameters.originPitch || defaults.originPitch);
+        this.tileSize = new gsvSize(parameters.tileSize || defaults.tileSize);
+        this.worldSize = new gsvSize(parameters.worldSize || defaults.worldSize);
     }
 }
 
 /**
  * This class represents a location and contains
  * some description and the panorama id of this coordinate.
+ * @param {float} [lon=0] - Longitude
+ * @param {float} [lat=0] - Latitude
+ * @param {string} [shortDescription=null] - Usually a simple address for this coordinate
+ * @param {string} [description=null] - Usually the full address including the city
+ * @param {string} [pano=null] - PanoramaId as reported by the API
  */
 class LatLng
 {
-    constructor()
+    constructor(parameters)
     {
-        /** Longitude */
-        this.lon = 0;
-        /** Latitude */
-        this.lat = 0;
-        /** Usually a simple street address */
-        this.shortDescription = null;
-        /** Usually a full address (including city) */
-        this.description = null;
-        /** Panorama Id */
-        this.pano = null;
+        var defaults = {
+            lon: 0,
+            lat: 0,
+            shortDescription: null,
+            description: null,
+            pano: null
+        };
+		parameters = parameters || defaults;
 
-    }
-
-    /**
-     * Class initializer
-     * @param {float} lon - Longitude
-     * @param {float} lat - Latitude
-     * @param {string} shortDescription - Usually a simple address for this coordinate
-     * @param {string} description - Usually the full address including the city
-     * @param {string} pano - PanoramaId as reported by the API
-     * @returns A fufilled LatLng object
-     */
-    static fromParameters(lon, lat, shortDescription, description, pano)
-    {
-        this.lon = lon;
-        this.lat = lat;
-        this.shortDescription = shortDescription;
-        this.description = description;
-        this.pano = pano;
-    }
-
-    /**
-     * Class initializer
-     * @param {json} parameters
-     * @returns A fufilled LatLng object
-     */
-    static fromJson(parameters)
-    {
-        this.lon = parameters.lon;
-        this.lat = parameters.lat;
-        this.shortDescription = parameters.shortDescription;
-        this.description = parameters.description;
-        this.pano = parameters.pano;
+        this.lon = (parameters.lon || defaults.lon);
+        this.lat = (parameters.lat || defaults.lat);
+        this.shortDescription = (parameters.shortDescription || defaults.shortDescription);
+        this.description = (parameters.description || defaults.description);
+        this.pano = (parameters.pano || defaults.pano);
     }
 }
 
 /**
  * This class represents the panorama data retrieved by
  * the StreetViewService API.
+ * @param {LatLng} [location=null] - Object used to keep track of the coordinates
+ * @param {float} [location.lon=0] - Longitude
+ * @param {float} [location.lat=0] - Latitude
+ * @param {string} [location.shortDescription=null] - Usually a simple address for this coordinate
+ * @param {string} [location.description=null] - Usually the full address including the city
+ * @param {string} [location.pano=null] - PanoramaId as reported by the API
+ * @param {string} [copyright=null] - Copyright data as informed by the API (e.g. '© 2018 Google')
+ * @param {Link[]} [links=[]] - Array of panoramas connected to this one (for navigation)
+ * @param {string} [links.description=null] - Simplified street address
+ * @param {float} [links.heading=-1] - Heading angle of the vehicle
+ * @param {string} [links.pano=null] - Panorama Id
+ * @param {Tile} tiles=null - Tile data (used to compose the panorama view)
+ * @param {float} [tiles.centerHeading=-1] - Heading (horizontal angle) of the vehicle
+ * @param {float} [tiles.originHeading=-1] - Unknow (usually same as centerHeading)
+ * @param {float} [tiles.originPitch=-1] - Pitch (vertical angle) of the vehicle
+ * @param {gsvSize} [tiles.tileSize=null] - Maybe it's the size (in pixels) of the tile used to compose the panorama view
+ * @param {gsvSize} [tiles.worldSize=null] - Unknow
+ * @param {Time[]} [time=[]] - Others panoramas to this same location (used by Google's time machine)
+ * @param {string} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
+ * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
 class StreetViewPanoramaData {
-    /** @constructor */
-    constructor() {
-        /** LatLng object indication the position where this panorama was created */
-        this.location = new LatLng();
-
-        /** Google copyright string */
-        this.copyright = null;
-
-        /** Links array indicating connected panoramas */
-        this.links = [];
-
-        /** Tile data */
-        this.tiles = {};
-        /** Time array with other panoramas (from the past) for this same location */
-        this.time = [];
-    }
-
-    /**
-     * @access public
-     * @param {LatLng} location - Object used to keep track of the coordinates
-     * @param {sting} copyright - Copyright data as informed by the API
-     * @param {Link[]} links - Array of panoramas connected to this one (for navigation)
-     * @param {Tile} tiles - Tile data (used to compose the panorama view)
-     * @param {Time} time - Others panoramas to this same location (used by Google's time machine)
-     * @returns An instance fufilled of StreetViewPanoramaData
-     */
-    static fromParameters(location, copyright, links, tiles, time) {
-        let newSVPano = new StreetViewPanoramaData();
-        newSVPano.location = location;
-        newSVPano.copyright = copyright;
-        newSVPano.links = links;
-        newSVPano.tiles = tiles;
-        newSVPano.time = time;
-        return newSVPano;
+    constructor(parameters) {
+		var defaults = {
+			location: null,
+			copyright: null,
+			links: [],
+			tiles: null,
+			time: []
+		};
+		parameters = parameters || defaults;
+        this.location = (parameters.LatLng || defaults.LatLng);
+        this.copyright = (parameters.copyright || defaults.copyright);
+        this.links = (parameters.links || defaults.links);
+        this.tiles = (parameters.tiles || defaults.tiles);
+        this.time = (parameters.time || defaults.time);
     }
 
     /**
      * @access public
      * @param {DataObject} data - Complex object returned by the StreetViewService API
-     * @param {Google.LatLng} data.location - Google's LatLng object
+     * @param {Google.LatLng} data.location - [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng} object
      * @param {float} data.location.lat() - Latitude
      * @param {float} data.location.lng() - Longitude
      * @param {float} data.location.shortDescription - Simple street address
@@ -241,26 +185,23 @@ class StreetViewPanoramaData {
      * @param {Tile} data.tiles - See [Tile]{@link module:StreetViewPanoramaData~Tile}
      * @param {Time[]} data.time - See [Time]{@link module:StreetViewPanoramaData~Time}
      * @returns An instance fufilled of StreetViewPanoramaData
+     * @see [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng}
      */
     static fromStreetViewServiceData(data) {
-        let gsvlocation = data.location;
         let newSVPano = new StreetViewPanoramaData();
-        newSVPano.location = new LatLng.fromParameters(
-            {
-                lat: gsvlocation.latLng.lat(),
-                lon: gsvlocation.latLng.lng(),
-                shortDescription: gsvlocation.shortDescription,
-                description: gsvlocation.description,
-                pano: gsvlocation.pano
+        newSVPano.location = new LatLng({
+                lon: data.location.latLng.lng(),
+                lat: data.location.latLng.lat(),
+                shortDescription: data.location.shortDescription,
+                description: data.location.description,
+                pano: data.location.pano
             });
         newSVPano.copyright = data.copyright;
-        for (const link in data.links)
-        { 
-            newSVPano.links.push(Link.fromJson(link));
-        }
-        newSVPano.tiles = Tile.fromJson(data.tiles);
-        newSVPano.time = data.time;
+        for (const linkIndex in data.links) newSVPano.links.push(new Link(data.links[linkIndex]));
+        newSVPano.tiles = new Tile(data.tiles);
+        for (const timeIndex in data.time) newSVPano.time.push(new Time(data.time[timeIndex]));
         return newSVPano;
     }
 }
 
+module.exports = StreetViewPanoramaData;

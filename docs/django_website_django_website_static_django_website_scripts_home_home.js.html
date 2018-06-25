@@ -94,7 +94,7 @@ var availableImageMiners = [];
 
 //#endregion Global variables
 
-//#region Settings Region 
+//#region Styles
 
 /**
  * Style used to mark a select(active) region
@@ -124,7 +124,7 @@ var transparentStyle = new ol.style.Style({
     })
 });
 
-//#endregion Settings Region 
+//#endregion Styles 
 
 //#region Auxiliar functions
 
@@ -235,7 +235,10 @@ function initializeUserSection()
     /*UserSection Event Handlers*/
     /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
     UserSection.on('regionlistitemclick', updateLayersHintList);
+    UserSection.on('featuresmerged', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
+    
     Layer.on('featurecollectionchange', updateLayersHintList);
+    Layer.on('featurecollectionchange', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
 }
 
 /**
@@ -349,106 +352,43 @@ function getImages(event)
     }
 }
 
-function executeQuery(event) {
-    let btnExecuteQuery = getClickedElement(event);
-    let numCalls = Object.keys(usersection.regions).length;
-    let noSelectedRegions = true;
-        
-    try
-    {
-        setLoadingText(btnExecuteQuery);
+function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+{
+    return new Promise(function (resolve){
+        let that = this; /* window */
+        $.ajax
+            (
+            "/getmapminerfeatures/",
+            {
+                method: 'POST',
+                data: JSON.stringify({
+                    "mapMinerId": selectedMapMiner,
+                    "featureName": selectedMapFeature,
+                    "regions": JSON.stringify(geoJsonFeatures),
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    //let region = this;
+                    //let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                    //let layer = region.getLayerById(layerId); 
+                    //if (!layer) {
+                    //    layer = region.createLayer(layerId);
+                    //}
 
-        //TODO: Should this call part be here or in a more specific place? (like a class for Ajax handling?)
-        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
-        
-        for (let regionIdx in usersection.regions) {
-            let region = usersection.getRegionById(regionIdx);
-
-            if (!region.active) continue;
-
-            noSelectedRegions = false;
-
-            if (UIState.SelectedMapMiner === null) {
-                alert("Please, select a Map Miner to continue.");
-                unsetLoadingText(jqElement);
-                return;
-            }
-            if (UIState.SelectedMapMiner === null) {
-                alert("Please, select a Feature to continue.");
-                unsetLoadingText(jqElement);
-                return;
-            }
-        
-            /* To avoid race conditions during the ajax call */
-            let selectedMapMiner = UIState.SelectedMapMiner;
-            let selectedMapFeature = UIState.SelectedMapFeature;
-
-
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
-
-            geoJsonFeatures.crs = {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            };
-
-            let that = this; /* window */
-                    
-            $.ajax
-                (
-                "/getmapminerfeatures/",
+                    //Update only if the layer now has more features than before
+                    //if (!layer.featureCollection || layer.featureCollection.features.length &lt; data.features.length) {
+                    //}
+                    resolve(data);
+                }.bind(region),
+                error: function ( jqXHR, textStatus, errorThrown) 
                 {
-                    method: 'GET',
-                    data: {
-                        "mapMinerId": selectedMapMiner,
-                        "featureName": selectedMapFeature,
-                        "regions": JSON.stringify(geoJsonFeatures),
-                    },
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (data, textStatus, jqXHR) {
-                        let layerId = selectedMapMiner + "_" + selectedMapFeature;
-                        let layer = this.getLayerById(layerId);
-                        if (!layer) {
-                            layer = this.createLayer(layerId);
-                        }
-
-                        //Update only if the layer now has more features than before
-                        if (!layer.featureCollection || layer.featureCollection.features.length &lt; data.features.length) {
-                            layer.featureCollection = data;
-                        }
-
-                        that.drawLayer(layer); /* window */
-                        unsetLoadingText(btnExecuteQuery);
-                    }.bind(region),
-                    error: function ( jqXHR, textStatus, errorThrown) 
-                    {
-                        defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
-                    },
-                    complete: function (){
-                        numCalls = numCalls - 1;
-                        if (numCalls == 0)
-                        {
-                            unsetLoadingText(btnExecuteQuery);
-                        }
-                    }
-                });
-        
-        }
-
-        if (noSelectedRegions) {
-            alert("No region selected. Please, select a region to make a request.")
-        }
-    }
-    catch(err)
-    {
-        unsetLoadingText(btnExecuteQuery);
-        throw err;
-    }
+                    defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
+                    reject();
+                },
+            });
+    });
 }
-
 
 //#endregion Caller functions
 
@@ -463,6 +403,10 @@ function executeQuery(event) {
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 {
     alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
+    if (errorThrown)
+    {
+        throw errorThrown;
+    }
 }
 
 //#endregion Auxiliar functions for caller functions
@@ -585,18 +529,34 @@ function setAvailableMapMinersAndFeatures() {
 
 }
 
-function drawLayer(layer) {
+function drawLayer(layer, forceRedraw) {
     if (!layer) { console.warn("Undefined layer!"); return; }
     let featureCollection = layer.featureCollection;
     let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
     for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
-        if (usersection.featuresByLayerIndex[layer.id][feature.id].drawed) continue;
+
+        if (!usersection.isFeatureActive(layer.id, feature.id)) continue;
+
+        if (usersection.featuresByLayerId[layer.id][feature.id].drawed){
+            if (forceRedraw)
+            {
+                let olFeature = globalVectorSource.getFeatureById(feature.id);
+                globalVectorSource.removeFeature(olFeature);
+                olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                globalVectorSource.addFeature(olFeature);
+                usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
         else {
             let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
             globalVectorSource.addFeature(olFeature);
-            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = true;
+            usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
         }
 
     }
@@ -612,11 +572,11 @@ function removeLayer(layer) {
         Each individual feature needs to be checked because it
         can belong to more than one layer (from differente regions)
         */
-        if (!usersection.featuresByLayerIndex[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
+        if (!usersection.featuresByLayerId[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
         else {
             let olFeature = globalVectorSource.getFeatureById(feature.id);
             globalVectorSource.removeFeature(olFeature);
-            usersection.featuresByLayerIndex[layer.id][feature.id].drawed = false;
+            usersection.featuresByLayerId[layer.id][feature.id].drawed = false;
         }
 
     }
@@ -689,6 +649,87 @@ function clearSelections(event) {
 
 //#region Event Handlers
 
+/**
+ * Function used to collect map features, from the server,
+ * based on [UIState.SelectedMapMiner]{@link module:"home.js"~UIState.SelectedMapMiner}
+ * and [UIState.SelectedMapFeature]{@link module:"home.js"~UIState.SelectedMapFeature}
+ * @param {Event} event - Event object generated by clicking over the 'btnExecuteQuery' DOMElement button.
+ */
+function executeQuery(event) {
+    let btnExecuteQuery = getClickedElement(event);
+    
+    /* To avoid race conditions during the ajax call */
+    let selectedMapMiner = UIState.SelectedMapMiner;
+    let selectedMapFeature = UIState.SelectedMapFeature;
+
+    let noSelectedRegions = true;
+    let numCalls = 0;
+    try
+    {
+        setLoadingText(btnExecuteQuery);
+
+        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        
+        for (let regionIdx in usersection.regions) {
+            let region = usersection.getRegionById(regionIdx);
+
+            if (!region.active) continue;
+            let layerId = selectedMapMiner + "_" + selectedMapFeature;
+            let layer = region.getLayerById(layerId);
+            if (layer) continue;
+            layer = region.createLayer(layerId);
+
+
+            numCalls = numCalls + 1;
+            noSelectedRegions = false;
+
+            if (UIState.SelectedMapMiner === null) {
+                alert("Please, select a Map Miner to continue.");
+                unsetLoadingText(btnExecuteQuery);
+                return;
+            }
+            if (UIState.SelectedMapFeature === null) {
+                alert("Please, select a Feature to continue.");
+                unsetLoadingText(btnExecuteQuery);
+                return;
+            }
+        
+            
+
+
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
+
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+            getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+            .then(function(data){
+                layer.featureCollection = data;
+                numCalls = numCalls - 1;
+                if (numCalls == 0)
+                {
+                    unsetLoadingText(btnExecuteQuery);
+                }
+            })
+            .catch(function (err) {
+                defaultAjaxErrorHandler('executeQuery', "error", err);
+            });
+        }
+
+        if (noSelectedRegions) {
+            alert("No region selected. Please, select a region to make a request.")
+        }
+    }
+    catch(err)
+    {
+        unsetLoadingText(btnExecuteQuery);
+        defaultAjaxErrorHandler('executeQuery', null, err);
+    }
+}
+
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
@@ -699,6 +740,7 @@ function updateRegionsList(vectorevent) {
                 vectorevent.feature.setProperties({ 'type': 'region' });
                 let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
                 Region.on('activechange', function (region) {
+                    globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
                     if (region.active) {
                         for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
@@ -862,13 +904,13 @@ function btnElementChecker(event) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Jun 23 2018 18:14:56 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

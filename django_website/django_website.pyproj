@@ -112,6 +112,7 @@
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
+    <Content Include="django_website\static\django_website\scripts\GeoImageManager.js" />
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
     <Content Include="django_website\static\django_website\scripts\home\home.js" />
     <Content Include="django_website\static\django_website\scripts\Observer.js" />

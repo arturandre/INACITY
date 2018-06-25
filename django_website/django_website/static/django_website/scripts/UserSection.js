@@ -207,7 +207,8 @@ if (!Region.init) {
 
 /**
  * Simple class for holding features and their respective regions
- * @param {}
+ * @param {Feature} feature - A GeoJson Feature
+ * @param {string[]} regions - A list of region Ids representing the regions to which this [FeatureRegions.feature]{@link module:UserSection~FeatureRegions.feature} belongs
  */
 class FeatureRegions
 {
@@ -240,7 +241,8 @@ class UserSection extends Subject
     }
 
     /** 
-    * An index of all features from all regions grouped by layerId
+    * An index for features, from all layers from all regions, grouped by layerId
+    * @returns {FeatureRegions[]} A list of feature regions grouped by layer's ids
     */
     get featuresByLayerId() { return this._featuresByLayerId; }
 
@@ -258,6 +260,29 @@ class UserSection extends Subject
             if (this.regions[regionId].active) return true;
         }
         return false;
+    }
+
+    /**
+     * Search into all active regions all the active layers
+     * @returns {Layer[]} A list of all active layers
+     */
+    getActiveLayers()
+    {
+        let activeLayers = [];
+        for (const regionIdx in this.regions)
+        {
+            const region = this.regions[regionIdx];
+            if (!region.active) continue;
+
+            for (const layerIdx in region.layers)
+            {
+                const layer = region.layers[layerIdx];
+                if (!layer.active) continue;
+
+                activeLayers.push(layer);
+            }
+        }
+        return activeLayers;
     }
 
     setTarget(regionsDivId)

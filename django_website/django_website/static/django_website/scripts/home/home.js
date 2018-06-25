@@ -19,6 +19,8 @@ UIState.SelectedMapMiner = null;
 UIState.SelectedMapFeature = null;
 UIState.SelectedImageProvider = null;
 
+var geoImageManager = null;
+
 /** 
 * Handler for the OpenLayers object
 * @type {OpenLayersHandler}
@@ -168,12 +170,19 @@ $(document).ready(function () {
 
     initializeUserSection();
 
+    initializeGeoImageManager();
+
     getServerParameters();
 
     setDefaults();
 });
 
 //#region Initializer functions
+
+function initializeGeoImageManager()
+{
+    geoImageManager = new GeoImageManager('imgUrbanPicture');
+}
 
 /**
  * Auxiliar function used to initialize OpenLayers related objects and events
@@ -212,8 +221,6 @@ function initializeUserSection()
     Layer.on('featurecollectionchange', updateLayersHintList);
     Layer.on('featurecollectionchange', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
 }
-
-
 
 /**
  * Auxiliar function to populate field's based on server retrieved parameters
@@ -273,12 +280,15 @@ function getImages(event)
         for (const regionIdx in usersection.regions)
         {
             let region = usersection.regions[regionIdx];
-            numCalls += Object.keys(region.layers).length;
-            if (numCalls > 0) noLayers = false;
             for (const layerIdx in region.layers)
             {
                 let layer = region.layers[layerIdx];
-                
+                if (!layer.active) continue;
+                numCalls += 1;
+                noLayers = false;
+                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                //@todo: display it in the UI
+                if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
                 $.ajax('/getimagesforfeaturecollection/',
                 {
                     method: 'POST',
@@ -294,7 +304,7 @@ function getImages(event)
                     context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
                     success: function (data, textStatus, jqXHR) {
                         usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
-
+                        geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
                     },
                     error: function ( jqXHR, textStatus, errorThrown) 
                     {
@@ -377,10 +387,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 {
     alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
-    if (errorThrown)
-    {
-        throw errorThrown;
-    }
+    console.error(textStatus, errorThrown);
 }
 
 //#endregion Auxiliar functions for caller functions

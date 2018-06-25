@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: django_website/django_website/static/django_website/scripts/Observer.js</title>
+    <title>JSDoc: Source: django_website/django_website/static/django_website/scripts/GeoImageManager.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: django_website/django_website/static/django_website/scripts/Observer.js</h1>
+    <h1 class="page-title">Source: django_website/django_website/static/django_website/scripts/GeoImageManager.js</h1>
 
     
 
@@ -27,74 +27,31 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>﻿/**
- * Observer module contains classes used to implement the Observer Pattern
- * and allow the creation of events and eventHandlers
- * @module Observer
+ * Responsible for displaying GeoImages from features
+ * @module GeoImageManager
  */
 
-/**
-* This class keeps a list of _observers and dispatch (notify) them about
-* some event with some parameters
-* @param {string[]} eventNames - All the event names this class dispatches
-*/
-class Subject {
+class GeoImageManager extends Subject{
+    constructor() { }
 
-    constructor()
-    {
-        //this._eventNames = [];
-        //this._observers = new Object();
-    }
-
-    /**
-     * Register at class level the eventNames that the subclass can dispatch events for
-     * and creates, also at class level, a dictionary of observers.
-     * @param {string[]} eventNames - The names of the events the subclass will dispatch.
-     */
-    static registerEventNames(eventNames)
-    {
-        /* this is the subclass */
-        this._eventNames = eventNames;
-        this._observers = {};
-    }
-
-    /**
-    * Listens for an event named "eventName"
-    * @param {string} eventName - The event name
-    * @param {function} listener - The listener function
-    * @param {object} opt_this - The object to use as this in listener
-    */
-    static on(eventName, listener, opt_this)
-    {
-        if (this._eventNames.indexOf(eventName) &lt; 0)
-        {
-            throw Error("Event name not registered.");
-        }
-        if (typeof listener !== 'function')
-        {
-            throw Error("Listener should be a function.");
-        }
-        if (!this._observers[eventName]) this._observers[eventName] = [];
-        this._observers[eventName].push({listener: listener, opt_this: opt_this});
-    }
-
-    static notify(eventName, data) {
-        for (const listenerIdx in this._observers[eventName])
-        {
-            let listenerRecord = this._observers[eventName][listenerIdx];
-            if (listenerRecord.opt_this)
-            {
-                (listenerRecord.listener.bind(listenerRecord.opt_this))(data);
-            }
-            else
-            {
-                listenerRecord.listener(data);
-            }
-        }
-    }
 }
 
-//Subject._eventNames = [];
-//Subject._observers = {};</code></pre>
+/**
+* Triggered when MultiLineString Features are joined together
+* @event module:GeoImageManager~GeoImageManager.imagechanged
+* @type {GeoImage}
+* @property {GeoImage} geoimage - The currently displayed geoimage
+* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
+* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+*/
+
+if (!GeoImageManager.init) {
+    GeoImageManager.init = true;
+    GeoImageManager.registerEventNames([
+    'imagechanged',
+    ]);
+}</code></pre>
         </article>
     </section>
 

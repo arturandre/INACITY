@@ -83,7 +83,7 @@ function getPanoramaByLocation(lonLatCoordinate) {
         streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status) {
             //resolve({ data: data, status: status });
             if (status === "OK") {
-                let parsedData = streetViewPanoramaDataParser(data);
+                let parsedData = StreetViewPanoramaData.fromStreetViewServiceData(data);
                 resolve(parsedData);
             }
             else {
@@ -202,28 +202,28 @@ function getPanoramaForFeature(feature) {
  * @param {DataObject} data -  A complex object returned by the StreetViewService
  * @returns {module:StreetViewPanoramaData~StreetViewPanoramaData} StreetViewPanoramaData representing a parsed version without functions of the 'data' input.
  */
-function streetViewPanoramaDataParser(data) {
-    //Location object example:
-    //{latLng: _.K, shortDescription: "1576 R. do Lago", description: "1576 R. do Lago, São Paulo", pano: "-a6qbIWS7Op13QSWHAYzYA"}
-    let gsvlocation = data.location;
+//function streetViewPanoramaDataParser(data) {
+//    //Location object example:
+//    //{latLng: _.K, shortDescription: "1576 R. do Lago", description: "1576 R. do Lago, São Paulo", pano: "-a6qbIWS7Op13QSWHAYzYA"}
+//    //let gsvlocation = data.location;
 
-    let StreetViewPanoramaData =
-        {
-            location:
-            {
-                lat: gsvlocation.latLng.lat(),
-                lon: gsvlocation.latLng.lng(),
-                shortDescription: gsvlocation.shortDescription,
-                description: gsvlocation.description,
-                pano: gsvlocation.pano
-            },
-            copyright: data.copyright,
-            links: data.links,
-            tiles: data.tiles,
-            time: data.time
-        };
-    return StreetViewPanoramaData;
-}
+//    let StreetViewPanoramaData = StreetViewPanoramaData.fromStreetViewServiceData(data);
+//        //{
+//        //    location:
+//        //    {
+//        //        lat: gsvlocation.latLng.lat(),
+//        //        lon: gsvlocation.latLng.lng(),
+//        //        shortDescription: gsvlocation.shortDescription,
+//        //        description: gsvlocation.description,
+//        //        pano: gsvlocation.pano
+//        //    },
+//        //    copyright: data.copyright,
+//        //    links: data.links,
+//        //    tiles: data.tiles,
+//        //    time: data.time
+//        //};
+//    return StreetViewPanoramaData;
+//}
 
 /**
  * This function receives a collection (array) of "Data" objects obtained
@@ -238,7 +238,7 @@ function formatStreetViewPanoramaDataArray(gsvArrayOfData) {
     for (let coordIdx = 0; coordIdx &lt; gsvArrayOfData.length; coordIdx++) {
         let coord = gsvArrayOfData[coordIdx];
         if (coord.status === "OK") {
-            ret.push(streetViewPanoramaDataParser(coord.data));
+            ret.push(StreetViewPanoramaData.fromStreetViewServiceData(coord.data));
         }
         else {
             continue;
@@ -326,13 +326,13 @@ module.exports = router;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Jun 23 2018 18:14:56 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

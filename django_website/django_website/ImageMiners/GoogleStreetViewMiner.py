@@ -31,13 +31,54 @@ class GoogleStreetViewMiner(ImageMiner):
 
     imageMinerName = "Google Street View"
     imageMinerId = "gsminer"
-    #def getImageForFeatureCollection(featureCollection: FeatureCollection) -> List[GeoImage]:
+
     def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
         gsvpanoramas = requests.post(GoogleStreetViewMiner._GSVNodeCollectFCPanoramasURL, json=featureCollection)
         featureCollection = geojson.loads(gsvpanoramas.text)
-        #ret = []
-        #for feature in featureCollection['features']:
+        for feature in featureCollection['features']:
+            if feature['geometry']['type'] == 'MultiPolygon':
+                #Number of Polygons
+                for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
+                    for lineIndex, lineString in enumerate(polygon):
+                        for coordinateIndex in range(len(lineString)):
+                            streetViewPanoramaData = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
+                            if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+                                continue
+                            feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
+                                GoogleStreetViewMiner.\
+                                    createGeoImageFromStreetViewPanoramaData\
+                                        (streetViewPanoramaData).toJSON()
+            elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
+                for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
+                    for coordinateIndex in range(len(lineString)):
+                        streetViewPanoramaData = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+                            continue
+                        feature['properties']['geoImages'][lineIndex][coordinateIndex] =\
+                            GoogleStreetViewMiner.\
+                                createGeoImageFromStreetViewPanoramaData\
+                                    (streetViewPanoramaData).toJSON()
+            elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
+                for coordinateIndex in range(len(feature['geometry']['coordinates'])):
+                    streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
+                    if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+                        continue
+                    feature['properties']['geoImages'][coordinateIndex] =\
+                        GoogleStreetViewMiner.\
+                            createGeoImageFromStreetViewPanoramaData\
+                                (streetViewPanoramaData).toJSON()
+            elif feature['geometry']['type'] == 'Point':
+                coordinateIndex = 0
+                streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
+                if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+                    continue
+                feature['properties']['geoImages'][coordinateIndex] =\
+                    GoogleStreetViewMiner.\
+                        createGeoImageFromStreetViewPanoramaData\
+                            (streetViewPanoramaData).toJSON()
+            
+
         #    for coordinateData in feature:
         #        location = coordinateData['location']
         #        geoImage = GeoImage();
@@ -54,6 +95,16 @@ class GoogleStreetViewMiner(ImageMiner):
         #        ret.append(geoImage)
         #return ret
         return featureCollection
+    def createGeoImageFromStreetViewPanoramaData(streetViewPanoramaData):
+        geoImage = GeoImage()
+        geoImage.id = streetViewPanoramaData['location']['pano']
+        geoImage.location = streetViewPanoramaData['location']
+        geoImage.heading = streetViewPanoramaData['tiles']['centerHeading']
+        geoImage.pitch = streetViewPanoramaData['tiles']['originPitch']
+        geoImage.metadata = streetViewPanoramaData
+        geoImage.metadata['imageURL'] = GoogleStreetViewMiner._imageURLBuilderForGeoImage(geoImage)
+        return geoImage
+
 
     def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
         if key is None: key = GoogleStreetViewMiner._key
