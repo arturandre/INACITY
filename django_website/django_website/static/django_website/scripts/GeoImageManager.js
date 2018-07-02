@@ -62,7 +62,7 @@ class GeoImageManager extends Subject{
         let n = 0;
         while(root[n])
         {
-            let k = this._traverseCollection(root[n], currentIndex);
+            let k = this._traverseCollection(root[n], index, currentIndex);
             if (typeof k !== 'number') return k;
             currentIndex += k;
             n += 1;
@@ -75,11 +75,14 @@ class GeoImageManager extends Subject{
      * Change the current GeoImage's Collection being presented
      * @param {FeatureCollection} newFeatureCollection - A feature collection object with its features containing the geoImages as a property
      * @todo If there was some features being presented before, treat the update
-     * @todo should there be an event for changing the collection of images?
+     * @fires [geoimagescollectionchanged]{@link module:GeoImageManager~GeoImageManager.geoimagescollectionchanged}
+     * @returns {boolean} True if the change is successful, false if otherwise
      */
     setCurrentGeoImagesCollection(newFeatureCollection) {
+        if (!(newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0)) return false;
+            
         this._currentGeoImagesCollection = [];
-        for (const featureIndex in newFeatureCollection.features)
+        for (let featureIndex in newFeatureCollection.features)
         {
             let feature = newFeatureCollection.features[featureIndex];
             let geoImages = feature.properties.geoImages;
@@ -88,13 +91,17 @@ class GeoImageManager extends Subject{
                 this._currentGeoImagesCollection.push(geoImages);
             }
         }
-        
+        GeoImageManager.notify('geoimagescollectionchanged', this._currentGeoImagesCollection);
+        return true;
     }
 
     /**
      * Start the displaying of the current GeoImages collection
      * @todo Should the event 'imagechanged' have some parameter (instead of null)?
      * @todo Make the access to the image data more generic (e.g. without metadata)
+     * @param {boolean} fromStart - If true then the counter will be reset
+     * @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
+     * @fires [imagechanged]{@link module:GeoImageManager~GeoImageManager.imagechanged}
      */
     displayFeatures(fromStart) {
         if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length == 0)
@@ -104,9 +111,14 @@ class GeoImageManager extends Subject{
         }
         if (fromStart) this._currentIndex = -1;
         let geoImage = this._getNextImage();
-        
+        if (!geoImage)
+        {
+            GeoImageManager.notify('invalidcollection', null);
+            return false;
+        }
         this._DOMImage.attr("src", geoImage.metadata.imageURL);
-        GeoImageManager.notify('imagechanged', null);
+        GeoImageManager.notify('imagechanged', geoImage);
+        return true;
     }
 
     _getNextImage()
@@ -120,7 +132,9 @@ class GeoImageManager extends Subject{
             geoImage = _findNextValidImage(0);
             if (!geoImage) //There's no valid GeoImage in the entire GeoImage collection
             {
-                throw new Error("There's no valid GeoImage in the entire GeoImage collection.");
+                //throw new Error("There's no valid GeoImage in the entire GeoImage collection.");
+                console.error("There's no valid GeoImage in the entire GeoImage collection.");
+                return null;
             }
         }
         return geoImage;
@@ -176,14 +190,25 @@ class GeoImageManager extends Subject{
 * @event module:GeoImageManager~GeoImageManager.imagechanged
 * @type {GeoImage}
 * @property {GeoImage} geoimage - The currently displayed geoimage
-* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
-* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
-* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+*/
+
+/**
+* Triggered when GeoImagesCollection (the set of geo images) changes
+* @event module:GeoImageManager~GeoImageManager.geoimagescollectionchanged
+* @type {GeoImage[]}
+* @property {GeoImage} geoimage - The currently displayed geoimage
+*/
+
+/**
+* Triggered while trying to display a GeoImage from a collection without any valid GeoImage.
+* @event module:GeoImageManager~GeoImageManager.invalidcollection
 */
 
 if (!GeoImageManager.init) {
     GeoImageManager.init = true;
     GeoImageManager.registerEventNames([
     'imagechanged',
+    'geoimagescollectionchanged',
+    'invalidcollection'
     ]);
 }

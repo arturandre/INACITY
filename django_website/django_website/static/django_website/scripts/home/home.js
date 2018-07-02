@@ -305,6 +305,10 @@ function getImages(event)
                     success: function (data, textStatus, jqXHR) {
                         usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
                         geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
+                        if (geoImageManager.displayFeatures(true))
+                        {
+                            autoPlayGeoImages(1); //Play
+                        }
                     },
                     error: function ( jqXHR, textStatus, errorThrown) 
                     {
@@ -566,6 +570,54 @@ function removeLayer(layer) {
 //#endregion UI Functions
 
 //#region UI Auxiliary Functions
+
+var autoPlayIntervalID = null;
+const autoPlayTimeInterval = 3000; //3 seconds
+var autoPlayState = 0;
+
+/**
+ * Changes automatically the currently presented geoImage
+ * @param {int} autoPlayState - Controls the state of GeoImageManager's autoplay
+ * 0 - Stopped -> Will restart the GeoImageManager counter when started.
+ * 1 - Playing -> Can be stopped (reseted) or paused.
+ * 2 - Paused -> Will continue from the last presented GeoImage when restarted.
+ */
+function autoPlayGeoImages(autoPlayNewState)
+{
+    if (autoPlayState === autoPlayNewState)
+    {
+        console.warn(`Tried to repeat GeoImageManager's autoplay state: ${autoPlayNewState}`);
+        return false;
+    }
+    else if (autoPlayState === 0 && autoPlayNewState === 2){
+        console.warn("Tried to pause autoplay while it was in the stopped state");
+        return false;
+    }
+
+    if (autoPlayState === 0 && autoPlayNewState === 1) //Stopped -> Playing
+    {
+        autoPlayIntervalID = setInterval(function(){
+            geoImageManager.displayFeatures(false);
+        }, autoPlayTimeInterval);
+    }
+    else if (autoPlayState === 2  && autoPlayNewState === 1) //Paused -> Playing
+    {
+        autoPlayIntervalID = setInterval(function(){
+            geoImageManager.displayFeatures(false);
+        }, autoPlayTimeInterval);
+    }
+    else if ((autoPlayState === 1 || autoPlayState === 2) && (autoPlayNewState === 0 || autoPlayNewState === 2)) //Playing/Paused -> Stopped/Paused
+    {
+        clearInterval(autoPlayIntervalID);
+    }
+    else
+    {
+        console.error(`Unrecognized autoPlayNewState code: ${autoPlayNewState}.`);
+        return false;
+    }
+    autoPlayState = autoPlayNewState
+    return true;
+}
 
 /**
 * Changes the html of buttons to indicate it's busy.
