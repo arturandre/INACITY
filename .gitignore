@@ -250,3 +250,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+#include node bin
+!INACITY_nodejs/bin/

@@ -13,7 +13,7 @@
  * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
 class Time {
-    constructor(parameters)
+    constructor(parameters) 
     {
 		var defaults = {
 			Af: null,
