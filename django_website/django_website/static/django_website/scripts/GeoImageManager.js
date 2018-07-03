@@ -13,6 +13,7 @@ class GeoImageManager extends Subject{
 
         this._currentGeoImagesCollection = [];
         this._currentIndex = -1;
+        this._maxIndex = -1;
         this._DOMImage = $(`#${DOMImageId}`);
     }
 
@@ -26,7 +27,9 @@ class GeoImageManager extends Subject{
     }
 
     /**
-     * Get the geoImage from [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection} at "index" position
+     * Get the geoImage from [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection} at "index" position.
+     * Updates the [_maxIndex]{@link module:GeoImageManager~_maxIndex} property as a side effect when the index is greater than
+     * the number of available images.
      * @private
      * @param {int} index
      * @returns {GeoImage|int} Case the index is greater than the number of GeoImages then it returns the number of GeoImages
@@ -34,6 +37,7 @@ class GeoImageManager extends Subject{
     _getGeoImageAtIndex(index)
     {
         let ret = this._traverseCollection(this._currentGeoImagesCollection, index);
+        if (typeof ret === "number") this._maxIndex = ret;
         return ret;
     }
 
@@ -62,7 +66,7 @@ class GeoImageManager extends Subject{
         let n = 0;
         while(root[n])
         {
-            let k = this._traverseCollection(root[n], index, currentIndex);
+            let k = this._traverseCollection(root[n], index - currentIndex, 0);
             if (typeof k !== 'number') return k;
             currentIndex += k;
             n += 1;
@@ -109,7 +113,7 @@ class GeoImageManager extends Subject{
             console.warn("Error: Trying to display empty geoImages collection.");
             return false;
         }
-        if (fromStart) this._currentIndex = -1;
+        if (fromStart || (this._maxIndex < this._currentIndex)) this._currentIndex = -1;
         let geoImage = this._getNextImage();
         if (!geoImage)
         {
@@ -127,9 +131,9 @@ class GeoImageManager extends Subject{
         let geoImage = this._findNextValidImage(this._currentIndex);
 
         //No more valid images, try from the beggining
-        if (!geoImage instanceof Object)
+        if (!(geoImage instanceof Object))
         {
-            geoImage = _findNextValidImage(0);
+            geoImage = this._findNextValidImage(0);
             if (!geoImage) //There's no valid GeoImage in the entire GeoImage collection
             {
                 //throw new Error("There's no valid GeoImage in the entire GeoImage collection.");
