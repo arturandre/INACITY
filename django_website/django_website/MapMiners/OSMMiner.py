@@ -42,6 +42,7 @@ class OSMMiner(MapMiner):
             self.availableSlots = 0
             self.runningQueries = []
 
+        @staticmethod #TODO TRYIT
         def fromText(textMessage):
             """Creates an OverpassAPIStatus object from the text description obtained at overpass/api/status"""
             ret = OSMMiner.OverpassAPIStatus()

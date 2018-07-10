@@ -7,7 +7,7 @@
  * Responsible for displaying GeoImages from features.
  * @param {string} DOMImageId - The id of the image element (from DOM) that will be used to display the collected GeoImages.
  */
-class GeoImageManager extends Subject{
+class GeoImageManager extends Subject {
     constructor(DOMImageId) {
         super();
 
@@ -21,8 +21,7 @@ class GeoImageManager extends Subject{
      * Check if object is a leaf (geoImage)
      * @private
      */
-    _isLeaf(object)
-    {
+    _isLeaf(object) {
         return !!object && !(object instanceof Array);
     }
 
@@ -34,11 +33,24 @@ class GeoImageManager extends Subject{
      * @param {int} index
      * @returns {GeoImage|int} Case the index is greater than the number of GeoImages then it returns the number of GeoImages
      */
-    _getGeoImageAtIndex(index)
-    {
+    _getGeoImageAtIndex(index) {
         let ret = this._traverseCollection(this._currentGeoImagesCollection, index);
         if (typeof ret === "number") this._maxIndex = ret;
         return ret;
+    }
+
+    _countValidImages(root) {
+        if (this._isLeaf(root)) {
+            return this._isValidJsonObject(root) ? 1 : 0;
+        }
+        let n = 0;
+        let count = 0;
+        while (root[n]) {
+            count += this._traverseCollection(root[n]);
+            n += 1;
+        }
+        return count;
+
     }
 
     /**
@@ -49,23 +61,18 @@ class GeoImageManager extends Subject{
      * @param {int} index - Index of the desired leaf (geoImage)
      * @param {int} currentIndex - Should be zero (used by recursion)
      */
-    _traverseCollection(root, index, currentIndex)
-    {
+    _traverseCollection(root, index, currentIndex) {
         if (typeof currentIndex !== 'number') currentIndex = 0;
-        if (this._isLeaf(root))
-        {
-            if (currentIndex === index)
-            {
+        if (this._isLeaf(root)) {
+            if (currentIndex === index) {
                 return root;
             }
-            else
-            {
+            else {
                 return 1;
             }
         }
         let n = 0;
-        while(root[n])
-        {
+        while (root[n]) {
             let k = this._traverseCollection(root[n], index - currentIndex, 0);
             if (typeof k !== 'number') return k;
             currentIndex += k;
@@ -84,17 +91,16 @@ class GeoImageManager extends Subject{
      */
     setCurrentGeoImagesCollection(newFeatureCollection) {
         if (!(newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0)) return false;
-            
+
         this._currentGeoImagesCollection = [];
-        for (let featureIndex in newFeatureCollection.features)
-        {
+        for (let featureIndex in newFeatureCollection.features) {
             let feature = newFeatureCollection.features[featureIndex];
             let geoImages = feature.properties.geoImages;
-            if (geoImages)
-            {
+            if (geoImages) {
                 this._currentGeoImagesCollection.push(geoImages);
             }
         }
+        this._maxIndex = this._countValidImages(this._currentGeoImagesCollection);
         GeoImageManager.notify('geoimagescollectionchanged', this._currentGeoImagesCollection);
         return true;
     }
@@ -108,15 +114,13 @@ class GeoImageManager extends Subject{
      * @fires [imagechanged]{@link module:GeoImageManager~GeoImageManager.imagechanged}
      */
     displayFeatures(fromStart) {
-        if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length == 0)
-        {
+        if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length == 0) {
             console.warn("Error: Trying to display empty geoImages collection.");
             return false;
         }
         if (fromStart || (this._maxIndex < this._currentIndex)) this._currentIndex = -1;
         let geoImage = this._getNextImage();
-        if (!geoImage)
-        {
+        if (!geoImage) {
             GeoImageManager.notify('invalidcollection', null);
             return false;
         }
@@ -125,14 +129,12 @@ class GeoImageManager extends Subject{
         return true;
     }
 
-    _getNextImage()
-    {
+    _getNextImage() {
         this._currentIndex += 1;
         let geoImage = this._findNextValidImage(this._currentIndex);
 
         //No more valid images, try from the beggining
-        if (!(geoImage instanceof Object))
-        {
+        if (!(geoImage instanceof Object)) {
             geoImage = this._findNextValidImage(0);
             if (!geoImage) //There's no valid GeoImage in the entire GeoImage collection
             {
@@ -150,8 +152,7 @@ class GeoImageManager extends Subject{
      * @param {int} startingIndex - Start the search from this index (possibly zero) until the end of the GeoImage's collection
      * @returns {GeoImage|null} If no valid GeoImage is found then returns null.
      */
-    _findNextValidImage(startingIndex)
-    {
+    _findNextValidImage(startingIndex) {
         let geoImage = this._getGeoImageAtIndex(startingIndex);
         while (!this._isValidJsonObject(geoImage))//Try to find a valid image
         {
@@ -170,16 +171,13 @@ class GeoImageManager extends Subject{
     /**
      * @returns {Object|False} If the 'testString' is a valid json object then it's returned otherwise "false" is returned.
      */
-    _isValidJsonObject(testString)
-    {
+    _isValidJsonObject(testString) {
         try {
             let ret = JSON.parse(testString);
-            if (ret instanceof Object)
-            {
+            if (ret instanceof Object) {
                 return ret;
             }
-            else
-            {
+            else {
                 return false;
             }
         } catch (e) {

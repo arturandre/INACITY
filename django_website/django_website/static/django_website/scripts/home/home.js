@@ -391,7 +391,10 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 {
     alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
-    console.error(textStatus, errorThrown);
+    if (errorThrown)
+        console.error(textStatus, errorThrown);
+    else 
+        console.error(textStatus);
 }
 
 //#endregion Auxiliar functions for caller functions
