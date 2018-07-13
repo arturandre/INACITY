@@ -13,9 +13,15 @@ class GeoImageManager extends Subject {
 
         this._currentGeoImagesCollection = [];
         this._currentIndex = -1;
-        this._maxIndex = -1;
+        this._validImages = -1;
         this._DOMImage = $(`#${DOMImageId}`);
     }
+
+    /**
+     * Getter for [_validImages]{@link module:GeoImageManager~_validImages}; the number of valid images in the [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection}
+     */
+    get validImages() { return this._validImages; }
+    get currentIndex() { return this._currentIndex; }
 
     /**
      * Check if object is a leaf (geoImage)
@@ -27,7 +33,7 @@ class GeoImageManager extends Subject {
 
     /**
      * Get the geoImage from [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection} at "index" position.
-     * Updates the [_maxIndex]{@link module:GeoImageManager~_maxIndex} property as a side effect when the index is greater than
+     * Updates the [_validImages]{@link module:GeoImageManager~_validImages} property as a side effect when the index is greater than
      * the number of available images.
      * @private
      * @param {int} index
@@ -35,7 +41,7 @@ class GeoImageManager extends Subject {
      */
     _getGeoImageAtIndex(index) {
         let ret = this._traverseCollection(this._currentGeoImagesCollection, index);
-        if (typeof ret === "number") this._maxIndex = ret;
+        if (typeof ret === "number") this._validImages = ret;
         return ret;
     }
 
@@ -46,12 +52,31 @@ class GeoImageManager extends Subject {
         let n = 0;
         let count = 0;
         while (root[n]) {
-            count += this._traverseCollection(root[n]);
+            count += this._countValidImages(root[n]);
             n += 1;
         }
         return count;
-
     }
+
+    _removeInvalidImages(root) {
+        if (this._isLeaf(root)) {
+            return this._isValidJsonObject(root) ? 1 : 0;
+        }
+        let n = 0;
+        let count = 0;
+        let oldCount = 0;
+        while (root[n]) {
+            count += this._removeInvalidImages(root[n]);
+            if (count === oldCount)
+            {
+                delete root[n];
+            }
+            oldCount = count;
+            n += 1;
+        }
+        return count;
+    }
+
 
     /**
      * Traverses the GeoImages graph and select the leaf in the "index" position.
@@ -100,7 +125,10 @@ class GeoImageManager extends Subject {
                 this._currentGeoImagesCollection.push(geoImages);
             }
         }
-        this._maxIndex = this._countValidImages(this._currentGeoImagesCollection);
+        let removedCount = this._removeInvalidImages(this._currentGeoImagesCollection);
+        this._validImages = this._countValidImages(this._currentGeoImagesCollection);
+        if (removedCount !== this._validImages)
+            throw "removedCount different from this._validImages!";
         GeoImageManager.notify('geoimagescollectionchanged', this._currentGeoImagesCollection);
         return true;
     }
@@ -118,7 +146,7 @@ class GeoImageManager extends Subject {
             console.warn("Error: Trying to display empty geoImages collection.");
             return false;
         }
-        if (fromStart || (this._maxIndex < this._currentIndex)) this._currentIndex = -1;
+        if (fromStart || (this._validImages < this._currentIndex)) this._currentIndex = -1;
         let geoImage = this._getNextImage();
         if (!geoImage) {
             GeoImageManager.notify('invalidcollection', null);
@@ -127,6 +155,23 @@ class GeoImageManager extends Subject {
         this._DOMImage.attr("src", geoImage.metadata.imageURL);
         GeoImageManager.notify('imagechanged', geoImage);
         return true;
+    }
+
+    displayFeatureAtIndex(index, silentChange) {
+        if (index > this._validImages)
+        {
+            console.error(`Index (${index}) out of valid range [0-${this.validImages}]. `);
+            return false;
+        }
+        let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
+
+        if (typeof geoImage === "number") {
+            throw "Tried to get an invalid image!";
+        }
+        this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        if (!silentChange) GeoImageManager.notify('imagechanged', geoImage);
+        return true;
+
     }
 
     _getNextImage() {

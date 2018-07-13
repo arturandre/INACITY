@@ -36,6 +36,11 @@ const promiseFinally = require('promise.prototype.finally');
 // Add `finally()` to `Promise.prototype`
 promiseFinally.shim();
 
+var path = require('path');
+var appDir = path.dirname(require.main.filename);
+var projectDir = path.dirname(require.main.filename) + '\\..';
+
+var StreetViewPanoramaData = require(projectDir + '\\models\\StreetViewPanoramaData.js');
 
 var express = require('express');
 var router = express.Router();
@@ -66,6 +71,7 @@ const maxRadius = 10;
 function defaultError(err, locationDescription) {
     console.error(`Error caught at ${locationDescription}.`);
     console.error(err);
+    throw err;
 }
 
 /**
@@ -106,7 +112,7 @@ function getPanoramaByLocation(lonLatCoordinate) {
  * object with one or more coordinates
  * @returns {Promise} Promise object with the input feature with a new property (geoImages).
  */
-function getPanoramaForFeature(feature) {
+function getPanoramaForFeature(feature, featureIndex) {
     return new Promise(function (resolve, reject) {
         let geometryType = feature.geometry.type;
 
@@ -115,12 +121,14 @@ function getPanoramaForFeature(feature) {
         let numCalls = 0;
         if (geometryType === "MultiPolygon") {
             //Number of Polygons
-            for (let i = 0; i &lt; coordinates.length; i++) {   //Number of LineStrings/Linear Rings
+            for (let i = 0; i &lt; coordinates.length; i++) {   
                 geoImages[i] = new Array(coordinates[i].length);
-                for (let j = 0; j &lt; coordinates[i].length; j++) {   //Number of coordinates [(lon, lat)]
+                //Number of LineStrings/Linear Rings
+                for (let j = 0; j &lt; coordinates[i].length; j++) {   
                     let coordsLen = coordinates[i][j].length;
                     numCalls += coordsLen;
                     geoImages[i][j] = new Array(coordsLen);
+                    //Number of coordinates [(lon, lat)]
                     for (let k = 0; k &lt; coordsLen; j++) {
                         let lonLatCoordinate = coordinates[i][j];
                         setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages[i][j], k);
@@ -148,7 +156,6 @@ function getPanoramaForFeature(feature) {
             numCalls = coordsLen;
             //Number of coordinates [(lon, lat)]
             for (let i = 0; i &lt; coordsLen; i++) {
-                x
                 let lonLatCoordinate = coordinates[i];
                 setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages, i);
             }
@@ -186,7 +193,7 @@ function getPanoramaForFeature(feature) {
 
                     numCalls -= 1;
                     if (numCalls == 0) {
-                        resolve(feature);
+                        resolve([feature, featureIndex]);
                     }
                 }
                 );
@@ -271,12 +278,12 @@ router.post('/collectfcpanoramas', function (req, res) {
         let features = geojson.features;
         let nCalls = features.length;
         for (let featureIdx = 0; featureIdx &lt; features.length; featureIdx++) {
-            getPanoramaForFeature(features[featureIdx])
+            getPanoramaForFeature(features[featureIdx], featureIdx)
                 .then(
-                function (_) {
-                    //let featureWithGeoImage = featureAndIndex[0];
-                    //let featureIdx = featureAndIndex[1];
-                    //geojson[featureIdx] = featureWithGeoImage;
+                function (featureAndIndex) {
+                    let featureWithGeoImage = featureAndIndex[0];
+                    let featureIdx = featureAndIndex[1];
+                    geojson.features[featureIdx] = featureWithGeoImage;
                     nCalls -= 1;
                     if (nCalls == 0) {
                         let jsonString = JSON.stringify(geojson);
@@ -326,13 +333,13 @@ module.exports = router;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:geoimagescollectionchanged">geoimagescollectionchanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:invalidcollection">invalidcollection</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 10:57:52 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

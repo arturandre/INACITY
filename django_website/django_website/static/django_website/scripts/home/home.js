@@ -120,9 +120,19 @@ function getNewId() {
 //#endregion Auxiliar functions
 
 
-//TODO: Rewrite this as a testing unit in the Testing module
-/********************TESTING*************************/
+//#region TESTING_MOVE TO THE TESTING MODULE
+
+/**
+ * Return variable used only for testing of features collection from NODE.JS
+ * at callTest()
+ * @todo move it to the testing module
+ */
 var mytestjson = undefined;
+
+/**
+ * Used only for testing of features collection from NODE.JS
+ * @todo move it to the testing module
+ */
 function callTest() {
     let geoJsonFC = {
         "type": "FeatureCollection",
@@ -157,7 +167,7 @@ function callTest() {
     });
 }
 
-/*********************************************/
+//#endregion TESTING_MOVE TO THE TESTING MODULE
 
 /**
  * JQuery ready function used to initialize variables
@@ -182,6 +192,9 @@ $(document).ready(function () {
 function initializeGeoImageManager()
 {
     geoImageManager = new GeoImageManager('imgUrbanPicture');
+    GeoImageManager.on('geoimagescollectionchanged', updateGeoImgSlider);
+    GeoImageManager.on('imagechanged', updateGeoImgSlider);
+    
 }
 
 /**
@@ -400,6 +413,28 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 //#endregion Auxiliar functions for caller functions
 
 //#region UI Functions 
+
+function updateGeoImgSlider()
+{
+    let imgSliderDiv = $('#imgSliderDiv');
+    //let imgSlider = $('#imgSlider');
+    //Done this way to get value correctly (jquery is failing)
+    let imgSlider = document.getElementById('imgSlider');
+
+    let numGeoImages = geoImageManager.validImages;
+
+    if (numGeoImages > 0)
+    {
+        imgSlider.min = 0;
+        imgSlider.value = geoImageManager.currentIndex;
+        imgSlider.max = numGeoImages;
+        imgSliderDiv.removeClass("hidden");
+    }
+    else
+    {
+        imgSliderDiv.addClass("hidden");
+    }
+}
 
 function updateLayersHintList() {
     let hintLayers = [];
@@ -686,6 +721,20 @@ function clearSelections(event) {
 //#region Event Handlers
 
 /**
+ * Updates the currently image displayed by the GeoImageManager
+ * when the user changes the imgSlider value (position).
+ * @param {int} value - The current position of the imgSlider as informed by itself
+ */
+function imageSliderChange(value)
+{
+    geoImageManager.displayFeatureAtIndex(value, true);
+    if (autoPlayState === 1)
+    {
+        autoPlayGeoImages(2); //Pauses the autoPlayGeoImages
+    }
+}
+
+/**
  * Function used to collect map features, from the server,
  * based on [UIState.SelectedMapMiner]{@link module:"home.js"~UIState.SelectedMapMiner}
  * and [UIState.SelectedMapFeature]{@link module:"home.js"~UIState.SelectedMapFeature}
@@ -809,18 +858,6 @@ function updateRegionsList(vectorevent) {
 
 }
 
-function getClickedElement(event) {
-    if (event.currentTarget) {
-        return $(event.currentTarget);
-    }
-    else if (event.srcElement || event.id) {
-        let elem_id = event.srcElement || event.id || event.currentTarget;
-        let element = $('#' + elem_id);
-        return element;
-    }
-
-}
-
 function changeModeClick(mode, event) {
     if (!btnElementChecker(event)) return;
     switch (mode) {
@@ -913,6 +950,23 @@ function changeMapProviderClick(mapProviderId, event) {
 //#endregion Event Handlers
 
 //#region Auxiliar Functions for Event Handlers
+
+/**
+ * Used to extract the object that caused an event to be triggered from the event object itself.
+ * @param {MouseEvent} event - @see [MouseEvent]{@link https://developer.mozilla.org/en-US/docs/Web/Events/click}
+ */
+function getClickedElement(event) {
+    if (event.currentTarget) {
+        return $(event.currentTarget);
+    }
+    else if (event.srcElement || event.id) {
+        let elem_id = event.srcElement || event.id || event.currentTarget;
+        let element = $('#' + elem_id);
+        return element;
+    }
+
+}
+
 
 /**
 * Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).

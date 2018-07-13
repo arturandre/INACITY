@@ -47,6 +47,8 @@ UIState.SelectedMapMiner = null;
 UIState.SelectedMapFeature = null;
 UIState.SelectedImageProvider = null;
 
+var geoImageManager = null;
+
 /** 
 * Handler for the OpenLayers object
 * @type {OpenLayersHandler}
@@ -146,9 +148,19 @@ function getNewId() {
 //#endregion Auxiliar functions
 
 
-//TODO: Rewrite this as a testing unit in the Testing module
-/********************TESTING*************************/
+//#region TESTING_MOVE TO THE TESTING MODULE
+
+/**
+ * Return variable used only for testing of features collection from NODE.JS
+ * at callTest()
+ * @todo move it to the testing module
+ */
 var mytestjson = undefined;
+
+/**
+ * Used only for testing of features collection from NODE.JS
+ * @todo move it to the testing module
+ */
 function callTest() {
     let geoJsonFC = {
         "type": "FeatureCollection",
@@ -183,7 +195,7 @@ function callTest() {
     });
 }
 
-/*********************************************/
+//#endregion TESTING_MOVE TO THE TESTING MODULE
 
 /**
  * JQuery ready function used to initialize variables
@@ -196,12 +208,19 @@ $(document).ready(function () {
 
     initializeUserSection();
 
+    initializeGeoImageManager();
+
     getServerParameters();
 
     setDefaults();
 });
 
 //#region Initializer functions
+
+function initializeGeoImageManager()
+{
+    geoImageManager = new GeoImageManager('imgUrbanPicture');
+}
 
 /**
  * Auxiliar function used to initialize OpenLayers related objects and events
@@ -299,12 +318,15 @@ function getImages(event)
         for (const regionIdx in usersection.regions)
         {
             let region = usersection.regions[regionIdx];
-            numCalls += Object.keys(region.layers).length;
-            if (numCalls > 0) noLayers = false;
             for (const layerIdx in region.layers)
             {
                 let layer = region.layers[layerIdx];
-                
+                if (!layer.active) continue;
+                numCalls += 1;
+                noLayers = false;
+                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                //@todo: display it in the UI
+                if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
                 $.ajax('/getimagesforfeaturecollection/',
                 {
                     method: 'POST',
@@ -320,7 +342,11 @@ function getImages(event)
                     context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
                     success: function (data, textStatus, jqXHR) {
                         usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
-
+                        geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
+                        if (geoImageManager.displayFeatures(true))
+                        {
+                            autoPlayGeoImages(1); //Play
+                        }
                     },
                     error: function ( jqXHR, textStatus, errorThrown) 
                     {
@@ -404,9 +430,9 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 {
     alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
     if (errorThrown)
-    {
-        throw errorThrown;
-    }
+        console.error(textStatus, errorThrown);
+    else 
+        console.error(textStatus);
 }
 
 //#endregion Auxiliar functions for caller functions
@@ -585,6 +611,54 @@ function removeLayer(layer) {
 //#endregion UI Functions
 
 //#region UI Auxiliary Functions
+
+var autoPlayIntervalID = null;
+const autoPlayTimeInterval = 3000; //3 seconds
+var autoPlayState = 0;
+
+/**
+ * Changes automatically the currently presented geoImage
+ * @param {int} autoPlayState - Controls the state of GeoImageManager's autoplay
+ * 0 - Stopped -> Will restart the GeoImageManager counter when started.
+ * 1 - Playing -> Can be stopped (reseted) or paused.
+ * 2 - Paused -> Will continue from the last presented GeoImage when restarted.
+ */
+function autoPlayGeoImages(autoPlayNewState)
+{
+    if (autoPlayState === autoPlayNewState)
+    {
+        console.warn(`Tried to repeat GeoImageManager's autoplay state: ${autoPlayNewState}`);
+        return false;
+    }
+    else if (autoPlayState === 0 &amp;&amp; autoPlayNewState === 2){
+        console.warn("Tried to pause autoplay while it was in the stopped state");
+        return false;
+    }
+
+    if (autoPlayState === 0 &amp;&amp; autoPlayNewState === 1) //Stopped -> Playing
+    {
+        autoPlayIntervalID = setInterval(function(){
+            geoImageManager.displayFeatures(false);
+        }, autoPlayTimeInterval);
+    }
+    else if (autoPlayState === 2  &amp;&amp; autoPlayNewState === 1) //Paused -> Playing
+    {
+        autoPlayIntervalID = setInterval(function(){
+            geoImageManager.displayFeatures(false);
+        }, autoPlayTimeInterval);
+    }
+    else if ((autoPlayState === 1 || autoPlayState === 2) &amp;&amp; (autoPlayNewState === 0 || autoPlayNewState === 2)) //Playing/Paused -> Stopped/Paused
+    {
+        clearInterval(autoPlayIntervalID);
+    }
+    else
+    {
+        console.error(`Unrecognized autoPlayNewState code: ${autoPlayNewState}.`);
+        return false;
+    }
+    autoPlayState = autoPlayNewState
+    return true;
+}
 
 /**
 * Changes the html of buttons to indicate it's busy.
@@ -904,13 +978,13 @@ function btnElementChecker(event) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:geoimagescollectionchanged">geoimagescollectionchanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:invalidcollection">invalidcollection</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 10:57:51 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

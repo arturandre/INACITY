@@ -35,21 +35,21 @@
 
 /**
  * Each instance of this class represents a different
- * panorama for the a same location,
-but created in a
+ * panorama for the a same location, but created in a
  * different moment (e.g. years ago).
- * @param {string} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
+ * @param {Date} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
  * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
 class Time {
-    constructor(parameters)
+    constructor(parameters) 
     {
 		var defaults = {
 			Af: null,
 			ng: null
 		};
-        this.Af = (parameters.null || defaults.null);
-        this.ng = (parameters.null || defaults.null);
+		parameters = parameters || defaults;
+        this.Af = (parameters.Af || defaults.Af);
+        this.ng = (parameters.ng || defaults.ng);
     }
 }
 
@@ -69,6 +69,7 @@ class Link
 			heading: -1,
 			pano: null
 		};
+		parameters = parameters || defaults;
         this.description = (parameters.description || defaults.description);
         this.heading = (parameters.heading || defaults.heading);
         this.pano = (parameters.pano || defaults.pano);
@@ -90,6 +91,7 @@ class gsvSize {
 			height: 512,
 			width: 512
 		};
+		parameters = parameters || defaults;
         this.b = (parameters.b || defaults.b);
         this.f = (parameters.f || defaults.f);
         this.height = (parameters.height || defaults.height);
@@ -117,11 +119,12 @@ class Tile
                 tileSize: null,
                 worldSize: null
             };
+		parameters = parameters || defaults;
         this.centerHeading = (parameters.centerHeading || defaults.centerHeading);
         this.originHeading = (parameters.originHeading || defaults.originHeading);
         this.originPitch = (parameters.originPitch || defaults.originPitch);
-        this.tileSize = (parameters.gsvSize || defaults.gsvSize)();
-        this.worldSize = (parameters.gsvSize || defaults.gsvSize)();
+        this.tileSize = new gsvSize(parameters.tileSize || defaults.tileSize);
+        this.worldSize = new gsvSize(parameters.worldSize || defaults.worldSize);
     }
 }
 
@@ -145,19 +148,20 @@ class LatLng
             description: null,
             pano: null
         };
+		parameters = parameters || defaults;
 
-        this.lon = (parameter.lon || defaults.lon);
-        this.lat = (parameter.lat || defaults.lat);
-        this.shortDescription = (parameter.shortDescription || defaults.shortDescription);
-        this.description = (parameter.description || defaults.description);
-        this.pano = (parameter.pano || defaults.pano);
+        this.lon = (parameters.lon || defaults.lon);
+        this.lat = (parameters.lat || defaults.lat);
+        this.shortDescription = (parameters.shortDescription || defaults.shortDescription);
+        this.description = (parameters.description || defaults.description);
+        this.pano = (parameters.pano || defaults.pano);
     }
 }
 
 /**
  * This class represents the panorama data retrieved by
  * the StreetViewService API.
- * @param {LatLng} location - Object used to keep track of the coordinates
+ * @param {LatLng} [location=null] - Object used to keep track of the coordinates
  * @param {float} [location.lon=0] - Longitude
  * @param {float} [location.lat=0] - Latitude
  * @param {string} [location.shortDescription=null] - Usually a simple address for this coordinate
@@ -187,6 +191,7 @@ class StreetViewPanoramaData {
 			tiles: null,
 			time: []
 		};
+		parameters = parameters || defaults;
         this.location = (parameters.LatLng || defaults.LatLng);
         this.copyright = (parameters.copyright || defaults.copyright);
         this.links = (parameters.links || defaults.links);
@@ -220,14 +225,14 @@ class StreetViewPanoramaData {
                 pano: data.location.pano
             });
         newSVPano.copyright = data.copyright;
-        for (const link in data.links) newSVPano.links.push(new Link(link));
-        newSVPano.tiles = Tile(data.tiles);
-        for (const time in data.time) newSVPano.time.push(new Time(time));
+        for (const linkIndex in data.links) newSVPano.links.push(new Link(data.links[linkIndex]));
+        newSVPano.tiles = new Tile(data.tiles);
+        for (const timeIndex in data.time) newSVPano.time.push(new Time(data.time[timeIndex]));
         return newSVPano;
     }
 }
 
-</code></pre>
+module.exports = StreetViewPanoramaData;</code></pre>
         </article>
     </section>
 
@@ -237,13 +242,13 @@ class StreetViewPanoramaData {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:geoimagescollectionchanged">geoimagescollectionchanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:invalidcollection">invalidcollection</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Jun 24 2018 12:36:52 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 10:57:52 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>
