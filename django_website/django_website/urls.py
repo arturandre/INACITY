@@ -34,9 +34,6 @@ urlpatterns = [
 
     #Used to collect images for a given set of GIS features called FeatureCollection
     url(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
-    
-    #TODO: Remove this (used previously for testing)
-    url(r'^getstreets/?$', getstreets, name='getstreets'),
 
     # Testing 
     url(r'^integrationtest/?$', integrationTest, name='integrationtest'),

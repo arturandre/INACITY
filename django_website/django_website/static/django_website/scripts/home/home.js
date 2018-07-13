@@ -300,7 +300,7 @@ function getImages(event)
                 numCalls += 1;
                 noLayers = false;
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                //@todo: display it in the UI
+                //@todo: Warn user about the skipped layers
                 if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
                 $.ajax('/getimagesforfeaturecollection/',
                 {
@@ -448,7 +448,6 @@ function updateLayersHintList() {
         {
             for (const layerIdx in region.layers)
             {
-                //TODO: Set a better way to name layers than MapMinerName_FeatureName
                 setHintLayers(layerIdx);
             }
         }

@@ -135,7 +135,6 @@ class GeoImageManager extends Subject {
 
     /**
      * Start the displaying of the current GeoImages collection
-     * @todo Should the event 'imagechanged' have some parameter (instead of null)?
      * @todo Make the access to the image data more generic (e.g. without metadata)
      * @param {boolean} fromStart - If true then the counter will be reset
      * @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
