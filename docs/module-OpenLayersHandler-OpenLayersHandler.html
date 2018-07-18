@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-OpenLayersHandler.html">OpenLayersHandler</a>~</span>OpenLayersHandler<span class="signature">(HTMLDIVtarget, mapProviderId)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-OpenLayersHandler.html">OpenLayersHandler</a>~</span>OpenLayersHandler<span class="signature">(HTMLDIVtarget, defaultTileProvider)</span><span class="type-signature"></span></h2>
         
             <div class="class-description">Responsible for handling several OpenLayers properties</div>
         
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="OpenLayersHandler"><span class="type-signature"></span>new OpenLayersHandler<span class="signature">(HTMLDIVtarget, mapProviderId)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="OpenLayersHandler"><span class="type-signature"></span>new OpenLayersHandler<span class="signature">(HTMLDIVtarget, defaultTileProvider)</span><span class="type-signature"></span></h4>
     
 
     
@@ -109,13 +109,13 @@
 
         <tr>
             
-                <td class="name"><code>mapProviderId</code></td>
+                <td class="name"><code>defaultTileProvider</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">OpenLayersHandler.TileProviders</span>
 
 
             
@@ -125,7 +125,7 @@
 
             
 
-            <td class="description last">Id of the map tiles recognized by OpenLayers. Options include: 'osm_tiles' for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.</td>
+            <td class="description last">The tile provider as registered at <a href="module-OpenLayersHandler-OpenLayersHandler.html#.TileProviders">TileProviders</a> class member.for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.</td>
         </tr>
 
     
@@ -210,7 +210,228 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
 
+        
+            
+<h4 class="name" id=".TileProviders"><span class="type-signature">(static) </span>TileProviders<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Collection of registered tile providers from OpenLayers
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html">django_website/django_website/static/django_website/scripts/OpenLayersHandler.js</a>, <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html#line112">line 112</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://github.com/openlayers/openlayers/tree/v5.0.3/src/ol/source">OpenLayers Sources</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+    <h5>Examples</h5>
+    
+    <pre class="prettyprint"><code>//OpenStreetMaps tile providerOpenLayersHandler.TileProviders.OSM</code></pre>
+
+    <pre class="prettyprint"><code>//Google road maps tile providerOpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES</code></pre>
+
+    <pre class="prettyprint"><code>//Google satelite with road maps tile providerOpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES</code></pre>
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="changeMapProvider"><span class="type-signature"></span>changeMapProvider<span class="signature">(tileProvider)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Set the map tiles provider for displaying
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tileProvider</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">OpenLayersHandler.TileProviders</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The tile provider as registered at <a href="module-OpenLayersHandler-OpenLayersHandler.html#.TileProviders">TileProviders</a> class member.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html">django_website/django_website/static/django_website/scripts/OpenLayersHandler.js</a>, <a href="django_website_django_website_static_django_website_scripts_OpenLayersHandler.js.html#line83">line 83</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -232,7 +453,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 10:57:52 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 18 2018 19:34:14 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

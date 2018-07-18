@@ -7,17 +7,19 @@
 
 //#region Global variables
 
-/**
- * Responsible for keeping user selections.
- * @todo Make it a class.
- * @param {string} SelectedMapMiner - Selected map miner's id
- * @param {string} SelectedMapFeature - Selected map features's id
- * @param {string} SelectedImageProvider - Selected image providers' id
- */
-var UIState = {}
-UIState.SelectedMapMiner = null;
-UIState.SelectedMapFeature = null;
-UIState.SelectedImageProvider = null;
+///**
+// * Responsible for keeping user selections.
+// * @todo Make it a class.
+// * @param {string} SelectedMapMiner - Selected map miner's id
+// * @param {string} SelectedMapFeature - Selected map features's id
+// * @param {string} SelectedImageProvider - Selected image providers' id
+// */
+//var _UIHandler = {}
+//_UIHandler.SelectedMapMiner = null;
+//_UIHandler.SelectedMapFeature = null;
+//_UIHandler.SelectedImageProvider = null;
+
+var _UIHandler = null;
 
 var geoImageManager = null;
 
@@ -184,10 +186,20 @@ $(document).ready(function () {
 
     getServerParameters();
 
+    initializeUIHandler();
+
+    populateMapProviderDiv();
+
     setDefaults();
 });
 
 //#region Initializer functions
+
+function initializeUIHandler()
+{
+    _UIHandler = new UIHandler();
+
+}
 
 function initializeGeoImageManager()
 {
@@ -203,7 +215,7 @@ function initializeGeoImageManager()
 function initializeOpenLayers()
 {
     /* OpenLayers init */
-    openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
+    openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
 
     globalVectorSource = new ol.source.Vector({ wrapX: false });
     globalVectorLayer = new ol.layer.Vector({
@@ -254,25 +266,31 @@ function getServerParameters()
             "/getavailableimageminers/",
             null,
             function (data, textStatus, jqXHR) {
-                availableImageMiners = data;
-                setAvailableImageMiners();
+                //availableImageMiners = data;
+                _UIHandler.populateImageProviderDiv(data);
+                //setAvailableImageMiners();
             },
             "json"
             );
 }
 
 /**
- * Auxiliar function to set default options of the UI.
+ * Used to set default options such default drawing mode, map tiles provider, etc.
+ * @todo Make changeShapeClick part of UIHandler class
  */
 function setDefaults()
 {
     //Default selections:
     /*
-    * Tiles provider - OpenStreetMap
+    * Tiles provider - Google maps road and satellite
     * Focus mode - Image mode
+    * Box drawing tool
     */
+    openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
+    changeShapeClick('Box', document.getElementById("btnBox"));
+
 }
 
 //#endregion Initializer functions
@@ -285,7 +303,7 @@ function getImages(event)
     let noLayers = true;
 
     //To avoid racing conditions
-    let selectedImageProvider = UIState.SelectedImageProvider;
+    let selectedImageProvider = _UIHandler.SelectedImageProvider;
     let numCalls = 0;
     try
     {
@@ -414,6 +432,24 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 
 //#region UI Functions 
 
+function populateMapProviderDiv()
+{
+    let mapProviderDiv = $(`#mapProviderDiv`);
+    for (let tileProviderId in OpenLayersHandler.TileProviders)
+    {
+        let tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
+        mapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider.provider, changeMapProviderClick));
+    };
+    //let GMRoadsBtn = create_dropDown_aButton('Google Maps Roads', OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, changeMapProviderClick);
+    //let GMHybridBtn = create_dropDown_aButton('Google Maps Hybrid', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES, changeMapProviderClick);
+    //let OSMBtn = create_dropDown_aButton('OpenStreetMap', OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, changeMapProviderClick);
+
+    //    <a id="btnGoogleMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
+    //    <a id="btnOSMMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.OSM, this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
+
+}
+
+
 function updateGeoImgSlider()
 {
     let imgSliderDiv = $('#imgSliderDiv');
@@ -481,7 +517,7 @@ function selectMapMiner(mapMinerId) {
     mapMinerBtn.addClass("btn-success");
     mapMinerBtn.removeClass("btn-secondary");
 
-    UIState.SelectedMapMiner = mapMinerId;
+    _UIHandler.SelectedMapMiner = mapMinerId;
     mapMinerBtn.html(availableMapMiners[mapMinerId].name);
 
     setFeaturesFromMapMiner(availableMapMiners[mapMinerId], true);
@@ -495,7 +531,7 @@ function selectMapFeature(mapFeatureName) {
     mapFeatureBtn.addClass("btn-success");
     mapFeatureBtn.removeClass("btn-secondary");
 
-    UIState.SelectedMapFeature = mapFeatureName;
+    _UIHandler.SelectedMapFeature = mapFeatureName;
     mapFeatureBtn.html(mapFeatureName);
     setMinersFromFeatures(mapFeatureName);
 }
@@ -510,6 +546,7 @@ function setMinersFromFeatures(FeatureName) {
         }
     }
 }
+
 
 function setFeaturesFromMapMiner(MapMiner, clearFeatures) {
     //TODO: Remove this way of define default value without warnings
@@ -527,17 +564,6 @@ function setFeaturesFromMapMiner(MapMiner, clearFeatures) {
     }
 }
 
-function setAvailableImageMiners() {
-    let imageMinerDiv = $(`#imageProviderDiv`);
-    imageMinerDiv.empty();
-    for (let imageMinerIdx in availableImageMiners) {
-        let imageMinerName = availableImageMiners[imageMinerIdx].name;
-        let imageMiner = create_dropDown_aButton(imageMinerName, imageMinerIdx, this.changeImageProviderClick);
-        imageMinerDiv.append(imageMiner);
-    }
-
-}
-
 function setAvailableMapMinersAndFeatures() {
     let mapMinerDiv = $(`#mapMinerDiv`);
     let mapFeatureDiv = $(`#mapFeatureDiv`);
@@ -548,7 +574,6 @@ function setAvailableMapMinersAndFeatures() {
         mapMinerDiv.append(mapMiner);
         setFeaturesFromMapMiner(availableMapMiners[mapMinerId], false);
     }
-
 }
 
 function drawLayer(layer, forceRedraw) {
@@ -678,13 +703,25 @@ function unsetLoadingText(jqElement)
     }
 }
 
+/**
+ * Remove the 'disabled' css class from the element passed as parameter and adds the
+ * 'disabled' css class to any siblings (other elements with a common parent element) of the element.
+ * @param {JQueryObject} element - A DOMElement encapsulated with JQuery (i.e. $('#myElementId') )
+ */
 function disableSiblings(element) {
     element.siblings().each(function (it, val) {
-        $('#' + val.id).removeClass('disabled');
+        //$('#' + val.id).removeClass('disabled');
+        $(val).removeClass('disabled');
     });
     element.addClass('disabled');
 }
 
+/**
+ * Creates an anchor button (<a href...>)
+ * @param {string} label - The button title
+ * @param {object} optValue - The parameter to be used for the click handler
+ * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
+ */
 function create_dropDown_aButton(label, optValue, clickHandler) {
     let button = $(document.createElement('a'));
     button.addClass('dropdown-item');
@@ -710,8 +747,8 @@ function clearSelections(event) {
 
 
 
-    UIState.SelectedMapMiner = null;
-    UIState.SelectedMapFeature = null;
+    _UIHandler.SelectedMapMiner = null;
+    _UIHandler.SelectedMapFeature = null;
     setAvailableMapMinersAndFeatures();
 }
 
@@ -735,16 +772,16 @@ function imageSliderChange(value)
 
 /**
  * Function used to collect map features, from the server,
- * based on [UIState.SelectedMapMiner]{@link module:"home.js"~UIState.SelectedMapMiner}
- * and [UIState.SelectedMapFeature]{@link module:"home.js"~UIState.SelectedMapFeature}
+ * based on [UIHandler.SelectedMapMiner]{@link module:"UIHandler.js"~UIHandler.SelectedMapMiner}
+ * and [UIHandler.SelectedMapFeature]{@link module:"UIHandler.js"~UIHandler.SelectedMapFeature}
  * @param {Event} event - Event object generated by clicking over the 'btnExecuteQuery' DOMElement button.
  */
 function executeQuery(event) {
     let btnExecuteQuery = getClickedElement(event);
     
     /* To avoid race conditions during the ajax call */
-    let selectedMapMiner = UIState.SelectedMapMiner;
-    let selectedMapFeature = UIState.SelectedMapFeature;
+    let selectedMapMiner = _UIHandler.SelectedMapMiner;
+    let selectedMapFeature = _UIHandler.SelectedMapFeature;
 
     let noSelectedRegions = true;
     let numCalls = 0;
@@ -767,12 +804,12 @@ function executeQuery(event) {
             numCalls = numCalls + 1;
             noSelectedRegions = false;
 
-            if (UIState.SelectedMapMiner === null) {
+            if (_UIHandler.SelectedMapMiner === null) {
                 alert("Please, select a Map Miner to continue.");
                 unsetLoadingText(btnExecuteQuery);
                 return;
             }
-            if (UIState.SelectedMapFeature === null) {
+            if (_UIHandler.SelectedMapFeature === null) {
                 alert("Please, select a Feature to continue.");
                 unsetLoadingText(btnExecuteQuery);
                 return;
@@ -921,21 +958,8 @@ function changeShapeClick(shapeType, event) {
     });
     openLayersHandler.map.addInteraction(drawInteraction);
 }
-/**
-* Handler for changing map tiles.
-* @param {string} imageProviderId - Id defined in the back-end ImageMiner
-* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
-*/
-function changeImageProviderClick(imageProviderId, event) {
-    if (!btnElementChecker(event)) return;
-    UIState.SelectedImageProvider = imageProviderId;
-    $(`#btnCollectImages`).removeClass("hidden");
-    let imageProviderBtn = $(`#btnImageProvider`);
-    imageProviderBtn.addClass("btn-success");
-    imageProviderBtn.removeClass("btn-secondary");
 
-    imageProviderBtn.html(availableImageMiners[imageProviderId].name);
-}
+
 /**
 * Handler for changing map tiles.
 * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
@@ -944,6 +968,7 @@ function changeImageProviderClick(imageProviderId, event) {
 function changeMapProviderClick(mapProviderId, event) {
     if (!btnElementChecker(event)) return;
     openLayersHandler.changeMapProvider(mapProviderId);
+    
 }
 
 //#endregion Event Handlers

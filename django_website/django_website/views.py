@@ -42,6 +42,12 @@ def about(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
+def docs(request):
+    htmlfile = 'docs/index.html'
+    #local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __TEMPLATE_GLOBAL_VARS)
+
+
 @api_view(['GET'])
 def getavailablemapminers(request):
     ret = mapMinerManager.getAvailableMapMinersAndQueries()

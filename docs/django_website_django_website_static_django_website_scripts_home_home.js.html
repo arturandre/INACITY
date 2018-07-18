@@ -220,6 +220,9 @@ $(document).ready(function () {
 function initializeGeoImageManager()
 {
     geoImageManager = new GeoImageManager('imgUrbanPicture');
+    GeoImageManager.on('geoimagescollectionchanged', updateGeoImgSlider);
+    GeoImageManager.on('imagechanged', updateGeoImgSlider);
+    
 }
 
 /**
@@ -228,7 +231,7 @@ function initializeGeoImageManager()
 function initializeOpenLayers()
 {
     /* OpenLayers init */
-    openLayersHandler = new OpenLayersHandler('map', 'osm_tiles');
+    openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES);
 
     globalVectorSource = new ol.source.Vector({ wrapX: false });
     globalVectorLayer = new ol.layer.Vector({
@@ -287,17 +290,21 @@ function getServerParameters()
 }
 
 /**
- * Auxiliar function to set default options of the UI.
+ * Used to set default options such default drawing mode, map tiles provider, etc.
  */
 function setDefaults()
 {
     //Default selections:
     /*
-    * Tiles provider - OpenStreetMap
+    * Tiles provider - Google maps road and satellite
     * Focus mode - Image mode
+    * Box drawing tool
     */
+    openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES);
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
+    changeShapeClick('Box', document.getElementById("btnBox"));
+
 }
 
 //#endregion Initializer functions
@@ -325,7 +332,7 @@ function getImages(event)
                 numCalls += 1;
                 noLayers = false;
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                //@todo: display it in the UI
+                //@todo: Warn user about the skipped layers
                 if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
                 $.ajax('/getimagesforfeaturecollection/',
                 {
@@ -439,6 +446,28 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 
 //#region UI Functions 
 
+function updateGeoImgSlider()
+{
+    let imgSliderDiv = $('#imgSliderDiv');
+    //let imgSlider = $('#imgSlider');
+    //Done this way to get value correctly (jquery is failing)
+    let imgSlider = document.getElementById('imgSlider');
+
+    let numGeoImages = geoImageManager.validImages;
+
+    if (numGeoImages > 0)
+    {
+        imgSlider.min = 0;
+        imgSlider.value = geoImageManager.currentIndex;
+        imgSlider.max = numGeoImages;
+        imgSliderDiv.removeClass("hidden");
+    }
+    else
+    {
+        imgSliderDiv.addClass("hidden");
+    }
+}
+
 function updateLayersHintList() {
     let hintLayers = [];
     
@@ -451,7 +480,6 @@ function updateLayersHintList() {
         {
             for (const layerIdx in region.layers)
             {
-                //TODO: Set a better way to name layers than MapMinerName_FeatureName
                 setHintLayers(layerIdx);
             }
         }
@@ -682,6 +710,11 @@ function unsetLoadingText(jqElement)
     }
 }
 
+/**
+ * Remove the 'disabled' css class from the element passed as parameter and adds the
+ * 'disabled' css class to any siblings (other elements with a common parent element) of the element.
+ * @param {JQueryObject} element - A DOMElement encapsulated with JQuery (i.e. $('#myElementId') )
+ */
 function disableSiblings(element) {
     element.siblings().each(function (it, val) {
         $('#' + val.id).removeClass('disabled');
@@ -689,6 +722,12 @@ function disableSiblings(element) {
     element.addClass('disabled');
 }
 
+/**
+ * Creates an anchor button (&lt;a href...>)
+ * @param {string} label - The button title
+ * @param {object} optValue - The parameter to be used for the click handler
+ * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
+ */
 function create_dropDown_aButton(label, optValue, clickHandler) {
     let button = $(document.createElement('a'));
     button.addClass('dropdown-item');
@@ -722,6 +761,20 @@ function clearSelections(event) {
 //#endregion UI Auxiliary Functions
 
 //#region Event Handlers
+
+/**
+ * Updates the currently image displayed by the GeoImageManager
+ * when the user changes the imgSlider value (position).
+ * @param {int} value - The current position of the imgSlider as informed by itself
+ */
+function imageSliderChange(value)
+{
+    geoImageManager.displayFeatureAtIndex(value, true);
+    if (autoPlayState === 1)
+    {
+        autoPlayGeoImages(2); //Pauses the autoPlayGeoImages
+    }
+}
 
 /**
  * Function used to collect map features, from the server,
@@ -847,18 +900,6 @@ function updateRegionsList(vectorevent) {
 
 }
 
-function getClickedElement(event) {
-    if (event.currentTarget) {
-        return $(event.currentTarget);
-    }
-    else if (event.srcElement || event.id) {
-        let elem_id = event.srcElement || event.id || event.currentTarget;
-        let element = $('#' + elem_id);
-        return element;
-    }
-
-}
-
 function changeModeClick(mode, event) {
     if (!btnElementChecker(event)) return;
     switch (mode) {
@@ -923,6 +964,7 @@ function changeShapeClick(shapeType, event) {
     });
     openLayersHandler.map.addInteraction(drawInteraction);
 }
+
 /**
 * Handler for changing map tiles.
 * @param {string} imageProviderId - Id defined in the back-end ImageMiner
@@ -946,11 +988,29 @@ function changeImageProviderClick(imageProviderId, event) {
 function changeMapProviderClick(mapProviderId, event) {
     if (!btnElementChecker(event)) return;
     openLayersHandler.changeMapProvider(mapProviderId);
+    
 }
 
 //#endregion Event Handlers
 
 //#region Auxiliar Functions for Event Handlers
+
+/**
+ * Used to extract the object that caused an event to be triggered from the event object itself.
+ * @param {MouseEvent} event - @see [MouseEvent]{@link https://developer.mozilla.org/en-US/docs/Web/Events/click}
+ */
+function getClickedElement(event) {
+    if (event.currentTarget) {
+        return $(event.currentTarget);
+    }
+    else if (event.srcElement || event.id) {
+        let elem_id = event.srcElement || event.id || event.currentTarget;
+        let element = $('#' + elem_id);
+        return element;
+    }
+
+}
+
 
 /**
 * Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).
@@ -984,7 +1044,7 @@ function btnElementChecker(event) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 11 2018 10:57:51 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 18 2018 19:34:14 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>
