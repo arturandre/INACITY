@@ -2,7 +2,7 @@
 {% block scripts %}
 {% load staticfiles %}
 
-<link rel="stylesheet" href="{% static 'django_website/css/home.css' %}"/>
+<link rel="stylesheet" href="{% static 'django_website/css/home.css' %}" />
 <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
 
 <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
@@ -18,15 +18,16 @@
 <script type="text/javascript" src="{% static 'django_website/scripts/UserSection.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/GeoImageManager.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/backgroundFunctions.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/home/UIHandler.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/home.js' %}"></script>
 {% endblock %}
 
 {% block title %}{{WebsiteName}} | Home{% endblock %}
 
 {% block pageheader %}
-    <div class="container alert alert-warning text-center" role="alert">
-        A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.
-    </div>
+<div class="container alert alert-warning text-center" role="alert">
+    A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.
+</div>
 
 {% endblock %}
 
@@ -42,69 +43,69 @@
         <a id="btnImageMode" onclick="changeModeClick('Image', this)" class="dropdown-item" href="javascript:void(0);">Image Mode</a>
     </div>
 </div>
-  <div class="row">
+<div class="row">
     <div class="col-sm left-column region-div hidden">
         <div class="row">
             <div class="col-sm">
                 <div class="btn-group" role="group">
-                   <button id="mapMinerBtn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                   Map Miner
-                   </button>
-                   <div id="mapMinerDiv" class="dropdown-menu" aria-labelledby="mapMinerBtn">
-                   </div>
-           
+                    <button id="btnMapMiner" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Map Miner
+                    </button>
+                    <div id="mapMinerDiv" class="dropdown-menu" aria-labelledby="btnMapMiner">
+                    </div>
+
                 </div>
                 <div class="btn-group" role="group">
-                   <button id="mapFeatureBtn" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                   Feature
-                   </button>
-                   <div id="mapFeatureDiv" class="dropdown-menu" aria-labelledby="mapFeatureBtn">
-                   </div>
-           
+                    <button id="btnMapFeature" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Feature
+                    </button>
+                    <div id="mapFeatureDiv" class="dropdown-menu" aria-labelledby="btnMapFeature">
+                    </div>
+
                 </div>
-                <button id="btnClearSelections" onclick="clearSelections(this)" type="button" class="btn btn-danger hidden">Clear selections</button>
+                <button id="btnClearSelections" type="button" class="btn btn-danger hidden">Clear selections</button>
             </div>
             <div class="horizontal-padding">
-                <button id="btnExecuteQuery" onclick="executeQuery(this)" type="button" class="btn btn-warning hidden">Execute Query</button>
+                <button id="btnExecuteQuery" type="button" class="btn btn-warning hidden">Execute Query</button>
             </div>
         </div>
 
     </div>
     <div class="col-sm left-column map-div">
         <div class="btn-group" role="group">
-           <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           Map provider
-           </button>
-           <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
-               <!--changeMapProviderClick@home.js-->
-             <!--<a id="btnGoogleMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES.provider, this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
-             <a id="btnOSMMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.OSM.provider, this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>-->
-           </div>
-           
+            <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Map provider
+            </button>
+            <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
+                <!--changeMapProviderClick@home.js-->
+                <!--<a id="btnGoogleMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES.provider, this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
+                <a id="btnOSMMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.OSM.provider, this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>-->
+            </div>
+
         </div>
         <div class="btn-group" role="group">
             <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-             Shape type
-           </button>
-           <div class="dropdown-menu" aria-labelledby="btnMapProvider">
-               <!--changeMapProviderClick@home.js-->
-             <a id="btnSquare" onclick="changeShapeClick('Square', this)" class="dropdown-item" href="javascript:void(0);">Square</a>
-             <a id="btnBox" onclick="changeShapeClick('Box', this)" class="dropdown-item" href="javascript:void(0);">Box</a>
-             <a id="btnCircle" onclick="changeShapeClick('Dodecagon', this)" class="dropdown-item" href="javascript:void(0);">Dodecagon</a>
-           </div>
+                Shape type
+            </button>
+            <div id="shapeSelectorDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
+                <!--changeMapProviderClick@home.js-->
+                <a id="btnSquare" onclick="changeShapeClick('Square', this)" class="dropdown-item" href="javascript:void(0);">Square</a>
+                <a id="btnBox" onclick="changeShapeClick('Box', this)" class="dropdown-item" href="javascript:void(0);">Box</a>
+                <a id="btnCircle" onclick="changeShapeClick('Dodecagon', this)" class="dropdown-item" href="javascript:void(0);">Dodecagon</a>
+            </div>
         </div>
-        
+        <a id="btnCancelDrawing" onclick="changeShapeClick('None', this)" class="dropdown-item" href="javascript:void(0);">Cancel draw</a>
     </div>
     <div class="col-sm right-column image-div">
         <div class="row">
             <div class="col-sm">
                 <div class="btn-group" role="group">
-                   <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                   Image provider
-                   </button>
-                   <div id="imageProviderDiv" class="dropdown-menu" aria-labelledby="btnImageProvider">
-                       <!--changeImageProviderClick@home.js-->
-                   </div>
+                    <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Image provider
+                    </button>
+                    <div id="imageProviderDiv" class="dropdown-menu" aria-labelledby="btnImageProvider">
+                        <!--changeImageProviderClick@home.js-->
+                    </div>
                 </div>
             </div>
             <div class="horizontal-padding">
@@ -113,7 +114,7 @@
             </div>
         </div>
     </div>
-  </div>
+</div>
 <div class="row">
     <div class="col-sm left-column region-div hidden">
         <h2>Created regions:</h2>
@@ -124,10 +125,10 @@
     <div class="col-sm left-column map-div">
         <div id="mapOverlay" class="hidden"><p class="mapOverlayText text-center align-middle">Hold shift to zoom</p></div>
         <div id="map" class="map"></div>
-        
+
     </div>
     <div class="col-sm right-column image-div">
-        <img id="imgUrbanPicture" src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"/>
+        <img id="imgUrbanPicture" src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc" />
         <div id="imgSliderDiv" class="slidecontainer">
             <input type="range" min="1" max="100" value="50" class="slider" id="imgSlider" oninput="imageSliderChange(this.value)" onchange="imageSliderChange(this.value)">
         </div>

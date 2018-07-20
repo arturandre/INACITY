@@ -41,7 +41,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\ImageFilters\__init__.py" />
-    <Compile Include="django_website\ImageMiners\__init__.py" />
+    <Compile Include="django_website\ImageProviders\__init__.py" />
     <Compile Include="django_website\load.py">
       <SubType>Code</SubType>
     </Compile>
@@ -64,16 +64,16 @@
     <Compile Include="django_website\ImageFilters\ImageFilter.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="django_website\ImageMiners\GoogleStreetViewMiner.py">
+    <Compile Include="django_website\ImageProviders\GoogleStreetViewProvider.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="django_website\ImageMiners\ImageMiner.py">
+    <Compile Include="django_website\ImageProviders\ImageProvider.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\Managers\ImageFilterManager.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="django_website\Managers\ImageMinerManager.py">
+    <Compile Include="django_website\Managers\ImageProviderManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\Managers\MapMinerManager.py" />
@@ -134,7 +134,7 @@
     <Folder Include="django_website\Managers\" />
     <Folder Include="django_website\ImageFilters\" />
     <Folder Include="django_website\media\" />
-    <Folder Include="django_website\ImageMiners\" />
+    <Folder Include="django_website\ImageProviders\" />
     <Folder Include="django_website\static\django_website\scripts\home\" />
     <Folder Include="django_website\Testing\" />
     <Folder Include="django_website\static\" />

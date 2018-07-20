@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-UserSection.html">UserSection</a>~</span>Layer<span class="signature">(id, active)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-UserSection.html">UserSection</a>~</span>Layer<span class="signature">(layerId, active)</span><span class="type-signature"></span></h2>
         
             <div class="class-description">Each layer is named after a MapMiner and a Featureconcatenated by an underscore.Each layer contains a collection of regions named 'regions' and a list of features called featureCollectionwith all the features collapsed into a single list.Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)</div>
         
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="Layer"><span class="type-signature"></span>new Layer<span class="signature">(id, active)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Layer"><span class="type-signature"></span>new Layer<span class="signature">(layerId, active)</span><span class="type-signature"></span></h4>
     
 
     
@@ -86,7 +86,49 @@
 
         <tr>
             
-                <td class="name"><code>id</code></td>
+                <td class="name"><code>layerId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">LayerId</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>MapMinerId</code></td>
             
 
             <td class="type">
@@ -102,7 +144,37 @@
 
             
 
-            <td class="description last">The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).</td>
+            <td class="description last">The MapMiner used to collect the features from this layer</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>FeatureName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Feature's name as reported by the backend</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -166,7 +238,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line18">line 18</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line20">line 20</a>
     </li></ul></dd>
     
 
@@ -258,7 +330,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line44">line 44</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line52">line 52</a>
     </li></ul></dd>
     
 
@@ -325,7 +397,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line58">line 58</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line66">line 66</a>
     </li></ul></dd>
     
 
@@ -348,15 +420,238 @@
 
         
             
-<h4 class="name" id="id"><span class="type-signature"></span>id<span class="type-signature"></span></h4>
+<h4 class="name" id="layerId"><span class="type-signature"></span>layerId<span class="type-signature"></span></h4>
 
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>layerId.MapMinerId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The MapMiner used to collect the features from this layer</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>layerId.FeatureName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Feature's name as reported by the backend</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".createLayerId"><span class="type-signature">(static) </span>createLayerId<span class="signature">(mapMinerId, featureName)</span><span class="type-signature"> &rarr; {LayerId}</span></h4>
+    
+
+    
 
 
 
 <div class="description">
-    Represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+    Initializes a LayerId Object
 </div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mapMinerId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">MapMiner's Id as reported by the backend</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>featureName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Feature's name as reported by the backend</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -392,7 +687,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line34">line 34</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -408,9 +703,41 @@
 
 
 
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
         
+<div class="param-desc">
+    The object to represent a layer's id
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">LayerId</span>
+
+
+    </dd>
+</dl>
+
     
 
+
+
+
+
+        
     
 
     
@@ -521,7 +848,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line82">line 82</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line106">line 106</a>
     </li></ul></dd>
     
 
@@ -652,7 +979,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line78">line 78</a>
+        <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html">django_website/django_website/static/django_website/scripts/UserSection.js</a>, <a href="django_website_django_website_static_django_website_scripts_UserSection.js.html#line102">line 102</a>
     </li></ul></dd>
     
 
@@ -698,7 +1025,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jul 18 2018 19:34:14 GMT-0300 (Hora oficial do Brasil)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Jul 19 2018 16:37:18 GMT-0300 (Hora oficial do Brasil)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -12,28 +12,36 @@
  * with all the features collapsed into a single list.
  * Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)
  * related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)
- * @param {string} id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+ * @param {LayerId} layerId
+ * @param {string} layerId.MapMinerId - The MapMiner used to collect the features from this layer
+ * @param {string} layerId.FeatureName - Feature's name as reported by the backend
  * @param {bool} active - Indicates if this layers is currently active (e.g. drawed over the map)
  */
 class Layer extends Subject
 {
 
-    constructor(id, active)
+    constructor(layerId, active)
     {
         super();
 
-        this._id = id;
+        if (!(layerId.MapMinerId && layerId.FeatureName))
+        {
+            throw new Error("Invalid layerId, it should have 'MapMinerId' and 'FeatureName' fields.");
+        }
+
+        this._layerId = layerId;
         this._featureCollection = null;
         this._active = !!active;
     }
     get active() { return this._active; }
 
     /** 
-     * Represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
+     * @param {LayerId} layerId - The LayerId object representing the MapMinerId and FeatureName displayed in this layer
+     * @property {string} layerId.MapMinerId - The MapMiner used to collect the features from this layer
+     * @property {string} layerId.FeatureName - Feature's name as reported by the backend
      */
-    get id() { return this._id; }
+    get layerId() { return this._layerId; }
 
-    
     get featureCollection() { return this._featureCollection; }
 
     /**
@@ -73,6 +81,31 @@ class Layer extends Subject
             Layer.notify('featurecollectionchange', this);
         }
     }
+}
+
+class LayerId
+{
+    constructor(mapMinerId, featureName)
+    {
+        this.MapMinerId = mapMinerId;
+        this.FeatureName = featureName;
+    }
+
+    toString()
+    {
+        return this.MapMinerId + " - " + this.FeatureName;
+    }
+}
+
+/**
+ * Initializes a LayerId Object
+ * @param {string} mapMinerId - MapMiner's Id as reported by the backend
+ * @param {string} featureName - Feature's name as reported by the backend
+ * @returns {LayerId} The object to represent a layer's id
+ */
+Layer.createLayerId = function (mapMinerId, featureName)
+{
+    return new LayerId(mapMinerId, featureName);
 }
 
 /** Triggered when a new set of features is assined to the [featureCollection]{@link module:UserSection~Layer#featureCollection} member.
@@ -119,18 +152,18 @@ class Region extends Subject
     * @param {string} id - Layer's identifier 
     * @fires [addlayer]{@link module:UserSection~Region#addlayer}
     */
-    createLayer(id)
+    createLayer(layerId)
     {
-        if (!(id in this._layers))
+        if (!this.getLayerById(layerId))
         {
-            let newLayer = new Layer(id, this.active);
-            this._layers[id] = newLayer;
+            let newLayer = new Layer(layerId, this.active);
+            this._layers[layerId.toString()] = newLayer;
             Region.notify('addlayer', newLayer);
             return newLayer;
         }
         else
         {
-            throw Error(`id: '${id}' already present in layers list!`);
+            throw Error(`layerId.MapMinerId: '${layerId.MapMinerId}' with FeatureName: '${layerId.FeatureName}' already present in layers list of this region (${this.name})!`);
         }
     }
 
@@ -156,7 +189,18 @@ class Region extends Subject
 
     
     get layers() { return this._layers; }
-    getLayerById(id) { return this._layers[id]; }
+    getLayerById(id) 
+    {
+        for (const layerIdx in this._layers)
+        {
+            const layer = this._layers[layerIdx];
+            if (layer.MapMinerId === id.MapMinerId && layer.FeatureName === id.FeatureName)
+            {
+                return layer;
+            }
+        }
+        return null;
+    }
 
     get active() { return this._active; }
 
@@ -191,10 +235,7 @@ class Region extends Subject
 *  Triggered when a new [Layer]{@link module:UserSection~Layer} is created (through [createLayer]{@link module:UserSection~Region#createLayer}) in this region
 * @event module:UserSection~Region#addlayer
 * @type {Layer}
-* @property {Layer} layer - The new layer object
-* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
-* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
-* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+* @See [Layer]{@link module:UserSection~Layer}
 */
 //Singleton approach
 if (!Region.init) {
@@ -236,7 +277,7 @@ class UserSection extends Subject
         this._featuresByLayerId = {};
         
         Layer.on('featurecollectionchange', function (layer) {
-            this.updateFeatureIndex(layer.id); /* UserSection */
+            this.updateFeatureIndex(layer.layerId.toString()); /* UserSection */
         }, this);
     }
 
@@ -249,8 +290,8 @@ class UserSection extends Subject
     /**
      * Check into the "featuresByLayerId" dictionary if these particular 
      * layer and feature belongs to some active region
-     * @param layerId - The id of the layer
-     * @param featureId - The (numerical) id of the feature
+     * @param {string} layerId - Layer's id
+     * @param {int} featureId - Feature's id
      */
     isFeatureActive(layerId, featureId)
     {
@@ -283,6 +324,22 @@ class UserSection extends Subject
             }
         }
         return activeLayers;
+    }
+
+    /**
+     * Search for all active regions at [UserSection.regions]{@link module:UserSection~UserSection#regions}.
+     * @returns {Region[]} An array of all active regions
+     */
+    getActiveRegions()
+    {
+        let activeRegions = [];
+        for (const regionIdx in this.regions)
+        {
+            const region = this.regions[regionIdx];
+            if (!region.active) continue;
+            activeRegions.push(region);
+        }
+        return activeRegions;
     }
 
     setTarget(regionsDivId)
@@ -365,19 +422,19 @@ class UserSection extends Subject
      * Updates the [featuresByLayerId]{@link module:UserSection~UserSection#featuresByLayerId} member.
      * If MultiLineString Features (e.g. streets) from different layers are merged together this method
      * triggers an [featuresmerged]{@link module:UserSection~UserSection.featuresmerged} event.
-     * @param {string} layerId - The id of the layer with untracked features
+     * @param {string} layerIdStr - The id of the layer with untracked features. See [LayerId.toString]{@link module:UserSection~LayerId.toString}.
      * @fires module:UserSection~UserSection.featuresmerged
      */
-    updateFeatureIndex(layerId)
+    updateFeatureIndex(layerIdStr)
     {
         for (let regionIdx in this.regions)
         {
             let triggerFeaturesMerged = false;
             let region = this.regions[regionIdx];
-            let layer = region.layers[layerId];
+            let layer = region.layers[layerIdStr];
             if (!layer || !layer.featureCollection) continue;
-            let featureRegionsIndex = this._featuresByLayerId[layerId];
-            if (!featureRegionsIndex) featureRegionsIndex = this._featuresByLayerId[layerId] = {};
+            let featureRegionsIndex = this._featuresByLayerId[layerIdStr];
+            if (!featureRegionsIndex) featureRegionsIndex = this._featuresByLayerId[layerIdStr] = {};
             for (let featureIdx in layer.featureCollection.features)
             {
                 let feature = layer.featureCollection.features[featureIdx];
@@ -525,10 +582,7 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2)
 * Triggered when MultiLineString Features are joined together
 * @event module:UserSection~UserSection.featuresmerged
 * @type {Layer}
-* @property {Layer} layer - The new layer object
-* @property {boolean} layer.active - Indicates if this layers is currently active (e.g. drawed over the map)
-* @property {string} layer.id - The id is represented by the Map Miner concatenated with the Geographic Feature Type by an underscore (e.g. OSMMiner_Streets).
-* @property {string} layer.featureCollection - Represents all the geographical features (e.g. Streets) in this layer
+* @property {Layer} layer - See [Layer]{module:UserSection~Layer}
 */
 if (!UserSection.init) {
     UserSection.init = true;

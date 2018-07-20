@@ -15,7 +15,7 @@ import geojson
 from geojson import Polygon, Feature, FeatureCollection
 
 from django_website.Managers.MapMinerManager import MapMinerManager
-from django_website.Managers.ImageMinerManager import ImageMinerManager
+from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
 
 from django_website.Primitives import *
@@ -33,7 +33,7 @@ def __merge_two_dicts(x, y):
     return z
 
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
-imageMinerManager = ImageMinerManager()
+imageProviderManager = ImageProviderManager()
 mapMinerManager = MapMinerManager()
 ##############GLOBALS####################
 
@@ -54,8 +54,8 @@ def getavailablemapminers(request):
     return JsonResponse(ret)
 
 @api_view(['GET'])
-def getavailableimageminers(request):
-    ret = imageMinerManager.getAvailableImageMiners()
+def getimageproviders(request):
+    ret = imageProviderManager.getAvailableImageProviders()
     return JsonResponse(ret)
 
 
@@ -76,7 +76,7 @@ def getimagesforfeaturecollection(request):
     imageMinerName = jsondata['imageMinerName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
     ret = {}
-    ret['featureCollection'] = imageMinerManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    ret['featureCollection'] = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
     ret['regionId'] = jsondata['regionId'];
     ret['layerId'] = jsondata['layerId'];
     return JsonResponse(ret)
@@ -100,9 +100,9 @@ def integrationTest(request):
     elif request.method == 'POST':
         jsondata = request.data
         location = jsondata['location']
-        imageMinerManager = ImageMinerManager()
+        imageProviderManager = ImageProviderManager()
         cLoc = location
-        d = imageMinerManager.ImageMiners['Google Street View'].getImageFromLocation(cLoc)
+        d = imageProviderManager.ImageMiners['Google Street View'].getImageFromLocation(cLoc)
 
         imageFilterManager = ImageFilterManager()
         e = imageFilterManager.ImageFilters['Greenery'].processImage(d)

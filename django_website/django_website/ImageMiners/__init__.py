@@ -1,2 +1,0 @@
-from .ImageMiner import ImageMiner
-from .GoogleStreetViewMiner import GoogleStreetViewMiner

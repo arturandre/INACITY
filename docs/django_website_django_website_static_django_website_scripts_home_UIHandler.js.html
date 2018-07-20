@@ -1,4 +1,32 @@
-﻿/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: django_website/django_website/static/django_website/scripts/home/UIHandler.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: django_website/django_website/static/django_website/scripts/home/UIHandler.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>﻿/**
 * Responsible for keeping the state of the UI
 * @module "UIHandler.js"
 */
@@ -15,13 +43,13 @@
  */
 class UIHandler {
     constructor() {
-        this.jqimageProviderDiv = $(`#imageProviderDiv`);
-        this.jqmapMinerDiv = $(`#mapMinerDiv`);
-        this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
-        this.jqbtnCollectImages = $(`#btnCollectImages`);
-        this.jqbtnImageProvider = $(`#btnImageProvider`);        
-        this.jqbtnMapMiner = $(`#btnMapMiner`);
-        this.jqbtnMapFeature = $(`#btnMapFeature`);
+        this.imageProviderDiv = $(`#imageProviderDiv`);
+        this.mapMinerDiv = $(`#mapMinerDiv`);
+        this.mapFeatureDiv = $(`#mapFeatureDiv`);
+        this.btnCollectImages = $(`#btnCollectImages`);
+        this.btnImageProvider = $(`#btnImageProvider`);        
+        this.btnMapMiner = $(`#btnMapMiner`);
+        this.btnMapFeature = $(`#btnMapFeature`);
 
         this._SelectedMapMiner = null;
         this._SelectedMapFeature = null;
@@ -34,23 +62,22 @@ class UIHandler {
         this.populateMapMinersAndFeaturesDivs();
 
 
-        this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
-        this.jqbtnExecuteQuery.on("click", this.executeQuery.bind(this));
-        this.jqbtnClearSelections = $(`#btnClearSelections`);
-        this.jqbtnClearSelections.on("click", this.clearSelections.bind(this));
+        this.btnExecuteQuery = $(`#btnExecuteQuery`);
+        this.btnClearSelections = $(`#btnClearSelections`);
+        this.btnClearSelections.on("click", this.clearSelections.bind(this));
     }
 
     set SelectedMapMiner(mapMinerId) {
         this._SelectedMapMiner = mapMinerId;
 
-        this.jqbtnExecuteQuery.removeClass("hidden");
-        this.jqbtnClearSelections.removeClass("hidden");
-        this.jqbtnMapMiner.addClass("btn-success");
-        this.jqbtnMapMiner.removeClass("btn-secondary");
+        this.btnExecuteQuery.removeClass("hidden");
+        this.btnClearSelections.removeClass("hidden");
+        this.btnMapMiner.addClass("btn-success");
+        this.btnMapMiner.removeClass("btn-secondary");
 
         let mapMiner = this._mapMinersAndFeatures[mapMinerId];
 
-        this.jqbtnMapMiner.html(mapMiner.name);
+        this.btnMapMiner.html(mapMiner.name);
 
         if (!this.SelectedMapFeature)
         {
@@ -65,13 +92,13 @@ class UIHandler {
     set SelectedMapFeature(mapFeatureName) {
         this._SelectedMapFeature = mapFeatureName;
 
-        this.jqbtnClearSelections.removeClass("hidden");
-        this.jqbtnExecuteQuery.removeClass("hidden");
+        this.btnClearSelections.removeClass("hidden");
+        this.btnExecuteQuery.removeClass("hidden");
 
-        this.jqbtnMapFeature.addClass("btn-success");
-        this.jqbtnMapFeature.removeClass("btn-secondary");
+        this.btnMapFeature.addClass("btn-success");
+        this.btnMapFeature.removeClass("btn-secondary");
 
-        this.jqbtnMapFeature.html(mapFeatureName);
+        this.btnMapFeature.html(mapFeatureName);
 
         if (!this.SelectedMapMiner)
         {
@@ -82,21 +109,21 @@ class UIHandler {
     set SelectedImageProvider(imageProviderId) {
         this._SelectedImageProvider = imageProviderId;
 
-        this.jqbtnCollectImages.removeClass("hidden");
-        this.jqbtnImageProvider.addClass("btn-success");
-        this.jqbtnImageProvider.removeClass("btn-secondary");
+        this.btnCollectImages.removeClass("hidden");
+        this.btnImageProvider.addClass("btn-success");
+        this.btnImageProvider.removeClass("btn-secondary");
 
-        this.jqbtnImageProvider.html(this._imageProviders[imageProviderId].name);
+        this.btnImageProvider.html(this._imageProviders[imageProviderId].name);
 
 
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
-    get SelectedMapFeature() { return this._SelectedMapFeature; }
-    get SelectedImageProvider() { return this._SelectedImageProvider; }
+    get SelectedMapFeature() { this._SelectedMapFeature; }
+    get SelectedImageProvider() { this._SelectedImageProvider; }
 
     /**
-     * Creates an anchor button (<a href...>)
+     * Creates an anchor button (&lt;a href...>)
      * @param {string} label - The button title
      * @param {object} optValue - The parameter to be used for the click handler
      * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
@@ -120,68 +147,18 @@ class UIHandler {
         this._SelectedMapMiner = null;
 
         //Execution buttons
-        this.jqbtnClearSelections.addClass("hidden");
-        this.jqbtnExecuteQuery.addClass("hidden");
+        this.btnClearSelections.addClass("hidden");
+        this.btnExecuteQuery.addClass("hidden");
 
         //Selection buttons
-        this.jqbtnMapMiner.html("Map Miner");
-        this.jqbtnMapFeature.html("Feature");
-        this.jqbtnMapMiner.addClass("btn-secondary");
-        this.jqbtnMapFeature.addClass("btn-secondary");
-        this.jqbtnMapMiner.removeClass("btn-success");
-        this.jqbtnMapFeature.removeClass("btn-success");
+        this.btnMapMiner.html("Map Miner");
+        this.btnMapFeature.html("Feature");
+        this.btnMapMiner.addClass("btn-secondary");
+        this.btnMapFeature.addClass("btn-secondary");
+        this.btnMapMiner.removeClass("btn-success");
+        this.btnMapFeature.removeClass("btn-success");
 
         this.populateMapMinersAndFeaturesDivs();
-    }
-
-    /**
-     * Update the hints over the GetImages button
-     * @param {LayerId} - See [layerId]{@link module:UserSection~Layer.layerId}
-     */
-    //setHintLayers(layerId){
-    //    //let aux = layerId.split('_');
-    //    let mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;//availableMapMiners[aux[0]].name;
-    //    let featureName = layerId.FeatureName;//aux[1];
-    //    let hintLayer = `${mapMinerName} - ${featureName}`;
-    //    if (hintLayers.indexOf(hintLayer) < 0)
-    //    {
-    //        hintLayers.push(hintLayer);
-    //    }
-    //}
-
-
-    updateLayersHintList() {
-        let hintLayers = [];
-    
-        //Set active layers list tooltip
-        let activeRegions = usersection.getActiveRegions();
-        for (let regionIdx in activeRegions) {
-
-            let region = activeRegions[regionIdx];
-            //globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-            for (const layerIdx in region.layers)
-            {
-                const layer = region.layers[layerIdx];
-                const layerId = layer.layerId;
-                //this.setHintLayers(layer.layerId);
-                const mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;//availableMapMiners[aux[0]].name;
-                const featureName = layerId.FeatureName;//aux[1];
-                let hintLayer = `${mapMinerName} - ${featureName}`;
-                if (hintLayers.indexOf(hintLayer) < 0)
-                {
-                    hintLayers.push(hintLayer);
-                }
-            }
-        }
-        //refreshHintTitle();
-
-        this.jqbtnCollectImages.attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'));
-
-        //function refreshHintTitle()
-        //{
-        //    //Get Images Button
-        //    $('#btnCollectImages').attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'))
-        //}
     }
 
 
@@ -189,87 +166,80 @@ class UIHandler {
      * Function used to collect map features, from the server,
      * based on [UIHandler.SelectedMapMiner]{@link module:"UIHandler.js"~UIHandler.SelectedMapMiner}
      * and [UIHandler.SelectedMapFeature]{@link module:"UIHandler.js"~UIHandler.SelectedMapFeature}
-     * @param {Event} event - Event object generated by clicking over the 'this.jqbtnExecuteQuery' DOMElement button.
+     * @param {Event} event - Event object generated by clicking over the 'btnExecuteQuery' DOMElement button.
      */
     executeQuery()
     {
-        return new Promise(function(resolve) {
-            let noSelectedRegions = true;
-            let numCalls = 0;
-            try
-            {
-                const olGeoJson  = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-                let activeRegions = usersection.getActiveRegions();
-                if (activeRegions.length > 0)
-                {
-                    //TODO: Decouple this VIEW part from the ajax function
-                    setLoadingText(this.jqbtnExecuteQuery);
+        let noSelectedRegions = true;
+        let numCalls = 0;
+        try
+        {
+            setLoadingText(btnExecuteQuery);
+
+            let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        
+            for (let regionIdx in usersection.regions) {
+                let region = usersection.getRegionById(regionIdx);
+
+                if (!region.active) continue;
+                let layerId = selectedMapMiner + "_" + selectedMapFeature;
+                let layer = region.getLayerById(layerId);
+                if (layer) continue;
+                layer = region.createLayer(layerId);
+
+
+                numCalls = numCalls + 1;
+                noSelectedRegions = false;
+
+                if (_UIHandler.SelectedMapMiner === null) {
+                    alert("Please, select a Map Miner to continue.");
+                    unsetLoadingText(btnExecuteQuery);
+                    return;
                 }
-            
-                for (let regionIdx in activeRegions) {
+                if (_UIHandler.SelectedMapFeature === null) {
+                    alert("Please, select a Feature to continue.");
+                    unsetLoadingText(btnExecuteQuery);
+                    return;
+                }
 
-                    let region = activeRegions[regionIdx];
-                    let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
-                    let layer = region.getLayerById(layerId.toString());
-                    //If layer aleready exists in this region it means that no further request is needed
-                    if (layer) continue;
-                
-                    layer = region.createLayer(layerId);
-                    numCalls = numCalls + 1;
-                    noSelectedRegions = false;
+                let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
 
-                    if (this.SelectedMapMiner === null) {
-                        alert("Please, select a Map Miner to continue.");
-                        unsetLoadingText(this.jqbtnExecuteQuery);
-                        return;
+                geoJsonFeatures.crs = {
+                    "type": "name",
+                    "properties": {
+                        "name": "EPSG:4326"
                     }
-                    if (_UIHandler.SelectedMapFeature === null) {
-                        alert("Please, select a Feature to continue.");
-                        unsetLoadingText(this.jqbtnExecuteQuery);
-                        return;
+                };
+                getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+                .then(function(data){
+                    layer.featureCollection = data;
+                    numCalls = numCalls - 1;
+                    if (numCalls == 0)
+                    {
+                        unsetLoadingText(btnExecuteQuery);
                     }
-
-                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
-
-                    geoJsonFeatures.crs = {
-                        "type": "name",
-                        "properties": {
-                            "name": "EPSG:4326"
-                        }
-                    };
-                    getMapMinerFeatures(region, this.SelectedMapMiner, this.SelectedMapFeature, geoJsonFeatures)
-                    .then(function(data){
-                        layer.featureCollection = data;
-                        numCalls = numCalls - 1;
-                        if (numCalls == 0)
-                        {
-                            unsetLoadingText(this.jqbtnExecuteQuery);
-                            resolve();
-                        }
-                    }.bind(this))
-                    .catch(function (err) {
-                        defaultAjaxErrorHandler('executeQuery', "error", err);
-                    });
-                }
-
-                if (noSelectedRegions) {
-                    alert("No region selected. Please, select a region to make a request.")
-                }
+                })
+                .catch(function (err) {
+                    defaultAjaxErrorHandler('executeQuery', "error", err);
+                });
             }
-            catch(err)
-            {
-                unsetLoadingText(this.jqbtnExecuteQuery);
-                defaultAjaxErrorHandler('executeQuery', null, err);
+
+            if (noSelectedRegions) {
+                alert("No region selected. Please, select a region to make a request.")
             }
-        }.bind(this));
+        }
+        catch(err)
+        {
+            unsetLoadingText(btnExecuteQuery);
+            defaultAjaxErrorHandler('executeQuery', null, err);
+        }
     }
 
     //#region Image Provider
     
     /**
      * Get the image providers available from the server and
-     * creates <a> buttons at the "imageProviderDiv" DOMElement
-     * @TODO: Set default image provider out of this function
+     * creates &lt;a> buttons at the "imageProviderDiv" DOMElement
      */
     populateImageProviderDiv() {
         if (this._imageProviders.length === 0)
@@ -278,9 +248,6 @@ class UIHandler {
             .then((imageProviders) => {
                 this._imageProviders = imageProviders;
                 this._fillImageProviderDiv();
-
-                //TODO: Set this as a default (not hardcoded)
-                this.changeImageProviderClick("gsvProvider");
             })
         .catch((error) => console.error(error));
         }
@@ -321,11 +288,11 @@ class UIHandler {
      */
     _fillImageProviderDiv()
     {
-        this.jqimageProviderDiv.empty();
+        this.imageProviderDiv.empty();
         for (const imageProviderIdx in this._imageProviders) {
             let imageProviderName = this._imageProviders[imageProviderIdx].name;
             let btnImageProvider = this.create_dropDown_aButton(imageProviderName, imageProviderIdx, this.changeImageProviderClick);
-            this.jqimageProviderDiv.append(btnImageProvider);
+            this.imageProviderDiv.append(btnImageProvider);
         }
     }
 
@@ -344,7 +311,7 @@ class UIHandler {
 
     /**
      * Get the map miners and its respective features from the server and
-     * creates <a> buttons at the "mapMinerDiv" and "mapFeatureDiv" DOMElements
+     * creates &lt;a> buttons at the "mapMinerDiv" and "mapFeatureDiv" DOMElements
      */
     populateMapMinersAndFeaturesDivs() {
         
@@ -395,17 +362,17 @@ class UIHandler {
     _fillMapMinersAndFeaturesDiv()
     {
         let currentMapFeatures = [];
-        this.jqmapMinerDiv.empty();
-        this.jqmapFeatureDiv.empty();
+        this.mapMinerDiv.empty();
+        this.mapFeatureDiv.empty();
         for (const mapMinerId in this._mapMinersAndFeatures) {
             const mapMiner = this._mapMinersAndFeatures[mapMinerId];
             const btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerId, this.changeMapMiner);
-            this.jqmapMinerDiv.append(btnMapMiner);
+            this.mapMinerDiv.append(btnMapMiner);
             for (const featureIdx in mapMiner.features) {
                 let featureName = mapMiner.features[featureIdx];
                 if (currentMapFeatures.indexOf(featureName) !== -1) continue;
                 let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
-                this.jqmapFeatureDiv.append(mapFeature);
+                this.mapFeatureDiv.append(mapFeature);
             }
         }
     }
@@ -432,13 +399,13 @@ class UIHandler {
      * @param {string} FeatureName - The name of the feature as reported by the backend
      */
     filterMinersByFeatureName(FeatureName) {
-        this.jqmapMinerDiv.empty();
+        this.mapMinerDiv.empty();
         let currentMapMiners = [];
         for (const mapMinerIdx in this._mapMinersAndFeatures) {
             let mapMiner = this._mapMinersAndFeatures[mapMinerIdx];
             if (mapMiner.features.indexOf(FeatureName) != -1) {
                 let btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerIdx, this.changeMapMiner);
-                this.jqmapMinerDiv.append(btnMapMiner);
+                this.mapMinerDiv.append(btnMapMiner);
                 currentMapMiners.push(mapMinerIdx);
             }
         }
@@ -456,11 +423,11 @@ class UIHandler {
      * @param {string[]} mapMiner.features - The features' names contained by this MapMiner
      */
     filterFeaturesByMapMiner(mapMiner) {
-        this.jqmapFeatureDiv.empty();
+        this.mapFeatureDiv.empty();
         for (const featureIdx in mapMiner.features) {
             let featureName = mapMiner.features[featureIdx];
             let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
-            this.jqmapFeatureDiv.append(mapFeature);
+            this.mapFeatureDiv.append(mapFeature);
         }
     }
 
@@ -469,3 +436,26 @@ class UIHandler {
 
 
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_home.js_.html">"home.js"</a></li><li><a href="module-_UIHandler.js_.html">"UIHandler.js"</a></li><li><a href="module-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-node_routes_index.html">node/routes/index</a></li><li><a href="module-Observer.html">Observer</a></li><li><a href="module-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-UserSection.html">UserSection</a></li></ul><h3>Classes</h3><ul><li><a href="module-_UIHandler.js_-UIHandler.html">UIHandler</a></li><li><a href="module-GeoImageManager-GeoImageManager.html">GeoImageManager</a></li><li><a href="module-Observer-Subject.html">Subject</a></li><li><a href="module-OpenLayersHandler-OpenLayersHandler.html">OpenLayersHandler</a></li><li><a href="module-StreetViewPanoramaData-gsvSize.html">gsvSize</a></li><li><a href="module-StreetViewPanoramaData-LatLng.html">LatLng</a></li><li><a href="module-StreetViewPanoramaData-Link.html">Link</a></li><li><a href="module-StreetViewPanoramaData-StreetViewPanoramaData.html">StreetViewPanoramaData</a></li><li><a href="module-StreetViewPanoramaData-Tile.html">Tile</a></li><li><a href="module-StreetViewPanoramaData-Time.html">Time</a></li><li><a href="module-UserSection-FeatureRegions.html">FeatureRegions</a></li><li><a href="module-UserSection-Layer.html">Layer</a></li><li><a href="module-UserSection-Region.html">Region</a></li><li><a href="module-UserSection-UserSection.html">UserSection</a></li></ul><h3>Events</h3><ul><li><a href="module-GeoImageManager-GeoImageManager.html#.event:geoimagescollectionchanged">geoimagescollectionchanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:imagechanged">imagechanged</a></li><li><a href="module-GeoImageManager-GeoImageManager.html#.event:invalidcollection">invalidcollection</a></li><li><a href="module-UserSection-Layer.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Layer.html#event:featurecollectionchange">featurecollectionchange</a></li><li><a href="module-UserSection-Region.html#event:activechange">activechange</a></li><li><a href="module-UserSection-Region.html#event:addlayer">addlayer</a></li><li><a href="module-UserSection-UserSection.html#.event:featuresmerged">featuresmerged</a></li><li><a href="module-UserSection-UserSection.html#.event:regionlistitemclick">regionlistitemclick</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Jul 19 2018 10:03:16 GMT-0300 (Hora oficial do Brasil)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

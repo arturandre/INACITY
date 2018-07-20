@@ -180,13 +180,14 @@ $(document).ready(function () {
 
     initializeOpenLayers();
 
-    initializeUserSection();
 
     initializeGeoImageManager();
 
-    getServerParameters();
+    //getServerParameters();
 
     initializeUIHandler();
+
+    initializeUserSection();
 
     populateMapProviderDiv();
 
@@ -198,7 +199,6 @@ $(document).ready(function () {
 function initializeUIHandler()
 {
     _UIHandler = new UIHandler();
-
 }
 
 function initializeGeoImageManager()
@@ -240,39 +240,14 @@ function initializeUserSection()
 
     /*UserSection Event Handlers*/
     /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
-    UserSection.on('regionlistitemclick', updateLayersHintList);
+    UserSection.on('regionlistitemclick', _UIHandler.updateLayersHintList, _UIHandler);
     UserSection.on('featuresmerged', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
     
-    Layer.on('featurecollectionchange', updateLayersHintList);
+    Layer.on('featurecollectionchange', _UIHandler.updateLayersHintList, _UIHandler);
     Layer.on('featurecollectionchange', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
 }
 
-/**
- * Auxiliar function to populate field's based on server retrieved parameters
- */
-function getServerParameters()
-{
-    /* Fields population */
-    $.get(
-            "/getavailablemapminers/",
-            null,
-            function (data, textStatus, jqXHR) {
-                availableMapMiners = data;
-                setAvailableMapMinersAndFeatures();
-            },
-            "json"
-            );
-    $.get(
-            "/getavailableimageminers/",
-            null,
-            function (data, textStatus, jqXHR) {
-                //availableImageMiners = data;
-                _UIHandler.populateImageProviderDiv(data);
-                //setAvailableImageMiners();
-            },
-            "json"
-            );
-}
+
 
 /**
  * Used to set default options such default drawing mode, map tiles provider, etc.
@@ -285,12 +260,12 @@ function setDefaults()
     * Tiles provider - Google maps road and satellite
     * Focus mode - Image mode
     * Box drawing tool
+    * Google Street View Image Provider
     */
     openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
     changeShapeClick('Box', document.getElementById("btnBox"));
-
 }
 
 //#endregion Initializer functions
@@ -299,6 +274,8 @@ function setDefaults()
 
 function getImages(event)
 {
+    
+
     let btnCollectImages = getClickedElement(event);
     let noLayers = true;
 
@@ -311,52 +288,69 @@ function getImages(event)
         for (const regionIdx in usersection.regions)
         {
             let region = usersection.regions[regionIdx];
-            for (const layerIdx in region.layers)
-            {
-                let layer = region.layers[layerIdx];
-                if (!layer.active) continue;
-                numCalls += 1;
-                noLayers = false;
-                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                //@todo: Warn user about the skipped layers
-                if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
-                $.ajax('/getimagesforfeaturecollection/',
+
+            let proceed = function (){
+                for (const layerIdx in region.layers)
                 {
-                    method: 'POST',
-                    processData: false,
-                    data: JSON.stringify({
-                        'imageMinerName': selectedImageProvider,
-                        'featureCollection': JSON.stringify(layer.featureCollection),
-                        'regionId': regionIdx,
-                        'layerId': layerIdx
-                    }),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: 'json',
-                    context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
-                    success: function (data, textStatus, jqXHR) {
-                        usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
-                        geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
-                        if (geoImageManager.displayFeatures(true))
-                        {
-                            autoPlayGeoImages(1); //Play
-                        }
-                    },
-                    error: function ( jqXHR, textStatus, errorThrown) 
+                    let layer = region.layers[layerIdx];
+                    if (!layer.active) continue;
+                    numCalls += 1;
+                    noLayers = false;
+                    //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                    //@todo: Warn user about the skipped layers
+                    if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
+                    $.ajax('/getimagesforfeaturecollection/',
                     {
-                        defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
-                    },
-                    complete: function  (jqXHR, textStatus)
-                    {
-                        numCalls -= 1;
-                        if (numCalls == 0)
+                        method: 'POST',
+                        processData: false,
+                        data: JSON.stringify({
+                            'imageMinerName': selectedImageProvider,
+                            'featureCollection': JSON.stringify(layer.featureCollection),
+                            'regionId': regionIdx,
+                            'layerId': layerIdx
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: 'json',
+                        context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
+                        success: function (data, textStatus, jqXHR) {
+                            usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
+                            geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
+                            if (geoImageManager.displayFeatures(true))
+                            {
+                                autoPlayGeoImages(1); //Play
+                            }
+                        },
+                        error: function ( jqXHR, textStatus, errorThrown) 
                         {
-                            unsetLoadingText(btnCollectImages);
-                        }                    
+                            defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
+                        },
+                        complete: function  (jqXHR, textStatus)
+                        {
+                            numCalls -= 1;
+                            if (numCalls == 0)
+                            {
+                                unsetLoadingText(btnCollectImages);
+                            }                    
+                        },
                     },
-                },
-                'json'
-                );
+                    'json'
+                    );
+                }
             }
+
+            //#region TODO: Revise this
+            if (Object.keys(region.layers).length === 0)
+            {
+                _UIHandler.changeMapMiner("osm");
+                _UIHandler.changeMapFeature("Streets");
+                _UIHandler.executeQuery().then(proceed);
+            }
+            else
+            {
+                proceed();
+            }
+            //#endregion TODO: Revise this
+            
         }
     }
     catch(err)
@@ -388,22 +382,12 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data, textStatus, jqXHR) {
-                    //let region = this;
-                    //let layerId = selectedMapMiner + "_" + selectedMapFeature;
-                    //let layer = region.getLayerById(layerId); 
-                    //if (!layer) {
-                    //    layer = region.createLayer(layerId);
-                    //}
-
-                    //Update only if the layer now has more features than before
-                    //if (!layer.featureCollection || layer.featureCollection.features.length < data.features.length) {
-                    //}
                     resolve(data);
                 }.bind(region),
                 error: function ( jqXHR, textStatus, errorThrown) 
                 {
                     defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
-                    reject();
+                    //reject(errorThrown);
                 },
             });
     });
@@ -440,13 +424,6 @@ function populateMapProviderDiv()
         let tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
         mapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider.provider, changeMapProviderClick));
     };
-    //let GMRoadsBtn = create_dropDown_aButton('Google Maps Roads', OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, changeMapProviderClick);
-    //let GMHybridBtn = create_dropDown_aButton('Google Maps Hybrid', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES, changeMapProviderClick);
-    //let OSMBtn = create_dropDown_aButton('OpenStreetMap', OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, changeMapProviderClick);
-
-    //    <a id="btnGoogleMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES, this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
-    //    <a id="btnOSMMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.OSM, this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>
-
 }
 
 
@@ -472,109 +449,7 @@ function updateGeoImgSlider()
     }
 }
 
-function updateLayersHintList() {
-    let hintLayers = [];
-    
-    //Set active layers list tooltip
-    for (const regionId in usersection.regions)
-    {
-        let region = usersection.regions[regionId];
-        globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-        if (region.active)
-        {
-            for (const layerIdx in region.layers)
-            {
-                setHintLayers(layerIdx);
-            }
-        }
-    }
-    refreshHintTitle();
 
-
-    function setHintLayers(layerId){
-        let aux = layerId.split('_');
-        let mapMinerName = availableMapMiners[aux[0]].name;
-        let featureName = aux[1];
-        let hintLayer = `${mapMinerName} - ${featureName}`;
-        if (hintLayers.indexOf(hintLayer) < 0)
-        {
-            hintLayers.push(hintLayer);
-        }
-    }
-
-    function refreshHintTitle()
-    {
-        //Get Images Button
-        $('#btnCollectImages').attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'))
-    }
-}
-
-function selectMapMiner(mapMinerId) {
-    let mapMinerDiv = $(`#mapMinerDiv`);
-    let mapMinerBtn = $(`#mapMinerBtn`);
-    $(`#btnClearSelections`).removeClass("hidden");
-    $(`#btnExecuteQuery`).removeClass("hidden");
-    mapMinerBtn.addClass("btn-success");
-    mapMinerBtn.removeClass("btn-secondary");
-
-    _UIHandler.SelectedMapMiner = mapMinerId;
-    mapMinerBtn.html(availableMapMiners[mapMinerId].name);
-
-    setFeaturesFromMapMiner(availableMapMiners[mapMinerId], true);
-}
-
-function selectMapFeature(mapFeatureName) {
-    let mapFeatureBtn = $(`#mapFeatureBtn`);
-    $(`#btnClearSelections`).removeClass("hidden");
-    $(`#btnExecuteQuery`).removeClass("hidden");
-
-    mapFeatureBtn.addClass("btn-success");
-    mapFeatureBtn.removeClass("btn-secondary");
-
-    _UIHandler.SelectedMapFeature = mapFeatureName;
-    mapFeatureBtn.html(mapFeatureName);
-    setMinersFromFeatures(mapFeatureName);
-}
-
-function setMinersFromFeatures(FeatureName) {
-    let mapMinerDiv = $(`#mapMinerDiv`);
-    mapMinerDiv.empty();
-    for (let mapMinerIdx in availableMapMiners) {
-        if (availableMapMiners[mapMinerIdx].features.indexOf(FeatureName) != -1) {
-            let mapMiner = create_dropDown_aButton(availableMapMiners[mapMinerIdx].name, mapMinerIdx, this.selectMapMiner);
-            mapMinerDiv.append(mapMiner);
-        }
-    }
-}
-
-
-function setFeaturesFromMapMiner(MapMiner, clearFeatures) {
-    //TODO: Remove this way of define default value without warnings
-    if (typeof (clearFeatures) === "undefined") clearFeatures = false;
-
-    let MapMinerFeatures = MapMiner.features;
-
-    let mapFeatureDiv = $(`#mapFeatureDiv`);
-    if (clearFeatures) mapFeatureDiv.empty();
-
-    for (let featureIdx in MapMiner.features) {
-        let featureName = MapMiner.features[featureIdx];
-        let mapFeature = create_dropDown_aButton(featureName, featureName, this.selectMapFeature);
-        mapFeatureDiv.append(mapFeature);
-    }
-}
-
-function setAvailableMapMinersAndFeatures() {
-    let mapMinerDiv = $(`#mapMinerDiv`);
-    let mapFeatureDiv = $(`#mapFeatureDiv`);
-    mapMinerDiv.empty();
-    mapFeatureDiv.empty();
-    for (let mapMinerId in availableMapMiners) {
-        let mapMiner = create_dropDown_aButton(availableMapMiners[mapMinerId].name, mapMinerId, this.selectMapMiner);
-        mapMinerDiv.append(mapMiner);
-        setFeaturesFromMapMiner(availableMapMiners[mapMinerId], false);
-    }
-}
 
 function drawLayer(layer, forceRedraw) {
     if (!layer) { console.warn("Undefined layer!"); return; }
@@ -584,16 +459,16 @@ function drawLayer(layer, forceRedraw) {
     for (let featureIdx in featureCollection.features) {
         let feature = featureCollection.features[featureIdx];
 
-        if (!usersection.isFeatureActive(layer.id, feature.id)) continue;
+        if (!usersection.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
 
-        if (usersection.featuresByLayerId[layer.id][feature.id].drawed){
+        if (usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed){
             if (forceRedraw)
             {
                 let olFeature = globalVectorSource.getFeatureById(feature.id);
                 globalVectorSource.removeFeature(olFeature);
                 olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
                 globalVectorSource.addFeature(olFeature);
-                usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
+                usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
             }
             else
             {
@@ -603,7 +478,7 @@ function drawLayer(layer, forceRedraw) {
         else {
             let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
             globalVectorSource.addFeature(olFeature);
-            usersection.featuresByLayerId[layer.id][feature.id].drawed = true;
+            usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
         }
 
     }
@@ -619,11 +494,11 @@ function removeLayer(layer) {
         Each individual feature needs to be checked because it
         can belong to more than one layer (from differente regions)
         */
-        if (!usersection.featuresByLayerId[layer.id][feature.id].drawed || usersection.isFeatureActive(layer.id, feature.id)) continue;
+        if (!usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || usersection.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
         else {
             let olFeature = globalVectorSource.getFeatureById(feature.id);
             globalVectorSource.removeFeature(olFeature);
-            usersection.featuresByLayerId[layer.id][feature.id].drawed = false;
+            usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
         }
 
     }
@@ -731,27 +606,6 @@ function create_dropDown_aButton(label, optValue, clickHandler) {
     return button;
 }
 
-function clearSelections(event) {
-    let btnClearSelections = getClickedElement(event);
-    btnClearSelections.addClass("hidden");
-    $(`#btnExecuteQuery`).addClass("hidden");
-
-    let mapMinerBtn = $(`#mapMinerBtn`);
-    let mapFeatureBtn = $(`#mapFeatureBtn`);
-    mapMinerBtn.html("Map Miner");
-    mapFeatureBtn.html("Feature");
-    mapMinerBtn.addClass("btn-secondary");
-    mapFeatureBtn.addClass("btn-secondary");
-    mapMinerBtn.removeClass("btn-success");
-    mapFeatureBtn.removeClass("btn-success");
-
-
-
-    _UIHandler.SelectedMapMiner = null;
-    _UIHandler.SelectedMapFeature = null;
-    setAvailableMapMinersAndFeatures();
-}
-
 //#endregion UI Auxiliary Functions
 
 //#region Event Handlers
@@ -770,86 +624,7 @@ function imageSliderChange(value)
     }
 }
 
-/**
- * Function used to collect map features, from the server,
- * based on [UIHandler.SelectedMapMiner]{@link module:"UIHandler.js"~UIHandler.SelectedMapMiner}
- * and [UIHandler.SelectedMapFeature]{@link module:"UIHandler.js"~UIHandler.SelectedMapFeature}
- * @param {Event} event - Event object generated by clicking over the 'btnExecuteQuery' DOMElement button.
- */
-function executeQuery(event) {
-    let btnExecuteQuery = getClickedElement(event);
-    
-    /* To avoid race conditions during the ajax call */
-    let selectedMapMiner = _UIHandler.SelectedMapMiner;
-    let selectedMapFeature = _UIHandler.SelectedMapFeature;
 
-    let noSelectedRegions = true;
-    let numCalls = 0;
-    try
-    {
-        setLoadingText(btnExecuteQuery);
-
-        let olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-        
-        for (let regionIdx in usersection.regions) {
-            let region = usersection.getRegionById(regionIdx);
-
-            if (!region.active) continue;
-            let layerId = selectedMapMiner + "_" + selectedMapFeature;
-            let layer = region.getLayerById(layerId);
-            if (layer) continue;
-            layer = region.createLayer(layerId);
-
-
-            numCalls = numCalls + 1;
-            noSelectedRegions = false;
-
-            if (_UIHandler.SelectedMapMiner === null) {
-                alert("Please, select a Map Miner to continue.");
-                unsetLoadingText(btnExecuteQuery);
-                return;
-            }
-            if (_UIHandler.SelectedMapFeature === null) {
-                alert("Please, select a Feature to continue.");
-                unsetLoadingText(btnExecuteQuery);
-                return;
-            }
-        
-            
-
-
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
-
-            geoJsonFeatures.crs = {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            };
-            getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
-            .then(function(data){
-                layer.featureCollection = data;
-                numCalls = numCalls - 1;
-                if (numCalls == 0)
-                {
-                    unsetLoadingText(btnExecuteQuery);
-                }
-            })
-            .catch(function (err) {
-                defaultAjaxErrorHandler('executeQuery', "error", err);
-            });
-        }
-
-        if (noSelectedRegions) {
-            alert("No region selected. Please, select a region to make a request.")
-        }
-    }
-    catch(err)
-    {
-        unsetLoadingText(btnExecuteQuery);
-        defaultAjaxErrorHandler('executeQuery', null, err);
-    }
-}
 
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
@@ -859,7 +634,9 @@ function updateRegionsList(vectorevent) {
                 let regionId = 'region' + idNumber;
                 vectorevent.feature.setId(regionId);
                 vectorevent.feature.setProperties({ 'type': 'region' });
-                let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, false);
+                let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, true);
+                //TODO: Revise this
+                globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
                 Region.on('activechange', function (region) {
                     globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
                     if (region.active) {
@@ -911,52 +688,56 @@ function changeModeClick(mode, event) {
     }
 }
 
-function changeShapeClick(shapeType, event) {
-    if (!btnElementChecker(event)) return;
+function changeShapeClick(shapeType) {
+    //function changeShapeClick(shapeType, event) {
+    //if (!btnElementChecker(event)) return;
     openLayersHandler.map.removeInteraction(drawInteraction);
     let value = shapeType;
     var geometryFunction;
-    switch (value) {
-        case 'Square':
-            value = 'Circle';
-            geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
-            break;
-        case 'Box':
-            value = 'Circle';
-            geometryFunction = ol.interaction.Draw.createBox();
-            break;
-        case 'Dodecagon':
-            value = 'Circle';
-            geometryFunction = function (coordinates, geometry) {
-                if (!geometry) {
-                    geometry = new ol.geom.Polygon(null);
-                }
-                var center = coordinates[0];
-                var last = coordinates[1];
-                var dx = center[0] - last[0];
-                var dy = center[1] - last[1];
-                var radius = Math.sqrt(dx * dx + dy * dy);
-                var rotation = Math.atan2(dy, dx);
-                var newCoordinates = [];
-                var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i) {
-                    var angle = rotation + i * 2 * Math.PI / numPoints;
-                    var offsetX = radius * Math.cos(angle);
-                    var offsetY = radius * Math.sin(angle);
-                    newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
-                }
-                newCoordinates.push(newCoordinates[0].slice());
-                geometry.setCoordinates([newCoordinates]);
-                return geometry;
-            };
-            break;
+    if (value !== "None")
+    {
+        switch (value) {
+            case 'Square':
+                value = 'Circle';
+                geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+                break;
+            case 'Box':
+                value = 'Circle';
+                geometryFunction = ol.interaction.Draw.createBox();
+                break;
+            case 'Dodecagon':
+                value = 'Circle';
+                geometryFunction = function (coordinates, geometry) {
+                    if (!geometry) {
+                        geometry = new ol.geom.Polygon(null);
+                    }
+                    var center = coordinates[0];
+                    var last = coordinates[1];
+                    var dx = center[0] - last[0];
+                    var dy = center[1] - last[1];
+                    var radius = Math.sqrt(dx * dx + dy * dy);
+                    var rotation = Math.atan2(dy, dx);
+                    var newCoordinates = [];
+                    var numPoints = 12;
+                    for (var i = 0; i < numPoints; ++i) {
+                        var angle = rotation + i * 2 * Math.PI / numPoints;
+                        var offsetX = radius * Math.cos(angle);
+                        var offsetY = radius * Math.sin(angle);
+                        newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
+                    }
+                    newCoordinates.push(newCoordinates[0].slice());
+                    geometry.setCoordinates([newCoordinates]);
+                    return geometry;
+                };
+                break;
+        }
+        drawInteraction = new ol.interaction.Draw({
+            source: globalVectorSource,
+            type: value,
+            geometryFunction: geometryFunction
+        });
+        openLayersHandler.map.addInteraction(drawInteraction);
     }
-    drawInteraction = new ol.interaction.Draw({
-        source: globalVectorSource,
-        type: value,
-        geometryFunction: geometryFunction
-    });
-    openLayersHandler.map.addInteraction(drawInteraction);
 }
 
 
