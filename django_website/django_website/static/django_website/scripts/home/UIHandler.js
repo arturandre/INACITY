@@ -35,7 +35,12 @@ class UIHandler {
 
 
         this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
-        this.jqbtnExecuteQuery.on("click", this.executeQuery.bind(this));
+        this.jqbtnExecuteQuery.on("click", function()
+        {
+            setLoadingText(this.jqbtnExecuteQuery);
+            let unset = (() => unsetLoadingText(this.jqbtnExecuteQuery));
+            this.executeQuery.bind(this)().then(unset, error => { alert(error); unset(); });
+        }.bind(this));
         this.jqbtnClearSelections = $(`#btnClearSelections`);
         this.jqbtnClearSelections.on("click", this.clearSelections.bind(this));
     }
@@ -193,25 +198,20 @@ class UIHandler {
      */
     executeQuery()
     {
-        return new Promise(function(resolve) {
+        return new Promise(function(resolve, reject) {
             let noSelectedRegions = true;
             let numCalls = 0;
             try
             {
                 const olGeoJson  = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
                 let activeRegions = usersection.getActiveRegions();
-                if (activeRegions.length > 0)
-                {
-                    //TODO: Decouple this VIEW part from the ajax function
-                    setLoadingText(this.jqbtnExecuteQuery);
-                }
             
                 for (let regionIdx in activeRegions) {
 
                     let region = activeRegions[regionIdx];
                     let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
                     let layer = region.getLayerById(layerId.toString());
-                    //If layer aleready exists in this region it means that no further request is needed
+                    //If layer already exists in this region it means that no further request is needed
                     if (layer) continue;
                 
                     layer = region.createLayer(layerId);
@@ -219,14 +219,10 @@ class UIHandler {
                     noSelectedRegions = false;
 
                     if (this.SelectedMapMiner === null) {
-                        alert("Please, select a Map Miner to continue.");
-                        unsetLoadingText(this.jqbtnExecuteQuery);
-                        return;
+                        reject("Please, select a Map Miner to continue.");
                     }
                     if (_UIHandler.SelectedMapFeature === null) {
-                        alert("Please, select a Feature to continue.");
-                        unsetLoadingText(this.jqbtnExecuteQuery);
-                        return;
+                        reject("Please, select a Feature to continue.");
                     }
 
                     let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
@@ -243,22 +239,22 @@ class UIHandler {
                         numCalls = numCalls - 1;
                         if (numCalls == 0)
                         {
-                            unsetLoadingText(this.jqbtnExecuteQuery);
                             resolve();
                         }
                     }.bind(this))
                     .catch(function (err) {
+                        //TODO: Set it as a reject
                         defaultAjaxErrorHandler('executeQuery', "error", err);
                     });
                 }
 
                 if (noSelectedRegions) {
-                    alert("No region selected. Please, select a region to make a request.")
+                    reject("No region selected. Please, select a region to make a request.");
                 }
             }
             catch(err)
             {
-                unsetLoadingText(this.jqbtnExecuteQuery);
+                //TODO: Set it as a reject
                 defaultAjaxErrorHandler('executeQuery', null, err);
             }
         }.bind(this));
