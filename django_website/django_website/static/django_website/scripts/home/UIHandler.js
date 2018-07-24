@@ -3,6 +3,36 @@
 * @module "UIHandler.js"
 */
 
+class DrawTool
+{
+    constructor(DrawToolName, geoFunction)
+    {
+        if (DrawTool.isNameValid(DrawToolName))
+        {
+            this.name = DrawToolName;
+            this.geometryFunction = geoFunction;
+        }
+        else
+        {
+            throw Error(`Invalid DrawToolName: ${DrawToolName}`);
+        }
+    }
+}
+
+if (!DrawTool.init)
+{
+    DrawTool.init = true;
+    DrawTool.validNames = 
+        [
+            'Box',
+            'Square',
+            'Dodecagon'
+        ];
+    DrawTool.isNameValid = function (name)
+    {
+        return (DrawTool.validNames.indexOf(name) >= 0);
+    }
+}
 
 
 /**
@@ -14,22 +44,39 @@
  * @param {MapMiner[]} _mapMinersAndFeatures - The collection of Map Miners and its respective features as reported by the backend
  */
 class UIHandler {
-    constructor() {
+    constructor(defaults) {
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqmapMinerDiv = $(`#mapMinerDiv`);
         this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
+        this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
+        this.jqmapProviderDiv = $(`#mapProviderDiv`);
+        
         this.jqbtnCollectImages = $(`#btnCollectImages`);
         this.jqbtnImageProvider = $(`#btnImageProvider`);        
         this.jqbtnMapMiner = $(`#btnMapMiner`);
         this.jqbtnMapFeature = $(`#btnMapFeature`);
 
+        this.jqbtnMapProvider = $(`#btnMapProvider`);
+        
+        this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
+        this.jqbtnShapeSelector = $(`#btnShapeSelector`);
+
         this._SelectedMapMiner = null;
         this._SelectedMapFeature = null;
         this._SelectedImageProvider = null;
 
+        this._SelectedMapProvider = null;
+        
+        this._SelectedDrawTool = null;
+        this._drawInteraction = null;
+
         this._imageProviders = [];
         this._mapMinersAndFeatures = [];
 
+        this.populateShapeDiv();
+        this.populateMapProviderDiv();
+
+        
         this.populateImageProviderDiv();
         this.populateMapMinersAndFeaturesDivs();
 
@@ -43,19 +90,129 @@ class UIHandler {
         }.bind(this));
         this.jqbtnClearSelections = $(`#btnClearSelections`);
         this.jqbtnClearSelections.on("click", this.clearSelections.bind(this));
+        this.jqbtnCancelDrawing.on("click", this.cancelDrawing.bind(this));
+
+        if (defaults) 
+        {
+            this.setDefaults(defaults);
+        }
     }
+
+    setDefaults(defaults)
+    {
+        if (defaults.shape)
+        {
+            this.changeShapeClick(defaults.shape);
+        }
+        if (defaults.tileProvider)
+        {
+            this.changeMapProviderClick(defaults.tileProvider);
+        }
+
+    }
+
+    set SelectedMapProvider(tileProvider)
+    {
+        this._SelectedMapProvider = tileProvider;
+
+        this.setLabelSelectionBtn(this.jqbtnMapProvider, tileProvider.name, false);
+    }
+
+    get SelectedMapProvider() { return this._SelectedMapProvider; }
+
+    set SelectedDrawTool(drawTool)
+    {
+        this._SelectedDrawTool = drawTool;
+        
+        this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
+    }
+
+    populateMapProviderDiv()
+    {
+        for (let tileProviderId in OpenLayersHandler.TileProviders)
+        {
+            const tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
+            this.jqmapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider, this.changeMapProviderClick.bind(this)));
+        };
+    }
+
+    setLabelSelectionBtn(jqselectorButton, label, deselected)
+    {
+        if (deselected)
+        {
+            jqselectorButton.removeClass("btn-success");
+            jqselectorButton.addClass("btn-secondary");
+        }
+        else
+        {
+            jqselectorButton.addClass("btn-success");
+            jqselectorButton.removeClass("btn-secondary");
+        }
+        jqselectorButton.html(label);
+    }
+
+    /**
+    * Handler for changing map tiles.
+    * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
+    * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+    */
+    changeMapProviderClick(tileProvider) {
+        this.SelectedMapProvider = tileProvider;
+        openLayersHandler.changeMapProvider(tileProvider.provider);
+    }
+
+    cancelDrawing()
+    {
+        this._SelectedDrawTool = null;
+
+        if(this._drawInteraction)
+        {
+            openLayersHandler.map.removeInteraction(this._drawInteraction);
+            this._drawInteraction = null;
+        }
+
+        this.setLabelSelectionBtn(this.jqbtnShapeSelector, "Shape", true);
+        
+        this.jqbtnCancelDrawing.addClass("hidden");
+
+    }
+
+    get SelectedDrawTool(){ return this._SelectedDrawTool; }
+
+
+    changeShapeClick(drawTool) {
+        if (!DrawTool.isNameValid(drawTool.name))
+        {
+            throw Error("Invalid DrawTool.");
+        }
+        if (this._drawInteraction)
+        {
+            openLayersHandler.map.removeInteraction(this._drawInteraction);
+        }
+        this.SelectedDrawTool = drawTool;
+
+        
+        this._drawInteraction = new ol.interaction.Draw({
+            source: globalVectorSource,
+            type: 'Circle',
+            geometryFunction: this.SelectedDrawTool.geometryFunction
+        });
+        openLayersHandler.map.addInteraction(this._drawInteraction);
+        
+    }
+
 
     set SelectedMapMiner(mapMinerId) {
         this._SelectedMapMiner = mapMinerId;
 
-        this.jqbtnExecuteQuery.removeClass("hidden");
-        this.jqbtnClearSelections.removeClass("hidden");
-        this.jqbtnMapMiner.addClass("btn-success");
-        this.jqbtnMapMiner.removeClass("btn-secondary");
-
+        
         let mapMiner = this._mapMinersAndFeatures[mapMinerId];
 
-        this.jqbtnMapMiner.html(mapMiner.name);
+        this.jqbtnExecuteQuery.removeClass("hidden");
+        this.jqbtnClearSelections.removeClass("hidden");
+
+        this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
+        
 
         if (!this.SelectedMapFeature)
         {
@@ -73,10 +230,7 @@ class UIHandler {
         this.jqbtnClearSelections.removeClass("hidden");
         this.jqbtnExecuteQuery.removeClass("hidden");
 
-        this.jqbtnMapFeature.addClass("btn-success");
-        this.jqbtnMapFeature.removeClass("btn-secondary");
-
-        this.jqbtnMapFeature.html(mapFeatureName);
+        this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeatureName, false);
 
         if (!this.SelectedMapMiner)
         {
@@ -88,12 +242,8 @@ class UIHandler {
         this._SelectedImageProvider = imageProviderId;
 
         this.jqbtnCollectImages.removeClass("hidden");
-        this.jqbtnImageProvider.addClass("btn-success");
-        this.jqbtnImageProvider.removeClass("btn-secondary");
 
-        this.jqbtnImageProvider.html(this._imageProviders[imageProviderId].name);
-
-
+        this.setLabelSelectionBtn(this.jqbtnImageProvider, this._imageProviders[imageProviderId].name, false);
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
@@ -129,12 +279,8 @@ class UIHandler {
         this.jqbtnExecuteQuery.addClass("hidden");
 
         //Selection buttons
-        this.jqbtnMapMiner.html("Map Miner");
-        this.jqbtnMapFeature.html("Feature");
-        this.jqbtnMapMiner.addClass("btn-secondary");
-        this.jqbtnMapFeature.addClass("btn-secondary");
-        this.jqbtnMapMiner.removeClass("btn-success");
-        this.jqbtnMapFeature.removeClass("btn-success");
+        this.setLabelSelectionBtn(this.jqbtnMapMiner, "Map Miner", true);
+        this.setLabelSelectionBtn(this.jqbtnMapFeature, "Feature", true);
 
         this.populateMapMinersAndFeaturesDivs();
     }
@@ -163,14 +309,12 @@ class UIHandler {
         for (let regionIdx in activeRegions) {
 
             let region = activeRegions[regionIdx];
-            //globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-            for (const layerIdx in region.layers)
+            for (let layerIdx in region.layers)
             {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
-                //this.setHintLayers(layer.layerId);
-                const mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;//availableMapMiners[aux[0]].name;
-                const featureName = layerId.FeatureName;//aux[1];
+                const mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;
+                const featureName = layerId.FeatureName;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
                 if (hintLayers.indexOf(hintLayer) < 0)
                 {
@@ -178,7 +322,6 @@ class UIHandler {
                 }
             }
         }
-        //refreshHintTitle();
 
         this.jqbtnCollectImages.attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'));
 
@@ -262,6 +405,17 @@ class UIHandler {
 
     //#region Image Provider
     
+    populateShapeDiv()
+    {
+        this.jqshapeSelectorDiv.empty();
+        for (let shapeIdx in UIHandler.DrawTools)
+        {
+            const shape = UIHandler.DrawTools[shapeIdx];
+            const btnShape = this.create_dropDown_aButton(shape.name, shape, this.changeShapeClick);
+            this.jqshapeSelectorDiv.append(btnShape);
+        }
+    }
+
     /**
      * Get the image providers available from the server and
      * creates <a> buttons at the "imageProviderDiv" DOMElement
@@ -318,7 +472,7 @@ class UIHandler {
     _fillImageProviderDiv()
     {
         this.jqimageProviderDiv.empty();
-        for (const imageProviderIdx in this._imageProviders) {
+        for (let imageProviderIdx in this._imageProviders) {
             let imageProviderName = this._imageProviders[imageProviderIdx].name;
             let btnImageProvider = this.create_dropDown_aButton(imageProviderName, imageProviderIdx, this.changeImageProviderClick);
             this.jqimageProviderDiv.append(btnImageProvider);
@@ -393,11 +547,11 @@ class UIHandler {
         let currentMapFeatures = [];
         this.jqmapMinerDiv.empty();
         this.jqmapFeatureDiv.empty();
-        for (const mapMinerId in this._mapMinersAndFeatures) {
+        for (let mapMinerId in this._mapMinersAndFeatures) {
             const mapMiner = this._mapMinersAndFeatures[mapMinerId];
             const btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerId, this.changeMapMiner);
             this.jqmapMinerDiv.append(btnMapMiner);
-            for (const featureIdx in mapMiner.features) {
+            for (let featureIdx in mapMiner.features) {
                 let featureName = mapMiner.features[featureIdx];
                 if (currentMapFeatures.indexOf(featureName) !== -1) continue;
                 let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
@@ -430,7 +584,7 @@ class UIHandler {
     filterMinersByFeatureName(FeatureName) {
         this.jqmapMinerDiv.empty();
         let currentMapMiners = [];
-        for (const mapMinerIdx in this._mapMinersAndFeatures) {
+        for (let mapMinerIdx in this._mapMinersAndFeatures) {
             let mapMiner = this._mapMinersAndFeatures[mapMinerIdx];
             if (mapMiner.features.indexOf(FeatureName) != -1) {
                 let btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerIdx, this.changeMapMiner);
@@ -453,7 +607,7 @@ class UIHandler {
      */
     filterFeaturesByMapMiner(mapMiner) {
         this.jqmapFeatureDiv.empty();
-        for (const featureIdx in mapMiner.features) {
+        for (let featureIdx in mapMiner.features) {
             let featureName = mapMiner.features[featureIdx];
             let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
             this.jqmapFeatureDiv.append(mapFeature);
@@ -461,7 +615,51 @@ class UIHandler {
     }
 
     //#endregion Map Miner and Features
-
-
-
 }
+
+if (!UIHandler.init) {
+    UIHandler.init = true;
+
+    /**
+     * Collection of registered tile providers from OpenLayers
+     * @example 
+     * //OpenStreetMaps tile provider
+     * OpenLayersHandler.TileProviders.OSM
+     * @example 
+     * //Google road maps tile provider
+     * OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES
+     * @example 
+     * //Google satelite with road maps tile provider
+     * OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES
+     * @see [OpenLayers Sources]{@link https://github.com/openlayers/openlayers/tree/v5.0.3/src/ol/source}
+     */
+    UIHandler.DrawTools =
+        {
+            Box: new DrawTool('Box', ol.interaction.Draw.createBox()),
+            Square: new DrawTool('Square', ol.interaction.Draw.createRegularPolygon(4)),
+            Dodecagon: new DrawTool('Dodecagon', function (coordinates, geometry) {
+                if (!geometry) {
+                    geometry = new ol.geom.Polygon(null);
+                }
+                var center = coordinates[0];
+                var last = coordinates[1];
+                var dx = center[0] - last[0];
+                var dy = center[1] - last[1];
+                var radius = Math.sqrt(dx * dx + dy * dy);
+                var rotation = Math.atan2(dy, dx);
+                var newCoordinates = [];
+                var numPoints = 12;
+                for (var i = 0; i < numPoints; ++i) {
+                    var angle = rotation + i * 2 * Math.PI / numPoints;
+                    var offsetX = radius * Math.cos(angle);
+                    var offsetY = radius * Math.sin(angle);
+                    newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
+                }
+                newCoordinates.push(newCoordinates[0].slice());
+                geometry.setCoordinates([newCoordinates]);
+                return geometry;
+            }),
+        };
+}
+
+

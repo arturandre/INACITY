@@ -47,7 +47,7 @@ var globalVectorSource = null;
 * @type {ol.interaction.Draw}
 * @see [ol.interaction.Draw]{@link https://openlayers.org/en/latest/apidoc/ol.interaction.Draw.html}
 */
-var drawInteraction = null;
+
 
 /**
 * Usersection variable used to keep the state of objects collected
@@ -189,8 +189,6 @@ $(document).ready(function () {
 
     initializeUserSection();
 
-    populateMapProviderDiv();
-
     setDefaults();
 });
 
@@ -198,7 +196,11 @@ $(document).ready(function () {
 
 function initializeUIHandler()
 {
-    _UIHandler = new UIHandler();
+    _UIHandler = new UIHandler({
+        shape: UIHandler.DrawTools.Box,
+        tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
+        imageProvider: UIHandler.ImageProviders.GSVProvider
+    });
 }
 
 function initializeGeoImageManager()
@@ -265,7 +267,7 @@ function setDefaults()
     openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
-    changeShapeClick('Box', document.getElementById("btnBox"));
+    //changeShapeClick('Box', document.getElementById("btnBox"));
 }
 
 //#endregion Initializer functions
@@ -285,12 +287,12 @@ function getImages(event)
     try
     {
         setLoadingText(btnCollectImages);
-        for (const regionIdx in usersection.regions)
+        for (let regionIdx in usersection.regions)
         {
             let region = usersection.regions[regionIdx];
 
             let proceed = function (){
-                for (const layerIdx in region.layers)
+                for (let layerIdx in region.layers)
                 {
                     let layer = region.layers[layerIdx];
                     if (!layer.active) continue;
@@ -415,16 +417,6 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 //#endregion Auxiliar functions for caller functions
 
 //#region UI Functions 
-
-function populateMapProviderDiv()
-{
-    let mapProviderDiv = $(`#mapProviderDiv`);
-    for (let tileProviderId in OpenLayersHandler.TileProviders)
-    {
-        let tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
-        mapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider.provider, changeMapProviderClick));
-    };
-}
 
 
 function updateGeoImgSlider()
@@ -629,14 +621,18 @@ function imageSliderChange(value)
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
+            _UIHandler.cancelDrawing();
             if (!vectorevent.feature.getId()) {
                 let idNumber = getNewId();
                 let regionId = 'region' + idNumber;
+
                 vectorevent.feature.setId(regionId);
                 vectorevent.feature.setProperties({ 'type': 'region' });
+
                 let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, true);
-                //TODO: Revise this
+
                 globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
+
                 Region.on('activechange', function (region) {
                     globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
                     if (region.active) {
@@ -688,69 +684,9 @@ function changeModeClick(mode, event) {
     }
 }
 
-function changeShapeClick(shapeType) {
-    //function changeShapeClick(shapeType, event) {
-    //if (!btnElementChecker(event)) return;
-    openLayersHandler.map.removeInteraction(drawInteraction);
-    let value = shapeType;
-    var geometryFunction;
-    if (value !== "None")
-    {
-        switch (value) {
-            case 'Square':
-                value = 'Circle';
-                geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
-                break;
-            case 'Box':
-                value = 'Circle';
-                geometryFunction = ol.interaction.Draw.createBox();
-                break;
-            case 'Dodecagon':
-                value = 'Circle';
-                geometryFunction = function (coordinates, geometry) {
-                    if (!geometry) {
-                        geometry = new ol.geom.Polygon(null);
-                    }
-                    var center = coordinates[0];
-                    var last = coordinates[1];
-                    var dx = center[0] - last[0];
-                    var dy = center[1] - last[1];
-                    var radius = Math.sqrt(dx * dx + dy * dy);
-                    var rotation = Math.atan2(dy, dx);
-                    var newCoordinates = [];
-                    var numPoints = 12;
-                    for (var i = 0; i < numPoints; ++i) {
-                        var angle = rotation + i * 2 * Math.PI / numPoints;
-                        var offsetX = radius * Math.cos(angle);
-                        var offsetY = radius * Math.sin(angle);
-                        newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
-                    }
-                    newCoordinates.push(newCoordinates[0].slice());
-                    geometry.setCoordinates([newCoordinates]);
-                    return geometry;
-                };
-                break;
-        }
-        drawInteraction = new ol.interaction.Draw({
-            source: globalVectorSource,
-            type: value,
-            geometryFunction: geometryFunction
-        });
-        openLayersHandler.map.addInteraction(drawInteraction);
-    }
-}
 
 
-/**
-* Handler for changing map tiles.
-* @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
-* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
-*/
-function changeMapProviderClick(mapProviderId, event) {
-    if (!btnElementChecker(event)) return;
-    openLayersHandler.changeMapProvider(mapProviderId);
-    
-}
+
 
 //#endregion Event Handlers
 
