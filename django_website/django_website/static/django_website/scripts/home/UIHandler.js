@@ -3,33 +3,27 @@
 * @module "UIHandler.js"
 */
 
-class DrawTool
-{
-    constructor(DrawToolName, geoFunction)
-    {
-        if (DrawTool.isNameValid(DrawToolName))
-        {
+class DrawTool {
+    constructor(DrawToolName, geoFunction) {
+        if (DrawTool.isNameValid(DrawToolName)) {
             this.name = DrawToolName;
             this.geometryFunction = geoFunction;
         }
-        else
-        {
+        else {
             throw Error(`Invalid DrawToolName: ${DrawToolName}`);
         }
     }
 }
 
-if (!DrawTool.init)
-{
+if (!DrawTool.init) {
     DrawTool.init = true;
-    DrawTool.validNames = 
+    DrawTool.validNames =
         [
             'Box',
             'Square',
             'Dodecagon'
         ];
-    DrawTool.isNameValid = function (name)
-    {
+    DrawTool.isNameValid = function (name) {
         return (DrawTool.validNames.indexOf(name) >= 0);
     }
 }
@@ -50,14 +44,14 @@ class UIHandler {
         this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
         this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
-        
+
         this.jqbtnCollectImages = $(`#btnCollectImages`);
-        this.jqbtnImageProvider = $(`#btnImageProvider`);        
+        this.jqbtnImageProvider = $(`#btnImageProvider`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
         this.jqbtnMapFeature = $(`#btnMapFeature`);
 
         this.jqbtnMapProvider = $(`#btnMapProvider`);
-        
+
         this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
 
@@ -66,7 +60,7 @@ class UIHandler {
         this._SelectedImageProvider = null;
 
         this._SelectedMapProvider = null;
-        
+
         this._SelectedDrawTool = null;
         this._drawInteraction = null;
 
@@ -76,14 +70,26 @@ class UIHandler {
         this.populateShapeDiv();
         this.populateMapProviderDiv();
 
-        
-        this.populateImageProviderDiv();
+
+        this.populateImageProviderDiv()
+        .then(function (imageProviders) {
+            if (imageProviders) {
+                this._imageProviders = imageProviders;
+                this._fillImageProviderDiv();
+                if (defaults.imageProvider) {
+                    this.changeImageProviderClick(defaults.imageProvider);
+                }
+            }
+            else {
+                this._fillImageProviderDiv();
+            }
+        }.bind(this))
+        .catch(error => console.error(error));
         this.populateMapMinersAndFeaturesDivs();
 
 
         this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
-        this.jqbtnExecuteQuery.on("click", function()
-        {
+        this.jqbtnExecuteQuery.on("click", function () {
             setLoadingText(this.jqbtnExecuteQuery);
             let unset = (() => unsetLoadingText(this.jqbtnExecuteQuery));
             this.executeQuery.bind(this)().then(unset, error => { alert(error); unset(); });
@@ -92,27 +98,22 @@ class UIHandler {
         this.jqbtnClearSelections.on("click", this.clearSelections.bind(this));
         this.jqbtnCancelDrawing.on("click", this.cancelDrawing.bind(this));
 
-        if (defaults) 
-        {
+        if (defaults) {
             this.setDefaults(defaults);
         }
     }
 
-    setDefaults(defaults)
-    {
-        if (defaults.shape)
-        {
+    setDefaults(defaults) {
+        if (defaults.shape) {
             this.changeShapeClick(defaults.shape);
         }
-        if (defaults.tileProvider)
-        {
+        if (defaults.tileProvider) {
             this.changeMapProviderClick(defaults.tileProvider);
         }
 
     }
 
-    set SelectedMapProvider(tileProvider)
-    {
+    set SelectedMapProvider(tileProvider) {
         this._SelectedMapProvider = tileProvider;
 
         this.setLabelSelectionBtn(this.jqbtnMapProvider, tileProvider.name, false);
@@ -120,31 +121,25 @@ class UIHandler {
 
     get SelectedMapProvider() { return this._SelectedMapProvider; }
 
-    set SelectedDrawTool(drawTool)
-    {
+    set SelectedDrawTool(drawTool) {
         this._SelectedDrawTool = drawTool;
-        
+
         this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
     }
 
-    populateMapProviderDiv()
-    {
-        for (let tileProviderId in OpenLayersHandler.TileProviders)
-        {
+    populateMapProviderDiv() {
+        for (let tileProviderId in OpenLayersHandler.TileProviders) {
             const tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
             this.jqmapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider, this.changeMapProviderClick.bind(this)));
         };
     }
 
-    setLabelSelectionBtn(jqselectorButton, label, deselected)
-    {
-        if (deselected)
-        {
+    setLabelSelectionBtn(jqselectorButton, label, deselected) {
+        if (deselected) {
             jqselectorButton.removeClass("btn-success");
             jqselectorButton.addClass("btn-secondary");
         }
-        else
-        {
+        else {
             jqselectorButton.addClass("btn-success");
             jqselectorButton.removeClass("btn-secondary");
         }
@@ -161,64 +156,58 @@ class UIHandler {
         openLayersHandler.changeMapProvider(tileProvider.provider);
     }
 
-    cancelDrawing()
-    {
+    cancelDrawing() {
         this._SelectedDrawTool = null;
 
-        if(this._drawInteraction)
-        {
+        if (this._drawInteraction) {
             openLayersHandler.map.removeInteraction(this._drawInteraction);
             this._drawInteraction = null;
         }
 
         this.setLabelSelectionBtn(this.jqbtnShapeSelector, "Shape", true);
-        
+
         this.jqbtnCancelDrawing.addClass("hidden");
 
     }
 
-    get SelectedDrawTool(){ return this._SelectedDrawTool; }
+    get SelectedDrawTool() { return this._SelectedDrawTool; }
 
 
     changeShapeClick(drawTool) {
-        if (!DrawTool.isNameValid(drawTool.name))
-        {
+        if (!DrawTool.isNameValid(drawTool.name)) {
             throw Error("Invalid DrawTool.");
         }
-        if (this._drawInteraction)
-        {
+        if (this._drawInteraction) {
             openLayersHandler.map.removeInteraction(this._drawInteraction);
         }
         this.SelectedDrawTool = drawTool;
 
-        
+
         this._drawInteraction = new ol.interaction.Draw({
             source: globalVectorSource,
             type: 'Circle',
             geometryFunction: this.SelectedDrawTool.geometryFunction
         });
         openLayersHandler.map.addInteraction(this._drawInteraction);
-        
+
     }
 
 
     set SelectedMapMiner(mapMinerId) {
         this._SelectedMapMiner = mapMinerId;
 
-        
+
         let mapMiner = this._mapMinersAndFeatures[mapMinerId];
 
         this.jqbtnExecuteQuery.removeClass("hidden");
         this.jqbtnClearSelections.removeClass("hidden");
 
         this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
-        
 
-        if (!this.SelectedMapFeature)
-        {
+
+        if (!this.SelectedMapFeature) {
             this.filterFeaturesByMapMiner(mapMiner);
-            if (mapMiner.features.length === 1)
-            {
+            if (mapMiner.features.length === 1) {
                 this.changeMapFeature(mapMiner.features[0]);
             }
         }
@@ -232,8 +221,7 @@ class UIHandler {
 
         this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeatureName, false);
 
-        if (!this.SelectedMapMiner)
-        {
+        if (!this.SelectedMapMiner) {
             this.filterMinersByFeatureName(mapFeatureName);
         }
     }
@@ -303,21 +291,19 @@ class UIHandler {
 
     updateLayersHintList() {
         let hintLayers = [];
-    
+
         //Set active layers list tooltip
         let activeRegions = usersection.getActiveRegions();
         for (let regionIdx in activeRegions) {
 
             let region = activeRegions[regionIdx];
-            for (let layerIdx in region.layers)
-            {
+            for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
                 const mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;
                 const featureName = layerId.FeatureName;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
-                if (hintLayers.indexOf(hintLayer) < 0)
-                {
+                if (hintLayers.indexOf(hintLayer) < 0) {
                     hintLayers.push(hintLayer);
                 }
             }
@@ -339,16 +325,14 @@ class UIHandler {
      * and [UIHandler.SelectedMapFeature]{@link module:"UIHandler.js"~UIHandler.SelectedMapFeature}
      * @param {Event} event - Event object generated by clicking over the 'this.jqbtnExecuteQuery' DOMElement button.
      */
-    executeQuery()
-    {
-        return new Promise(function(resolve, reject) {
+    executeQuery() {
+        return new Promise(function (resolve, reject) {
             let noSelectedRegions = true;
             let numCalls = 0;
-            try
-            {
-                const olGeoJson  = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+            try {
+                const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
                 let activeRegions = usersection.getActiveRegions();
-            
+
                 for (let regionIdx in activeRegions) {
 
                     let region = activeRegions[regionIdx];
@@ -356,7 +340,7 @@ class UIHandler {
                     let layer = region.getLayerById(layerId.toString());
                     //If layer already exists in this region it means that no further request is needed
                     if (layer) continue;
-                
+
                     layer = region.createLayer(layerId);
                     numCalls = numCalls + 1;
                     noSelectedRegions = false;
@@ -377,11 +361,10 @@ class UIHandler {
                         }
                     };
                     getMapMinerFeatures(region, this.SelectedMapMiner, this.SelectedMapFeature, geoJsonFeatures)
-                    .then(function(data){
+                    .then(function (data) {
                         layer.featureCollection = data;
                         numCalls = numCalls - 1;
-                        if (numCalls == 0)
-                        {
+                        if (numCalls == 0) {
                             resolve();
                         }
                     }.bind(this))
@@ -395,8 +378,7 @@ class UIHandler {
                     reject("No region selected. Please, select a region to make a request.");
                 }
             }
-            catch(err)
-            {
+            catch (err) {
                 //TODO: Set it as a reject
                 defaultAjaxErrorHandler('executeQuery', null, err);
             }
@@ -404,12 +386,10 @@ class UIHandler {
     }
 
     //#region Image Provider
-    
-    populateShapeDiv()
-    {
+
+    populateShapeDiv() {
         this.jqshapeSelectorDiv.empty();
-        for (let shapeIdx in UIHandler.DrawTools)
-        {
+        for (let shapeIdx in UIHandler.DrawTools) {
             const shape = UIHandler.DrawTools[shapeIdx];
             const btnShape = this.create_dropDown_aButton(shape.name, shape, this.changeShapeClick);
             this.jqshapeSelectorDiv.append(btnShape);
@@ -419,25 +399,20 @@ class UIHandler {
     /**
      * Get the image providers available from the server and
      * creates <a> buttons at the "imageProviderDiv" DOMElement
-     * @TODO: Set default image provider out of this function
      */
     populateImageProviderDiv() {
-        if (this._imageProviders.length === 0)
-        {
-            this.getImageProviders()
-            .then((imageProviders) => {
-                this._imageProviders = imageProviders;
-                this._fillImageProviderDiv();
-
-                //TODO: Set this as a default (not hardcoded)
-                this.changeImageProviderClick("gsvProvider");
-            })
-        .catch((error) => console.error(error));
-        }
-        else
-        {
-            this._fillImageProviderDiv();
-        }
+        return new Promise(function (resolve, reject) {
+            if (this._imageProviders.length === 0) {
+                this.getImageProviders()
+                .then((imageProviders) => {
+                    resolve(imageProviders);
+                })
+            .catch((error) => reject(error));
+            }
+            else {
+                resolve();
+            }
+        }.bind(this));
     }
 
     /**
@@ -469,8 +444,7 @@ class UIHandler {
      * the Image Provider Div should be (re)loaded too.
      * @private
      */
-    _fillImageProviderDiv()
-    {
+    _fillImageProviderDiv() {
         this.jqimageProviderDiv.empty();
         for (let imageProviderIdx in this._imageProviders) {
             let imageProviderName = this._imageProviders[imageProviderIdx].name;
@@ -497,17 +471,15 @@ class UIHandler {
      * creates <a> buttons at the "mapMinerDiv" and "mapFeatureDiv" DOMElements
      */
     populateMapMinersAndFeaturesDivs() {
-        
-        if (this._mapMinersAndFeatures.length === 0)
-        {
-            this.getMapMinersAndFeatures().then((mapMiners) => { 
+
+        if (this._mapMinersAndFeatures.length === 0) {
+            this.getMapMinersAndFeatures().then((mapMiners) => {
                 this._mapMinersAndFeatures = mapMiners;
                 this._fillMapMinersAndFeaturesDiv();
             })
             .catch((error) => console.error(error));
         }
-        else
-        {
+        else {
             this._fillMapMinersAndFeaturesDiv();
         }
     }
@@ -542,8 +514,7 @@ class UIHandler {
      * the Map Miner and Features Divs should be (re)loaded too.
      * @private
      */
-    _fillMapMinersAndFeaturesDiv()
-    {
+    _fillMapMinersAndFeaturesDiv() {
         let currentMapFeatures = [];
         this.jqmapMinerDiv.empty();
         this.jqmapFeatureDiv.empty();
@@ -592,8 +563,7 @@ class UIHandler {
                 currentMapMiners.push(mapMinerIdx);
             }
         }
-        if (currentMapMiners.length === 1)
-        {
+        if (currentMapMiners.length === 1) {
             this.changeMapMiner(currentMapMiners[0]);
         }
     }

@@ -199,7 +199,7 @@ function initializeUIHandler()
     _UIHandler = new UIHandler({
         shape: UIHandler.DrawTools.Box,
         tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
-        imageProvider: UIHandler.ImageProviders.GSVProvider
+        imageProvider: "gsvProvider" //Retrieved from server
     });
 }
 
