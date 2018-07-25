@@ -34,16 +34,10 @@
 
 {% block content %}
 
-<div class="btn-group" role="group">
-    <button id="btnChangeMode" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Change mode
-    </button>
-    <div id="changeModeDiv" class="dropdown-menu" aria-labelledby="btnChangeMode">
-        <!--changeModeClick@home.js-->
-        <a id="btnMapMode" onclick="changeModeClick('Map', this)" class="dropdown-item" href="javascript:void(0);">Map Mode</a>
-        <a id="btnImageMode" onclick="changeModeClick('Image', this)" class="dropdown-item" href="javascript:void(0);">Image Mode</a>
-    </div>
+<div id="changeModeDiv" class="btn-group btn-group-toggle" data-toggle="buttons" aria-labelledby="btnChangeMode">
+    <!--changeModeClick@home.js-->
 </div>
+
 <div class="row">
     <div class="col-sm left-column region-div hidden">
         <div class="row">

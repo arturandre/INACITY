@@ -51,6 +51,7 @@ class UIView {
         this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
         this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
+        this.jqchangeModeDiv = $(`#changeModeDiv`);
 
         this.jqbtnImageProvider = $(`#btnImageProvider`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
@@ -64,6 +65,8 @@ class UIView {
         this.jqimgSliderDiv = $('#imgSliderDiv');
         this.jqimgSlider = $('#imgSlider')
 
+        this.jqimageDiv = $(".image-div");
+        this.jqregionDiv = $(".region-div");
 
         this._SelectedMapMiner = null;
         this._SelectedMapFeature = null;
@@ -74,11 +77,15 @@ class UIView {
         this._SelectedDrawTool = null;
         this._drawInteraction = null;
 
+        this._SelectedViewMode = null;
+    
+
         this._imageProviders = [];
         this._mapMinersAndFeatures = [];
 
         this.populateShapeDiv();
         this.populateMapProviderDiv();
+        this.populateChangeModeDiv();
 
         var defaultImageProvider = defaults.imageProvider;
         this.populateImageProviderDiv()
@@ -95,6 +102,7 @@ class UIView {
             }
         }.bind(this))
         .catch(error => console.error(error));
+
         this.populateMapMinersAndFeaturesDivs();
 
 
@@ -113,6 +121,7 @@ class UIView {
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
         this.jqbtnClearSelections.on("click", this.onClickClearSelectionsBtn.bind(this));
+
     }
 
     setDefaults(defaults) {
@@ -122,7 +131,35 @@ class UIView {
         if (defaults.tileProvider) {
             this.changeMapProviderClick(defaults.tileProvider);
         }
+        if (defaults.viewmode) {
+            this.changeModeClick(defaults.viewmode);
+        }
 
+    }
+
+    get SelectedViewMode() { return this._SelectedViewMode; }
+    set SelectedViewMode(viewmode) {
+        switch (viewmode.viewmode) {
+            case 'Map':
+                this.jqimageDiv.addClass('hidden');
+                this.jqregionDiv.removeClass('hidden');
+                break;
+            case 'Image':
+                this.jqregionDiv.addClass('hidden');
+                this.jqimageDiv.removeClass('hidden');
+                break;
+            default:
+                console.error("Unknown mode selected!")
+                break;
+        }
+        let viewModeLabel = $(`#changeModeDiv > label:contains('${viewmode.name}')`);
+        let viewModeBtn = $(`#changeModeDiv > label:contains('${viewmode.name}') > input`);
+        if (!viewModeBtn.prop('checked'))
+        { 
+            viewModeLabel.button('toggle');
+            viewModeLabel.removeClass('focus');
+        }
+        this._SelectedViewMode = viewmode;
     }
 
     set SelectedMapProvider(tileProvider) {
@@ -139,10 +176,17 @@ class UIView {
         this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
     }
 
+    populateChangeModeDiv() {
+        for (let viewModeIdx in UIView.ViewModes) {
+            let viewMode = UIView.ViewModes[viewModeIdx];
+            this.jqchangeModeDiv.append(this.createToggleRadioButton('viewmodeloptions', viewMode.name, viewMode, this.changeModeClick.bind(this)));
+        }
+    }
+
     populateMapProviderDiv() {
         for (let tileProviderId in OpenLayersHandler.TileProviders) {
             const tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
-            this.jqmapProviderDiv.append(create_dropDown_aButton(tileProvider.name, tileProvider, this.changeMapProviderClick.bind(this)));
+            this.jqmapProviderDiv.append(this.createDropDownAnchorButton(tileProvider.name, tileProvider, this.changeMapProviderClick.bind(this)));
         };
     }
 
@@ -170,6 +214,20 @@ class UIView {
         else {
             this.jqimgSliderDiv.addClass("hidden");
         }
+    }
+
+    /**
+     * Updates the currently image displayed by the GeoImageManager
+     * when the user changes the imgSlider value (position).
+     * @param {int} value - The current position of the imgSlider as informed by itself
+     */
+    imageSliderChange(value) {
+        geoImageManager.displayFeatureAtIndex(value, true);
+        geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
+    }
+
+    changeModeClick(mode) {
+        this.SelectedViewMode = mode;
     }
 
 
@@ -271,7 +329,7 @@ class UIView {
      * @param {object} optValue - The parameter to be used for the click handler
      * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
      */
-    create_dropDown_aButton(label, optValue, clickHandler) {
+    createDropDownAnchorButton(label, optValue, clickHandler) {
         let button = $(document.createElement('a'));
         button.addClass('dropdown-item');
         button.append(label);
@@ -279,6 +337,21 @@ class UIView {
         button.click(null, clickHandler.bind(this, optValue));
         return button;
     }
+
+    createToggleRadioButton(groupName, label, optValue, clickHandler)
+    {
+        let buttonLabel = $(document.createElement('label'));
+        let buttonInput = $('<input type="radio">');
+        buttonLabel.addClass('btn btn-success');
+        buttonInput.attr('name', groupName);
+        buttonInput.attr('autocomplete', 'off');
+        buttonLabel.html(label);
+        buttonInput.change(buttonInput, clickHandler.bind(this, optValue));
+        buttonLabel.append(buttonInput);
+        return buttonLabel;
+    }
+
+
 
     /**
      * Resets the state of the user selections over the Map section
@@ -407,7 +480,7 @@ class UIView {
         this.jqshapeSelectorDiv.empty();
         for (let shapeIdx in UIView.DrawTools) {
             const shape = UIView.DrawTools[shapeIdx];
-            const btnShape = this.create_dropDown_aButton(shape.name, shape, this.changeShapeClick);
+            const btnShape = this.createDropDownAnchorButton(shape.name, shape, this.changeShapeClick);
             this.jqshapeSelectorDiv.append(btnShape);
         }
     }
@@ -464,7 +537,7 @@ class UIView {
         this.jqimageProviderDiv.empty();
         for (let imageProviderIdx in this._imageProviders) {
             let imageProviderName = this._imageProviders[imageProviderIdx].name;
-            let btnImageProvider = this.create_dropDown_aButton(imageProviderName, imageProviderIdx, this.changeImageProviderClick);
+            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, imageProviderIdx, this.changeImageProviderClick);
             this.jqimageProviderDiv.append(btnImageProvider);
         }
     }
@@ -536,12 +609,12 @@ class UIView {
         this.jqmapFeatureDiv.empty();
         for (let mapMinerId in this._mapMinersAndFeatures) {
             const mapMiner = this._mapMinersAndFeatures[mapMinerId];
-            const btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerId, this.changeMapMiner);
+            const btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMinerId, this.changeMapMiner);
             this.jqmapMinerDiv.append(btnMapMiner);
             for (let featureIdx in mapMiner.features) {
                 let featureName = mapMiner.features[featureIdx];
                 if (currentMapFeatures.indexOf(featureName) !== -1) continue;
-                let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
+                let mapFeature = this.createDropDownAnchorButton(featureName, featureName, this.changeMapFeature);
                 this.jqmapFeatureDiv.append(mapFeature);
             }
         }
@@ -574,7 +647,7 @@ class UIView {
         for (let mapMinerIdx in this._mapMinersAndFeatures) {
             let mapMiner = this._mapMinersAndFeatures[mapMinerIdx];
             if (mapMiner.features.indexOf(FeatureName) != -1) {
-                let btnMapMiner = this.create_dropDown_aButton(mapMiner.name, mapMinerIdx, this.changeMapMiner);
+                let btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMinerIdx, this.changeMapMiner);
                 this.jqmapMinerDiv.append(btnMapMiner);
                 currentMapMiners.push(mapMinerIdx);
             }
@@ -595,7 +668,7 @@ class UIView {
         this.jqmapFeatureDiv.empty();
         for (let featureIdx in mapMiner.features) {
             let featureName = mapMiner.features[featureIdx];
-            let mapFeature = this.create_dropDown_aButton(featureName, featureName, this.changeMapFeature);
+            let mapFeature = this.createDropDownAnchorButton(featureName, featureName, this.changeMapFeature);
             this.jqmapFeatureDiv.append(mapFeature);
         }
     }
@@ -646,6 +719,12 @@ if (!UIView.init) {
                 return geometry;
             }),
         };
+
+    UIView.ViewModes =
+    {
+        ImageMode: { name: "Image Mode", viewmode: "Image" },
+        MapMode: { name: "Map Mode", viewmode: "Map" },
+    };
 }
 
 

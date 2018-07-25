@@ -20,6 +20,7 @@
 
         GeoImageManager.on('geoimagescollectionchange', this.onGeoImagesCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
+
     }
 
     onImageChange() {
@@ -64,7 +65,6 @@
                 unset();
                 //Set the geoImageManager to display this collection
                 this.geoImageManager.updateDisplayingLayers();
-
             }, error => { unset(); alert(error); });
     }
 }

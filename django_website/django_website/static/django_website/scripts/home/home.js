@@ -201,7 +201,8 @@ function initializeUI()
         {
         shape: UIView.DrawTools.Box,
         tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
-        imageProvider: "gsvProvider" //Retrieved from server
+        imageProvider: "gsvProvider", //Retrieved from server
+        viewmode: UIView.ViewModes.ImageMode
     });
 
     
@@ -353,40 +354,11 @@ function disableSiblings(element) {
     element.addClass('disabled');
 }
 
-/**
- * Creates an anchor button (<a href...>)
- * @param {string} label - The button title
- * @param {object} optValue - The parameter to be used for the click handler
- * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
- */
-function create_dropDown_aButton(label, optValue, clickHandler) {
-    let button = $(document.createElement('a'));
-    button.addClass('dropdown-item');
-    button.append(label);
-    button.attr("href", "javascript:void(0);");
-    button.click(null, clickHandler.bind(this, optValue));
-    return button;
-}
+
 
 //#endregion UI Auxiliary Functions
 
 //#region Event Handlers
-
-/**
- * Updates the currently image displayed by the GeoImageManager
- * when the user changes the imgSlider value (position).
- * @param {int} value - The current position of the imgSlider as informed by itself
- */
-function imageSliderChange(value)
-{
-    geoImageManager.displayFeatureAtIndex(value, true);
-    if (autoPlayState === 1)
-    {
-        autoPlayGeoImages(2); //Pauses the autoPlayGeoImages
-    }
-}
-
-
 
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
@@ -437,22 +409,6 @@ function updateRegionsList(vectorevent) {
 
 }
 
-function changeModeClick(mode, event) {
-    if (!btnElementChecker(event)) return;
-    switch (mode) {
-        case 'Map':
-            $(".image-div").addClass('hidden');
-            $(".region-div").removeClass('hidden');
-            break;
-        case 'Image':
-            $(".region-div").addClass('hidden');
-            $(".image-div").removeClass('hidden');
-            break;
-        default:
-            console.error("Unknown mode selected!")
-            break;
-    }
-}
 
 
 
