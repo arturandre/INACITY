@@ -35,7 +35,7 @@ class Subject {
     * @param {function} listener - The listener function
     * @param {object} opt_this - The object to use as this in listener
     */
-    static on(eventName, listener, opt_this)
+    static on(eventName, listener)
     {
         if (this._eventNames.indexOf(eventName) < 0)
         {
@@ -46,21 +46,22 @@ class Subject {
             throw Error("Listener should be a function.");
         }
         if (!this._observers[eventName]) this._observers[eventName] = [];
-        this._observers[eventName].push({listener: listener, opt_this: opt_this});
+        this._observers[eventName].push({listener: listener});
     }
 
     static notify(eventName, data) {
-        for (const listenerIdx in this._observers[eventName])
+        for (let listenerIdx in this._observers[eventName])
         {
             let listenerRecord = this._observers[eventName][listenerIdx];
-            if (listenerRecord.opt_this)
-            {
-                (listenerRecord.listener.bind(listenerRecord.opt_this))(data);
-            }
-            else
-            {
-                listenerRecord.listener(data);
-            }
+            listenerRecord.listener(data);
+            //if (listenerRecord.opt_this)
+            //{
+            //    (listenerRecord.listener.bind(listenerRecord.opt_this))(data);
+            //}
+            //else
+            //{
+            //    listenerRecord.listener(data);
+            //}
         }
     }
 }

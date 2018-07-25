@@ -14,12 +14,12 @@
 // * @param {string} SelectedMapFeature - Selected map features's id
 // * @param {string} SelectedImageProvider - Selected image providers' id
 // */
-//var _UIHandler = {}
-//_UIHandler.SelectedMapMiner = null;
-//_UIHandler.SelectedMapFeature = null;
-//_UIHandler.SelectedImageProvider = null;
+//var uiView = {}
+//uiView.SelectedMapMiner = null;
+//uiView.SelectedMapFeature = null;
+//uiView.SelectedImageProvider = null;
 
-var _UIHandler = null;
+var uiView = null;
 
 var geoImageManager = null;
 
@@ -51,10 +51,10 @@ var globalVectorSource = null;
 
 /**
 * Usersection variable used to keep the state of objects collected
-* @type {UserSection}
-* @see {@link module:UserSection~UserSection}
+* @type {UIModel}
+* @see {@link module:UIModel~UIModel}
 */
-var usersection = null;
+var uiModel = null;
 
 /**
 * List of available map miners as informed by the server (e.g. {osm: {features: ..., name: OpenStreetMap}})
@@ -180,36 +180,38 @@ $(document).ready(function () {
 
     initializeOpenLayers();
 
-
-    initializeGeoImageManager();
-
-    //getServerParameters();
-
-    initializeUIHandler();
-
-    initializeUserSection();
+    initializeUI();
 
     setDefaults();
 });
 
 //#region Initializer functions
 
-function initializeUIHandler()
+function initializeUI()
 {
-    _UIHandler = new UIHandler({
-        shape: UIHandler.DrawTools.Box,
+    /* UIModel init*/
+    //TODO: Make the defaults parameters part of an object (maybe a config file?)
+    uiModel = new UIModel('regionsList', { mapMiner: "osm", mapFeature: "Streets" });
+
+    geoImageManager = new GeoImageManager(uiModel);
+
+    uiView = new UIView(
+        uiModel,
+        geoImageManager,
+        {
+        shape: UIView.DrawTools.Box,
         tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
         imageProvider: "gsvProvider" //Retrieved from server
     });
+
+    
+    uiController = new UIController(uiModel, uiView, geoImageManager);
+
+    uiController.initialize();
+    uiView.initialize();
 }
 
-function initializeGeoImageManager()
-{
-    geoImageManager = new GeoImageManager('imgUrbanPicture');
-    GeoImageManager.on('geoimagescollectionchanged', updateGeoImgSlider);
-    GeoImageManager.on('imagechanged', updateGeoImgSlider);
-    
-}
+
 
 /**
  * Auxiliar function used to initialize OpenLayers related objects and events
@@ -233,27 +235,8 @@ function initializeOpenLayers()
 }
 
 /**
- * Auxiliar function to initialize UserSection related objects and events
- */
-function initializeUserSection()
-{
-    /* UserSection init*/
-    usersection = new UserSection('regionsList');
-
-    /*UserSection Event Handlers*/
-    /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
-    UserSection.on('regionlistitemclick', _UIHandler.updateLayersHintList, _UIHandler);
-    UserSection.on('featuresmerged', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
-    
-    Layer.on('featurecollectionchange', _UIHandler.updateLayersHintList, _UIHandler);
-    Layer.on('featurecollectionchange', function (layer){ this.drawLayer(layer, true); }, this); /* this = window */
-}
-
-
-
-/**
  * Used to set default options such default drawing mode, map tiles provider, etc.
- * @todo Make changeShapeClick part of UIHandler class
+ * @todo Make changeShapeClick part of UIView class
  */
 function setDefaults()
 {
@@ -274,98 +257,7 @@ function setDefaults()
 
 //#region Caller functions
 
-function getImages(event)
-{
-    
 
-    let btnCollectImages = getClickedElement(event);
-    let noLayers = true;
-
-    //To avoid racing conditions
-    let selectedImageProvider = _UIHandler.SelectedImageProvider;
-    let numCalls = 0;
-    try
-    {
-        setLoadingText(btnCollectImages);
-        for (let regionIdx in usersection.regions)
-        {
-            let region = usersection.regions[regionIdx];
-
-            let proceed = function (){
-                for (let layerIdx in region.layers)
-                {
-                    let layer = region.layers[layerIdx];
-                    if (!layer.active) continue;
-                    numCalls += 1;
-                    noLayers = false;
-                    //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                    //@todo: Warn user about the skipped layers
-                    if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) continue;
-                    $.ajax('/getimagesforfeaturecollection/',
-                    {
-                        method: 'POST',
-                        processData: false,
-                        data: JSON.stringify({
-                            'imageMinerName': selectedImageProvider,
-                            'featureCollection': JSON.stringify(layer.featureCollection),
-                            'regionId': regionIdx,
-                            'layerId': layerIdx
-                        }),
-                        contentType: "application/json; charset=utf-8",
-                        dataType: 'json',
-                        context: btnCollectImages[0], //Get the DOM element instead of the Jquery object
-                        success: function (data, textStatus, jqXHR) {
-                            usersection.regions[data['regionId']].layers[data['layerId']].featureCollection = data['featureCollection'];
-                            geoImageManager.setCurrentGeoImagesCollection(data['featureCollection']);
-                            if (geoImageManager.displayFeatures(true))
-                            {
-                                autoPlayGeoImages(1); //Play
-                            }
-                        },
-                        error: function ( jqXHR, textStatus, errorThrown) 
-                        {
-                            defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
-                        },
-                        complete: function  (jqXHR, textStatus)
-                        {
-                            numCalls -= 1;
-                            if (numCalls == 0)
-                            {
-                                unsetLoadingText(btnCollectImages);
-                            }                    
-                        },
-                    },
-                    'json'
-                    );
-                }
-            }
-
-            //#region TODO: Revise this
-            if (Object.keys(region.layers).length === 0)
-            {
-                _UIHandler.changeMapMiner("osm");
-                _UIHandler.changeMapFeature("Streets");
-                _UIHandler.executeQuery().then(proceed);
-            }
-            else
-            {
-                proceed();
-            }
-            //#endregion TODO: Revise this
-            
-        }
-    }
-    catch(err)
-    {
-        unsetLoadingText(btnCollectImages);
-        throw err;
-    }
-    if (noLayers)
-    {
-        unsetLoadingText(btnCollectImages);
-        alert("None feature selected. Canceled.")
-    }
-}
 
 function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
 {
@@ -419,62 +311,6 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 //#region UI Functions 
 
 
-function updateGeoImgSlider()
-{
-    let imgSliderDiv = $('#imgSliderDiv');
-    //let imgSlider = $('#imgSlider');
-    //Done this way to get value correctly (jquery is failing)
-    let imgSlider = document.getElementById('imgSlider');
-
-    let numGeoImages = geoImageManager.validImages;
-
-    if (numGeoImages > 0)
-    {
-        imgSlider.min = 0;
-        imgSlider.value = geoImageManager.currentIndex;
-        imgSlider.max = numGeoImages;
-        imgSliderDiv.removeClass("hidden");
-    }
-    else
-    {
-        imgSliderDiv.addClass("hidden");
-    }
-}
-
-
-
-function drawLayer(layer, forceRedraw) {
-    if (!layer) { console.warn("Undefined layer!"); return; }
-    let featureCollection = layer.featureCollection;
-    let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
-
-    for (let featureIdx in featureCollection.features) {
-        let feature = featureCollection.features[featureIdx];
-
-        if (!usersection.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-
-        if (usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed){
-            if (forceRedraw)
-            {
-                let olFeature = globalVectorSource.getFeatureById(feature.id);
-                globalVectorSource.removeFeature(olFeature);
-                olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                globalVectorSource.addFeature(olFeature);
-                usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
-            }
-            else
-            {
-                continue;
-            }
-        }
-        else {
-            let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-            globalVectorSource.addFeature(olFeature);
-            usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
-        }
-
-    }
-}
 
 function removeLayer(layer) {
     if (!layer) { console.warn("Undefined layer!"); return; }
@@ -486,11 +322,11 @@ function removeLayer(layer) {
         Each individual feature needs to be checked because it
         can belong to more than one layer (from differente regions)
         */
-        if (!usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || usersection.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+        if (!uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
         else {
             let olFeature = globalVectorSource.getFeatureById(feature.id);
             globalVectorSource.removeFeature(olFeature);
-            usersection.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+            uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
         }
 
     }
@@ -500,75 +336,9 @@ function removeLayer(layer) {
 
 //#region UI Auxiliary Functions
 
-var autoPlayIntervalID = null;
-const autoPlayTimeInterval = 3000; //3 seconds
-var autoPlayState = 0;
 
-/**
- * Changes automatically the currently presented geoImage
- * @param {int} autoPlayState - Controls the state of GeoImageManager's autoplay
- * 0 - Stopped -> Will restart the GeoImageManager counter when started.
- * 1 - Playing -> Can be stopped (reseted) or paused.
- * 2 - Paused -> Will continue from the last presented GeoImage when restarted.
- */
-function autoPlayGeoImages(autoPlayNewState)
-{
-    if (autoPlayState === autoPlayNewState)
-    {
-        console.warn(`Tried to repeat GeoImageManager's autoplay state: ${autoPlayNewState}`);
-        return false;
-    }
-    else if (autoPlayState === 0 && autoPlayNewState === 2){
-        console.warn("Tried to pause autoplay while it was in the stopped state");
-        return false;
-    }
 
-    if (autoPlayState === 0 && autoPlayNewState === 1) //Stopped -> Playing
-    {
-        autoPlayIntervalID = setInterval(function(){
-            geoImageManager.displayFeatures(false);
-        }, autoPlayTimeInterval);
-    }
-    else if (autoPlayState === 2  && autoPlayNewState === 1) //Paused -> Playing
-    {
-        autoPlayIntervalID = setInterval(function(){
-            geoImageManager.displayFeatures(false);
-        }, autoPlayTimeInterval);
-    }
-    else if ((autoPlayState === 1 || autoPlayState === 2) && (autoPlayNewState === 0 || autoPlayNewState === 2)) //Playing/Paused -> Stopped/Paused
-    {
-        clearInterval(autoPlayIntervalID);
-    }
-    else
-    {
-        console.error(`Unrecognized autoPlayNewState code: ${autoPlayNewState}.`);
-        return false;
-    }
-    autoPlayState = autoPlayNewState
-    return true;
-}
 
-/**
-* Changes the html of buttons to indicate it's busy.
-* @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
-*/
-function setLoadingText(jqElement)
-{
-    let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
-    jqElement.data('original-text', jqElement.html());
-    jqElement.html(loadingText);
-}
-/**
-* Changes the html of buttons back to its unbusy state.
-* @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
-*/
-function unsetLoadingText(jqElement)
-{
-    if (jqElement.data('original-text'))
-    {
-        jqElement.html(jqElement.data('original-text'));
-    }
-}
 
 /**
  * Remove the 'disabled' css class from the element passed as parameter and adds the
@@ -621,7 +391,7 @@ function imageSliderChange(value)
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
-            _UIHandler.cancelDrawing();
+            uiView.cancelDrawing();
             if (!vectorevent.feature.getId()) {
                 let idNumber = getNewId();
                 let regionId = 'region' + idNumber;
@@ -629,7 +399,7 @@ function updateRegionsList(vectorevent) {
                 vectorevent.feature.setId(regionId);
                 vectorevent.feature.setProperties({ 'type': 'region' });
 
-                let newRegion = usersection.createRegion(regionId, `Region ${idNumber}`, true);
+                let newRegion = uiModel.createRegion(regionId, `Region ${idNumber}`, true);
 
                 globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
 
@@ -655,7 +425,7 @@ function updateRegionsList(vectorevent) {
         case 'removefeature':
             if (vectorevent.feature.getProperties()['type'] === 'region') {
                 let featureId = vectorevent.getId();
-                usersection.removeRegion(featureId);
+                uiModel.removeRegion(featureId);
             }
             break;
         case 'changefeature':

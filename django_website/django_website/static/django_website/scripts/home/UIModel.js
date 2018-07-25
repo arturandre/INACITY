@@ -1,7 +1,7 @@
 ﻿/**
- * UserSection module contains classes used by the UserSection class to keep
+ * UIModel module contains classes used by the UIModel class to keep
  * track of the application state, as the user interacts with it.
- * @module UserSection
+ * @module UIModel
  */
 
 /**
@@ -32,6 +32,7 @@ class Layer extends Subject
         this._layerId = layerId;
         this._featureCollection = null;
         this._active = !!active;
+        this.geoImagesLoaded = false;
     }
     get active() { return this._active; }
 
@@ -47,7 +48,7 @@ class Layer extends Subject
     /**
      * The active property controls wheter the features should or not be rendered 
      * @acess public 
-     * @fires [activechange]{@link module:UserSection~Layer#activechange}
+     * @fires [activechange]{@link module:UIModel~Layer#activechange}
      */
     set active(newActiveState) {
         let triggered = (newActiveState !== this._active);
@@ -61,7 +62,7 @@ class Layer extends Subject
     /** 
      * Represents all the geographical features (e.g. Streets) in this layer
      * @acess public 
-     * @fires [featurecollectionchange]{@link module:UserSection~Layer#featurecollectionchange}
+     * @fires [featurecollectionchange]{@link module:UIModel~Layer#featurecollectionchange}
      */
     set featureCollection(newFeatureCollection)
     {
@@ -75,6 +76,10 @@ class Layer extends Subject
         // Restore state
         this._featureCollection.drawed = activeState;
 
+        if (this.featureCollection.features["0"].properties.geoImages)
+        {
+            this.geoImagesLoaded = true;
+        }
 
         if (triggered)
         {
@@ -108,13 +113,13 @@ Layer.createLayerId = function (mapMinerId, featureName)
     return new LayerId(mapMinerId, featureName);
 }
 
-/** Triggered when a new set of features is assined to the [featureCollection]{@link module:UserSection~Layer#featureCollection} member.
-* @event module:UserSection~Layer#featurecollectionchange
+/** Triggered when a new set of features is assined to the [featureCollection]{@link module:UIModel~Layer#featureCollection} member.
+* @event module:UIModel~Layer#featurecollectionchange
 * @param {Layer}
 */
 /**
-* Triggered when the [active]{@link module:UserSection~Layer#active} property changes (It wont trigger if the assined value is the current value).
-* @event module:UserSection~Layer#activechange
+* Triggered when the [active]{@link module:UIModel~Layer#active} property changes (It wont trigger if the assined value is the current value).
+* @event module:UIModel~Layer#activechange
 * @param {Layer}
 */
 //Singleton approach
@@ -150,7 +155,7 @@ class Region extends Subject
     }
     /** Creates a new Layer with the specified id
     * @param {string} id - Layer's identifier 
-    * @fires [addlayer]{@link module:UserSection~Region#addlayer}
+    * @fires [addlayer]{@link module:UIModel~Region#addlayer}
     */
     createLayer(layerId)
     {
@@ -168,7 +173,7 @@ class Region extends Subject
     }
 
     /** [De]activate a region for displaying or colleting geographical features. 
-     * @fires [activechange]{@link module:UserSection~Region#activechange}
+     * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
     toggleActive()
     {
@@ -189,9 +194,24 @@ class Region extends Subject
 
     
     get layers() { return this._layers; }
+
+    getActiveLayers()
+    {
+        let activeLayers = [];
+        for (let layerIdx in this._layers)
+        {
+            const layer = this._layers[layerIdx];
+            if (layer.active)
+            {
+                activeLayers.push(layer);
+            }
+        }
+        return activeLayers;
+    }
+
     getLayerById(id) 
     {
-        for (const layerIdx in this._layers)
+        for (let layerIdx in this._layers)
         {
             const layer = this._layers[layerIdx];
             if (layer.MapMinerId === id.MapMinerId && layer.FeatureName === id.FeatureName)
@@ -206,7 +226,7 @@ class Region extends Subject
 
     /**
      * @type {boolean}
-     * @fires [activechange]{@link module:UserSection~Region#activechange}
+     * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
     set active(newState)
     {
@@ -224,7 +244,7 @@ class Region extends Subject
 
 /** 
 * Triggered by a mouse click event in the user interface
-* @event module:UserSection~Region#activechange
+* @event module:UIModel~Region#activechange
 * @type {Region}
 * @property {Region} region - The region object [de]activated.
 * @property {boolean} region.active - Indicates if this region is active or not.
@@ -232,10 +252,10 @@ class Region extends Subject
 * @property {string} region.name - Indicates the display name of this region.
 */
 /** 
-*  Triggered when a new [Layer]{@link module:UserSection~Layer} is created (through [createLayer]{@link module:UserSection~Region#createLayer}) in this region
-* @event module:UserSection~Region#addlayer
+*  Triggered when a new [Layer]{@link module:UIModel~Layer} is created (through [createLayer]{@link module:UIModel~Region#createLayer}) in this region
+* @event module:UIModel~Region#addlayer
 * @type {Layer}
-* @See [Layer]{@link module:UserSection~Layer}
+* @See [Layer]{@link module:UIModel~Layer}
 */
 //Singleton approach
 if (!Region.init) {
@@ -249,7 +269,7 @@ if (!Region.init) {
 /**
  * Simple class for holding features and their respective regions
  * @param {Feature} feature - A GeoJson Feature
- * @param {string[]} regions - A list of region Ids representing the regions to which this [FeatureRegions.feature]{@link module:UserSection~FeatureRegions.feature} belongs
+ * @param {string[]} regions - A list of region Ids representing the regions to which this [FeatureRegions.feature]{@link module:UIModel~FeatureRegions.feature} belongs
  */
 class FeatureRegions
 {
@@ -264,21 +284,183 @@ class FeatureRegions
 * Keeps track of several user inputs
 * @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
-class UserSection extends Subject
+class UIModel extends Subject
 {
-    constructor(regionsDivId)
+    constructor(regionsDivId, defaults)
     {
         super();
         this.setTarget(regionsDivId);
 
         this._regions = {};
-
-        
         this._featuresByLayerId = {};
-        
-        Layer.on('featurecollectionchange', function (layer) {
-            this.updateFeatureIndex(layer.layerId.toString()); /* UserSection */
-        }, this);
+
+        if (defaults)
+        {
+            this.mapMiner = defaults.mapMiner;
+            this.mapFeature = defaults.mapFeature;
+        }
+    }
+
+    getImages(selectedImageProvider) {
+        return new Promise(function (resolve, reject) {
+            let numCalls = 0;
+            try {
+                let activeRegions = this.getActiveRegions();
+                for (let regionIdx in activeRegions) {
+                    var region = activeRegions[regionIdx];
+                    (new Promise(function(resolve){
+                        /*
+                          Case the user simply select a region and then try to get the images
+                          by default the Streets from OSM will be used as features
+                        */
+                        if (Object.keys(region.layers).length === 0) {
+                            this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
+                        }
+                        else
+                        {
+                            //Otherwise simply collect the image's from the feature selected
+                            resolve();
+                        }
+                    }.bind(this))).then(() => {
+                        let activeLayers = region.getActiveLayers();
+                        
+                        for (let layerIdx in activeLayers) {
+                            let layer = activeLayers[layerIdx];
+
+                            //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                            //@todo: Warn user about the skipped layers
+                            //@todo: Revise this
+                            if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) {
+                                console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
+                                continue;
+                            }
+
+                            numCalls += 1;
+
+                            $.ajax('/getimagesforfeaturecollection/',
+                            {
+                                method: 'POST',
+                                processData: false,
+                                data: JSON.stringify({
+                                    'imageMinerName': selectedImageProvider,
+                                    'featureCollection': JSON.stringify(layer.featureCollection),
+                                    'regionId': region.id,
+                                    'layerId': layer.layerId.toString()
+                                }),
+                                contentType: "application/json; charset=utf-8",
+                                dataType: 'json',
+                                success: function (data, textStatus, jqXHR) {
+                                    //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
+                                    let layer = this.regions[data['regionId']].layers[data['layerId']];
+                                    layer.featureCollection = data['featureCollection'];
+                                }.bind(this),
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
+                                },
+                                complete: function (jqXHR, textStatus) {
+                                    /**
+                                    @todo: Treat parcial returns, the user should be able to see the results
+                                    as they are being received, rather than wait all of them.
+                                    */
+                                    numCalls -= 1;
+                                    if (numCalls == 0) {
+                                        resolve();
+                                    }
+                                },
+                            },
+                            'json'
+                            );
+                        }
+                    });
+                }
+            }
+            catch (err) {
+                
+                throw err;
+            }
+        }.bind(this));
+    }
+
+
+    getDisplayingLayers()
+    {
+        let displayingLayers = [];
+        let activeLayers = this.getActiveLayers();
+        for (let layerIdx in activeLayers)
+        {
+            let layer = activeLayers[layerIdx];
+            if (layer.geoImagesLoaded)
+            {
+                displayingLayers.push(layer);
+            }
+        }
+        return displayingLayers;
+    }
+
+    /**
+     * Function used to collect map features, from the server,
+     * based on [UIView.SelectedMapMiner]{@link module:"UIView.js"~UIView.SelectedMapMiner}
+     * and [UIView.SelectedMapFeature]{@link module:"UIView.js"~UIView.SelectedMapFeature}
+     * @param {Event} event - Event object generated by clicking over the 'this.jqbtnExecuteQuery' DOMElement button.
+     */
+    executeQuery(selectedMapMiner, selectedMapFeature) {
+        return new Promise(function (resolve, reject) {
+            let noSelectedRegions = true;
+            let numCalls = 0;
+            try {
+                const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+                let activeRegions = this.getActiveRegions();
+
+                for (let regionIdx in activeRegions) {
+
+                    let region = activeRegions[regionIdx];
+                    let layerId = Layer.createLayerId(selectedMapMiner, selectedMapFeature);
+                    let layer = region.getLayerById(layerId.toString());
+                    //If layer already exists in this region it means that no further request is needed
+                    if (layer) continue;
+
+                    layer = region.createLayer(layerId);
+                    numCalls = numCalls + 1;
+                    noSelectedRegions = false;
+
+                    if (selectedMapMiner === null) {
+                        reject("Please, select a Map Miner to continue.");
+                    }
+                    if (selectedMapFeature === null) {
+                        reject("Please, select a Feature to continue.");
+                    }
+
+                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
+
+                    geoJsonFeatures.crs = {
+                        "type": "name",
+                        "properties": {
+                            "name": "EPSG:4326"
+                        }
+                    };
+                    getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
+                    .then(function (data) {
+                        layer.featureCollection = data;
+                        numCalls = numCalls - 1;
+                        if (numCalls == 0) {
+                            resolve();
+                        }
+                    }.bind(this))
+                    .catch(function (err) {
+                        //TODO: Set it as a reject
+                        defaultAjaxErrorHandler('executeQuery', "error", err);
+                    });
+                }
+
+                if (noSelectedRegions) {
+                    reject("No region selected. Please, select a region to make a request.");
+                }
+            }
+            catch (err) {
+                //TODO: Set it as a reject
+                defaultAjaxErrorHandler('executeQuery', null, err);
+            }
+        }.bind(this));
     }
 
     /** 
@@ -327,7 +509,7 @@ class UserSection extends Subject
     }
 
     /**
-     * Search for all active regions at [UserSection.regions]{@link module:UserSection~UserSection#regions}.
+     * Search for all active regions at [UIModel.regions]{@link module:UIModel~UIModel#regions}.
      * @returns {Region[]} An array of all active regions
      */
     getActiveRegions()
@@ -375,7 +557,7 @@ class UserSection extends Subject
         element.toggleClass("active");
         let region = event.data;
         region.toggleActive();
-        UserSection.notify('regionlistitemclick', region);
+        UIModel.notify('regionlistitemclick', region);
     }
 
     createRegion(id, name, active)
@@ -419,11 +601,11 @@ class UserSection extends Subject
     getRegionById(regionId) { return this._regions[regionId]; }
 
     /**
-     * Updates the [featuresByLayerId]{@link module:UserSection~UserSection#featuresByLayerId} member.
+     * Updates the [featuresByLayerId]{@link module:UIModel~UIModel#featuresByLayerId} member.
      * If MultiLineString Features (e.g. streets) from different layers are merged together this method
-     * triggers an [featuresmerged]{@link module:UserSection~UserSection.featuresmerged} event.
-     * @param {string} layerIdStr - The id of the layer with untracked features. See [LayerId.toString]{@link module:UserSection~LayerId.toString}.
-     * @fires module:UserSection~UserSection.featuresmerged
+     * triggers an [featuresmerged]{@link module:UIModel~UIModel.featuresmerged} event.
+     * @param {string} layerIdStr - The id of the layer with untracked features. See [LayerId.toString]{@link module:UIModel~LayerId.toString}.
+     * @fires module:UIModel~UIModel.featuresmerged
      */
     updateFeatureIndex(layerIdStr)
     {
@@ -469,7 +651,7 @@ class UserSection extends Subject
             }
             if (triggerFeaturesMerged)
             {
-                UserSection.notify('featuresmerged', layer);
+                UIModel.notify('featuresmerged', layer);
             }
         }
         
@@ -478,6 +660,7 @@ class UserSection extends Subject
 }
 
 //#region GeoJson functions TODO: Transfer them to a more appropriate place
+
 
 
 /**
@@ -570,8 +753,8 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2)
 
 /**
 * Triggered by a mouse click event in the user interface
-* @event module:UserSection~UserSection.regionlistitemclick
-* @type {module:UserSection~Region}
+* @event module:UIModel~UIModel.regionlistitemclick
+* @type {module:UIModel~Region}
 * @property {Region} region - Indicates if this region is active or not.
 * @property {boolean} region.active - Indicates if this region is active or not.
 * @property {string} region.id - Indicates the id of the region [de]activated.
@@ -580,13 +763,13 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2)
 
 /**
 * Triggered when MultiLineString Features are joined together
-* @event module:UserSection~UserSection.featuresmerged
+* @event module:UIModel~UIModel.featuresmerged
 * @type {Layer}
-* @property {Layer} layer - See [Layer]{module:UserSection~Layer}
+* @property {Layer} layer - See [Layer]{module:UIModel~Layer}
 */
-if (!UserSection.init) {
-    UserSection.init = true;
-    UserSection.registerEventNames([
+if (!UIModel.init) {
+    UIModel.init = true;
+    UIModel.registerEventNames([
     'regionlistitemclick',
     'featuresmerged',
     ]);

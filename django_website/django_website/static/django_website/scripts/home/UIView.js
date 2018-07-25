@@ -1,6 +1,6 @@
 ﻿/**
 * Responsible for keeping the state of the UI
-* @module "UIHandler.js"
+* @module "UIView.js"
 */
 
 class DrawTool {
@@ -37,15 +37,21 @@ if (!DrawTool.init) {
  * @param {ImageProvider[]} _imageProviders - The collection of Image Providers as reported by the backend
  * @param {MapMiner[]} _mapMinersAndFeatures - The collection of Map Miners and its respective features as reported by the backend
  */
-class UIHandler {
-    constructor(defaults) {
+class UIView {
+    constructor(uiModel, geoImageManager, defaults) {
+        this.uiModel = uiModel;
+        this.geoImageManager = geoImageManager;
+
+        this.onClickExecuteQueryBtn = null;
+        this.onClickGetImagesBtn = null;
+        this.onClickClearSelectionsBtn = null;
+
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqmapMinerDiv = $(`#mapMinerDiv`);
         this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
         this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
 
-        this.jqbtnCollectImages = $(`#btnCollectImages`);
         this.jqbtnImageProvider = $(`#btnImageProvider`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
         this.jqbtnMapFeature = $(`#btnMapFeature`);
@@ -54,6 +60,10 @@ class UIHandler {
 
         this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
+
+        this.jqimgSliderDiv = $('#imgSliderDiv');
+        this.jqimgSlider = $('#imgSlider')
+
 
         this._SelectedMapMiner = null;
         this._SelectedMapFeature = null;
@@ -70,14 +80,14 @@ class UIHandler {
         this.populateShapeDiv();
         this.populateMapProviderDiv();
 
-
+        var defaultImageProvider = defaults.imageProvider;
         this.populateImageProviderDiv()
         .then(function (imageProviders) {
             if (imageProviders) {
                 this._imageProviders = imageProviders;
                 this._fillImageProviderDiv();
-                if (defaults.imageProvider) {
-                    this.changeImageProviderClick(defaults.imageProvider);
+                if (defaultImageProvider) {
+                    this.changeImageProviderClick(defaultImageProvider);
                 }
             }
             else {
@@ -89,18 +99,20 @@ class UIHandler {
 
 
         this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
-        this.jqbtnExecuteQuery.on("click", function () {
-            setLoadingText(this.jqbtnExecuteQuery);
-            let unset = (() => unsetLoadingText(this.jqbtnExecuteQuery));
-            this.executeQuery.bind(this)().then(unset, error => { alert(error); unset(); });
-        }.bind(this));
+        this.jqbtnCollectImages = $(`#btnCollectImages`);
         this.jqbtnClearSelections = $(`#btnClearSelections`);
-        this.jqbtnClearSelections.on("click", this.clearSelections.bind(this));
+
         this.jqbtnCancelDrawing.on("click", this.cancelDrawing.bind(this));
 
         if (defaults) {
             this.setDefaults(defaults);
         }
+    }
+
+    initialize() {
+        this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
+        this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
+        this.jqbtnClearSelections.on("click", this.onClickClearSelectionsBtn.bind(this));
     }
 
     setDefaults(defaults) {
@@ -145,6 +157,21 @@ class UIHandler {
         }
         jqselectorButton.html(label);
     }
+
+    updateGeoImgSlider() {
+        let numGeoImages = this.geoImageManager.validImages;
+
+        if (numGeoImages > 0) {
+            this.jqimgSlider.attr('min', 0);
+            this.jqimgSlider.attr('value', this.geoImageManager.currentIndex);
+            this.jqimgSlider.attr('max', numGeoImages);
+            this.jqimgSliderDiv.removeClass("hidden");
+        }
+        else {
+            this.jqimgSliderDiv.addClass("hidden");
+        }
+    }
+
 
     /**
     * Handler for changing map tiles.
@@ -226,12 +253,12 @@ class UIHandler {
         }
     }
 
-    set SelectedImageProvider(imageProviderId) {
-        this._SelectedImageProvider = imageProviderId;
+    set SelectedImageProvider(imageProvider) {
+        this._SelectedImageProvider = imageProvider;
 
         this.jqbtnCollectImages.removeClass("hidden");
 
-        this.setLabelSelectionBtn(this.jqbtnImageProvider, this._imageProviders[imageProviderId].name, false);
+        this.setLabelSelectionBtn(this.jqbtnImageProvider, imageProvider.name, false);
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
@@ -273,6 +300,59 @@ class UIHandler {
         this.populateMapMinersAndFeaturesDivs();
     }
 
+    drawLayer(layer, forceRedraw) {
+        if (!layer) { console.warn("Undefined layer!"); return; }
+        let featureCollection = layer.featureCollection;
+        let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
+
+        for (let featureIdx in featureCollection.features) {
+            let feature = featureCollection.features[featureIdx];
+
+            if (!this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+
+            if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed) {
+                if (forceRedraw) {
+                    let olFeature = globalVectorSource.getFeatureById(feature.id);
+                    globalVectorSource.removeFeature(olFeature);
+                    olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                    globalVectorSource.addFeature(olFeature);
+                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
+                }
+                else {
+                    continue;
+                }
+            }
+            else {
+                let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                globalVectorSource.addFeature(olFeature);
+                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
+            }
+
+        }
+    }
+
+
+
+    /**
+    * Changes the html of buttons to indicate it's busy.
+    * @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
+    */
+    setLoadingText(jqElement) {
+        let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
+        jqElement.data('original-text', jqElement.html());
+        jqElement.html(loadingText);
+    }
+
+    /**
+    * Changes the html of buttons back to its unbusy state.
+    * @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
+    */
+    unsetLoadingText(jqElement) {
+        if (jqElement.data('original-text')) {
+            jqElement.html(jqElement.data('original-text'));
+        }
+    }
+
     /**
      * Update the hints over the GetImages button
      * @param {LayerId} - See [layerId]{@link module:UserSection~Layer.layerId}
@@ -293,7 +373,7 @@ class UIHandler {
         let hintLayers = [];
 
         //Set active layers list tooltip
-        let activeRegions = usersection.getActiveRegions();
+        let activeRegions = this.uiModel.getActiveRegions();
         for (let regionIdx in activeRegions) {
 
             let region = activeRegions[regionIdx];
@@ -319,78 +399,14 @@ class UIHandler {
     }
 
 
-    /**
-     * Function used to collect map features, from the server,
-     * based on [UIHandler.SelectedMapMiner]{@link module:"UIHandler.js"~UIHandler.SelectedMapMiner}
-     * and [UIHandler.SelectedMapFeature]{@link module:"UIHandler.js"~UIHandler.SelectedMapFeature}
-     * @param {Event} event - Event object generated by clicking over the 'this.jqbtnExecuteQuery' DOMElement button.
-     */
-    executeQuery() {
-        return new Promise(function (resolve, reject) {
-            let noSelectedRegions = true;
-            let numCalls = 0;
-            try {
-                const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-                let activeRegions = usersection.getActiveRegions();
 
-                for (let regionIdx in activeRegions) {
-
-                    let region = activeRegions[regionIdx];
-                    let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
-                    let layer = region.getLayerById(layerId.toString());
-                    //If layer already exists in this region it means that no further request is needed
-                    if (layer) continue;
-
-                    layer = region.createLayer(layerId);
-                    numCalls = numCalls + 1;
-                    noSelectedRegions = false;
-
-                    if (this.SelectedMapMiner === null) {
-                        reject("Please, select a Map Miner to continue.");
-                    }
-                    if (_UIHandler.SelectedMapFeature === null) {
-                        reject("Please, select a Feature to continue.");
-                    }
-
-                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
-
-                    geoJsonFeatures.crs = {
-                        "type": "name",
-                        "properties": {
-                            "name": "EPSG:4326"
-                        }
-                    };
-                    getMapMinerFeatures(region, this.SelectedMapMiner, this.SelectedMapFeature, geoJsonFeatures)
-                    .then(function (data) {
-                        layer.featureCollection = data;
-                        numCalls = numCalls - 1;
-                        if (numCalls == 0) {
-                            resolve();
-                        }
-                    }.bind(this))
-                    .catch(function (err) {
-                        //TODO: Set it as a reject
-                        defaultAjaxErrorHandler('executeQuery', "error", err);
-                    });
-                }
-
-                if (noSelectedRegions) {
-                    reject("No region selected. Please, select a region to make a request.");
-                }
-            }
-            catch (err) {
-                //TODO: Set it as a reject
-                defaultAjaxErrorHandler('executeQuery', null, err);
-            }
-        }.bind(this));
-    }
 
     //#region Image Provider
 
     populateShapeDiv() {
         this.jqshapeSelectorDiv.empty();
-        for (let shapeIdx in UIHandler.DrawTools) {
-            const shape = UIHandler.DrawTools[shapeIdx];
+        for (let shapeIdx in UIView.DrawTools) {
+            const shape = UIView.DrawTools[shapeIdx];
             const btnShape = this.create_dropDown_aButton(shape.name, shape, this.changeShapeClick);
             this.jqshapeSelectorDiv.append(btnShape);
         }
@@ -440,7 +456,7 @@ class UIHandler {
     }
 
     /**
-     * Called when [_imageProviders]{@link module:UIHandler~_imageProviders} is loaded and
+     * Called when [_imageProviders]{@link module:UIView~_imageProviders} is loaded and
      * the Image Provider Div should be (re)loaded too.
      * @private
      */
@@ -458,8 +474,8 @@ class UIHandler {
      * @param {string} imageProviderId - Id defined by backend's class ImageProvider's subclasses
      * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
      */
-    changeImageProviderClick(imageProviderId) {
-        this.SelectedImageProvider = imageProviderId;
+    changeImageProviderClick(imageProvider) {
+        this.SelectedImageProvider = imageProvider;
     }
 
     //#endregion Image Provider
@@ -510,7 +526,7 @@ class UIHandler {
     }
 
     /**
-     * Called when [_mapMinersAndFeatures]{@link module:UIHandler~_mapMinersAndFeatures} is loaded and
+     * Called when [_mapMinersAndFeatures]{@link module:UIView~_mapMinersAndFeatures} is loaded and
      * the Map Miner and Features Divs should be (re)loaded too.
      * @private
      */
@@ -587,8 +603,8 @@ class UIHandler {
     //#endregion Map Miner and Features
 }
 
-if (!UIHandler.init) {
-    UIHandler.init = true;
+if (!UIView.init) {
+    UIView.init = true;
 
     /**
      * Collection of registered tile providers from OpenLayers
@@ -603,7 +619,7 @@ if (!UIHandler.init) {
      * OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES
      * @see [OpenLayers Sources]{@link https://github.com/openlayers/openlayers/tree/v5.0.3/src/ol/source}
      */
-    UIHandler.DrawTools =
+    UIView.DrawTools =
         {
             Box: new DrawTool('Box', ol.interaction.Draw.createBox()),
             Square: new DrawTool('Square', ol.interaction.Draw.createRegularPolygon(4)),
