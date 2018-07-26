@@ -137,7 +137,8 @@ class GeoImageManager extends Subject {
         while (root[n]) {
             count += this._removeInvalidImages(root[n]);
             if (count === oldCount) {
-                delete root[n];
+                root.splice(n, 1);
+                n -= 1;
             }
             oldCount = count;
             n += 1;
