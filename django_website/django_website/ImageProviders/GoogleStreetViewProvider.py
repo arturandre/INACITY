@@ -35,6 +35,10 @@ class GoogleStreetViewProvider(ImageProvider):
     def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
         gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
+        if not gsvpanoramas.ok:
+            #gsvpanoramas.status_code #413
+            #gsvpanoramas.reason #'Payload Too Large'
+            return gsvpanoramas
         featureCollection = geojson.loads(gsvpanoramas.text)
         for feature in featureCollection['features']:
             if feature['geometry']['type'] == 'MultiPolygon':

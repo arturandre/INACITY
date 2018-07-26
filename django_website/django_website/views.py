@@ -76,6 +76,11 @@ def getimagesforfeaturecollection(request):
     imageMinerName = jsondata['imageMinerName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
     ret = {}
+    tryGetImagesForCollection = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    if (isinstance(tryGetImagesForCollection, requests.Response)):
+        return HttpResponse(content=tryGetImagesForCollection.content,
+            status=tryGetImagesForCollection.status_code,
+            content_type=tryGetImagesForCollection.headers['Content-Type'])
     ret['featureCollection'] = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
     ret['regionId'] = jsondata['regionId'];
     ret['layerId'] = jsondata['layerId'];
