@@ -494,12 +494,12 @@ class UIView {
             if (this._imageProviders.length === 0) {
                 this.getImageProviders()
                 .then((imageProviders) => {
-                    resolve(imageProviders);
+                    return resolve(imageProviders);
                 })
             .catch((error) => reject(error));
             }
             else {
-                resolve();
+                return resolve();
             }
         }.bind(this));
     }
@@ -521,8 +521,8 @@ class UIView {
                 {
                     cache: false,
                     method: "GET",
-                    success: function (data, textStatus, jqXHR) { resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    success: function (data, textStatus, jqXHR) { return resolve(data); },
+                    error: function (jqXHR, textStatus, errorThrown) { return reject(errorThrown); },
                     dataType: "json"
                 });
         });
@@ -591,8 +591,8 @@ class UIView {
                 {
                     cache: false,
                     method: "GET",
-                    success: function (data, textStatus, jqXHR) { resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    success: function (data, textStatus, jqXHR) { return resolve(data); },
+                    error: function (jqXHR, textStatus, errorThrown) { return reject(errorThrown); },
                     dataType: "json"
                 });
         });

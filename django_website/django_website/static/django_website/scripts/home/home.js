@@ -277,7 +277,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data, textStatus, jqXHR) {
-                    resolve(data);
+                    return resolve(data);
                 }.bind(region),
                 error: function ( jqXHR, textStatus, errorThrown) 
                 {

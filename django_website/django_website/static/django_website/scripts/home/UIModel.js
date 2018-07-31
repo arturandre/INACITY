@@ -306,6 +306,10 @@ class UIModel extends Subject
             let numCalls = 0;
             try {
                 let activeRegions = this.getActiveRegions();
+                if (activeRegions.length === 0)
+                {
+                    return reject("Please, select region to continue.");
+                }
                 for (let regionIdx in activeRegions) {
                     var region = activeRegions[regionIdx];
                     (new Promise(function(resolve){
@@ -319,7 +323,7 @@ class UIModel extends Subject
                         else
                         {
                             //Otherwise simply collect the image's from the feature selected
-                            resolve();
+                            return resolve();
                         }
                     }.bind(this))).then(() => {
                         let activeLayers = region.getActiveLayers();
@@ -355,7 +359,15 @@ class UIModel extends Subject
                                     layer.featureCollection = data['featureCollection'];
                                 }.bind(this),
                                 error: function (jqXHR, textStatus, errorThrown) {
-                                    defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
+                                    //@todo: Create a error handling mechanism
+                                    if (jqXHR.status === 413)
+                                    {
+                                        alert("The request was too big to be processed. Try a smaller region.");
+                                    }
+                                    else
+                                    {
+                                        defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
+                                    }
                                 },
                                 complete: function (jqXHR, textStatus) {
                                     /**
@@ -364,7 +376,7 @@ class UIModel extends Subject
                                     */
                                     numCalls -= 1;
                                     if (numCalls == 0) {
-                                        resolve();
+                                        return resolve();
                                     }
                                 },
                             },
@@ -424,10 +436,10 @@ class UIModel extends Subject
                     noSelectedRegions = false;
 
                     if (selectedMapMiner === null) {
-                        reject("Please, select a Map Miner to continue.");
+                        return reject("Please, select a Map Miner to continue.");
                     }
                     if (selectedMapFeature === null) {
-                        reject("Please, select a Feature to continue.");
+                        return reject("Please, select a Feature to continue.");
                     }
 
                     let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
@@ -443,7 +455,7 @@ class UIModel extends Subject
                         layer.featureCollection = data;
                         numCalls = numCalls - 1;
                         if (numCalls == 0) {
-                            resolve();
+                            return resolve();
                         }
                     }.bind(this))
                     .catch(function (err) {
@@ -453,7 +465,7 @@ class UIModel extends Subject
                 }
 
                 if (noSelectedRegions) {
-                    reject("No region selected. Please, select a region to make a request.");
+                    return reject("No region selected. Please, select a region to make a request.");
                 }
             }
             catch (err) {
@@ -609,10 +621,11 @@ class UIModel extends Subject
      */
     updateFeatureIndex(layerIdStr)
     {
-        for (let regionIdx in this.regions)
+        let activeRegions = this.getActiveRegions();
+        for (let regionIdx in activeRegions)
         {
             let triggerFeaturesMerged = false;
-            let region = this.regions[regionIdx];
+            let region = activeRegions[regionIdx];
             let layer = region.layers[layerIdStr];
             if (!layer || !layer.featureCollection) continue;
             let featureRegionsIndex = this._featuresByLayerId[layerIdStr];
@@ -643,7 +656,7 @@ class UIModel extends Subject
                         for (let regionIdxAux in featureRegionsIndex[feature.id].regions)
                         {
                             let auxRegion = this.regions[featureRegionsIndex[feature.id].regions[regionIdxAux]];
-                            auxRegion.layers[layerId].featureCollection.features[featureIdx] = feature;
+                            auxRegion.layers[layerIdStr].featureCollection.features[featureIdx] = feature;
                         }
                         featureRegionsIndex[feature.id].regions.push(regionIdx);
                     }
