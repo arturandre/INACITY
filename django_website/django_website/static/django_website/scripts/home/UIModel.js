@@ -624,9 +624,12 @@ class UIModel extends Subject
         let activeRegions = this.getActiveRegions();
         for (let regionIdx in activeRegions)
         {
-            let triggerFeaturesMerged = false;
             let region = activeRegions[regionIdx];
+
+            let triggerFeaturesMerged = false;
+
             let layer = region.layers[layerIdStr];
+
             if (!layer || !layer.featureCollection) continue;
             let featureRegionsIndex = this._featuresByLayerId[layerIdStr];
             if (!featureRegionsIndex) featureRegionsIndex = this._featuresByLayerId[layerIdStr] = {};
@@ -635,7 +638,7 @@ class UIModel extends Subject
                 let feature = layer.featureCollection.features[featureIdx];
                 if (!featureRegionsIndex[feature.id])
                 {
-                    featureRegionsIndex[feature.id] = new FeatureRegions(feature, [regionIdx]);
+                    featureRegionsIndex[feature.id] = new FeatureRegions(feature, [region.id]);
                 }   
                 else
                 {
@@ -647,7 +650,7 @@ class UIModel extends Subject
                     */
                     mergeInPlaceMultilineStringFeatures(featureRegionsIndex[feature.id].feature, feature);
                     triggerFeaturesMerged = true;
-                    if (featureRegionsIndex[feature.id].regions.indexOf(regionIdx) === -1)
+                    if (featureRegionsIndex[feature.id].regions.indexOf(region.id) === -1)
                     {
                         /*
                          * After a merge it's necessary to update other regions that also contains
@@ -658,7 +661,7 @@ class UIModel extends Subject
                             let auxRegion = this.regions[featureRegionsIndex[feature.id].regions[regionIdxAux]];
                             auxRegion.layers[layerIdStr].featureCollection.features[featureIdx] = feature;
                         }
-                        featureRegionsIndex[feature.id].regions.push(regionIdx);
+                        featureRegionsIndex[feature.id].regions.push(region.id);
                     }
                 }
             }
