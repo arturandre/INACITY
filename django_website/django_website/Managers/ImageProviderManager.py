@@ -36,7 +36,7 @@ class ImageProviderManager(object):
         return self._ImageProviders
 
     def getAvailableImageProviders(self):
-        return {imageProviderId: {'name': self._ImageProviders[imageProviderId].imageProviderName} for imageProviderId in self._ImageProviders}
+        return {imageProviderId: {'name': self._ImageProviders[imageProviderId].imageProviderName, 'idprovider': imageProviderId} for imageProviderId in self._ImageProviders}
 
     def getImageForFeatureCollection(self, imageProviderId, featureCollection: FeatureCollection)->List[GeoImage]:
         return self._ImageProviders[imageProviderId].getImageForFeatureCollection(featureCollection)
