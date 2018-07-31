@@ -60,7 +60,7 @@
     onClickGetImagesBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages));
-        this.uiModel.getImages(this.uiView.SelectedImageProvider).then(
+        this.uiModel.getImages(this.uiView.SelectedImageProvider.idprovider).then(
             () => {
                 unset();
                 //Set the geoImageManager to display this collection

@@ -91,10 +91,11 @@ class UIView {
         this.populateImageProviderDiv()
         .then(function (imageProviders) {
             if (imageProviders) {
+                
                 this._imageProviders = imageProviders;
                 this._fillImageProviderDiv();
                 if (defaultImageProvider) {
-                    this.changeImageProviderClick(defaultImageProvider);
+                    this.changeImageProviderClick(imageProviders[defaultImageProvider]);
                 }
             }
             else {
@@ -494,12 +495,12 @@ class UIView {
             if (this._imageProviders.length === 0) {
                 this.getImageProviders()
                 .then((imageProviders) => {
-                    return resolve(imageProviders);
+                    resolve(imageProviders);
                 })
             .catch((error) => reject(error));
             }
             else {
-                return resolve();
+                resolve();
             }
         }.bind(this));
     }
@@ -521,8 +522,8 @@ class UIView {
                 {
                     cache: false,
                     method: "GET",
-                    success: function (data, textStatus, jqXHR) { return resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { return reject(errorThrown); },
+                    success: function (data, textStatus, jqXHR) { resolve(data); },
+                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
                     dataType: "json"
                 });
         });
@@ -537,7 +538,7 @@ class UIView {
         this.jqimageProviderDiv.empty();
         for (let imageProviderIdx in this._imageProviders) {
             let imageProviderName = this._imageProviders[imageProviderIdx].name;
-            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, imageProviderIdx, this.changeImageProviderClick);
+            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, this._imageProviders[imageProviderIdx], this.changeImageProviderClick);
             this.jqimageProviderDiv.append(btnImageProvider);
         }
     }
@@ -591,8 +592,8 @@ class UIView {
                 {
                     cache: false,
                     method: "GET",
-                    success: function (data, textStatus, jqXHR) { return resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { return reject(errorThrown); },
+                    success: function (data, textStatus, jqXHR) { resolve(data); },
+                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
                     dataType: "json"
                 });
         });
