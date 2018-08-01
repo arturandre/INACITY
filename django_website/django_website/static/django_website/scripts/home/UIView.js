@@ -175,6 +175,8 @@ class UIView {
         this._SelectedDrawTool = drawTool;
 
         this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
+
+        this.jqbtnCancelDrawing.removeClass('hidden');
     }
 
     populateChangeModeDiv() {
