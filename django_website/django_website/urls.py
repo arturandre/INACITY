@@ -25,6 +25,12 @@ urlpatterns = [
     url(r'^docs/', include_docs_urls(title="INACITY's API")),
 
     # API Calls
+
+    #Receives a geoImage and returns its version filtered
+    #POST
+    url(r'^filtergeoimage/?$', filtergeoimage, name='filtergeoimage'),
+    
+
     #Returns lists of available map miners and their corresponding map features
     url(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
     

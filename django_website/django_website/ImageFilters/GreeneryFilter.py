@@ -1,7 +1,7 @@
 import imageio
 import scipy
 import numpy as np
-from skimage import color
+from skimage import color, img_as_float, img_as_ubyte
 
 import matplotlib.pyplot as plt
 from scipy import misc, ndimage
@@ -16,12 +16,16 @@ class GreeneryFilter(ImageFilter):
     
 
     filterName = "Greenery"
-    filterId = "Greenery"
+    filterId = "greenery"
+
+    def _initialize(cls):
+        pass
 
     #Based on mt-li-espectral
-    def processImage(image: GeoImage) -> GeoImage:
-        mask = mt_li_espectral(image.data)
-        return GeoImage(mask)
+    def processImage(geoImage: GeoImage) -> GeoImage:
+        mask = mt_li_espectral(geoImage.data)
+        geoImage.data = img_as_ubyte(mask)
+        return geoImage
 
     def _processImageMock() -> GeoImage:
         imageMock = GeoImage(imageio.imread('django_website/Testing/gsvimagetestmock.png'))

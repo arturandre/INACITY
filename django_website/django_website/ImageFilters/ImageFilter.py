@@ -8,10 +8,25 @@ class ImageFilter(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._subclasses.append(cls)
-        if cls.filterName is None:
-            raise NotImplementedError("filterName not defined in subclass: " + cls.__name__)
-        if cls.filterId is None:
-            raise NotImplementedError("filterId not defined in subclass: " + cls.__name__)
+        notImplementedFields = []
+        checkFields = [
+            (cls.filterName, 'mapMinerName'),
+            (cls.filterId, 'mapMinerId'),
+            (cls.processImage, 'processImage'),
+            ]
+        for i in range(len(checkFields)):
+            try:
+                if checkFields[i][0] is None:
+                    notImplementedFields.append(checkFields[i][1])
+            except NameError:
+                notImplementedFields.append(checkFields[i][1])
+        
+        if len(notImplementedFields) > 0:
+            errors = ", ".join(notImplementedFields)
+            raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
+    
+        cls._initialize(cls)
+        pass
 
     __all__ = ["filterName", "filterId", "processImage"]
 
@@ -21,9 +36,9 @@ class ImageFilter(ABC):
     """This property represents id used to catalog all available filters"""
     filterId = None
 
-    @abstractmethod
-    def processImage(self, image: GeoImage) -> GeoImage:
-        pass
+    @classmethod
+    def _initialize(cls):
+        pass  
 
     
 
