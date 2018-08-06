@@ -220,7 +220,16 @@ class GeoImageManager extends Subject {
             GeoImageManager.notify('invalidcollection', null);
             return false;
         }
-        this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        if (geoImage.dataType === 'URL') {
+            this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        }
+        else if (geoImage.dataType === 'data:image/jpeg;base64') {
+            this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
+        }
+        else
+        {
+            throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
+        }
         GeoImageManager.notify('imagechange', geoImage);
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
