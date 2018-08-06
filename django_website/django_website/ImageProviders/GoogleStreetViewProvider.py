@@ -81,23 +81,7 @@ class GoogleStreetViewProvider(ImageProvider):
                     GoogleStreetViewProvider.\
                         createGeoImageFromStreetViewPanoramaData\
                             (streetViewPanoramaData).toJSON()
-            
-
-        #    for coordinateData in feature:
-        #        location = coordinateData['location']
-        #        geoImage = GeoImage();
-        #        geoImage.id = location['pano']
-        #        geoImage.location = Point([location['lon'], location['lat']])
-        #        geoImage.heading = coordinateData['tiles']['centerHeading']
-        #        geoImage.pitch = coordinateData['tiles']['originPitch']
-        #        geoImage.metadata = coordinateData
-        #        imageURL = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
-        #        geoImage.metadata['imageURL'] = imageURL
-        #        #imageRawData = requests.get(imageURL).content
-        #        #imageData = imageio.imread(BytesIO(imageRawData))
-        #        #geoImage.setData(imageData)
-        #        ret.append(geoImage)
-        #return ret
+      
         return featureCollection
     def createGeoImageFromStreetViewPanoramaData(streetViewPanoramaData):
         geoImage = GeoImage()
@@ -106,6 +90,8 @@ class GoogleStreetViewProvider(ImageProvider):
         geoImage.heading = streetViewPanoramaData['tiles']['centerHeading']
         geoImage.pitch = streetViewPanoramaData['tiles']['originPitch']
         geoImage.metadata = streetViewPanoramaData
+        geoImage.data = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
+        geoImage.dataType = "URL"
         geoImage.metadata['imageURL'] = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
         return geoImage
 

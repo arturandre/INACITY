@@ -112,6 +112,20 @@ class OSMMiner(MapMiner):
             return ret
         pass
 
+    _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
+    #_overpassBaseUrl = "http://inacity.eastus.cloudapp.azure.com/api/interpreter?data="
+    _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
+    _outFormat = "[out:json]"
+    _timeout = "[timeout:60]"
+    _lock = Lock()
+    
+    _destcrs = SpatialReference(3857)
+    _crs = {
+    "type": "name",
+    "properties": {
+        "name": "EPSG:3857"
+    }
+    }
 
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
