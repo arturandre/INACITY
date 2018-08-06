@@ -32,6 +32,7 @@ class MapMiner(ABC):
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
     
         cls._initialize(cls)
+        pass
     
     __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
 
@@ -58,7 +59,7 @@ class MapMiner(ABC):
     
     @classmethod
     def doQuery(cls, queryName: str, regions: FeatureCollection):
-        """Execute a queries registered query"""
+        """Execute a registered query"""
         if not type(regions) is FeatureCollection: regions = FeatureCollection(regions)
         if not type(regions['features']) is list: regions['features'] = [regions['features']]
         

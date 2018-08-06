@@ -1,4 +1,5 @@
 from django_website.ImageFilters.ImageFilter import ImageFilter
+from django_website.Primitives.Primitives import GeoImage
 
 class ImageFilterManager(object):
     __instance = None
@@ -13,10 +14,19 @@ class ImageFilterManager(object):
         return ImageFilterManager.__instance
 
     def registerFilter(self, filter: ImageFilter):
-        if filter.filterName in self._ImageFilters:
-          return
-        self._ImageFilters[filter.filterName] = filter
-    @property
-    def ImageFilters(self):
-        return self._ImageFilters
+        if not filter.filterId in self._ImageFilters:
+            self._ImageFilters[filter.filterId] = filter
+        pass
+
+    def processImage(self, filterId, geoImage: GeoImage):
+        if filterId in self._ImageFilters:
+            return self._ImageFilters[filterId].processImage(geoImage)
+        else:
+            return "filterId not found!"
+        pass
+
+    def getAvailableImageFilters(self):
+        return {imageFilter.filterId: {'name': self._ImageFilters[filterId].filterName, 'id': imageFilter.filterId} for imageFilter in self._ImageFilters}
+
+    
     

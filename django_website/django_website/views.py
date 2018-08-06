@@ -24,6 +24,7 @@ from django_website.Primitives import *
 
 ########### TESTING ##################
 from django.core.files.storage import FileSystemStorage
+from django_website.Primitives.Primitives import GeoImage
 ########### TESTING ##################
 
 ##############GLOBALS####################
@@ -34,6 +35,7 @@ def __merge_two_dicts(x, y):
     return z
 
 __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
+imageFilterManager = ImageFilterManager()
 imageProviderManager = ImageProviderManager()
 mapMinerManager = MapMinerManager()
 ##############GLOBALS####################
@@ -59,7 +61,15 @@ def getimageproviders(request):
     ret = imageProviderManager.getAvailableImageProviders()
     return JsonResponse(ret)
 
-
+@api_view(['POST'])
+def filtergeoimage(request):
+    jsondata = request.data
+    filterId = jsondata["filterId"]
+    geoImage = GeoImage.fromJSON(jsondata["geoImage"])
+    
+    geoImageRet = imageFilterManager.processImage(filterId, geoImage)
+    geoImageRet.setDataToBase64()
+    return JsonResponse(geoImageRet.toJSON(), safe=False)
 
 @api_view(['POST'])
 def getmapminerfeatures(request):
@@ -68,7 +78,7 @@ def getmapminerfeatures(request):
     query = jsondata["featureName"]
     region = geojson.loads(jsondata["regions"])
     
-    ret = mapMinerManager.requestQueryToMapMiner(mapMinerId, query, region);
+    ret = mapMinerManager.requestQueryToMapMiner(mapMinerId, query, region)
     return JsonResponse(ret)
 
 @api_view(['POST'])
