@@ -8,6 +8,11 @@ from io import BytesIO
 import base64
 from skimage import img_as_float, img_as_ubyte
 
+from PIL import Image
+from io import BytesIO
+import base64
+from skimage import img_as_float, img_as_ubyte
+
 class SimpleDTO(object):
     def __init__(self):
         pass
@@ -19,6 +24,8 @@ class SimpleDTO(object):
         else:
             return json.dumps(self, default=lambda o: o.__dict__, 
                 sort_keys=True, indent=4)
+
+
 
 class GeoImage(SimpleDTO):
     """Object responsible for keeping image and panorama's data"""
