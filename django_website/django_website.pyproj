@@ -101,6 +101,7 @@
   <ItemGroup>
     <Content Include="django_website\static\django_website\css\base.css" />
     <Content Include="django_website\static\django_website\css\home.css" />
+    <Content Include="django_website\static\django_website\css\tutorial.css" />
     <Content Include="django_website\static\django_website\images\favicon.ico" />
     <Content Include="django_website\static\django_website\images\favicon.png" />
     <Content Include="django_website\static\django_website\images\flag_en-us.png" />
@@ -111,6 +112,13 @@
     <Content Include="django_website\static\django_website\images\logo_name.png" />
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\1min.mp4" />
+    <Content Include="django_website\static\django_website\images\tutorial\allShapes.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\defaultShape.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\getImages.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\gettingImages.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\post_select.png" />
+    <Content Include="django_website\static\django_website\images\tutorial\pre_select.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
     <Content Include="django_website\static\django_website\scripts\GeoImageManager.js" />
     <Content Include="django_website\static\django_website\scripts\home\UIController.js" />
@@ -121,6 +129,7 @@
     <Content Include="django_website\static\django_website\scripts\OpenLayersHandler.js" />
     <Content Include="django_website\static\django_website\scripts\Primitives.js" />
     <Content Include="django_website\static\django_website\scripts\home\UIModel.js" />
+    <Content Include="django_website\templates\tutorial.html" />
     <Content Include="django_website\templates\about.html" />
     <Content Include="django_website\templates\integrationTest.html" />
     <Content Include="django_website\templates\home.html" />
@@ -136,6 +145,7 @@
     <Folder Include="django_website\ImageFilters\" />
     <Folder Include="django_website\media\" />
     <Folder Include="django_website\ImageProviders\" />
+    <Folder Include="django_website\static\django_website\images\tutorial\" />
     <Folder Include="django_website\static\django_website\scripts\home\" />
     <Folder Include="django_website\Testing\" />
     <Folder Include="django_website\static\" />

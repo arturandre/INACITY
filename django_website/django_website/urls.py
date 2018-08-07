@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^$', home, name='root'),
     url(r'^home/?$', home, name='home'),
     url(r'^about/?$', about, name='about'),
+    url(r'^tutorial/?$', tutorial, name='tutorial'),
     url(r'^docs/?$', docs, name='docs'),
 
     # Docs
