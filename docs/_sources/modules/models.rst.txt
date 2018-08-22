@@ -1,0 +1,22 @@
+Models
+******
+
+DTOs - Data Transfer Objects
+============================
+
+These objects are used primarily to encapsulate objects used in the communication between the frontend (possibly a custom one) and the backend
+   
+.. automodule:: django_website.Primitives.DTO
+   :members:
+.. automodule:: django_website.Primitives.GeoImage
+   :members:
+
+GIS Models
+==========
+
+These objects encapsulate properties from different GISes' databases
+
+.. automodule:: django_website.Primitives.GeoSampa
+   :members:
+.. automodule:: django_website.Primitives.OSMPrimitives
+   :members:
