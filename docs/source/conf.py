@@ -17,8 +17,8 @@ import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
 sys.path.insert(0, '..')
-sys.path.insert(0, '../../INACITY_solution/django_website/')
-#sys.path.insert(0, '../../INACITY_solution/')
+sys.path.insert(0, '../../django_website/')
+#sys.path.insert(0, '../../')
 
 import django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'django_website.settings'
@@ -63,8 +63,8 @@ extensions = [
 ]
 
 #js_source_path = '../INACITY_solution/django_website/django_website/static/django_website/scripts'
-js_source_path = '../INACITY_solution/django_website/django_website/static/django_website/scripts'
-sdoc_config_path = '../INACITY_solution/conf.json'
+js_source_path = '../django_website/django_website/static/django_website/scripts'
+jsdoc_config_path = '../conf.json'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
