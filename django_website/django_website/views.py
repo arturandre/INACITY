@@ -4,6 +4,7 @@ import sys
 
 import requests
 from django.shortcuts import render
+from django.template import loader
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse
@@ -47,10 +48,10 @@ def tutorial(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-def docs(request):
-    htmlfile = 'docs/index.html'
+def docs(request, path='index.html'):
+    template = loader.get_template("docs/" + path)
     #local_vars = {'sample_key': 'sample_data'}
-    return render(request, htmlfile, __TEMPLATE_GLOBAL_VARS)
+    return HttpResponse(template.render())
 
 
 @api_view(['GET'])

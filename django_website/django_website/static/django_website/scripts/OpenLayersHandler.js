@@ -8,7 +8,7 @@ let instance = null;
 /**
 * Responsible for handling several OpenLayers properties
 * @param {string} HTMLDIVtarget - The DOMElement div's id that will be the container of map tiles, the map itself in other words
-* @param {OpenLayersHandler.TileProviders} defaultTileProvider - The tile provider as registered at [TileProviders]{@link module:OpenLayersHandler~OpenLayersHandler.TileProviders} class member.
+* @param {OpenLayersHandler.TileProviders} defaultTileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
 class OpenLayersHandler {
@@ -71,7 +71,7 @@ class OpenLayersHandler {
 
     /**
      * Set the map tiles provider for displaying
-     * @param {OpenLayersHandler.TileProviders} tileProvider - The tile provider as registered at [TileProviders]{@link module:OpenLayersHandler~OpenLayersHandler.TileProviders} class member.
+     * @param {OpenLayersHandler.TileProviders} tileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
      */
     changeMapProvider(tileProvider) {
         if (instance.map) {

@@ -1,4 +1,4 @@
-from django_website.Primitives.Primitives import GeoImage
+from django_website.Primitives.GeoImage import GeoImage
 from abc import ABC, abstractmethod
 
 class ImageFilter(ABC):

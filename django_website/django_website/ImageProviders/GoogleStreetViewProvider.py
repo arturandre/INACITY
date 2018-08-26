@@ -1,9 +1,9 @@
-from django_website.ImageProviders.ImageProvider import ImageProvider
+from .ImageProvider import ImageProvider
 import requests
 import imageio
 from io import BytesIO
 import numpy as np
-from django_website.Primitives.Primitives import GeoImage
+from django_website.Primitives.GeoImage import GeoImage
 import geojson
 from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, FeatureCollection
 from typing import List

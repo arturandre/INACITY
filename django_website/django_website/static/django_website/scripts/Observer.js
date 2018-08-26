@@ -11,11 +11,7 @@
 */
 class Subject {
 
-    constructor()
-    {
-        //this._eventNames = [];
-        //this._observers = new Object();
-    }
+    constructor() {}
 
     /**
      * Register at class level the eventNames that the subclass can dispatch events for
@@ -54,17 +50,6 @@ class Subject {
         {
             let listenerRecord = this._observers[eventName][listenerIdx];
             listenerRecord.listener(data);
-            //if (listenerRecord.opt_this)
-            //{
-            //    (listenerRecord.listener.bind(listenerRecord.opt_this))(data);
-            //}
-            //else
-            //{
-            //    listenerRecord.listener(data);
-            //}
         }
     }
 }
-
-//Subject._eventNames = [];
-//Subject._observers = {};

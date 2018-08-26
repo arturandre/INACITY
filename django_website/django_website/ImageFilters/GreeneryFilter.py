@@ -8,7 +8,7 @@ from scipy import misc, ndimage
 
 from .ImageFilter import *
 from .commonFunctions import mt_li_espectral
-from django_website.Primitives.Primitives import GeoImage
+from django_website.Primitives.GeoImage import GeoImage
 
 
 class GreeneryFilter(ImageFilter):

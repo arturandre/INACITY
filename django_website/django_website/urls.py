@@ -8,10 +8,11 @@ from django.conf.urls import include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
-from rest_framework.documentation import include_docs_urls
+#from rest_framework.documentation import include_docs_urls
 
 from django_website.views import *
 #from django.views.generic.base import TemplateView
+from django_website import settings
 
 urlpatterns = [
     # Pages
@@ -19,10 +20,11 @@ urlpatterns = [
     url(r'^home/?$', home, name='home'),
     url(r'^about/?$', about, name='about'),
     url(r'^tutorial/?$', tutorial, name='tutorial'),
-    url(r'^docs/?$', docs, name='docs'),
 
     # Docs
-    url(r'^docs/', include_docs_urls(title="INACITY's API")),
+    #url(r'^docs/?$', include_docs_urls(title="INACITY's API")),
+    url(r'^docs/(?P<path>.*)$', docs, name='docs'),
+    #url(r'^docs/', 'django.views.static.serve', {'document_root': settings.DOCS_ROOT, 'path': 'index.html'}),
 
     # API Calls
     #Returns lists of available map miners and their corresponding map features

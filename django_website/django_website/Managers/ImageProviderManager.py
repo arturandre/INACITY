@@ -4,7 +4,7 @@ from typing import List
 from django_website.ImageProviders.ImageProvider import ImageProvider
 from geojson import FeatureCollection
 from typing import List
-from django_website.Primitives.Primitives import GeoImage
+from django_website.Primitives.GeoImage import GeoImage
 
 class ImageProviderManager(object):
     """Mediator class instantiated as a singleton responsible for managing all the image platforms adaptors implemented"""

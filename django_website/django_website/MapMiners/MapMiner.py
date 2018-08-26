@@ -1,4 +1,4 @@
-from django_website.Primitives.Primitives import *
+from django_website.Primitives.GeoImage import GeoImage
 from abc import ABC, abstractmethod
 from typing import List
 from django.contrib.gis.geos import Polygon

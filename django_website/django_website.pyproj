@@ -81,11 +81,14 @@
     <Compile Include="django_website\models.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="django_website\Primitives\GeoImage.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="django_website\Primitives\GeoSampa.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="django_website\Primitives\OSMPrimitives.py" />
-    <Compile Include="django_website\Primitives\Primitives.py" />
+    <Compile Include="django_website\Primitives\DTO.py" />
     <Compile Include="django_website\Primitives\__init__.py" />
     <Compile Include="django_website\Testing\mocks.py" />
     <Compile Include="django_website\Testing\Testing.py" />
@@ -93,7 +96,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="manage.py" />
-    <Compile Include="django_website\__init__.py" />
     <Compile Include="django_website\settings.py" />
     <Compile Include="django_website\urls.py" />
     <Compile Include="django_website\wsgi.py" />

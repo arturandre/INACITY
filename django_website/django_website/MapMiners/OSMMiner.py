@@ -2,8 +2,8 @@ from geojson import Point, LineString, MultiLineString, Polygon, Feature, Featur
 from django.contrib.gis.gdal import SpatialReference
 import requests
 from typing import List
-from django_website.Primitives import *
-from django_website.MapMiners import MapMiner
+from django_website.Primitives.OSMPrimitives import *
+from .MapMiner import MapMiner
 from itertools import chain
 import re
 from dateutil.parser import parse
@@ -21,6 +21,39 @@ class OSMMiner(MapMiner):
     #EPSG:3857
     #Since OpenLayers and OSMMiner use the same SRID no convertion is needed
     _basecrs = SpatialReference(3857)
+
+    # _OSMServerURL defines where should the OSMMiner collect GIS Data
+    # Options are:
+    # OverpassAPI.DE -> Public OSM API (with limits of request's size/rate)
+    # inacity.org -> INACITY's private mirror of OSM
+    _OSMServerURL = 'inacity.org'
+
+    inacityorg = 'inacity.org'
+    overpassapi = 'OverpassAPI.DE'
+    if _OSMServerURL == inacityorg:
+        _overpassBaseUrl = "http://ssh.inacity.org/api/interpreter?data="
+    elif _OSMServerURL == overpassapi:
+        _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
+    else:
+        raise ValueError('Invalid _OSMServerURL ('+_OSMServerURL+')!')
+
+    _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
+
+
+    _outFormat = "[out:json]"
+    _timeout = "[timeout:60]"
+    _lock = Lock()
+    
+    _destcrs = SpatialReference(3857)
+    _crs = {
+    "type": "name",
+    "properties": {
+        "name": "EPSG:3857"
+    }
+    }
+
+
+
  
     class OverpassRunningQuery:
         """Dedicated class to wrap Overpass status running queries data, if any is available"""
@@ -79,19 +112,6 @@ class OSMMiner(MapMiner):
             return ret
         pass
 
-    _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
-    _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
-    _outFormat = "[out:json]"
-    _timeout = "[timeout:60]"
-    _lock = Lock()
-    
-    _destcrs = SpatialReference(3857)
-    _crs = {
-    "type": "name",
-    "properties": {
-        "name": "EPSG:3857"
-    }
-    }
 
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
@@ -110,22 +130,29 @@ class OSMMiner(MapMiner):
     _currentQueries = 0
     
     def _setRateLimit():
-        """Check how many queries can be executed concurrently according to OverpassAPI Status"""
-        if OSMMiner._rateLimit <= 0:
-            statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
-            ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
-            OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
-        if OSMMiner._rateLimit <= 0:
-            raise ValueError("Couldn't set the rateLimit value!")
+        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
+            OSMMiner._rateLimit = 99999999
+            return
+        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
+            """Check how many queries can be executed concurrently according to OverpassAPI Status"""
+            if OSMMiner._rateLimit <= 0:
+                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
+                OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
+            if OSMMiner._rateLimit <= 0:
+                raise ValueError("Couldn't set the rateLimit value!")
 
     def _waitForAvailableSlots():
         """Collect status from OverpassAPI, available slots and current queries"""
-        while True:
-            statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
-            ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
-            if ovpStatus.availableSlots > 0: break;
-            timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
-            time.sleep(timeToWait)
+        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
+            pass
+        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
+            while True:
+                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
+                if ovpStatus.availableSlots > 0: break;
+                timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
+                time.sleep(timeToWait)
 
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         flip_geojson_coordinates(GeoJsonInput)
