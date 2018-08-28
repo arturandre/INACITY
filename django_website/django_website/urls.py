@@ -23,7 +23,6 @@ urlpatterns = [
 
     # Docs
     #url(r'^docs/?$', include_docs_urls(title="INACITY's API")),
-    url(r'^docs/(?P<path>.*)$', docs, name='docs'),
     #url(r'^docs/', 'django.views.static.serve', {'document_root': settings.DOCS_ROOT, 'path': 'index.html'}),
 
     # API Calls

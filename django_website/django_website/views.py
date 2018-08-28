@@ -48,11 +48,6 @@ def tutorial(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-def docs(request, path='index.html'):
-    template = loader.get_template("docs/" + path)
-    #local_vars = {'sample_key': 'sample_data'}
-    return HttpResponse(template.render())
-
 
 @api_view(['GET'])
 def getavailablemapminers(request):
