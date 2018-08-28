@@ -1,0 +1,28 @@
+.. INvestigate and Analyze a CITY - INACITY documentation master file, created by
+   sphinx-quickstart on Sun Aug 19 14:49:44 2018.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to INACITY's documentation!
+====================================================================
+
+These documents contains mainly API's documentation (both front and back ends). If you're looking for a gentle introduction for using INACITY's platform check the `Get Started <http://inacity.eastus.cloudapp.azure.com:8000/tutorial>`_ page.
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+   
+   tutorial/installing.rst
+   backend/backend.rst
+   frontend/frontend.rst
+
+
+   
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
