@@ -313,25 +313,7 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
 
 
 
-function removeLayer(layer) {
-    if (!layer) { console.warn("Undefined layer!"); return; }
-    let featureCollection = layer.featureCollection;
 
-    for (let featureIdx in featureCollection.features) {
-        let feature = featureCollection.features[featureIdx];
-        /*
-        Each individual feature needs to be checked because it
-        can belong to more than one layer (from differente regions)
-        */
-        if (!uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-        else {
-            let olFeature = globalVectorSource.getFeatureById(feature.id);
-            globalVectorSource.removeFeature(olFeature);
-            uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
-        }
-
-    }
-}
 
 //#endregion UI Functions
 
@@ -381,14 +363,14 @@ function updateRegionsList(vectorevent) {
                         for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
                             //drawLayer@home.js
-                            drawLayer(layer);
+                            uiView.drawLayer(layer);
                         }
                     }
                     else {
                         for (let layerIdx in region.layers) {
                             let layer = region.layers[layerIdx];
                             //removeLayer@home.js
-                            removeLayer(layer);
+                            uiView.removeLayer(layer);
                         }
                     }
                 });
