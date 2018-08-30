@@ -213,10 +213,10 @@ class Region extends Subject
     {
         for (let layerIdx in this._layers)
         {
-            const layer = this._layers[layerIdx];
-            if (layer.MapMinerId === id.MapMinerId && layer.FeatureName === id.FeatureName)
+            const layerId = this._layers[layerIdx].layerId;
+            if (layerId.MapMinerId === id.MapMinerId && layerId.FeatureName === id.FeatureName)
             {
-                return layer;
+                return layerId;
             }
         }
         return null;
@@ -427,7 +427,7 @@ class UIModel extends Subject
 
                     let region = activeRegions[regionIdx];
                     let layerId = Layer.createLayerId(selectedMapMiner, selectedMapFeature);
-                    let layer = region.getLayerById(layerId.toString());
+                    let layer = region.getLayerById(layerId);
                     //If layer already exists in this region it means that no further request is needed
                     if (layer) continue;
 
