@@ -407,7 +407,24 @@ class UIView {
         }
     }
 
+    removeLayer(layer) {
+        if (!layer) { console.warn("Undefined layer!"); return; }
+        let featureCollection = layer.featureCollection;
 
+        for (let featureIdx in featureCollection.features) {
+            let feature = featureCollection.features[featureIdx];
+            /*
+            Each individual feature needs to be checked because it
+            can belong to more than one layer (from differente regions)
+            */
+            if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+            else {
+                let olFeature = globalVectorSource.getFeatureById(feature.id);
+                globalVectorSource.removeFeature(olFeature);
+                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+            }
+        }
+    }
 
     /**
     * Changes the html of buttons to indicate it's busy.

@@ -78,7 +78,7 @@ class GeoImage(SimpleDTO):
     def getPNG(self):
         """Converts the image to a PNG file"""
         outdata = self.data.copy();
-        if outdata.dtype != 'uint8':
+        if outdata.dtype != 'uint8': 
             outdata = np.uint8(outdata*255)
         return imageio.imwrite(imageio.RETURN_BYTES, outdata, format='PNG-PIL');
         
