@@ -61,6 +61,11 @@ def getimageproviders(request):
     ret = imageProviderManager.getAvailableImageProviders()
     return JsonResponse(ret)
 
+@api_view(['GET'])
+def getimagefilters(request):
+    ret = imageFilterManager.getAvailableImageFilters()
+    return JsonResponse(ret)
+
 @api_view(['POST'])
 def filtergeoimage(request):
     jsondata = request.data

@@ -10,8 +10,8 @@ class ImageFilter(ABC):
         cls._subclasses.append(cls)
         notImplementedFields = []
         checkFields = [
-            (cls.filterName, 'mapMinerName'),
-            (cls.filterId, 'mapMinerId'),
+            (cls.filterName, 'filterName'),
+            (cls.filterId, 'filterId'),
             (cls.processImage, 'processImage'),
             ]
         for i in range(len(checkFields)):

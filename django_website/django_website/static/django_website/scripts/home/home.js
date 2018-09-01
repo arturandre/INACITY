@@ -187,29 +187,32 @@ $(document).ready(function () {
 
 //#region Initializer functions
 
-function initializeUI()
-{
+function initializeUI() {
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
     uiModel = new UIModel('regionsList', { mapMiner: "osm", mapFeature: "Streets" });
+    uiModel.initialize().then(() => {
+        geoImageManager = new GeoImageManager(uiModel);
 
-    geoImageManager = new GeoImageManager(uiModel);
+        uiView = new UIView(
+            uiModel,
+            geoImageManager,
+            {
+                shape: UIView.DrawTools.Box,
+                tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
+                imageProvider: "gsvProvider", //Retrieved from server
+                imageFilter: "greenery", //Retrieved from server
+                mapMiner: "osm", //Retrieved from server
+                mapFeature: "Streets", //Retrieved from server
+                viewmode: UIView.ViewModes.ImageMode
+            });
 
-    uiView = new UIView(
-        uiModel,
-        geoImageManager,
-        {
-        shape: UIView.DrawTools.Box,
-        tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
-        imageProvider: "gsvProvider", //Retrieved from server
-        viewmode: UIView.ViewModes.ImageMode
-    });
 
-    
-    uiController = new UIController(uiModel, uiView, geoImageManager);
+        uiController = new UIController(uiModel, uiView, geoImageManager);
 
-    uiController.initialize();
-    uiView.initialize();
+        uiController.initialize();
+        uiView.initialize();
+    }, console.error);
 }
 
 
@@ -217,8 +220,7 @@ function initializeUI()
 /**
  * Auxiliar function used to initialize OpenLayers related objects and events
  */
-function initializeOpenLayers()
-{
+function initializeOpenLayers() {
     /* OpenLayers init */
     openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
 
@@ -239,8 +241,7 @@ function initializeOpenLayers()
  * Used to set default options such default drawing mode, map tiles provider, etc.
  * @todo Make changeShapeClick part of UIView class
  */
-function setDefaults()
-{
+function setDefaults() {
     //Default selections:
     /*
     * Tiles provider - Google maps road and satellite
@@ -260,9 +261,8 @@ function setDefaults()
 
 
 
-function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
-{
-    return new Promise(function (resolve){
+function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures) {
+    return new Promise(function (resolve) {
         let that = this; /* window */
         $.ajax
             (
@@ -279,8 +279,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
                 success: function (data, textStatus, jqXHR) {
                     return resolve(data);
                 }.bind(region),
-                error: function ( jqXHR, textStatus, errorThrown) 
-                {
+                error: function (jqXHR, textStatus, errorThrown) {
                     defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
                     //reject(errorThrown);
                 },
@@ -298,12 +297,11 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 * @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
 * @see {@link http://api.jquery.com/jquery.ajax/}
 */
-function defaultAjaxErrorHandler(locationName, textStatus, errorThrown)
-{
+function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
     alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
     if (errorThrown)
         console.error(textStatus, errorThrown);
-    else 
+    else
         console.error(textStatus);
 }
 

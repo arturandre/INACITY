@@ -17,24 +17,26 @@
  * @param {string} layerId.FeatureName - Feature's name as reported by the backend
  * @param {bool} active - Indicates if this layers is currently active (e.g. drawed over the map)
  */
-class Layer extends Subject
-{
+class Layer extends Subject {
 
-    constructor(layerId, active)
-    {
+    constructor(layerId, active) {
         super();
 
-        if (!(layerId.MapMinerId && layerId.FeatureName))
-        {
+        if (!(layerId.MapMinerId && layerId.FeatureName)) {
             throw new Error("Invalid layerId, it should have 'MapMinerId' and 'FeatureName' fields.");
         }
 
         this._layerId = layerId;
         this._featureCollection = null;
         this._active = !!active;
+
+
+
         this.geoImagesLoaded = false;
     }
     get active() { return this._active; }
+
+
 
     /** 
      * @param {LayerId} layerId - The LayerId object representing the MapMinerId and FeatureName displayed in this layer
@@ -53,8 +55,7 @@ class Layer extends Subject
     set active(newActiveState) {
         let triggered = (newActiveState !== this._active);
         this._active = newActiveState;
-        if (triggered)
-        {
+        if (triggered) {
             Layer.notify('activechange', this);
         }
     }
@@ -64,10 +65,9 @@ class Layer extends Subject
      * @acess public 
      * @fires [featurecollectionchange]{@link module:UIModel~Layer#featurecollectionchange}
      */
-    set featureCollection(newFeatureCollection)
-    {
+    set featureCollection(newFeatureCollection) {
         let triggered = (this._featureCollection !== newFeatureCollection);
-        
+
         // Keep state
         let activeState = this._featureCollection ? this._featureCollection.drawed : undefined;
 
@@ -76,28 +76,23 @@ class Layer extends Subject
         // Restore state
         this._featureCollection.drawed = activeState;
 
-        if (this.featureCollection.features["0"].properties.geoImages)
-        {
+        if (this.featureCollection.features["0"].properties.geoImages) {
             this.geoImagesLoaded = true;
         }
 
-        if (triggered)
-        {
+        if (triggered) {
             Layer.notify('featurecollectionchange', this);
         }
     }
 }
 
-class LayerId
-{
-    constructor(mapMinerId, featureName)
-    {
+class LayerId {
+    constructor(mapMinerId, featureName) {
         this.MapMinerId = mapMinerId;
         this.FeatureName = featureName;
     }
 
-    toString()
-    {
+    toString() {
         return this.MapMinerId + " - " + this.FeatureName;
     }
 }
@@ -108,8 +103,7 @@ class LayerId
  * @param {string} featureName - Feature's name as reported by the backend
  * @returns {LayerId} The object to represent a layer's id
  */
-Layer.createLayerId = function (mapMinerId, featureName)
-{
+Layer.createLayerId = function (mapMinerId, featureName) {
     return new LayerId(mapMinerId, featureName);
 }
 
@@ -138,36 +132,31 @@ if (!Layer.init) {
 * @param {string} name - Region display name.
 * @param {boolean} active - Represents if the region is in user's current selection or not.
 */
-class Region extends Subject
-{
-    constructor(id, name, active)
-    {
+class Region extends Subject {
+    constructor(id, name, active) {
         super();
-        
-        
+
+
         active = typeof (active) === 'undefined' ? false : active;
         this._id = id;
         this._name = name;
-        
+
         this._layers = {};
-        
+
         this.active = active;
     }
     /** Creates a new Layer with the specified id
     * @param {string} id - Layer's identifier 
     * @fires [addlayer]{@link module:UIModel~Region#addlayer}
     */
-    createLayer(layerId)
-    {
-        if (!this.getLayerById(layerId))
-        {
+    createLayer(layerId) {
+        if (!this.getLayerById(layerId)) {
             let newLayer = new Layer(layerId, this.active);
             this._layers[layerId.toString()] = newLayer;
             Region.notify('addlayer', newLayer);
             return newLayer;
         }
-        else
-        {
+        else {
             throw Error(`layerId.MapMinerId: '${layerId.MapMinerId}' with FeatureName: '${layerId.FeatureName}' already present in layers list of this region (${this.name})!`);
         }
     }
@@ -175,8 +164,7 @@ class Region extends Subject
     /** [De]activate a region for displaying or colleting geographical features. 
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
-    toggleActive()
-    {
+    toggleActive() {
         this.active = !this.active;
         return this.active;
     }
@@ -192,30 +180,24 @@ class Region extends Subject
      */
     get name() { return this._name; }
 
-    
+
     get layers() { return this._layers; }
 
-    getActiveLayers()
-    {
+    getActiveLayers() {
         let activeLayers = [];
-        for (let layerIdx in this._layers)
-        {
+        for (let layerIdx in this._layers) {
             const layer = this._layers[layerIdx];
-            if (layer.active)
-            {
+            if (layer.active) {
                 activeLayers.push(layer);
             }
         }
         return activeLayers;
     }
 
-    getLayerById(id) 
-    {
-        for (let layerIdx in this._layers)
-        {
+    getLayerById(id) {
+        for (let layerIdx in this._layers) {
             const layerId = this._layers[layerIdx].layerId;
-            if (layerId.MapMinerId === id.MapMinerId && layerId.FeatureName === id.FeatureName)
-            {
+            if (layerId.MapMinerId === id.MapMinerId && layerId.FeatureName === id.FeatureName) {
                 return layerId;
             }
         }
@@ -228,14 +210,12 @@ class Region extends Subject
      * @type {boolean}
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
-    set active(newState)
-    {
+    set active(newState) {
         if (typeof (newState) !== "boolean")
             throw Error(`newState parameter type should be boolean, but is: ${typeof (newState)}`);
         let triggerActiveChange = this._active !== newState;
         this._active = newState;
-        for (const layerIdx in this._layers)
-        {
+        for (let layerIdx in this._layers) {
             this._layers[layerIdx].active = newState;
         }
         Region.notify('activechange', this);
@@ -271,10 +251,8 @@ if (!Region.init) {
  * @param {Feature} feature - A GeoJson Feature
  * @param {string[]} regions - A list of region Ids representing the regions to which this [FeatureRegions.feature]{@link module:UIModel~FeatureRegions.feature} belongs
  */
-class FeatureRegions
-{
-    constructor(feature, regions)
-    {
+class FeatureRegions {
+    constructor(feature, regions) {
         this.feature = feature;
         this.regions = regions;
     }
@@ -284,35 +262,51 @@ class FeatureRegions
 * Keeps track of several user inputs
 * @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
-class UIModel extends Subject
-{
-    constructor(regionsDivId, defaults)
-    {
+class UIModel extends Subject {
+    constructor(regionsDivId, defaults) {
         super();
         this.setTarget(regionsDivId);
 
         this._regions = {};
         this._featuresByLayerId = {};
 
-        if (defaults)
-        {
+        this._imageProviders = [];
+        this._imageFilters = [];
+        this._mapMinersAndFeatures = [];
+
+
+        if (defaults) {
             this.mapMiner = defaults.mapMiner;
             this.mapFeature = defaults.mapFeature;
         }
+
     }
+
+    /**
+     * Collects images' providers and filters and maps' miners and features.
+     * @returns {Promise}
+     */
+    initialize() {
+        let getServerDataPromises = Promise.all([this.getImageProviders(), this.getMapMinersAndFeatures(), this.getImageFilters()]);
+
+        return getServerDataPromises;
+    }
+
+    get imageProviders() { return this._imageProviders; }
+    get imageFilters() { return this._imageFilters; }
+    get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
     getImages(selectedImageProvider) {
         return new Promise(function (resolve, reject) {
             let numCalls = 0;
             try {
                 let activeRegions = this.getActiveRegions();
-                if (activeRegions.length === 0)
-                {
+                if (activeRegions.length === 0) {
                     return reject("Please, select region to continue.");
                 }
                 for (let regionIdx in activeRegions) {
                     var region = activeRegions[regionIdx];
-                    (new Promise(function(resolve){
+                    (new Promise(function (resolve) {
                         /*
                           Case the user simply select a region and then try to get the images
                           by default the Streets from OSM will be used as features
@@ -320,14 +314,13 @@ class UIModel extends Subject
                         if (Object.keys(region.layers).length === 0) {
                             this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
                         }
-                        else
-                        {
+                        else {
                             //Otherwise simply collect the image's from the feature selected
                             return resolve();
                         }
                     }.bind(this))).then(() => {
                         let activeLayers = region.getActiveLayers();
-                        
+
                         for (let layerIdx in activeLayers) {
                             let layer = activeLayers[layerIdx];
 
@@ -360,12 +353,10 @@ class UIModel extends Subject
                                 }.bind(this),
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     //@todo: Create a error handling mechanism
-                                    if (jqXHR.status === 413)
-                                    {
+                                    if (jqXHR.status === 413) {
                                         alert("The request was too big to be processed. Try a smaller region.");
                                     }
-                                    else
-                                    {
+                                    else {
                                         defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
                                     }
                                 },
@@ -387,22 +378,100 @@ class UIModel extends Subject
                 }
             }
             catch (err) {
-                
+
                 throw err;
             }
         }.bind(this));
     }
 
+    /**
+     * Represents an Image Provider
+     * @typedef {ImageProvider}
+     * @property {string} name - The name of the image provider used for displaying
+     */
 
-    getDisplayingLayers()
-    {
+    /**
+     * Calls server's "getimageproviders" GET endpoint for collecting available
+     * image providers
+     * @returns {Promise} resolve with an ImageProvider[] object array (with ImageProviderIds as keys) and rejects with the errorThrown string.
+     */
+    getImageProviders() {
+        return new Promise(function (resolve, reject) {
+            $.ajax("/getimageproviders/",
+                {
+                    cache: false,
+                    method: "GET",
+                    success: function (data, textStatus, jqXHR) {
+                        this._imageProviders = data;
+                        resolve();
+                    }.bind(this),
+                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    dataType: "json"
+                });
+        }.bind(this));
+    }
+
+    /**
+     * Represents a MapMiner and its respective features
+     * @typedef {MapMiner}
+     * @property {string} name - The name of the map miner used for displaying
+     * @property {string[]} features - The array of the features' names available from this map miner
+     */
+
+    /**
+     * Calls server's "getavailablemapminers" GET endpoint for collecting available
+     * map miners and its respective features
+     * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
+     */
+    getMapMinersAndFeatures() {
+        return new Promise(function (resolve, reject) {
+            $.ajax("/getavailablemapminers/",
+                {
+                    cache: false,
+                    method: "GET",
+                    success: function (data, textStatus, jqXHR) {
+                        this._mapMinersAndFeatures = data;
+                        resolve();
+                    }.bind(this),
+                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    dataType: "json"
+                });
+        }.bind(this));
+    }
+
+    /**
+     * Represents an Image Filter
+     * @typedef {ImageFilter}
+     * @property {string} name - The name of the image filter used for displaying
+     */
+
+    /**
+     * Calls server's "getimagefilter" GET endpoint for collecting available
+     * image filters
+     * @returns {Promise} resolve with an ImageFilter[] object array (with ImageFilters' Ids as keys) and rejects with the errorThrown string.
+     */
+    getImageFilters() {
+        return new Promise(function (resolve, reject) {
+            $.ajax("/getimagefilters/",
+                {
+                    cache: false,
+                    method: "GET",
+                    success: function (data, textStatus, jqXHR) {
+                        this._imageFilters = data;
+                        resolve();
+                    }.bind(this),
+                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    dataType: "json"
+                });
+        }.bind(this));
+    }
+
+    getDisplayingLayers() {
         let displayingLayers = [];
         let activeLayers = this.getActiveLayers();
-        for (let layerIdx in activeLayers)
-        {
+        for (let layerIdx in activeLayers) {
             let layer = activeLayers[layerIdx];
-            if (layer.geoImagesLoaded)
-            {
+            if (layer.geoImagesLoaded) {
                 displayingLayers.push(layer);
             }
         }
@@ -487,10 +556,8 @@ class UIModel extends Subject
      * @param {string} layerId - Layer's id
      * @param {int} featureId - Feature's id
      */
-    isFeatureActive(layerId, featureId)
-    {
-        for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions)
-        {
+    isFeatureActive(layerId, featureId) {
+        for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions) {
             let regionId = this.featuresByLayerId[layerId][featureId].regions[regionIdx];
             if (this.regions[regionId].active) return true;
         }
@@ -501,16 +568,13 @@ class UIModel extends Subject
      * Search into all active regions all the active layers
      * @returns {Layer[]} A list of all active layers
      */
-    getActiveLayers()
-    {
+    getActiveLayers() {
         let activeLayers = [];
-        for (const regionIdx in this.regions)
-        {
+        for (let regionIdx in this.regions) {
             const region = this.regions[regionIdx];
             if (!region.active) continue;
 
-            for (const layerIdx in region.layers)
-            {
+            for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
                 if (!layer.active) continue;
 
@@ -524,11 +588,9 @@ class UIModel extends Subject
      * Search for all active regions at [UIModel.regions]{@link module:UIModel~UIModel#regions}.
      * @returns {Region[]} An array of all active regions
      */
-    getActiveRegions()
-    {
+    getActiveRegions() {
         let activeRegions = [];
-        for (const regionIdx in this.regions)
-        {
+        for (let regionIdx in this.regions) {
             const region = this.regions[regionIdx];
             if (!region.active) continue;
             activeRegions.push(region);
@@ -536,18 +598,15 @@ class UIModel extends Subject
         return activeRegions;
     }
 
-    setTarget(regionsDivId)
-    {
+    setTarget(regionsDivId) {
         this._target = $(`#${regionsDivId}`);
         this._target.addClass('list-group');
     }
 
-    updateRegionsDiv()
-    {
+    updateRegionsDiv() {
         this._target.empty();
 
-        for (let regionIdx in this._regions)
-        {
+        for (let regionIdx in this._regions) {
             let region = this._regions[regionIdx];
 
             let item = $(document.createElement('a'));
@@ -563,8 +622,7 @@ class UIModel extends Subject
 
     }
 
-    _regionListItemClickHandler(event)
-    {
+    _regionListItemClickHandler(event) {
         let element = $(event.target);
         element.toggleClass("active");
         let region = event.data;
@@ -572,31 +630,25 @@ class UIModel extends Subject
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(id, name, active)
-    {
+    createRegion(id, name, active) {
         //active default is false
-        if (!(id in this._regions))
-        {
+        if (!(id in this._regions)) {
             let newRegion = new Region(id, name, active);
             this._regions[id] = newRegion;
 
             this.updateRegionsDiv();
             return newRegion;
         }
-        else
-        {
+        else {
             throw Error(`id: '${id}' already present in regions list!`);
         }
     }
 
-    removeRegion(id)
-    {
-        if ((id in this._regions))
-        {
+    removeRegion(id) {
+        if ((id in this._regions)) {
             return delete this._regions[id];
         }
-        else
-        {
+        else {
             throw Error(`id: '${id}' not found in regions list!`);
         }
     }
@@ -619,11 +671,9 @@ class UIModel extends Subject
      * @param {string} layerIdStr - The id of the layer with untracked features. See [LayerId.toString]{@link module:UIModel~LayerId.toString}.
      * @fires module:UIModel~UIModel.featuresmerged
      */
-    updateFeatureIndex(layerIdStr)
-    {
+    updateFeatureIndex(layerIdStr) {
         let activeRegions = this.getActiveRegions();
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             let region = activeRegions[regionIdx];
 
             let triggerFeaturesMerged = false;
@@ -633,15 +683,12 @@ class UIModel extends Subject
             if (!layer || !layer.featureCollection) continue;
             let featureRegionsIndex = this._featuresByLayerId[layerIdStr];
             if (!featureRegionsIndex) featureRegionsIndex = this._featuresByLayerId[layerIdStr] = {};
-            for (let featureIdx in layer.featureCollection.features)
-            {
+            for (let featureIdx in layer.featureCollection.features) {
                 let feature = layer.featureCollection.features[featureIdx];
-                if (!featureRegionsIndex[feature.id])
-                {
+                if (!featureRegionsIndex[feature.id]) {
                     featureRegionsIndex[feature.id] = new FeatureRegions(feature, [region.id]);
-                }   
-                else
-                {
+                }
+                else {
                     if (featureRegionsIndex[feature.id].feature === feature) continue;
 
                     /*
@@ -650,14 +697,12 @@ class UIModel extends Subject
                     */
                     mergeInPlaceMultilineStringFeatures(featureRegionsIndex[feature.id].feature, feature);
                     triggerFeaturesMerged = true;
-                    if (featureRegionsIndex[feature.id].regions.indexOf(region.id) === -1)
-                    {
+                    if (featureRegionsIndex[feature.id].regions.indexOf(region.id) === -1) {
                         /*
                          * After a merge it's necessary to update other regions that also contains
                          * the merged feature
                          */
-                        for (let regionIdxAux in featureRegionsIndex[feature.id].regions)
-                        {
+                        for (let regionIdxAux in featureRegionsIndex[feature.id].regions) {
                             let auxRegion = this.regions[featureRegionsIndex[feature.id].regions[regionIdxAux]];
                             auxRegion.layers[layerIdStr].featureCollection.features[featureIdx] = feature;
                         }
@@ -665,19 +710,20 @@ class UIModel extends Subject
                     }
                 }
             }
-            if (triggerFeaturesMerged)
-            {
+            if (triggerFeaturesMerged) {
                 UIModel.notify('featuresmerged', layer);
             }
         }
-        
+
 
     }
 }
 
-//#region GeoJson functions TODO: Transfer them to a more appropriate place
 
-
+//#region GeoJson functions
+/**
+ * @todo Transfer the 'GeoJson functions region' to a more appropriate place
+ */
 
 /**
  * Auxiliar function to compare Longitude and Latitude coordinate arrays
@@ -685,8 +731,7 @@ class UIModel extends Subject
  * @param {float[]} lonLat1 - Array with 2 values
  * @param {float[]} lonLat2 - Array with 2 values
  */
-function compareCoordinates(lonLat1, lonLat2)
-{
+function compareCoordinates(lonLat1, lonLat2) {
     return ((lonLat1[0] === lonLat2[0]) && (lonLat1[1] === lonLat2[1]));
 }
 
@@ -696,60 +741,57 @@ function compareCoordinates(lonLat1, lonLat2)
  * @param {Feature} feature1 - A MultiLineString Feature (e.g. a street)
  * @param {Feature} feature2 - A MultiLineString Feature (e.g. a street)
  */
-function mergeInPlaceMultilineStringFeatures(feature1, feature2)
-{
+function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
     let allLineStrings = [];
     for (let i = 0; i < feature1.geometry.coordinates.length; i++)
         allLineStrings.push(feature1.geometry.coordinates[i]);
     for (let i = 0; i < feature2.geometry.coordinates.length; i++)
         allLineStrings.push(feature2.geometry.coordinates[i]);
     let merged = false;
-    while(true){
+    while (true) {
         merged = false;
-        for (let i = allLineStrings.length-1; i > 0; i--)
-        {
-            for (let j = i-1; j >= 0; j--)
-            {
+        for (let i = allLineStrings.length - 1; i > 0; i--) {
+            for (let j = i - 1; j >= 0; j--) {
                 //First check if the strings are equal
                 if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0])
                     &&
-                    compareCoordinates(allLineStrings[i][allLineStrings[i].length -1], 
-                    allLineStrings[j][allLineStrings[j].length-1])) //heads-heads and tails-tails
+                    compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1],
+                    allLineStrings[j][allLineStrings[j].length - 1])) //heads-heads and tails-tails
                 {
                     merged = true;
                     break;
                 }
-                else if (compareCoordinates(allLineStrings[i][0],allLineStrings[j][0])){ //heads-heads
+                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0])) { //heads-heads
                     //Remove repeated element from the second list
                     allLineStrings[j].splice(0, 1);
                     allLineStrings[j] = allLineStrings[i].reverse().concat(allLineStrings[j]);
                     merged = true;
                     break;
                 }
-                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length -1],
-                    allLineStrings[j][allLineStrings[j].length-1])){ //tails-tails
+                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1],
+                    allLineStrings[j][allLineStrings[j].length - 1])) { //tails-tails
                     //Remove repeated element from the second list
-                    allLineStrings[j].splice(allLineStrings[j].length-1, 1);
+                    allLineStrings[j].splice(allLineStrings[j].length - 1, 1);
                     allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i].reverse());
                     merged = true;
                     break;
                 }
-                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length -1], allLineStrings[j][0])){ //tails-heads
+                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1], allLineStrings[j][0])) { //tails-heads
                     //Remove repeated element from the second list
                     allLineStrings[j].splice(0, 1);
                     allLineStrings[j] = allLineStrings[i].concat(allLineStrings[j]);
                     merged = true;
                     break;
                 }
-                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][allLineStrings[j].length-1])){ //heads-tails
+                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][allLineStrings[j].length - 1])) { //heads-tails
                     //Remove repeated element from the second list
-                    allLineStrings[j].splice(allLineStrings[j].length-1, 1);
+                    allLineStrings[j].splice(allLineStrings[j].length - 1, 1);
                     allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i]);
                     merged = true;
                     break;
                 }
             }
-            if (merged){
+            if (merged) {
                 //debugging only
                 //print("deleted: ", nodesSegList[i])
                 //print("merged: ", nodesSegList[j])
@@ -757,8 +799,7 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2)
                 break;
             }
         }
-        if (!merged)
-        {
+        if (!merged) {
             break;
         }
     }

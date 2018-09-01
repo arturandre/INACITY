@@ -38,6 +38,10 @@ urlpatterns = [
     #Returns a list of available image miners
     url(r'^getimageproviders/?$', getimageproviders, name='getImageProviders'),
 
+    #Returns a list of available image filters
+    url(r'^getimagefilters/?$', getimagefilters, name='getImageFilters'),
+
+
     #Get GIS data related to a particular type of feature inside a given region
     url(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
 
