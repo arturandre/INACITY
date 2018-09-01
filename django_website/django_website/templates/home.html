@@ -72,9 +72,6 @@
                 Map provider
             </button>
             <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
-                <!--changeMapProviderClick@home.js-->
-                <!--<a id="btnGoogleMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES.provider, this)" class="dropdown-item" href="javascript:void(0);">Google Maps v3</a>
-                <a id="btnOSMMapsTiles" onclick="changeMapProviderClick(OpenLayersHandler.TileProviders.OSM.provider, this)" class="dropdown-item" href="javascript:void(0);">Open Layers (OpenStreetMap)</a>-->
             </div>
 
         </div>
@@ -83,11 +80,6 @@
                 Shape type
             </button>
             <div id="shapeSelectorDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
-                <!--changeMapProviderClick@home.js
-                <a id="btnSquare" onclick="changeShapeClick('Square', this)" class="dropdown-item" href="javascript:void(0);">Square</a>
-                <a id="btnBox" onclick="changeShapeClick('Box', this)" class="dropdown-item" href="javascript:void(0);">Box</a>
-                <a id="btnCircle" onclick="changeShapeClick('Dodecagon', this)" class="dropdown-item" href="javascript:void(0);">Dodecagon</a>
-                    -->
             </div>
         </div>
         <a id="btnCancelDrawing" class="btn btn-danger" href="javascript:void(0);">Cancel draw</a>
@@ -100,12 +92,17 @@
                         Image provider
                     </button>
                     <div id="imageProviderDiv" class="dropdown-menu" aria-labelledby="btnImageProvider">
-                        <!--changeImageProviderClick@home.js-->
                     </div>
                 </div>
             </div>
             <div class="horizontal-padding">
-                <!--onclick="getImages(this)" type="button" class="btn btn-success hidden"-->
+                <div class="btn-group" role="group">
+                    <button id="btnImageFilter" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Image filter
+                    </button>
+                    <div id="imageFilterDiv" class="dropdown-menu" aria-labelledby="btnImageFilter">
+                    </div>
+                </div>
                 <button type="button" id="btnCollectImages" class="btn btn-warning hidden" role="button" data-container="body" data-toggle="tooltip" data-trigger="hover" data-placement="right" data-title="Selected layers:">Get Images</button>
             </div>
         </div>

@@ -26,7 +26,7 @@ class ImageFilterManager(object):
         pass
 
     def getAvailableImageFilters(self):
-        return {imageFilter.filterId: {'name': self._ImageFilters[filterId].filterName, 'id': imageFilter.filterId} for imageFilter in self._ImageFilters}
+        return {filterId: {'name': self._ImageFilters[filterId].filterName, 'id': filterId} for filterId in self._ImageFilters}
 
     
     

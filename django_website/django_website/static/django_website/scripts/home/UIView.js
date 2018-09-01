@@ -47,12 +47,14 @@ class UIView {
         this.onClickClearSelectionsBtn = null;
 
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
+        this.jqimageFilterDiv = $(`#imageFilterDiv`);
         this.jqmapMinerDiv = $(`#mapMinerDiv`);
         this.jqmapFeatureDiv = $(`#mapFeatureDiv`);
         this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
         this.jqchangeModeDiv = $(`#changeModeDiv`);
 
+        this.jqbtnImageFilter = $(`#btnImageFilter`);
         this.jqbtnImageProvider = $(`#btnImageProvider`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
         this.jqbtnMapFeature = $(`#btnMapFeature`);
@@ -61,6 +63,10 @@ class UIView {
 
         this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
+
+        this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
+        this.jqbtnCollectImages = $(`#btnCollectImages`);
+        this.jqbtnClearSelections = $(`#btnClearSelections`);
 
         this.jqimgSliderDiv = $('#imgSliderDiv');
         this.jqimgSlider = $('#imgSlider')
@@ -71,6 +77,7 @@ class UIView {
         this._SelectedMapMiner = null;
         this._SelectedMapFeature = null;
         this._SelectedImageProvider = null;
+        this._SelectedImageFilter = null;
 
         this._SelectedMapProvider = null;
 
@@ -78,38 +85,19 @@ class UIView {
         this._drawInteraction = null;
 
         this._SelectedViewMode = null;
-    
 
-        this._imageProviders = [];
-        this._mapMinersAndFeatures = [];
 
         this.populateShapeDiv();
         this.populateMapProviderDiv();
         this.populateChangeModeDiv();
 
-        var defaultImageProvider = defaults.imageProvider;
-        this.populateImageProviderDiv()
-        .then(function (imageProviders) {
-            if (imageProviders) {
-                
-                this._imageProviders = imageProviders;
-                this._fillImageProviderDiv();
-                if (defaultImageProvider) {
-                    this.changeImageProviderClick(imageProviders[defaultImageProvider]);
-                }
-            }
-            else {
-                this._fillImageProviderDiv();
-            }
-        }.bind(this))
-        .catch(error => console.error(error));
-
-        this.populateMapMinersAndFeaturesDivs();
+        this._fillImageProviderDiv();
+        this._fillImageFilterDiv();
+        this._fillMapMinersAndFeaturesDiv();
+        
 
 
-        this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
-        this.jqbtnCollectImages = $(`#btnCollectImages`);
-        this.jqbtnClearSelections = $(`#btnClearSelections`);
+
 
         this.jqbtnCancelDrawing.on("click", this.cancelDrawing.bind(this));
 
@@ -135,6 +123,19 @@ class UIView {
         if (defaults.viewmode) {
             this.changeModeClick(defaults.viewmode);
         }
+        if (defaults.imageProvider) {
+            this.changeImageProviderClick(this.uiModel.imageProviders[defaults.imageProvider]);
+        }
+        if (defaults.imageFilter)
+        {
+            this.changeImageFilterClick(this.uiModel.imageFilters[defaults.imageFilter]);
+        }
+        if (defaults.mapMiner) {
+            this.changeMapMiner(defaults.mapMiner);
+            if (defaults.mapFeature) {
+                this.changeMapFeature(defaults.mapFeature);
+            }
+        }
 
     }
 
@@ -155,8 +156,7 @@ class UIView {
         }
         let viewModeLabel = $(`#changeModeDiv > label:contains('${viewmode.name}')`);
         let viewModeBtn = $(`#changeModeDiv > label:contains('${viewmode.name}') > input`);
-        if (!viewModeBtn.prop('checked'))
-        { 
+        if (!viewModeBtn.prop('checked')) {
             viewModeLabel.button('toggle');
             viewModeLabel.removeClass('focus');
         }
@@ -285,7 +285,7 @@ class UIView {
         this._SelectedMapMiner = mapMinerId;
 
 
-        let mapMiner = this._mapMinersAndFeatures[mapMinerId];
+        let mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
 
         this.jqbtnExecuteQuery.removeClass("hidden");
         this.jqbtnClearSelections.removeClass("hidden");
@@ -318,13 +318,21 @@ class UIView {
         this._SelectedImageProvider = imageProvider;
 
         this.jqbtnCollectImages.removeClass("hidden");
+        this.jqbtnImageFilter.removeClass("hidden");
 
         this.setLabelSelectionBtn(this.jqbtnImageProvider, imageProvider.name, false);
+    }
+
+    set SelectedImageFilter(imageFilter) {
+        this._SelectedImageFilter = imageFilter;
+
+        this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter.name, false);
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
     get SelectedMapFeature() { return this._SelectedMapFeature; }
     get SelectedImageProvider() { return this._SelectedImageProvider; }
+    get SelectedImageFilter() { return this._SelectedImageFilter; }
 
     /**
      * Creates an anchor button (<a href...>)
@@ -341,8 +349,7 @@ class UIView {
         return button;
     }
 
-    createToggleRadioButton(groupName, label, optValue, clickHandler)
-    {
+    createToggleRadioButton(groupName, label, optValue, clickHandler) {
         let buttonLabel = $(document.createElement('label'));
         let buttonInput = $('<input type="radio">');
         buttonLabel.addClass('btn btn-success');
@@ -373,7 +380,7 @@ class UIView {
         this.setLabelSelectionBtn(this.jqbtnMapMiner, "Map Miner", true);
         this.setLabelSelectionBtn(this.jqbtnMapFeature, "Feature", true);
 
-        this.populateMapMinersAndFeaturesDivs();
+        
     }
 
     drawLayer(layer, forceRedraw) {
@@ -506,59 +513,30 @@ class UIView {
     }
 
     /**
-     * Get the image providers available from the server and
-     * creates <a> buttons at the "imageProviderDiv" DOMElement
-     */
-    populateImageProviderDiv() {
-        return new Promise(function (resolve, reject) {
-            if (this._imageProviders.length === 0) {
-                this.getImageProviders()
-                .then((imageProviders) => {
-                    resolve(imageProviders);
-                })
-            .catch((error) => reject(error));
-            }
-            else {
-                resolve();
-            }
-        }.bind(this));
-    }
-
-    /**
-     * Represents a Image Provider
-     * @typedef {ImageProvider}
-     * @property {string} name - The name of the image provider used for displaying
-     */
-
-    /**
-     * Calls server's "getimageproviders" GET endpoint for collecting available
-     * image providers
-     * @returns {Promise} resolve with a ImageProvider[] object array (with ImageProviderIds as keys) and rejects with the errorThrown string.
-     */
-    getImageProviders() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getimageproviders/",
-                {
-                    cache: false,
-                    method: "GET",
-                    success: function (data, textStatus, jqXHR) { resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
-                    dataType: "json"
-                });
-        });
-    }
-
-    /**
      * Called when [_imageProviders]{@link module:UIView~_imageProviders} is loaded and
      * the Image Provider Div should be (re)loaded too.
      * @private
      */
     _fillImageProviderDiv() {
         this.jqimageProviderDiv.empty();
-        for (let imageProviderIdx in this._imageProviders) {
-            let imageProviderName = this._imageProviders[imageProviderIdx].name;
-            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, this._imageProviders[imageProviderIdx], this.changeImageProviderClick);
+        for (let imageProviderIdx in this.uiModel.imageProviders) {
+            let imageProviderName = this.uiModel.imageProviders[imageProviderIdx].name;
+            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, this.uiModel.imageProviders[imageProviderIdx], this.changeImageProviderClick);
             this.jqimageProviderDiv.append(btnImageProvider);
+        }
+    }
+
+    /**
+     * Called when [_imageFilters]{@link module:UIView~_imageFilters} is loaded and
+     * the Image Filter Div should be (re)loaded too.
+     * @private
+     */
+    _fillImageFilterDiv() {
+        this.jqimageFilterDiv.empty();
+        for (let imageFilterIdx in this.uiModel.imageFilters) {
+            let imageFilterName = this.uiModel.imageFilters[imageFilterIdx].name;
+            let btnImageFilter = this.createDropDownAnchorButton(imageFilterName, this.uiModel.imageFilters[imageFilterIdx], this.changeImageFilterClick);
+            this.jqimageFilterDiv.append(btnImageFilter);
         }
     }
 
@@ -571,52 +549,20 @@ class UIView {
         this.SelectedImageProvider = imageProvider;
     }
 
+    /**
+     * Handler for changing image filter.
+     * @param {string} imageFilterId - Id defined by backend's class ImageFilter's subclasses
+     * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+     */
+    changeImageFilterClick(imageFilter) {
+        this.SelectedImageFilter = imageFilter;
+    }
+
+
     //#endregion Image Provider
 
     //#region Map Miner and Features
 
-    /**
-     * Get the map miners and its respective features from the server and
-     * creates <a> buttons at the "mapMinerDiv" and "mapFeatureDiv" DOMElements
-     */
-    populateMapMinersAndFeaturesDivs() {
-
-        if (this._mapMinersAndFeatures.length === 0) {
-            this.getMapMinersAndFeatures().then((mapMiners) => {
-                this._mapMinersAndFeatures = mapMiners;
-                this._fillMapMinersAndFeaturesDiv();
-            })
-            .catch((error) => console.error(error));
-        }
-        else {
-            this._fillMapMinersAndFeaturesDiv();
-        }
-    }
-
-    /**
-     * Represents a MapMiner and its respective features
-     * @typedef {MapMiner}
-     * @property {string} name - The name of the map miner used for displaying
-     * @property {string[]} features - The array of the features' names available from this map miner
-     */
-
-    /**
-     * Calls server's "getavailablemapminers" GET endpoint for collecting available
-     * map miners and its respective features
-     * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
-     */
-    getMapMinersAndFeatures() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getavailablemapminers/",
-                {
-                    cache: false,
-                    method: "GET",
-                    success: function (data, textStatus, jqXHR) { resolve(data); },
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
-                    dataType: "json"
-                });
-        });
-    }
 
     /**
      * Called when [_mapMinersAndFeatures]{@link module:UIView~_mapMinersAndFeatures} is loaded and
@@ -627,8 +573,8 @@ class UIView {
         let currentMapFeatures = [];
         this.jqmapMinerDiv.empty();
         this.jqmapFeatureDiv.empty();
-        for (let mapMinerId in this._mapMinersAndFeatures) {
-            const mapMiner = this._mapMinersAndFeatures[mapMinerId];
+        for (let mapMinerId in this.uiModel.mapMinersAndFeatures) {
+            const mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
             const btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMinerId, this.changeMapMiner);
             this.jqmapMinerDiv.append(btnMapMiner);
             for (let featureIdx in mapMiner.features) {
