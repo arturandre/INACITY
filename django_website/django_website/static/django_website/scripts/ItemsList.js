@@ -223,4 +223,3 @@ if (!ItemsList.init) {
         'selecteditemschanged',
         'okbuttonclick',
     ]);
-}
