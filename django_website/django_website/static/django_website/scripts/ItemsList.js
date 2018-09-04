@@ -144,7 +144,6 @@ class ItemsList extends Subject {
         return newButton;
     }
 
-
     /**
      * Adds the "active" class to the item's id
      * @param {string} itemId - The item's id.
