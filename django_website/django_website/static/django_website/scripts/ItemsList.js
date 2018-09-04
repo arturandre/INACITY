@@ -224,32 +224,3 @@ if (!ItemsList.init) {
         'okbuttonclick',
     ]);
 }
-
-console.log("Started!");
-
-let itemsList = new ItemsList("containerAddress", "containerShadow", "okbutton");
-itemsList.addItem("Rua X");
-itemsList.addItem("Avenida Y");
-itemsList.addItem("Travessa Z");
-
-
-
-
-// let containerAddress = $("#containerAddress");
-
-// let newButton = $(document.createElement("button"));
-// newButton.addClass("btn btn-outline-primary buttondiv");
-// newButton.html("Rua das Covas");
-
-// containerAddress.append(newButton);
-
-// for(let i = 0; i < itemsList.itemsArray.length; i++)
-// {
-//     let street = itemsList.itemsArray[i];
-//     let newButton = $(document.createElement("button"));
-// newButton.addClass("btn btn-outline-primary buttondiv");
-// newButton.html(street);
-// containerAddress.append(newButton);
-// }
-
-//<button type="button" class="btn btn-outline-primary buttondiv">Travessa Z</button>

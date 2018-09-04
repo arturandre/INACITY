@@ -1,0 +1,77 @@
+#containerShadow
+{
+    width: 100vw;
+    height: 100vh;
+    background-color: #808080;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#containerDiv
+{
+    border: 6px solid black;
+    border-radius: 3px;
+    
+    
+    width: 240px;
+    height: 500px; 
+    background-color: aliceblue;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: stretch;
+}
+
+/* #containerScroll
+{
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+} */
+
+#containerAddress
+{
+    width: 100%;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: flex-start;
+}
+
+.buttondiv
+{
+    margin: 0 !important;
+    width: 100%;
+    min-height: 2.5rem;
+    max-height: 2.5rem;
+    background-color: aquamarine;
+    border-width: 0 !important;
+    border-bottom: 1px solid black !important;
+}
+
+#containerok
+{
+    width: 100%;
+    height: 4rem;
+    margin-top: auto;
+    background-color: argb(0, 127, 255, 212);
+    border-top: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+#okbutton
+{
+    max-width: 50%;
+}
+
+p
+{
+    font-weight: bold;
+    color: white;
+}
