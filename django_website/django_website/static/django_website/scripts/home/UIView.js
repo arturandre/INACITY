@@ -480,7 +480,7 @@ class UIView {
             for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
-                const mapMinerName = this._mapMinersAndFeatures[layerId.MapMinerId].name;
+                const mapMinerName = this.uiModel.mapMinersAndFeatures[layerId.MapMinerId].name;
                 const featureName = layerId.FeatureName;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
                 if (hintLayers.indexOf(hintLayer) < 0) {
