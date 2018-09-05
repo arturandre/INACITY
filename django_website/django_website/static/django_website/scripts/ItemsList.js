@@ -144,6 +144,14 @@ class ItemsList extends Subject {
         return newButton;
     }
 
+        _createContainerDiv(item) {
+        let newContainerDiv = $(document.createElement("div"));
+        newContainerDiv.addClass("btn-group-vertical");
+        newContainerDiv.html(item);
+        newContainerDiv.on("click", function () { this.toggleItemActive(item); }.bind(this));
+        return newContainerDiv;
+    }
+
     /**
      * Adds the "active" class to the item's id
      * @param {string} itemId - The item's id.

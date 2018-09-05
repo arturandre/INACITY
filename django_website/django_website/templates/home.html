@@ -22,14 +22,14 @@
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIView.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIController.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/home.js' %}"></script>
+
 <link rel="stylesheet" href="{% static 'django_website/css/ItemsList.css' %}">
-<<<<<<< HEAD
 <script defer type="text/javascript" src="{% static 'django_website/scripts/ItemsList.js' %}"></script>
+
 <link rel="stylesheet" href="{% static 'django_website/css/FeaturesList.css' %}">
 <script defer type="text/javascript" src="{% static 'django_website/scripts/FeaturesList.js' %}"></script>
-=======
-<script type="text/javascript" src="{% static 'django_website/scripts/ItemsList.js' %}"></script>
->>>>>>> Done
+
+
 {% endblock %}
 
 {% block title %}{{WebsiteName}} | Home{% endblock %}
@@ -44,10 +44,6 @@
 
 {% block content %}
 {% include "addressesListPopUp.html" %}
-<<<<<<< HEAD
-=======
-<!-- <div style="width:100px; height:100px; background-color: red;">SUPER DIV</div> -->
->>>>>>> Done
 
 <div id="changeModeDiv" class="btn-group btn-group-toggle" data-toggle="buttons" aria-labelledby="btnChangeMode">
     <!--changeModeClick@home.js-->
