@@ -1,34 +1,61 @@
-﻿
-.active.active-list-item:not(:first-child){
+﻿.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  height: 18px;
+  width: 18px;
+  outline: black;
+  background-size: 100%, 100%;
+  background-image: none;
+}
+
+.carousel-control-next-icon:after
+{
+  content: '>';
+  font-size: 33px;
+  color: black;
+}
+
+.carousel-control-prev-icon:after {
+  content: '<';
+  font-size: 33px;
+  color: black;
+}
+
+.carousel-item {
+    height: 200px;
+}
+
+.carousel-item img {
+    height: 156px;
+    margin:auto;
+}
+
+.active.active-list-item:not(:first-child) {
     border-top-color: #f19999;
     border-top-width: 1px;
     border-top-style: dashed;
 }
 
-.hidden{
-    display:none;
+.hidden {
+    display: none;
 }
 
-.language-flag{
-    height:32px;
-    width:32px;
+.language-flag {
+    height: 32px;
+    width: 32px;
 }
 
 .sponsor-div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.sponsor-logo{
-     height:120px;
-     margin:5px;
-}
+
 
 .inacity-logo {
-    width:100px;
+    width: 100px;
 }
 
 .inacity-brand-logo {
-    height:51px;
+    height: 51px;
 }

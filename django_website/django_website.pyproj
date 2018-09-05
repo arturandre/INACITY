@@ -111,6 +111,7 @@
     <Content Include="django_website\static\django_website\images\flag_pt-br.png" />
     <Content Include="django_website\static\django_website\images\interscitylogo.png" />
     <Content Include="django_website\static\django_website\images\logo.png" />
+    <Content Include="django_website\static\django_website\images\logo_fapesp.png" />
     <Content Include="django_website\static\django_website\images\logo_name.png" />
     <Content Include="django_website\static\django_website\images\mslogo.png" />
     <Content Include="django_website\static\django_website\images\questionmark.png" />
