@@ -58,7 +58,14 @@ class ItemsList extends Subject {
      * Adds an item to the itemsArray.
      * @param {string} item - It represents the item's caption and id.
     */
-    addItem(item) {
+    addItem(id, label) {
+        let item = {"id": id, "label": label};
+        let index = this.itemsArray.findIndex((p) => p.id === item.id);
+        if (index !== -1)
+        {
+            console.error(`Duplicated id (${id}) found!`)
+            return;
+        }
         this.itemsArray.push(item);
         ItemsList.notify('itemsarraychanged', this);
     }
@@ -67,10 +74,10 @@ class ItemsList extends Subject {
      * Removes an item from the itemsArray.
      * @param {string} item - The item's id.
     */
-    removeItem(item) {
-        let index = this.itemsArray.indexOf(item);
+    removeItem(id) {
+        let index = this.itemsArray.findIndex((p) => p.id === id);
         if (index === -1) {
-            console.error(`Item Not Found: ${item}`);
+            console.error(`Item Not Found: ${id}`);
             return;
         }
         this.itemsArray.splice(index, 1);
@@ -129,6 +136,14 @@ class ItemsList extends Subject {
         newButton.html(item);
         newButton.on("click", function () { this.toggleItemActive(item); }.bind(this));
         return newButton;
+    }
+
+        _createContainerDiv(item) {
+        let newContainerDiv = $(document.createElement("div"));
+        newContainerDiv.addClass("btn-group-vertical");
+        newContainerDiv.html(item);
+        newContainerDiv.on("click", function () { this.toggleItemActive(item); }.bind(this));
+        return newContainerDiv;
     }
 
     /**
@@ -223,4 +238,50 @@ if (!ItemsList.init) {
         'selecteditemschanged',
         'okbuttonclick',
     ]);
+}
+
+//Make the DIV element draggable:
+dragElement(document.getElementById("mydiv"));
+
+function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+        /* if present, the header is where you move the DIV from:*/
+        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    }
+    else {
+        /* otherwise, move the DIV from anywhere inside the DIV:*/
+        elmnt.onmousedown = dragMouseDown;
+    }
+
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        /* stop moving when mouse button is released:*/
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
 }
