@@ -41,7 +41,7 @@ class ItemsList extends Subject {
             let trigger = false;
             for (let i = this.selectedItemsArray.length - 1; i >= 0; i--) {
                 let item = this.selectedItemsArray[i];
-                if (this.itemsArray.indexOf(item) === -1) {
+                if (this.itemsArray.findIndex((p) => p.id === item.id) === -1) {
                     this.selectedItemsArray.splice(i, 1);
                     trigger = true;
                 }
@@ -56,13 +56,14 @@ class ItemsList extends Subject {
 
     /**
      * Adds an item to the itemsArray.
-     * @param {string} item - It represents the item's caption and id.
+     * @param {Item} item - It represents the item's caption and id.
+     * @param {string} Item.id - Identifies an item inside the ItemsArray.
+     * @param {string} Item.label - Used for displaying the item.
     */
-    addItem(id, label) {
-        let item = {"id": id, "label": label};
+    addItem(item) {
+        //let item = { "id": id, "label": label };
         let index = this.itemsArray.findIndex((p) => p.id === item.id);
-        if (index !== -1)
-        {
+        if (index !== -1) {
             console.error(`Duplicated id (${id}) found!`)
             return;
         }
@@ -116,8 +117,9 @@ class ItemsList extends Subject {
             this._container.empty();
             for (let i = 0; i < this.itemsArray.length; i++) {
                 let item = this.itemsArray[i];
+                
                 let newButton = this._createButton(item);
-                if (this.selectedItemsArray.indexOf(item) !== -1) {
+                if (this.selectedItemsArray.findIndex((p) => p.id === item.id) !== -1) {
                     newButton.addClass("active");
                 }
                 this._container.append(newButton);
@@ -133,16 +135,22 @@ class ItemsList extends Subject {
     _createButton(item) {
         let newButton = $(document.createElement("button"));
         newButton.addClass("btn btn-outline-primary buttondiv");
-        newButton.html(item);
+        newButton.html(item.label);
         newButton.on("click", function () { this.toggleItemActive(item); }.bind(this));
         return newButton;
     }
 
-        _createContainerDiv(item) {
+    _createContainerDiv(item) {
         let newContainerDiv = $(document.createElement("div"));
         newContainerDiv.addClass("btn-group-vertical");
         newContainerDiv.html(item);
-        newContainerDiv.on("click", function () { this.toggleItemActive(item); }.bind(this));
+        return newContainerDiv;
+    }
+
+    _createContainerAddress(item) {
+        let newContainerDiv = $(document.createElement("div"));
+        newContainerDiv.addClass("btn-group-vertical btn-group-toggle");
+        newContainerDiv.html(item);
         return newContainerDiv;
     }
 
@@ -150,18 +158,18 @@ class ItemsList extends Subject {
      * Adds the "active" class to the item's id
      * @param {string} itemId - The item's id.
      */
-    setItemActive(itemId) {
-        let index = this.itemsArray.indexOf(itemId)
+    setItemActive(item) {
+        let index = this.itemsArray.findIndex((p) => p.id === item.id);
         if (index === -1) {
-            console.log(`Item Not Found: ${itemId}`);
+            console.log(`Item Not Found: ${item.id}`);
             return;
         }
 
-        let indexSelected = this.selectedItemsArray.indexOf(itemId)
+        let indexSelected = this.selectedItemsArray.findIndex((p) => p.id === item.id);
         if (indexSelected !== -1) {
-            console.log(`Item Already Selected: ${itemId}`);
+            console.log(`Item Already Selected: ${item.id}`);
         }
-        this.selectedItemsArray.push(itemId);
+        this.selectedItemsArray.push(item);
         ItemsList.notify('selecteditemschanged', this);
     }
 
@@ -169,14 +177,14 @@ class ItemsList extends Subject {
      * Removes the "active" class from the item's id
      * @param {string} itemId 
      */
-    setItemInactive(itemId) {
-        let index = this.itemsArray.indexOf(itemId);
+    setItemInactive(id) {
+        let index = this.itemsArray.findIndex((p) => p.id === id);
         if (index === -1) {
-            console.log(`Item Not Found: ${itemId}`);
+            console.log(`Item Not Found: ${id}`);
             return;
         }
 
-        let indexSelected = this.selectedItemsArray.indexOf(itemId);
+        let indexSelected = this.selectedItemsArray.findIndex((p) => p.id === id);
         if (indexSelected === -1) {
             console.log(`itemId Not Found: ${itemId}`);
         }
@@ -188,16 +196,16 @@ class ItemsList extends Subject {
      * Toggles (adds or removes) the "active" class from the item with the id "itemId"
      * @param {string} itemId 
      */
-    toggleItemActive(itemId) {
-        let index = this.itemsArray.indexOf(itemId);
+    toggleItemActive(item) {
+        let index = this.itemsArray.findIndex((p) => p.id === item.id);
         if (index === -1) {
-            console.log(`itemId Not Found: ${itemId}`);
+            console.log(`itemId Not Found: ${id}`);
             return;
         }
 
-        let indexSelected = this.selectedItemsArray.indexOf(itemId);
+        let indexSelected = this.selectedItemsArray.findIndex((p) => p.id === item.id);
         if (indexSelected === -1) {
-            this.selectedItemsArray.push(itemId);
+            this.selectedItemsArray.push(item);
         }
         else {
             this.selectedItemsArray.splice(indexSelected, 1);
