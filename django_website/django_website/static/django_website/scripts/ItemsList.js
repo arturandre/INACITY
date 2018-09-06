@@ -121,7 +121,6 @@ class ItemsList extends Subject {
             this._container.empty();
             for (let i = 0; i < this.itemsArray.length; i++) {
                 let item = this.itemsArray[i];
-
                 let newButton = this._createButton(item);
                 if (this.selectedItemsArray.findIndex((p) => p.id === item.id) !== -1) {
                     newButton.addClass("active");
@@ -144,11 +143,17 @@ class ItemsList extends Subject {
         return newButton;
     }
 
-        _createContainerDiv(item) {
+    _createContainerDiv(item) {
         let newContainerDiv = $(document.createElement("div"));
         newContainerDiv.addClass("btn-group-vertical");
         newContainerDiv.html(item);
-        newContainerDiv.on("click", function () { this.toggleItemActive(item); }.bind(this));
+        return newContainerDiv;
+    }
+
+    _createContainerAddress(item) {
+        let newContainerDiv = $(document.createElement("div"));
+        newContainerDiv.addClass("btn-group-vertical btn-group-toggle");
+        newContainerDiv.html(item);
         return newContainerDiv;
     }
 
