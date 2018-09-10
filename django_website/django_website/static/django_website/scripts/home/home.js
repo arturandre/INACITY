@@ -212,6 +212,15 @@ function initializeUI() {
 
         uiController.initialize();
         uiView.initialize();
+
+        let featuresList = new FeaturesList();
+        $("body").append(featuresList._outerContainer);
+        featuresList.addItem({id:1, label:"Rua X"});
+        
+
+
+
+
     }, console.error);
 }
 
