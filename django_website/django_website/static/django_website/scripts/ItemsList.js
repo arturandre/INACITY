@@ -15,11 +15,15 @@ class ItemsList extends Subject {
 
         this._itemsArray = [];
         this.selectedItemsArray = [];
-
         if (containerDivId) {
-            this._container = $(`#${containerDivId}`);
+            if (typeof (containerDivId) === 'string') {
+                this._container = $(`#${containerDivId}`);
+            }
+            else
+            {
+                this._container = containerDivId;
+            }
         }
-
         if (containerShadowId) {
             this._containerShadow = $(`#${containerShadowId}`);
         }
@@ -117,7 +121,7 @@ class ItemsList extends Subject {
             this._container.empty();
             for (let i = 0; i < this.itemsArray.length; i++) {
                 let item = this.itemsArray[i];
-                
+
                 let newButton = this._createButton(item);
                 if (this.selectedItemsArray.findIndex((p) => p.id === item.id) !== -1) {
                     newButton.addClass("active");
@@ -140,7 +144,7 @@ class ItemsList extends Subject {
         return newButton;
     }
 
- 
+
     /**
      * Adds the "active" class to the item's id
      * @param {string} itemId - The item's id.

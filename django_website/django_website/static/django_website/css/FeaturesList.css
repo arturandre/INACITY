@@ -1,0 +1,26 @@
+.containerAddress
+{
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+width: 100px;
+}
+
+.containerMenu
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 50px;
+    width: 100%;
+}
+
+.pinbutton
+{
+
+}
+
+.trashbutton
+{
+
+}
