@@ -20,7 +20,10 @@ class FeaturesList extends ItemsList {
         this._containerMenu.append(trashbutton);
 
         
-        this._container.addClass("btn-group-vertical btn-group-toggle");
+        // this._border = $(document.createElement("border"));
+        // this._border.addClass("borderDiv");
+        // this._border.append(this._outerContainer);
+        this._container.addClass("containerDiv btn-group-vertical btn-group-toggle");
         this._container.attr("data-toggle","buttons");
         this._outerContainer.append(this._container);
     }

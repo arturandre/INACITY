@@ -1,9 +1,25 @@
+.containerMenu
+{
+    background-color: rgb(235, 235, 235);
+}
+
+.containerDiv
+{
+    max-height: 200px;
+    justify-content: start;
+    overflow-y:auto;
+    overflow-x:hidden !important;
+    border: 1px solid black;
+}
+
 .containerAddress
 {
 display: flex;
 flex-direction: column;
 justify-content: flex-start;
-width: 100px;
+max-width: 400px;
+border: 3px solid black;
+border-radius: 3px;
 }
 
 .containerMenu
@@ -11,7 +27,7 @@ width: 100px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    height: 50px;
+    height: 25px;
     width: 100%;
 }
 
