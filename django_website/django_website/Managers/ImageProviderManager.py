@@ -24,7 +24,7 @@ class ImageProviderManager(object):
             self._ImageProviders[provider.imageProviderId] = provider
         pass
 
-
+    #Unused
     def requestGeoImageToImageProvider(self, imageProviderId: str, locations: FeatureCollection) -> List[FeatureCollection]:
         """Delegate request to the selected image provider"""
         return self._ImageProviders[imageProviderId].getGeoImagesFromLocations(locations)

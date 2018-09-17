@@ -385,6 +385,104 @@ class UIModel extends Subject {
     }
 
     /**
+     * Each image filter can return different kinds of responses like
+     * a greenery view index (0-100%) or a boolean flag indication if there's
+     * an intersection between the trees greenery and pole wires.
+     * 
+     * This function sends a feature collection already filled with geoImages. 
+     * The data processed by the filters will be appended to each GeoImage as the
+     * property processedData['filterId']
+     */
+    getProcessedImages(selectedImageFilter) {
+        return new Promise(function (resolve, reject) {
+            let numCalls = 0;
+            try {
+                let activeRegions = this.getActiveRegions();
+                if (activeRegions.length === 0) {
+                    return reject("Please, select region to continue.");
+                }
+                for (let regionIdx in activeRegions) {
+                    var region = activeRegions[regionIdx];
+                    (new Promise(function (resolve) {
+                        /*
+                          Case the user simply select a region and then try to get the images
+                          by default the Streets from OSM will be used as features
+                        */
+                        if (Object.keys(region.layers).length === 0) {
+                            this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
+                        }
+                        else {
+                            //Otherwise simply collect the image's from the feature selected
+                            return resolve();
+                        }
+                    }.bind(this))).then(() => {
+                        let activeLayers = region.getActiveLayers();
+
+                        for (let layerIdx in activeLayers) {
+                            let layer = activeLayers[layerIdx];
+
+                            //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                            //@todo: Warn user about the skipped layers
+                            //@todo: Revise this
+                            if (!layer.featureCollection || !layer.featureCollection.features || !layer.featureCollection.features[0].properties.geoImages) {
+                                console.warn(`Layer '${layer.layerId}' without features or without images. Try to get the images first.`);
+                                continue;
+                            }
+
+                            numCalls += 1;
+
+                            $.ajax('/processimagesfromfeaturecollection/',
+                            {
+                                method: 'POST',
+                                processData: false,
+                                data: JSON.stringify({
+                                    'imageFilterId': selectedImageFilter,
+                                    'featureCollection': JSON.stringify(layer.featureCollection),
+                                    'regionId': region.id,
+                                    'layerId': layer.layerId.toString()
+                                }),
+                                contentType: "application/json; charset=utf-8",
+                                dataType: 'json',
+                                success: function (data, textStatus, jqXHR) {
+                                    //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
+                                    let layer = this.regions[data['regionId']].layers[data['layerId']];
+                                    layer.featureCollection = data['featureCollection'];
+                                }.bind(this),
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    //@todo: Create a error handling mechanism
+                                    if (jqXHR.status === 413) {
+                                        alert("The request was too big to be processed. Try a smaller region.");
+                                    }
+                                    else {
+                                        defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
+                                    }
+                                },
+                                complete: function (jqXHR, textStatus) {
+                                    /**
+                                    @todo: Treat parcial returns, the user should be able to see the results
+                                    as they are being received, rather than wait all of them.
+                                    */
+                                    numCalls -= 1;
+                                    if (numCalls == 0) {
+                                        return resolve();
+                                    }
+                                },
+                            },
+                            'json'
+                            );
+                        }
+                    });
+                }
+            }
+            catch (err) {
+
+                throw err;
+            }
+        }.bind(this));
+    }
+
+
+    /**
      * Represents an Image Provider
      * @typedef {ImageProvider}
      * @property {string} name - The name of the image provider used for displaying

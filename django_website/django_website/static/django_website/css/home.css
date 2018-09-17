@@ -1,4 +1,9 @@
-﻿/*#region SliderRegion*/
+﻿#btnImageFilter {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+/*#region SliderRegion*/
 
 #changeModeDiv {
     margin-bottom: 10px;
