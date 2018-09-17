@@ -48,6 +48,9 @@ urlpatterns = [
     #Used to collect images for a given set of GIS features called FeatureCollection
     url(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
 
+    #Used to process images for a given set of GIS features called FeatureCollection that already has its images collected
+    url(r'^processimagesfromfeaturecollection/?$', processimagesfromfeaturecollection, name='processimagesfromfeaturecollection'),
+
     # Testing 
     url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
 

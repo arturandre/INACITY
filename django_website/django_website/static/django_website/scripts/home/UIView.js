@@ -43,6 +43,7 @@ class UIView {
         this.geoImageManager = geoImageManager;
 
         this.onClickExecuteQueryBtn = null;
+        this.onClickExecuteImageFilterBtn = null;
         this.onClickGetImagesBtn = null;
         this.onClickClearSelectionsBtn = null;
 
@@ -54,6 +55,7 @@ class UIView {
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
         this.jqchangeModeDiv = $(`#changeModeDiv`);
 
+        this.jqbtnExecuteImageFilter = $(`#btnExecuteImageFilter`);
         this.jqbtnImageFilter = $(`#btnImageFilter`);
         this.jqbtnImageProvider = $(`#btnImageProvider`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
@@ -108,6 +110,7 @@ class UIView {
 
     initialize() {
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
+        this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
         this.jqbtnClearSelections.on("click", this.onClickClearSelectionsBtn.bind(this));
 

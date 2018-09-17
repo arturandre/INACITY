@@ -66,6 +66,7 @@ def getimagefilters(request):
     ret = imageFilterManager.getAvailableImageFilters()
     return JsonResponse(ret)
 
+
 @api_view(['POST'])
 def filtergeoimage(request):
     jsondata = request.data
@@ -98,6 +99,17 @@ def getimagesforfeaturecollection(request):
             status=tryGetImagesForCollection.status_code,
             content_type=tryGetImagesForCollection.headers['Content-Type'])
     ret['featureCollection'] = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    ret['regionId'] = jsondata['regionId'];
+    ret['layerId'] = jsondata['layerId'];
+    return JsonResponse(ret)
+
+@api_view(['POST'])
+def processimagesfromfeaturecollection(request):
+    jsondata = request.data
+    imageFilterId = jsondata['imageFilterId']
+    featureCollection = geojson.loads(jsondata['featureCollection'])
+    ret = {}
+    ret['featureCollection'] = imageFilterManager.processImageFromFeatureCollection(imageFilterId, featureCollection)
     ret['regionId'] = jsondata['regionId'];
     ret['layerId'] = jsondata['layerId'];
     return JsonResponse(ret)

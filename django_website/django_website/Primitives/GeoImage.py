@@ -18,6 +18,8 @@ class SimpleDTO(object):
         pass
 
     def toJSON(self, compact=True):
+        if not (self.dataType == 'URL' or self.dataType == 'data:image/jpeg;base64'):
+            self.setDataToBase64()
         if compact:
             return json.dumps(self, default=lambda o: o.__dict__, 
                 sort_keys=True, separators=(',', ':'))
@@ -37,6 +39,7 @@ class GeoImage(SimpleDTO):
         self.heading = 0
         self.pitch = 0
         self.metadata = {} #Json Structured list
+        self.processedData = {}
 
     @classmethod
     def fromJSON(cls, jsonData: dict):
@@ -48,6 +51,7 @@ class GeoImage(SimpleDTO):
         geoImage.heading = jsonData['heading']
         geoImage.pitch = jsonData['pitch']
         geoImage.metadata = jsonData['metadata']
+        geoImage.processedData = jsonData['processedData']
         if geoImage.dataType == 'URL':
             geoImage.setDataFromImage(imageio.imread(geoImage.data))
         return geoImage
@@ -72,12 +76,28 @@ class GeoImage(SimpleDTO):
         self.size['width'], self.size['height'], self.size['channels'] = data.shape
 
     def setDataToBase64(self):
-        self.data = Image.fromarray(img_as_ubyte(self.data))
-        buff = BytesIO()
-        self.data.save(buff, format="JPEG")
-        base64_image_string  = base64.b64encode(buff.getvalue()).decode("utf-8")
-        self.data = base64_image_string
+        """Converts the 'data' property from 'ndarray' to a jpeg image encoded in a base64 string"""
+        if self.dataType == 'ndarray':
+            self.data = Image.fromarray(img_as_ubyte(self.data))
+        elif self.dataType == 'data:image/jpeg;base64':
+            return
+        #buff = BytesIO()
+        #self.data.save(buff, format="JPEG")
+        #base64_image_string  = base64.b64encode(buff.getvalue()).decode("utf-8")
+        #self.data = base64_image_string
+        self.data = GeoImage.imageToBase64JPEG(self.data)
         self.dataType = 'data:image/jpeg;base64'
+    
+    def imageToBase64JPEG(inputImage : Image):
+        buff = BytesIO()
+        inputImage.save(buff, format="JPEG")
+        return base64.b64encode(buff.getvalue()).decode("utf-8")
+
+    def setProcessedData(self, filterId: str, type, value):
+        if type == 'ndarray':
+            value = Image.fromarray(img_as_ubyte(value))
+            value = GeoImage.imageToBase64JPEG(value)
+        self.processedData[filterId] = value
 
     def getPNG(self):
         """Converts the image to a PNG file"""

@@ -1,3 +1,4 @@
+from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, FeatureCollection
 from django_website.Primitives.GeoImage import GeoImage
 from abc import ABC, abstractmethod
 
@@ -12,7 +13,7 @@ class ImageFilter(ABC):
         checkFields = [
             (cls.filterName, 'filterName'),
             (cls.filterId, 'filterId'),
-            (cls.processImage, 'processImage'),
+            (cls.processImage, 'processImageFromFeatureCollection'),
             ]
         for i in range(len(checkFields)):
             try:
@@ -40,6 +41,11 @@ class ImageFilter(ABC):
     def _initialize(cls):
         pass  
 
+    @abstractmethod
+    def processImageFromFeatureCollection(location: FeatureCollection)->FeatureCollection:
+        """The processed images needs to still related to the original GeoImages from 
+           where images come from"""
+        pass
     
 
 
