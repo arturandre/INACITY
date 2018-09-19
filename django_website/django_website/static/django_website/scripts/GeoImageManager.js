@@ -24,6 +24,9 @@ class GeoImageManager extends Subject {
         this._autoPlayIntervalID = null;
         this._autoPlayState = 0;
 
+        //
+        this._displayMode = 'NORMAL';
+
         if (options && options.autoPlayTimeInterval) {
             this._autoPlayTimeInterval = options.autoPlayTimeInterval;
         }
