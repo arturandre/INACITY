@@ -11,7 +11,7 @@
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
         this.uiView.onClickClearSelectionsBtn = this.onClickClearSelectionsBtn.bind(this);
         this.uiView.onClickExecuteImageFilterBtn = this.onClickExecuteImageFilterBtn.bind(this);
-        
+
         /*UIModel Event Handlers*/
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
         UIModel.on('regionlistitemclick', this.onClickRegionListItem.bind(this));
@@ -61,7 +61,12 @@
     onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter));
-        this.uiModel.getProcessedImages.bind(this.uiModel)(this.uiView.SelectedImageFilter.id).then(unset, error => { alert(error); unset(); });
+        this.uiModel.getProcessedImages.bind(this.uiModel)(this.uiView.SelectedImageFilter.id).then(
+            () => {
+                unset();
+                //Set the geoImageManager to display this collection
+                this.geoImageManager.updateDisplayingLayers();
+            }, error => { unset(); alert(error); });
     }
 
     onClickGetImagesBtn() {
