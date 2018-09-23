@@ -24,8 +24,8 @@ class GeoImageManager extends Subject {
         this._autoPlayIntervalID = null;
         this._autoPlayState = 0;
 
-        //
-        this._displayMode = 'NORMAL';
+        //null for original images
+        this._imageFilterId = null;
 
         if (options && options.autoPlayTimeInterval) {
             this._autoPlayTimeInterval = options.autoPlayTimeInterval;
@@ -223,16 +223,17 @@ class GeoImageManager extends Subject {
             GeoImageManager.notify('invalidcollection', null);
             return false;
         }
-        if (geoImage.dataType === 'URL') {
-            this._DOMImage.attr("src", geoImage.metadata.imageURL);
-        }
-        else if (geoImage.dataType === 'data:image/jpeg;base64') {
-            this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
-        }
-        else
-        {
-            throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
-        }
+        this.displayGeoImage(geoImage);
+        //if (geoImage.dataType === 'URL') {
+        //    this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        //}
+        //else if (geoImage.dataType === 'data:image/jpeg;base64') {
+        //    this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
+        //}
+        //else
+        //{
+        //    throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
+        //}
         GeoImageManager.notify('imagechange', geoImage);
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
@@ -251,10 +252,35 @@ class GeoImageManager extends Subject {
         if (typeof geoImage === "number") {
             throw "Tried to get an invalid image!";
         }
-        this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        //this._DOMImage.attr("src", geoImage.metadata.imageURL);
+        //this._DOMImage.attr("src", geoImage.dataType + "," + geoImage.data);
+        this.displayGeoImage(geoImage);
         if (!silentChange) GeoImageManager.notify('imagechange', geoImage);
         return true;
 
+    }
+
+    set imageFilterId(imageFilterId) {
+        this._imageFilterId = imageFilterId;
+    }
+
+    displayGeoImage(geoImage) {
+        if (this._imageFilterId && geoImage.processedData[this._imageFilterId]) {
+            //This assumes that geoImage.dataType = 'data:image/jpeg;base64'
+            this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.processedData[this._imageFilterId]}`);
+        }
+        else
+        {
+            if (geoImage.dataType === 'URL') {
+                this._DOMImage.attr("src", geoImage.metadata.imageURL);
+            }
+            else if (geoImage.dataType === 'data:image/jpeg;base64') {
+                this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
+            }
+            else {
+                throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
+            }
+        }
     }
 
     _getNextImage() {
