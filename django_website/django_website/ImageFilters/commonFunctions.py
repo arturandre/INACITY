@@ -193,7 +193,7 @@ def mt_li_espectral(rgb_img, vec=None):
     return r & g & b & h & s & v & nr & ng & nb
 
 def overlay_mask(rgb_img, bw_mask):
-    rgb_img[..., 0] = rgb_img[..., 0]*(~bw_mask)/2
-    rgb_img[..., 1] = rgb_img[..., 1]*(bw_mask)/2
-    rgb_img[..., 2] = rgb_img[..., 2]*(~bw_mask)/2
+    rgb_img[..., 0] = rgb_img[..., 0]*((~bw_mask+1)/2)
+    rgb_img[..., 1] = rgb_img[..., 1]*((bw_mask+1)/2)
+    rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+1)/2)
     return rgb_img
