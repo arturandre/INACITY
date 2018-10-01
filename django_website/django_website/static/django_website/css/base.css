@@ -1,4 +1,21 @@
-﻿.carousel-control-prev-icon,
+﻿#carouselSponsors {
+    margin: 10px 0 0 0;
+    /*border: 1px solid black;*/
+    padding: 10px;
+}
+
+.inacity-logo-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.jumbotron.row {
+    padding: 1rem 2rem;
+}
+
+.carousel-control-prev-icon,
 .carousel-control-next-icon {
   height: 18px;
   width: 18px;
@@ -21,11 +38,12 @@
 }
 
 .carousel-item {
-    height: 200px;
+    height: 150px;
 }
 
 .carousel-item img {
-    height: 156px;
+    max-height: 78%;
+    max-width: 78%;
     margin:auto;
 }
 
