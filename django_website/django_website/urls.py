@@ -14,6 +14,8 @@ from django_website.views import *
 #from django.views.generic.base import TemplateView
 from django_website import settings
 
+#from django_website import admin
+from django.contrib import admin
 urlpatterns = [
     # Pages
     url(r'^$', home, name='root'),
@@ -73,8 +75,9 @@ urlpatterns = [
     # url(r'^django_website/', include('django_website.django_website.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+     url(r'^admin/', admin.site.urls),
+     #url(r'^admin/', include(admin.site)),
 ]

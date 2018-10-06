@@ -37,6 +37,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="django_website\admin.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="django_website\geofunctions.py">
       <SubType>Code</SubType>
     </Compile>

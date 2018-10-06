@@ -1,5 +1,6 @@
 from django_website.Primitives.GeoSampa import GeoSampa_BusStops
 from django.db import models
+from django.contrib.auth.models import User
 
 class GeoImage(models.Model):
     featureReference = models.CharField(max_length=256, unique=True)
@@ -11,10 +12,6 @@ class FilterResult(models.Model):
     mask = models.CharField(max_length=256)
     density = models.FloatField
     presence = models.BooleanField
-
-class User(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
 
 class Session(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
