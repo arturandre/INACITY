@@ -121,8 +121,8 @@ function getPanoramaForFeature(feature, featureIndex) {
 }
 
 //Works in-place
-function setPanoramaForFeature(feature) {
-    feature.properties.geoImages = cloneTree(feature.geometry.coordinates,
+async function setPanoramaForFeature(feature) {
+    feature.properties.geoImages = await cloneTree(feature.geometry.coordinates,
         /*Not leaf function*/ undefined, 
         /*Leaf function*/ async function(node) { 
             return await getPanoramaByLocation(node).then(
@@ -130,6 +130,7 @@ function setPanoramaForFeature(feature) {
                 (err) => err
                 );
         });
+    console.log("Tree cloned");
 }
 
 //Pre-order tree traversal
@@ -140,7 +141,7 @@ async function cloneTree(root, notLeafFunction, LeafFunction, parent) {
     //Not leaf
     if (root[0][0]) {
         if (notLeafFunction) {
-            newRoot = await notLeafFunction(root);
+            newRoot = notLeafFunction(root);
         }
 
         //root.parent = parent;
@@ -155,7 +156,7 @@ async function cloneTree(root, notLeafFunction, LeafFunction, parent) {
         //Leaf
     else {
         if (LeafFunction) {
-            newRoot = await LeafFunction(root);
+            newRoot = LeafFunction(root);
         }
     }
     return newRoot;
