@@ -124,6 +124,10 @@
     <Content Include="django_website\static\django_website\images\tutorial\pre_select.png" />
     <Content Include="django_website\static\django_website\scripts\base.js" />
     <Content Include="django_website\static\django_website\scripts\GeoImageManager.js" />
+    <Content Include="django_website\static\django_website\scripts\home\GSVService.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="django_website\static\django_website\scripts\home\StreetViewPanoramaData.js" />
     <Content Include="django_website\static\django_website\scripts\home\UIController.js" />
     <Content Include="django_website\static\django_website\scripts\home\UIView.js" />
     <Content Include="django_website\static\django_website\scripts\integrationTest.js" />
