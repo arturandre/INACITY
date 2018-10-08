@@ -1,0 +1,242 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GeoImageManager &#8212; INvestigate and Analyze a CITY - INACITY  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="OpenLayersHandler" href="openlayershandler.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="geoimagemanager">
+<h1>GeoImageManager<a class="headerlink" href="#geoimagemanager" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="GeoImageManager">
+<em class="property">class </em><code class="descname">GeoImageManager</code><span class="sig-paren">(</span><em>DOMImageId</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Responsible for displaying GeoImages from features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>DOMImageId</strong> (<em>string</em>) – The id of the image element (from DOM) that will be used to display the collected GeoImages.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="GeoImageManager._findNextValidImage">
+<code class="descclassname">GeoImageManager.</code><code class="descname">_findNextValidImage</code><span class="sig-paren">(</span><em>startingIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager._findNextValidImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to find the next valid image starting from “startingIndex”.
+If some valid GeoImage is found the [_currentIndex]{&#64;link module:GeoImageManager~_currentIndex} is set to the index of the GeoJson found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>startingIndex</strong> (<em>int</em>) – Start the search from this index (possibly zero) until the end of the GeoImage’s collection</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>GeoImage|null</strong> – If no valid GeoImage is found then returns null.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GeoImageManager._isValidJsonObject">
+<code class="descclassname">GeoImageManager.</code><code class="descname">_isValidJsonObject</code><span class="sig-paren">(</span><em>testString</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager._isValidJsonObject" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>Object|False</strong> – If the ‘testString’ is a valid json object then it’s returned otherwise “false” is returned.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GeoImageManager.autoPlayGeoImages">
+<code class="descclassname">GeoImageManager.</code><code class="descname">autoPlayGeoImages</code><span class="sig-paren">(</span><em>this</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager.autoPlayGeoImages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes automatically the currently presented geoImage</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>this._autoPlayState</strong> (<em>int</em>) – Controls the state of GeoImageManager’s autoplay 0 - Stopped -&gt; Will restart the GeoImageManager counter when started. 1 - Playing -&gt; Can be stopped (reseted) or paused. 2 - Paused -&gt; Will continue from the last presented GeoImage when restarted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="GeoImageManager.displayFeatures">
+<code class="descclassname">GeoImageManager.</code><code class="descname">displayFeatures</code><span class="sig-paren">(</span><em>fromStart</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager.displayFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the displaying of the current GeoImages collection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fromStart</strong> (<em>boolean</em>) – If true then the counter will be reset</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GeoImageManager.geoimagescollectionchange">
+<code class="descclassname">GeoImageManager.</code><code class="descname">geoimagescollectionchange</code><a class="headerlink" href="#GeoImageManager.geoimagescollectionchange" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>type:</strong> Array.&lt;GeoImage&gt;</p>
+<p>Triggered when GeoImagesCollection (the set of geo images) changes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GeoImageManager.imagechange">
+<code class="descclassname">GeoImageManager.</code><code class="descname">imagechange</code><a class="headerlink" href="#GeoImageManager.imagechange" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>type:</strong> GeoImage</p>
+<p>Triggered when MultiLineString Features are joined together</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GeoImageManager.invalidcollection">
+<code class="descclassname">GeoImageManager.</code><code class="descname">invalidcollection</code><a class="headerlink" href="#GeoImageManager.invalidcollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triggered while trying to display a GeoImage from a collection without any valid GeoImage.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GeoImageManager.setCurrentGeoImagesCollection">
+<code class="descclassname">GeoImageManager.</code><code class="descname">setCurrentGeoImagesCollection</code><span class="sig-paren">(</span><em>newFeatureCollection</em><span class="sig-paren">)</span><a class="headerlink" href="#GeoImageManager.setCurrentGeoImagesCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the current GeoImage’s Collection being presented</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>newFeatureCollection</strong> (<em>FeatureCollection</em>) – A feature collection object with its features containing the geoImages as a property</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>boolean</strong> – True if the change is successful, false if otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GeoImageManager.validImages">
+<code class="descclassname">GeoImageManager.</code><code class="descname">validImages</code><a class="headerlink" href="#GeoImageManager.validImages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for [_validImages]{&#64;link module:GeoImageManager~_validImages}; the number of valid images in the [_currentGeoImagesCollection]{&#64;link module:GeoImageManager~_currentGeoImagesCollection}</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">INvestigate and Analyze a CITY - INACITY</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/installing.html">Installing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../backend/backend.html">Backend (Server-side)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../frontend.html">Frontend</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="primitives.html">Primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observer.html">Observer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="openlayershandler.html">OpenLayersHandler</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">GeoImageManager</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../frontend.html">Frontend</a><ul>
+      <li>Previous: <a href="openlayershandler.html" title="previous chapter">OpenLayersHandler</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Oliveira, Artur.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../../_sources/frontend/modules/geoimagemanager.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

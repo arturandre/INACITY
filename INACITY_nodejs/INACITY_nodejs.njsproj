@@ -6,6 +6,7 @@
     <Name>INACITY_nodejs</Name>
     <RootNamespace>INACITY_nodejs</RootNamespace>
     <NodeExeArguments>--inspect</NodeExeArguments>
+    <LastActiveSolutionConfig>Debug|Any CPU</LastActiveSolutionConfig>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>

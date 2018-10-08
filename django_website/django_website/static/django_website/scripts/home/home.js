@@ -7,18 +7,6 @@
 
 //#region Global variables
 
-///**
-// * Responsible for keeping user selections.
-// * @todo Make it a class.
-// * @param {string} SelectedMapMiner - Selected map miner's id
-// * @param {string} SelectedMapFeature - Selected map features's id
-// * @param {string} SelectedImageProvider - Selected image providers' id
-// */
-//var uiView = {}
-//uiView.SelectedMapMiner = null;
-//uiView.SelectedMapFeature = null;
-//uiView.SelectedImageProvider = null;
-
 var uiView = null;
 
 var geoImageManager = null;
@@ -293,6 +281,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 
 /**
 * Auxiliar function to display to the user eventual errors during ajax calls
+* @param {string} locationName - Indication of where the error occured. (i.e. function's name)
 * @param {string} textStatus - The type of error that occurred and an optional exception object, if one occurred. Possible values for the second argument (besides null) are "timeout", "error", "abort", and "parsererror".
 * @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
 * @see {@link http://api.jquery.com/jquery.ajax/}
@@ -307,22 +296,10 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
 
 //#endregion Auxiliar functions for caller functions
 
-//#region UI Functions 
-
-
-
-
-
-//#endregion UI Functions
-
 //#region UI Auxiliary Functions
 
-
-
-
-
 /**
- * Remove the 'disabled' css class from the element passed as parameter and adds the
+ * Removes the 'disabled' css class from the element passed as parameter and adds the
  * 'disabled' css class to any siblings (other elements with a common parent element) of the element.
  * @param {JQueryObject} element - A DOMElement encapsulated with JQuery (i.e. $('#myElementId') )
  */
@@ -418,7 +395,7 @@ function getClickedElement(event) {
 /**
 * Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).
 * If the target (i.e. button) can't be defined "undefined" is returned.
-* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+* @param {Event} event - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
 * @returns {DOMElement|undefined} - See [Element]{@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
 */
 function btnElementChecker(event) {
