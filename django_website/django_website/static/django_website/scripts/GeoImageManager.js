@@ -56,10 +56,11 @@ class GeoImageManager extends Subject {
 
     /**
      * Changes automatically the currently presented geoImage
-     * @param {int} this._autoPlayState - Controls the state of GeoImageManager's autoplay
+     * @param {int} autoPlayNewState - Controls the state of GeoImageManager's autoplay
      * 0 - Stopped -> Will restart the GeoImageManager counter when started.
      * 1 - Playing -> Can be stopped (reseted) or paused.
      * 2 - Paused -> Will continue from the last presented GeoImage when restarted.
+     * @returns {Boolean} - True if the state is changed correctly
      */
     autoPlayGeoImages(autoPlayNewState) {
         if (this._autoPlayState === autoPlayNewState) {
@@ -98,6 +99,8 @@ class GeoImageManager extends Subject {
     /**
      * Check if object is a leaf (geoImage)
      * @private
+     * @param {any} object - The object to be tested
+     * @returns {Boolean} True if the object is not undefined nor an Array
      */
     _isLeaf(object) {
         return !!object && !(object instanceof Array);
@@ -108,7 +111,7 @@ class GeoImageManager extends Subject {
      * Updates the [_validImages]{@link module:GeoImageManager~_validImages} property as a side effect when the index is greater than
      * the number of available images.
      * @private
-     * @param {int} index
+     * @param {int} index - Starting index
      * @returns {GeoImage|int} Case the index is greater than the number of GeoImages then it returns the number of GeoImages
      */
     _getGeoImageAtIndex(index) {
@@ -119,7 +122,8 @@ class GeoImageManager extends Subject {
 
     _countValidImages(root) {
         if (this._isLeaf(root)) {
-            return this._isValidJsonObject(root) ? 1 : 0;
+            //return this._isValidJsonObject(root) ? 1 : 0;
+            return (root instanceof GeoImage) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
@@ -132,7 +136,8 @@ class GeoImageManager extends Subject {
 
     _removeInvalidImages(root) {
         if (this._isLeaf(root)) {
-            return this._isValidJsonObject(root) ? 1 : 0;
+            //return this._isValidJsonObject(root) ? 1 : 0;
+            return (root instanceof GeoImage) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
@@ -157,6 +162,7 @@ class GeoImageManager extends Subject {
      * @param {Array} root - The graph of GeoImages
      * @param {int} index - Index of the desired leaf (geoImage)
      * @param {int} currentIndex - Should be zero (used by recursion)
+     * @returns {Object|int} - The node or 1
      */
     _traverseCollection(root, index, currentIndex) {
         if (typeof currentIndex !== 'number') currentIndex = 0;
@@ -208,12 +214,14 @@ class GeoImageManager extends Subject {
     /**
      * Start the displaying of the current GeoImages collection
      * @todo Make the access to the image data more generic (e.g. without metadata)
-     * @param {boolean} fromStart - If true then the counter will be reset
+     * @param {Boolean} fromStart - If true then the counter will be reset
+     * @param {Boolean} startAutoPlay - Set a timer to change the images automatically
      * @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
      * @fires [imagechange]{@link module:GeoImageManager~GeoImageManager.imagechange}
+     * @returns {Boolean} - True if the state was changed correctly
      */
     displayFeatures(fromStart, startAutoPlay) {
-        if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length == 0) {
+        if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length === 0) {
             console.warn("Error: Trying to display empty geoImages collection.");
             return false;
         }
@@ -247,9 +255,10 @@ class GeoImageManager extends Subject {
             console.error(`Index (${index}) out of valid range [0-${this.validImages}]. `);
             return false;
         }
-        let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
-
-        if (typeof geoImage === "number") {
+        //let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
+        let geoImage = this._getGeoImageAtIndex(index);
+        //if (typeof geoImage === "number") {
+        if (!geoImage instanceof GeoImage) {
             throw "Tried to get an invalid image!";
         }
         //this._DOMImage.attr("src", geoImage.metadata.imageURL);
@@ -308,7 +317,8 @@ class GeoImageManager extends Subject {
      */
     _findNextValidImage(startingIndex) {
         let geoImage = this._getGeoImageAtIndex(startingIndex);
-        while (!this._isValidJsonObject(geoImage))//Try to find a valid image
+        //while (!(this._isValidJsonObject(geoImage)))//Try to find a valid image
+        while (!(geoImage instanceof GeoImage))
         {
             startingIndex += 1;
             //If _getGeoImageAtIndex returns a number then the collection has ended
@@ -319,25 +329,28 @@ class GeoImageManager extends Subject {
             }
         }
         this._currentIndex = startingIndex;
-        return this._isValidJsonObject(geoImage);
+        //return this._isValidJsonObject(geoImage);
+        return geoImage;
     }
 
     /**
+     * @param {string} testString - The string to be parsed or rejected
      * @returns {Object|False} If the 'testString' is a valid json object then it's returned otherwise "false" is returned.
      */
-    _isValidJsonObject(testString) {
-        try {
-            let ret = JSON.parse(testString);
-            if (ret instanceof Object) {
-                return ret;
-            }
-            else {
-                return false;
-            }
-        } catch (e) {
-            return false;
-        }
-    }
+    //_isValidJsonObject(testString) {
+    //    try {
+    //        if (testString instanceof Object) return testString;
+    //        let ret = JSON.parse(testString);
+    //        if (ret instanceof Object) {
+    //            return ret;
+    //        }
+    //        else {
+    //            return false;
+    //        }
+    //    } catch (e) {
+    //        return false;
+    //    }
+    //}
 
 }
 

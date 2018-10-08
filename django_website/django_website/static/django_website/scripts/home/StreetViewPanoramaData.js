@@ -15,11 +15,11 @@
 class Time {
     constructor(parameters) 
     {
-		var defaults = {
-			Af: null,
-			ng: null
-		};
-		parameters = parameters || defaults;
+        var defaults = {
+            Af: null,
+            ng: null
+        };
+        parameters = parameters || defaults;
         this.Af = (parameters.Af || defaults.Af);
         this.ng = (parameters.ng || defaults.ng);
     }
@@ -36,12 +36,12 @@ class Link
 {
     constructor(parameters)
     {
-		var defaults = {
-			description: null,
-			heading: -1,
-			pano: null
-		};
-		parameters = parameters || defaults;
+        var defaults = {
+            description: null,
+            heading: -1,
+            pano: null
+        };
+        parameters = parameters || defaults;
         this.description = (parameters.description || defaults.description);
         this.heading = (parameters.heading || defaults.heading);
         this.pano = (parameters.pano || defaults.pano);
@@ -52,18 +52,18 @@ class Link
 * Class representing sizes for tileSize and worldSize
 * @param {string} [b="px"] - Unknow
 * @param {string} [f="px"] - Unknow
-* @param {int} [height=512]
-* @param {int} [width=512]
+* @param {int} [height=512] - Height
+* @param {int} [width=512]  - Width
 */
 class gsvSize {
     constructor(parameters) {
-		var defaults = {
-			b: "px",
-			f: "px",
-			height: 512,
-			width: 512
-		};
-		parameters = parameters || defaults;
+        var defaults = {
+            b: "px",
+            f: "px",
+            height: 512,
+            width: 512
+        };
+        parameters = parameters || defaults;
         this.b = (parameters.b || defaults.b);
         this.f = (parameters.f || defaults.f);
         this.height = (parameters.height || defaults.height);
@@ -85,13 +85,13 @@ class Tile
     constructor(parameters)
     {
         var defaults = {
-                centerHeading: -1,
-                originHeading: -1,
-                originPitch: -1,
-                tileSize: null,
-                worldSize: null
-            };
-		parameters = parameters || defaults;
+            centerHeading: -1,
+            originHeading: -1,
+            originPitch: -1,
+            tileSize: null,
+            worldSize: null
+        };
+        parameters = parameters || defaults;
         this.centerHeading = (parameters.centerHeading || defaults.centerHeading);
         this.originHeading = (parameters.originHeading || defaults.originHeading);
         this.originPitch = (parameters.originPitch || defaults.originPitch);
@@ -120,7 +120,7 @@ class LatLng
             description: null,
             pano: null
         };
-		parameters = parameters || defaults;
+        parameters = parameters || defaults;
 
         this.lon = (parameters.lon || defaults.lon);
         this.lat = (parameters.lat || defaults.lat);
@@ -156,14 +156,14 @@ class LatLng
  */
 class StreetViewPanoramaData {
     constructor(parameters) {
-		var defaults = {
-			location: null,
-			copyright: null,
-			links: [],
-			tiles: null,
-			time: []
-		};
-		parameters = parameters || defaults;
+        var defaults = {
+            location: null,
+            copyright: null,
+            links: [],
+            tiles: null,
+            time: []
+        };
+        parameters = parameters || defaults;
         this.location = (parameters.LatLng || defaults.LatLng);
         this.copyright = (parameters.copyright || defaults.copyright);
         this.links = (parameters.links || defaults.links);
@@ -177,29 +177,44 @@ class StreetViewPanoramaData {
      * @param {Google.LatLng} data.location - [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng} object
      * @param {float} data.location.lat() - Latitude
      * @param {float} data.location.lng() - Longitude
-     * @param {float} data.location.shortDescription - Simple street address
-     * @param {float} data.location.description - Full street address
-     * @param {float} data.location.pano - PanoramaId
+     * @param {string} data.location.shortDescription - Simple street address
+     * @param {string} data.location.description - Full street address
+     * @param {string} data.location.pano - PanoramaId
      * @param {float} data.copyright - Google's copyright data
      * @param {Link[]} data.links - See [Link]{@link module:StreetViewPanoramaData~Link}
      * @param {Tile} data.tiles - See [Tile]{@link module:StreetViewPanoramaData~Tile}
      * @param {Time[]} data.time - See [Time]{@link module:StreetViewPanoramaData~Time}
-     * @returns An instance fufilled of StreetViewPanoramaData
+     * @returns {StreetViewPanoramaData} - An instance fufilled of StreetViewPanoramaData
      * @see [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng}
      */
     static fromStreetViewServiceData(data) {
         let newSVPano = new StreetViewPanoramaData();
         newSVPano.location = new LatLng({
-                lon: data.location.latLng.lng(),
-                lat: data.location.latLng.lat(),
-                shortDescription: data.location.shortDescription,
-                description: data.location.description,
-                pano: data.location.pano
-            });
+            lon: data.location.latLng.lng(),
+            lat: data.location.latLng.lat(),
+            shortDescription: data.location.shortDescription,
+            description: data.location.description,
+            pano: data.location.pano
+        });
         newSVPano.copyright = data.copyright;
         for (const linkIndex in data.links) newSVPano.links.push(new Link(data.links[linkIndex]));
         newSVPano.tiles = new Tile(data.tiles);
         for (const timeIndex in data.time) newSVPano.time.push(new Time(data.time[timeIndex]));
         return newSVPano;
+    }
+
+    toGeoImage()
+    {
+        let ret = new GeoImage();
+        ret.id = this.location.pano;
+        ret.location = this.location;
+        ret.heading = this.tiles.centerHeading;
+        ret.pitch = this.tiles.originPitch;
+        ret.metadata = this;
+        ret.data = GSVService.imageURLBuilderForGeoImage(ret);
+        ret.dataType = "URL";
+        ret.metadata['imageURL'] = ret.data;
+        return ret;
+        
     }
 }
