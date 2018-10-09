@@ -27,4 +27,17 @@ class FeaturesList extends ItemsList {
         this._container.attr("data-toggle","buttons");
         this._outerContainer.append(this._container);
     }
+
+    static fromFeatureCollection(featureCollection){
+        let streetnames = featureCollection.features;
+        // let streetnames = uiModel.regions["region0"].layers["osm - Streets"].featureCollection.features;
+        let featureslist = new FeaturesList();
+        for(let i = 0; i < streetnames.length; i++)
+        {
+            featureslist.addItem({id:streetnames[i].id, label:streetnames[i].properties.name});
+        
+        }
+        return featureslist;
+        //[0].properties.name
+        }
 }
