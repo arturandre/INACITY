@@ -191,6 +191,7 @@ class OSMMiner(MapMiner):
         ##DEBUG
         #print("removed query: %d\n" % OSMMiner._currentQueries)
         try:
+            #TODO: Treat cases in which the OSM server fails
             osmResult = OSMResult.fromJsonString(jsonString)
         except:
             print("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
