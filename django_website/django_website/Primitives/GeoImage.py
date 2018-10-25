@@ -44,14 +44,14 @@ class GeoImage(SimpleDTO):
     @classmethod
     def fromJSON(cls, jsonData: dict):
         geoImage = cls()
-        geoImage.id = jsonData['id']
-        geoImage.data = jsonData['data']
-        geoImage.dataType = jsonData['dataType']
-        geoImage.location = jsonData['location']
-        geoImage.heading = jsonData['heading']
-        geoImage.pitch = jsonData['pitch']
-        geoImage.metadata = jsonData['metadata']
-        geoImage.processedData = jsonData['processedData']
+        geoImage.id = jsonData.get('id')
+        geoImage.data = jsonData.get('data')
+        geoImage.dataType = jsonData.get('dataType')
+        geoImage.location = jsonData.get('location', geojson.Point())
+        geoImage.heading = jsonData.get('heading', 0)
+        geoImage.pitch = jsonData.get('pitch', 0)
+        geoImage.metadata = jsonData.get('metadata', {})
+        geoImage.processedData = jsonData.get('processedData', {})
         if geoImage.dataType == 'URL':
             geoImage.setDataFromImage(imageio.imread(geoImage.data))
         return geoImage
