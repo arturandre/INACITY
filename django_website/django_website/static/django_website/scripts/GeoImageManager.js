@@ -41,12 +41,13 @@ class GeoImageManager extends Subject {
     get validImages() { return this._validImages; }
     get currentIndex() { return this._currentIndex; }
 
-    updateDisplayingLayers() {
+    updateDisplayingLayers(filterId) {
         this._displayingLayers = this.uiModel.getDisplayingLayers();
         if (!this._displayingLayers.length > 0) return;
         this._currentLayer = 0;
         if (!this.loadLayerAtIndex(this._currentLayer)) return;
         this._currentIndex = 0;
+        this.imageFilterId = filterId;
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
     }
 
@@ -123,7 +124,7 @@ class GeoImageManager extends Subject {
     _countValidImages(root) {
         if (this._isLeaf(root)) {
             //return this._isValidJsonObject(root) ? 1 : 0;
-            return (root instanceof GeoImage) ? 1 : 0;
+            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
@@ -137,7 +138,7 @@ class GeoImageManager extends Subject {
     _removeInvalidImages(root) {
         if (this._isLeaf(root)) {
             //return this._isValidJsonObject(root) ? 1 : 0;
-            return (root instanceof GeoImage) ? 1 : 0;
+            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
@@ -258,7 +259,7 @@ class GeoImageManager extends Subject {
         //let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
         let geoImage = this._getGeoImageAtIndex(index);
         //if (typeof geoImage === "number") {
-        if (!geoImage instanceof GeoImage) {
+        if (!GeoImage.isGeoImageCompliant(geoImage)) {
             throw "Tried to get an invalid image!";
         }
         //this._DOMImage.attr("src", geoImage.metadata.imageURL);
@@ -276,15 +277,12 @@ class GeoImageManager extends Subject {
     displayGeoImage(geoImage) {
         if (this._imageFilterId && geoImage.processedData[this._imageFilterId]) {
             //This assumes that geoImage.dataType = 'data:image/jpeg;base64'
-            this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.processedData[this._imageFilterId]}`);
+            this._DOMImage.attr("src", `${geoImage.processedData[this._imageFilterId]}`);
         }
         else
         {
             if (geoImage.dataType === 'URL') {
-                this._DOMImage.attr("src", geoImage.metadata.imageURL);
-            }
-            else if (geoImage.dataType === 'data:image/jpeg;base64') {
-                this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
+                this._DOMImage.attr("src", geoImage.data);
             }
             else {
                 throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
@@ -318,7 +316,7 @@ class GeoImageManager extends Subject {
     _findNextValidImage(startingIndex) {
         let geoImage = this._getGeoImageAtIndex(startingIndex);
         //while (!(this._isValidJsonObject(geoImage)))//Try to find a valid image
-        while (!(geoImage instanceof GeoImage))
+        while (!(GeoImage.isGeoImageCompliant(geoImage)))
         {
             startingIndex += 1;
             //If _getGeoImageAtIndex returns a number then the collection has ended
