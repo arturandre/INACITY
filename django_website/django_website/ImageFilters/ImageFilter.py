@@ -13,7 +13,7 @@ class ImageFilter(ABC):
         checkFields = [
             (cls.filterName, 'filterName'),
             (cls.filterId, 'filterId'),
-            (cls.processImage, 'processImageFromFeatureCollection'),
+            (cls.processImageFromFeatureCollection, 'processImageFromFeatureCollection'),
             ]
         for i in range(len(checkFields)):
             try:
