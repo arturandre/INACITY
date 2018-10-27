@@ -29,7 +29,7 @@ class ImageFilter(ABC):
         cls._initialize(cls)
         pass
 
-    __all__ = ["filterName", "filterId", "processImage"]
+    __all__ = ["filterName", "filterId", "processImageFromFeatureCollection"]
 
     """This property represents the filter's name that'll be displayed in the UI"""
     filterName = None
