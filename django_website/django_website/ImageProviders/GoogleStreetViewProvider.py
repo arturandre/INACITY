@@ -51,7 +51,7 @@ class GoogleStreetViewProvider(ImageProvider):
                             #geoImages property structurely equal to the geography property
                             if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
                                 feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
-                                    (streetViewPanoramaData).toJSON()
+                                    streetViewPanoramaData
                             else:
                                 feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
                                     GoogleStreetViewProvider.\

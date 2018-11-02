@@ -110,8 +110,8 @@ def processimagesfromfeaturecollection(request):
     featureCollection = geojson.loads(jsondata['featureCollection'])
     ret = {}
     ret['featureCollection'] = imageFilterManager.processImageFromFeatureCollection(imageFilterId, featureCollection)
-    ret['regionId'] = jsondata['regionId'];
-    ret['layerId'] = jsondata['layerId'];
+    ret['regionId'] = jsondata['regionId']
+    ret['layerId'] = jsondata['layerId']
     return JsonResponse(ret)
 
     
