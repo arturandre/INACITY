@@ -6,6 +6,7 @@ from skimage import color, img_as_float, img_as_ubyte
 import matplotlib.pyplot as plt
 from scipy import misc, ndimage
 import json
+from json import JSONDecodeError
 
 from .ImageFilter import *
 from .commonFunctions import mt_li_espectral, overlay_mask
@@ -22,13 +23,8 @@ class GreeneryFilter(ImageFilter):
     def _initialize(cls):
         pass
 
-    #Based on mt-li-espectral
-    def processImage(geoImage: GeoImage) -> GeoImage:
-        mask = mt_li_espectral(geoImage.data)
-        geoImage.data = img_as_ubyte(overlay_mask(geoImage.data, mask))
-        return geoImage
-
-    def processImageFromFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
+    @classmethod
+    def processImageFromFeatureCollection(cls, featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
 
         for feature in featureCollection['features']:
@@ -39,51 +35,54 @@ class GreeneryFilter(ImageFilter):
                         for coordinateIndex in range(len(lineString)):
                             geoImage = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
                             try:
-                                geoImage = GeoImage.fromJSON(json.loads(geoImage))
+                                geoImage = GeoImage.fromJSON(geoImage)
                             except JSONDecodeError:
-                                print('Error while parsing panorama: ' + str(geoImage)[:100]);
-                                mask = mt_li_espectral(geoImage.data)
-                                mask = img_as_ubyte(overlay_mask(geoImage.data, mask))
+                                print('Error while parsing panorama: ' + str(geoImage)[:100])
+                                ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+                                mask = mt_li_espectral(ndarrayImage)
+                                mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
                             #geoImage.processedData[GreeneryFilter.filterId] = mask
-                            geoImage.setProcessedData(GreeneryFilter.filterId, 'ndarray', mask)
-                            feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] = geoImage.toJSON()
+                            geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
+                            feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] = geoImage
             elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
                 for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
                     for coordinateIndex in range(len(lineString)):
                         geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
                         try:
-                            geoImage = GeoImage.fromJSON(json.loads(geoImage))
+                            geoImage = GeoImage.fromJSON(geoImage)
                         except JSONDecodeError:
-                            print('Error while parsing panorama: ' + str(geoImage)[:100]);
-                        mask = mt_li_espectral(geoImage.data)
-                        mask = img_as_ubyte(overlay_mask(geoImage.data, mask))
-                        #geoImage.processedData[GreeneryFilter.filterId] = mask
-                        geoImage.setProcessedData(GreeneryFilter.filterId, 'ndarray', mask)
-                        feature['properties']['geoImages'][lineIndex][coordinateIndex] = geoImage.toJSON()
+                            print('Error while parsing panorama: ' + str(geoImage)[:100])
+                        ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+                        mask = mt_li_espectral(ndarrayImage)
+                        mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
+                        geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
+                        feature['properties']['geoImages'][lineIndex][coordinateIndex] = geoImage.__dict__
             elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
                 for coordinateIndex in range(len(feature['geometry']['coordinates'])):
                     geoImage = feature['properties']['geoImages'][coordinateIndex]
                     try:
-                        geoImage = GeoImage.fromJSON(json.loads(geoImage))
+                        geoImage = GeoImage.fromJSON(geoImage)
                     except JSONDecodeError:
-                        print('Error while parsing panorama: ' + str(geoImage)[:100]);
-                    mask = mt_li_espectral(geoImage.data)
-                    mask = img_as_ubyte(overlay_mask(geoImage.data, mask))
+                        print('Error while parsing panorama: ' + str(geoImage)[:100])
+                    ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+                    mask = mt_li_espectral(ndarrayImage)
+                    mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
                     #geoImage.processedData[GreeneryFilter.filterId] = mask
-                    geoImage.setProcessedData(GreeneryFilter.filterId, 'ndarray', mask)
-                    feature['properties']['geoImages'][coordinateIndex] = geoImage.toJSON()
+                    geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
+                    feature['properties']['geoImages'][coordinateIndex] = geoImage
             elif feature['geometry']['type'] == 'Point':
                 coordinateIndex = 0
                 geoImage = feature['properties']['geoImages'][coordinateIndex]
                 try:
-                    geoImage = GeoImage.fromJSON(json.loads(geoImage))
+                    geoImage = GeoImage.fromJSON(geoImage)
                 except JSONDecodeError:
-                    print('Error while parsing panorama: ' + str(geoImage)[:100]);
-                mask = mt_li_espectral(geoImage.data)
-                mask = img_as_ubyte(overlay_mask(geoImage.data, mask))
+                    print('Error while parsing panorama: ' + str(geoImage)[:100])
+                ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+                mask = mt_li_espectral(ndarrayImage)
+                mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
                 #geoImage.processedData[GreeneryFilter.filterId] = mask
-                geoImage.setProcessedData(GreeneryFilter.filterId, 'ndarray', mask)
-                feature['properties']['geoImages'][coordinateIndex] = geoImage.toJSON()
+                geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
+                feature['properties']['geoImages'][coordinateIndex] = geoImage
         return featureCollection
 
 

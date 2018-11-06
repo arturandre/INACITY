@@ -61,12 +61,13 @@
     onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter));
-        this.uiModel.getProcessedImages.bind(this.uiModel)(this.uiView.SelectedImageFilter.id).then(
-            () => {
+        this.uiModel.getProcessedImages.bind(this.uiModel)(this.uiView.SelectedImageFilter.id).then
+        (function (filterId) {
                 unset();
                 //Set the geoImageManager to display this collection
-                this.geoImageManager.updateDisplayingLayers();
-            }, error => { unset(); alert(error); });
+                this.geoImageManager.updateDisplayingLayers(filterId);
+                
+            }.bind(this, this.uiView.SelectedImageFilter.id), error => { unset(); alert(error); });
     }
 
     onClickGetImagesBtn() {

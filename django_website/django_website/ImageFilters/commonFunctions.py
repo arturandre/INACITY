@@ -167,8 +167,8 @@ def mt_li_espectral(rgb_img, vec=None):
     
     
     rgb = rgb_img.copy()
-    hsv = color.rgb2hsv(rgb);
-    nrgb = normalize_rgb(rgb);
+    hsv = color.rgb2hsv(rgb)
+    nrgb = normalize_rgb(rgb)
     
     h,s,v = decompose(hsv)
     

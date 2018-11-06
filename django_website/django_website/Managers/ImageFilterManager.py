@@ -19,15 +19,6 @@ class ImageFilterManager(object):
             self._ImageFilters[filter.filterId] = filter
         pass
 
-    #Unused
-    #TODO: Remove this
-    def processImage(self, filterId, geoImage: GeoImage):
-        if filterId in self._ImageFilters:
-            return self._ImageFilters[filterId].processImage(geoImage)
-        else:
-            return "filterId not found!"
-        pass
-
     def processImageFromFeatureCollection(self, filterId, featureCollection: FeatureCollection):
         if filterId in self._ImageFilters:
             return self._ImageFilters[filterId].processImageFromFeatureCollection(featureCollection)
