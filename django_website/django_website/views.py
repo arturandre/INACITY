@@ -79,6 +79,7 @@ def filtergeoimage(request):
 
 @api_view(['POST'])
 def getmapminerfeatures(request):
+    return HttpResponse(status=500)
     jsondata = request.data
     mapMinerId = jsondata["mapMinerId"]
     query = jsondata["featureName"]
