@@ -31,6 +31,18 @@ class Layer extends Subject {
         this._active = !!active;
         this._geoImagesLoaded = false;
     }
+
+    saveToJSON()
+    {
+        let layerSession = {
+            layerId: this._layerId.saveToJSON(),
+            featureCollection: this.featureCollection,
+            active: this.active,
+            geoImagesLoaded: this.geoImagesLoaded
+        };
+        return layerSession;
+    }
+
     get active() { return this._active; }
 
     get geoImagesLoaded() { return this._geoImagesLoaded; }
@@ -101,6 +113,14 @@ class LayerId {
     toString() {
         return this.MapMinerId + " - " + this.FeatureName;
     }
+
+    saveToJSON(){
+        let ret = {
+            MapMinerId: this.MapMinerId,
+            FeatureName: this.FeatureName
+        };
+        return ret;
+    }
 }
 
 /**
@@ -151,6 +171,22 @@ class Region extends Subject {
 
         this.active = active;
     }
+
+    saveToJSON()
+    {
+        let layersArray = [];
+        for (let layerKey in this.layers)
+        {
+            layersArray.push(this.layers[layerKey]);
+        }
+        let regionSession = {
+            id: this.id,
+            name: this.name,
+            layers: JSON.stringify(layersArray)
+        };
+        return regionSession;
+    }
+
     /** Creates a new Layer with the specified id
     * @param {LayerId} layerId - Layer's identifier
     * @returns {Layer} - A new instance of Layer
@@ -348,45 +384,6 @@ class UIModel extends Subject {
                             if (numCalls === 0) {
                                 return resolve();
                             }
-                            //$.ajax('/getimagesforfeaturecollection/',
-                            //{
-                            //    method: 'POST',
-                            //    processData: false,
-                            //    data: JSON.stringify({
-                            //        'imageMinerName': selectedImageProvider,
-                            //        'featureCollection': JSON.stringify(layer.featureCollection),
-                            //        'regionId': region.id,
-                            //        'layerId': layer.layerId.toString()
-                            //    }),
-                            //    contentType: "application/json; charset=utf-8",
-                            //    dataType: 'json',
-                            //    success: function (data, textStatus, jqXHR) {
-                            //        //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
-                            //        let layer = this.regions[data['regionId']].layers[data['layerId']];
-                            //        layer.featureCollection = data['featureCollection'];
-                            //    }.bind(this),
-                            //    error: function (jqXHR, textStatus, errorThrown) {
-                            //        //@todo: Create a error handling mechanism
-                            //        if (jqXHR.status === 413) {
-                            //            alert("The request was too big to be processed. Try a smaller region.");
-                            //        }
-                            //        else {
-                            //            defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
-                            //        }
-                            //    },
-                            //    complete: function (jqXHR, textStatus) {
-                            //        /**
-                            //        @todo: Treat parcial returns, the user should be able to see the results
-                            //        as they are being received, rather than wait all of them.
-                            //        */
-                            //        numCalls -= 1;
-                            //        if (numCalls == 0) {
-                            //            return resolve();
-                            //        }
-                            //    },
-                            //},
-                            //'json'
-                            //);
                         }
                     });
                 }
@@ -495,6 +492,61 @@ class UIModel extends Subject {
                 throw err;
             }
         }.bind(this));
+    }
+
+    saveToJSON()
+    {
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        let featuresArray = []; /* Features data for tracking */
+        let regionsArray = []; /* Regions data for tracking */
+        let regionsFeaturesArray = []; /*OpenLayers features for drawing*/
+        for (let featuresByLayerIdKey in this.featuresByLayerId)
+        {
+            featuresArray.push(this.featuresByLayerId[featuresByLayerIdKey]);
+        }
+        for (let regionId in this.regions)
+        {
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(regionId)]);
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+            regionsFeaturesArray.push(geoJsonFeatures);
+            regionsArray.push(this.regions[regionId].saveToJSON());
+        }
+        let session = {
+            featuresByLayerId: featuresArray,
+            regions: regionsArray,
+            openLayersFeatures: regionsFeaturesArray
+        };
+        return session;
+    }
+
+    /** 
+     * @todo Treat possible exceptions
+     * **/
+    loadFromJSON(session)
+    {
+        if (typeof session === "string") session = JSON.parse(session);
+        this.featuresByLayerId = session.featuresByLayerId;
+        this.regions = {};
+        for (let regionId in session.regions)
+        {
+            let geoJsonFeatures = olGeoJson.readFeatures(regionsFeaturesArray[regionId]);
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+            regionsFeaturesArray.push(geoJsonFeatures);
+            this.regions[regionsArray]
+            regionsArray.push(this.regions[regionId].saveToJSON());
+        }
+        
     }
 
 

@@ -18,6 +18,7 @@ from geojson import Polygon, Feature, FeatureCollection
 from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
+from django_website.Managers.UserManager import UserManager
 
 from django_website.Primitives import *
 
@@ -38,6 +39,7 @@ __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 imageFilterManager = ImageFilterManager()
 imageProviderManager = ImageProviderManager()
 mapMinerManager = MapMinerManager()
+userManager = UserManager()
 ##############GLOBALS####################
 
 def about(request):
@@ -50,6 +52,23 @@ def tutorial(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
+
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def users(request):
+    retMethod = ''
+    jsonData = request.data
+    if request.method == 'GET':
+        retMethod = ''
+    elif  request.method == 'POST':
+        userManager.createUser(jsonData)
+        retMethod = ''
+    elif  request.method == 'PUT':
+        retMethod = ''
+    elif  request.method == 'DELETE':
+        retMethod = ''
+    retMethod = request.method
+
+    return HttpResponse(f'Hello Users! {retMethod}')
 
 @api_view(['GET'])
 def getavailablemapminers(request):

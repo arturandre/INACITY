@@ -2,7 +2,7 @@
 Definition of urls for django_website.
 """
 
-from django.conf.urls import include, url
+from django.urls import include, re_path, path
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -18,52 +18,53 @@ from django_website import settings
 from django.contrib import admin
 urlpatterns = [
     # Pages
-    url(r'^$', home, name='root'),
-    url(r'^home/?$', home, name='home'),
-    url(r'^about/?$', about, name='about'),
-    url(r'^tutorial/?$', tutorial, name='tutorial'),
+    re_path(r'^$', home, name='root'),
+    re_path(r'^home/?$', home, name='home'),
+    re_path(r'^about/?$', about, name='about'),
+    re_path(r'^tutorial/?$', tutorial, name='tutorial'),
 
     # Docs
-    #url(r'^docs/?$', include_docs_urls(title="INACITY's API")),
-    #url(r'^docs/', 'django.views.static.serve', {'document_root': settings.DOCS_ROOT, 'path': 'index.html'}),
+    #re_path(r'^docs/?$', include_docs_urls(title="INACITY's API")),
+    #re_path(r'^docs/', 'django.views.static.serve', {'document_root': settings.DOCS_ROOT, 'path': 'index.html'}),
 
     # API Calls
 
+    path('users/', users, name='users'),
+
     #Receives a geoImage and returns its version filtered
     #POST
-    url(r'^filtergeoimage/?$', filtergeoimage, name='filtergeoimage'),
-    
+    re_path(r'^filtergeoimage/?$', filtergeoimage, name='filtergeoimage'),
 
     #Returns lists of available map miners and their corresponding map features
-    url(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
+    re_path(r'^getavailablemapminers/?$', getavailablemapminers, name='getavailablemapminers'),
     
     #Returns a list of available image miners
-    url(r'^getimageproviders/?$', getimageproviders, name='getImageProviders'),
+    re_path(r'^getimageproviders/?$', getimageproviders, name='getImageProviders'),
 
     #Returns a list of available image filters
-    url(r'^getimagefilters/?$', getimagefilters, name='getImageFilters'),
+    re_path(r'^getimagefilters/?$', getimagefilters, name='getImageFilters'),
 
 
     #Get GIS data related to a particular type of feature inside a given region
-    url(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
+    re_path(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
 
     #Used to collect images for a given set of GIS features called FeatureCollection
-    url(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
+    re_path(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
 
     #Used to process images for a given set of GIS features called FeatureCollection that already has its images collected
-    url(r'^processimagesfromfeaturecollection/?$', processimagesfromfeaturecollection, name='processimagesfromfeaturecollection'),
+    re_path(r'^processimagesfromfeaturecollection/?$', processimagesfromfeaturecollection, name='processimagesfromfeaturecollection'),
 
     # Testing 
-    url(r'^integrationtest/?$', integrationTest, name='integrationtest'),
+    re_path(r'^integrationtest/?$', integrationTest, name='integrationtest'),
 
 
 
     ######## TESTING ######## 
-    url(r'^simple_upload/?$', simple_upload),
-    url(r'^media/.*$', simple_upload),
+    re_path(r'^simple_upload/?$', simple_upload),
+    re_path(r'^media/.*$', simple_upload),
     ######## TESTING ######## 
 
-#    url(r'^home/worker.js', (TemplateView.as_view(
+#    re_path(r'^home/worker.js', (TemplateView.as_view(
 #    template_name="home/worker.js",
 #    content_type='application/javascript',
 #)), name='worker.js'),
@@ -71,13 +72,13 @@ urlpatterns = [
     #REST API
 
     # Examples:
-    # url(r'^$', django_website.views.home, name='home'),
-    # url(r'^django_website/', include('django_website.django_website.urls')),
+    # re_path(r'^$', django_website.views.home, name='home'),
+    # re_path(r'^django_website/', include('django_website.django_website.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
-     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+     #re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-     url(r'^admin/', admin.site.urls),
-     #url(r'^admin/', include(admin.site)),
+     re_path(r'^admin/', admin.site.urls),
+     #re_path(r'^admin/', include(admin.site)),
 ]
