@@ -508,12 +508,6 @@ class UIModel extends Subject {
         for (let regionId in this.regions)
         {
             let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(regionId)]);
-            geoJsonFeatures.crs = {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            };
             regionsFeaturesArray.push(geoJsonFeatures);
             regionsArray.push(this.regions[regionId].saveToJSON());
         }
@@ -533,15 +527,10 @@ class UIModel extends Subject {
         if (typeof session === "string") session = JSON.parse(session);
         this.featuresByLayerId = session.featuresByLayerId;
         this.regions = {};
+        globalVectorSource.clear();
         for (let regionId in session.regions)
         {
             let geoJsonFeatures = olGeoJson.readFeatures(regionsFeaturesArray[regionId]);
-            geoJsonFeatures.crs = {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            };
             regionsFeaturesArray.push(geoJsonFeatures);
             this.regions[regionsArray]
             regionsArray.push(this.regions[regionId].saveToJSON());
