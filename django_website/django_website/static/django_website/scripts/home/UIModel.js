@@ -32,8 +32,7 @@ class Layer extends Subject {
         this._geoImagesLoaded = false;
     }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         let layerSession = {
             layerId: this._layerId.saveToJSON(),
             featureCollection: this.featureCollection,
@@ -41,6 +40,23 @@ class Layer extends Subject {
             geoImagesLoaded: this.geoImagesLoaded
         };
         return layerSession;
+    }
+
+    static createFromJSON(layerSession) {
+        let layerId = LayerId.createFromJSON(layerSession.layerId);
+
+        let ret = new Layer(layerId, layerSession.active);
+
+        ret.featureCollection = layerSession.featureCollection;
+        ret.active = layerSession.active;
+        ret.geoImagesLoaded = layerSession.geoImagesLoaded;
+        return ret;
+    }
+
+    loadFromJSON(layerSession) {
+        this.featureCollection = layerSession.featureCollection;
+        this.active = layerSession.active;
+        this.geoImagesLoaded = layerSession.geoImagesLoaded;
     }
 
     get active() { return this._active; }
@@ -114,12 +130,21 @@ class LayerId {
         return this.MapMinerId + " - " + this.FeatureName;
     }
 
-    saveToJSON(){
-        let ret = {
+    saveToJSON() {
+        let layerIdJSON = {
             MapMinerId: this.MapMinerId,
             FeatureName: this.FeatureName
         };
-        return ret;
+        return layerIdJSON;
+    }
+
+    static createFromJSON(layerIdJSON) {
+        return (new LayerId(layerIdJSON.MapMinerId, layerIdJSON.FeatureName));
+    }
+
+    loadFromJSON(layerIdJSON) {
+        this.MapMinerId = layerIdJSON.MapMinerId;
+        this.FeatureName = layerIdJSON.FeatureName;
     }
 }
 
@@ -172,19 +197,38 @@ class Region extends Subject {
         this.active = active;
     }
 
-    saveToJSON()
-    {
-        let layersArray = [];
-        for (let layerKey in this.layers)
-        {
-            layersArray.push(this.layers[layerKey]);
+    saveToJSON() {
+        let layersJSON = {};
+        for (let layerKey in this.layers) {
+            layersJSON[layerKey] = this.layers[layerKey].saveToJSON();
         }
         let regionSession = {
             id: this.id,
             name: this.name,
-            layers: JSON.stringify(layersArray)
+            active: this.active,
+            layers: layersJSON
         };
         return regionSession;
+    }
+
+    static createFromJSON(regionSession) {
+        let ret = new Region(regionSession.id, regionSession.name, regionSession.active);
+
+        for (let layerKey in regionSession.layers) {
+            ret[layerKey] = Layer.createFromJSON(regionSession.layers[layerKey]);
+        }
+        return ret;
+    }
+
+    loadFromJSON(regionSession) {
+        for (let layerKey in regionSession.layers) {
+            let layerSession = regionSession.layers[layerKey];
+            let layerId = LayerId.createFromJSON(layerSession.layerId);
+            let layer = this.createLayer(layerId);
+            layer.loadFromJSON(layerSession);
+
+            //this.layers[layerKey] = Layer.createFromJSON(regionSession.layers[layerKey]);
+        }
     }
 
     /** Creates a new Layer with the specified id
@@ -494,27 +538,23 @@ class UIModel extends Subject {
         }.bind(this));
     }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
-        let featuresArray = []; /* Features data for tracking */
-        let regionsArray = []; /* Regions data for tracking */
-        let regionsFeaturesArray = []; /*OpenLayers features for drawing*/
-        for (let featuresByLayerIdKey in this.featuresByLayerId)
-        {
-            featuresArray.push(this.featuresByLayerId[featuresByLayerIdKey]);
-        }
-        for (let regionId in this.regions)
-        {
+        //let featuresByLayerId = null; /* Features data for tracking */
+        let regions = {}; /* Regions data for tracking */
+        let openLayersFeatures = {}; /*OpenLayers features for drawing*/
+        //featuresByLayerId = this.featuresByLayerId;
+
+        for (let regionId in this.regions) {
             let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(regionId)]);
-            regionsFeaturesArray.push(geoJsonFeatures);
-            regionsArray.push(this.regions[regionId].saveToJSON());
+            openLayersFeatures[regionId] = geoJsonFeatures;
+            regions[regionId] = this.regions[regionId].saveToJSON();
         }
         let session = {
-            featuresByLayerId: featuresArray,
-            regions: regionsArray,
-            openLayersFeatures: regionsFeaturesArray
+            //featuresByLayerId: featuresByLayerId,
+            regions: regions,
+            openLayersFeatures: openLayersFeatures
         };
         return session;
     }
@@ -522,20 +562,23 @@ class UIModel extends Subject {
     /** 
      * @todo Treat possible exceptions
      * **/
-    loadFromJSON(session)
-    {
+    loadFromJSON(session) {
+        //const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         if (typeof session === "string") session = JSON.parse(session);
-        this.featuresByLayerId = session.featuresByLayerId;
-        this.regions = {};
-        globalVectorSource.clear();
-        for (let regionId in session.regions)
-        {
-            let geoJsonFeatures = olGeoJson.readFeatures(regionsFeaturesArray[regionId]);
-            regionsFeaturesArray.push(geoJsonFeatures);
-            this.regions[regionsArray]
-            regionsArray.push(this.regions[regionId].saveToJSON());
+        //this.featuresByLayerId = session.featuresByLayerId;
+        //this.regions = {};
+
+        //globalVectorSource.clear();
+        for (let regionId in session.regions) {
+            // let geoJsonFeatures = olGeoJson.readFeatures(
+            //     session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
+            //let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
+            //globalVectorSource.addFeature(geoJsonFeatures);
+            let region = this.createRegion(regionId, session.regions[regionId].name, session.regions[regionId].active);
+            region.loadFromJSON(session.regions[regionId]);
+            //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
         }
-        
+
     }
 
 
