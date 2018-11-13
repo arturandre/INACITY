@@ -277,10 +277,29 @@ class UIView {
         this._drawInteraction = new ol.interaction.Draw({
             source: globalVectorSource,
             type: 'Circle',
-            geometryFunction: this.SelectedDrawTool.geometryFunction
+            geometryFunction: this.SelectedDrawTool.geometryFunction,
         });
+        this._drawInteraction.on('drawend', this.drawingHandlers, this);
         openLayersHandler.map.addInteraction(this._drawInteraction);
 
+    }
+
+    drawingHandlers(eventKey) {
+        switch (eventKey.type) {
+            case 'drawend':
+                // let idNumber = getNewId();
+                // let regionId = 'region' + idNumber;
+    
+                // eventKey.feature.setId(regionId);
+                // eventKey.feature.setProperties({ 'type': 'region' });
+                
+                this.uiModel.createRegion(eventKey.feature, true);
+                this.cancelDrawing();
+                break;
+            default:
+                console.error('Unknown event type!');
+                break;
+        }
     }
 
 

@@ -317,39 +317,11 @@ function disableSiblings(element) {
 
 //#region Event Handlers
 
+
+
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
-            uiView.cancelDrawing();
-            if (!vectorevent.feature.getId()) {
-                let idNumber = getNewId();
-                let regionId = 'region' + idNumber;
-
-                vectorevent.feature.setId(regionId);
-                vectorevent.feature.setProperties({ 'type': 'region' });
-
-                let newRegion = uiModel.createRegion(regionId, `Region ${idNumber}`, true);
-
-                globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
-
-                Region.on('activechange', function (region) {
-                    globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-                    if (region.active) {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //drawLayer@home.js
-                            uiView.drawLayer(layer);
-                        }
-                    }
-                    else {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //removeLayer@home.js
-                            uiView.removeLayer(layer);
-                        }
-                    }
-                });
-            }
             break;
         case 'removefeature':
             if (vectorevent.feature.getProperties()['type'] === 'region') {

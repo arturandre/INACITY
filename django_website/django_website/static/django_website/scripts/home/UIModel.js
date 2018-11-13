@@ -5,11 +5,10 @@
  */
 
 /**
- * Each layer is named after a MapMiner and a Feature
- * concatenated by an underscore.
- * Each layer contains a collection of regions 
- * named 'regions' and a list of features called featureCollection
- * with all the features collapsed into a single list.
+ * Each layer is named after a MapMiner and a Feature (e.g. Streets)
+ * concatenated by an underscore (e.g. osm - streets).
+ * Each Layer contains a list of geographical features called featureCollection.
+ * A Layer should be identified by a [LayerId]{@link LayerId} object.
  * Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)
  * related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)
  * @param {LayerId} layerId - Represents an Id object for a Layer
@@ -206,6 +205,7 @@ class Region extends Subject {
             id: this.id,
             name: this.name,
             active: this.active,
+            boundaries: this.boundaries,
             layers: layersJSON
         };
         return regionSession;
@@ -563,18 +563,18 @@ class UIModel extends Subject {
      * @todo Treat possible exceptions
      * **/
     loadFromJSON(session) {
-        //const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         if (typeof session === "string") session = JSON.parse(session);
-        //this.featuresByLayerId = session.featuresByLayerId;
-        //this.regions = {};
 
-        //globalVectorSource.clear();
+        globalVectorSource.clear();
         for (let regionId in session.regions) {
-            // let geoJsonFeatures = olGeoJson.readFeatures(
-            //     session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
-            //let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
-            //globalVectorSource.addFeature(geoJsonFeatures);
-            let region = this.createRegion(regionId, session.regions[regionId].name, session.regions[regionId].active);
+            //  let geoJsonFeatures = olGeoJson.readFeatures(
+            //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
+            let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
+            globalVectorSource.addFeatures(geoJsonFeatures);
+            let region = this.createRegion(
+                olGeoJson.readFeature(session.regions[regionId].boundaries),
+                session.regions[regionId].active);
             region.loadFromJSON(session.regions[regionId]);
             //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
         }
@@ -831,11 +831,40 @@ class UIModel extends Subject {
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(id, name, active) {
+    createRegion(feature, active, name=null) {
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        let idNumber = getNewId();
+        let regionId = 'region' + idNumber;
+
+        feature.setId(regionId);
+        feature.setProperties({ 'type': 'region' });
+        feature.setStyle(active ? selectedRegionStyle : null);
+
+        name = name || `Region ${idNumber}`;
         //active default is false
-        if (!(id in this._regions)) {
-            let newRegion = new Region(id, name, active);
-            this._regions[id] = newRegion;
+        if (!(regionId in this._regions)) {
+            let newRegion = new Region(regionId, name, active);
+            newRegion.boundaries = olGeoJson.writeFeature(feature);
+            this._regions[regionId] = newRegion;
+
+            Region.on('activechange', function (region) {
+                globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+                if (region.active) {
+                    for (let layerIdx in region.layers) {
+                        let layer = region.layers[layerIdx];
+                        //drawLayer@home.js
+                        uiView.drawLayer(layer);
+                    }
+                }
+                else {
+                    for (let layerIdx in region.layers) {
+                        let layer = region.layers[layerIdx];
+                        //removeLayer@home.js
+                        uiView.removeLayer(layer);
+                    }
+                }
+            }.bind(null, newRegion));
 
             this.updateRegionsDiv();
             return newRegion;
