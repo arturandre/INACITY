@@ -17,6 +17,9 @@ from django_website import settings
 #from django_website import admin
 from django.contrib import admin
 urlpatterns = [
+    #Users
+    path('accounts/', include('django.contrib.auth.urls')),
+
     # Pages
     re_path(r'^$', home, name='root'),
     re_path(r'^home/?$', home, name='home'),

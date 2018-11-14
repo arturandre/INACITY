@@ -118,6 +118,11 @@ STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+#https://docs.djangoproject.com/en/2.0/ref/settings/#login-url
+#Default: '/accounts/login/'
+#The URL where requests are redirected for login, especially when using the login_required() decorator.
+#LOGIN_URL = '/accounts/login'
+
 #When set to True, if the request URL does not match any of the patterns
 #in the URLconf and it doesn’t end in a slash, an HTTP redirect is issued to
 #the
