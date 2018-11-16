@@ -230,7 +230,7 @@ msgid ""
 "platform will collect all the streets and their images and display it"
 msgstr ""
 "Después de seleccionar la región de interés, pulse el botón <b>Obtener imágenes</b>. "
-"La plataforma entonces recogerá todas las calles y sus imágenes para exhibición."
+"La plataforma entonces recogerá todas las calles y sus imágenes para exhibición"
 
 #: .\templates\tutorial.html:57                                                                                                                                                                                                                                                                        
 msgid ""
