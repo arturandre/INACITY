@@ -2,6 +2,8 @@ from geojson import Polygon, Feature, FeatureCollection
 from django_website.ImageFilters.ImageFilter import ImageFilter
 from django_website.Primitives.Primitives import GeoImage
 
+from django.utils.translation import gettext as _
+
 class ImageFilterManager(object):
     __instance = None
     def __init__(self):
@@ -23,7 +25,7 @@ class ImageFilterManager(object):
         if filterId in self._ImageFilters:
             return self._ImageFilters[filterId].processImageFromFeatureCollection(featureCollection)
         else:
-            return "filterId not found!"
+            return _("filterId not found!")
         pass
 
     def getAvailableImageFilters(self):

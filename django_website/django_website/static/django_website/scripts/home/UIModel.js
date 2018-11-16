@@ -870,7 +870,7 @@ class UIModel extends Subject {
             return newRegion;
         }
         else {
-            throw Error(`id: '${id}' already present in regions list!`);
+            throw Error(`id: '${id}' `+gettext("already present in regions list!"));
         }
     }
 
@@ -879,7 +879,7 @@ class UIModel extends Subject {
             return delete this._regions[id];
         }
         else {
-            throw Error(`id: '${id}' not found in regions list!`);
+            throw Error(`id: '${id}' `+gettext("not found in regions list!"));
         }
     }
 

@@ -287,7 +287,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 * @see {@link http://api.jquery.com/jquery.ajax/}
 */
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
-    alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
+    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. `+gettext('Error message') + ` : ${errorThrown} `);
     if (errorThrown)
         console.error(textStatus, errorThrown);
     else
@@ -332,7 +332,7 @@ function updateRegionsList(vectorevent) {
         case 'changefeature':
             break;
         default:
-            console.error('Unknown event type!');
+            console.error(gettext('Unknown event type!'));
             break;
     }
 

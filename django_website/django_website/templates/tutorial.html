@@ -2,12 +2,17 @@
 {% block scripts %}
 {% load staticfiles %}
 
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+
 <link rel="stylesheet" href="{% static 'django_website/css/tutorial.css' %}" />
 
 {% endblock %}
 
 
-{% block title %}{{WebsiteName}} | Get started{% endblock %}
+{% block title %}{{WebsiteName}} | {% trans "Get started" %}{% endblock %}
 
 {% block pageheader %}
 
@@ -15,64 +20,66 @@
 
 {% block content %}
 
-<p>Contents:</p>
+<p>{% trans "Contents" %}:</p>
 <ul>
-<li><a href="#videotutorial">Sample video</a></li>
-<li><a href="#fishingexpedition">Fishing expedition</a></li>
-<li><a href="#shapes">Shapes</a></li>
+<li><a href="#videotutorial">{% trans "Sample video" %}</a></li>
+<li><a href="#fishingexpedition">{% trans "Fishing expedition" %}</a></li>
+<li><a href="#shapes">{% trans "Shapes" %}</a></li>
 </ul>
 <div class="videoContainer">
-    <h3><a id="samplevideo"></a>Sample video:</h3>
+    <h3><a id="samplevideo"></a>{% trans "Sample video" %}:</h3>
     <video controls
            src="../static/django_website/images/tutorial/1min.mp4">
-        Sorry, your browser doesn't support embedded videos.
+        {% trans "Sorry, your browser doesn't support embedded videos." %}
     </video>
 </div>
 
-<h1><a id="fishingexpedition"></a>Fishing expedition</h1>
+<h1><a id="fishingexpedition"></a>{% trans "Fishing expedition" %}</h1>
 
 <p class="description">
-    INACITY have two modes of use, a <b>simple mode</b> and an <b>advanced one</b>. In the former you can choose a region by clicking at two different locations over the map to select a region:
+    {% trans "INACITY have two modes of use, a <b>simple mode</b> and an <b>advanced one</b>. In the former you can choose a region by clicking at two different locations over the map to select a region" %}:
 </p>
 <div class="flexcontainer">
     <div class="imgROI">
-        <p>1. The first click selects the starting point for the region of interest.</p>
+        <p>1. {% trans "The first click selects the starting point for the region of interest." %}</p>
         <img src="../static/django_website/images/tutorial/pre_select.png"/>
     </div>
     <div class="imgROI">
-        <p>2. A second click selects the region of interest, denoted by a reddish area.</p>
+        <p>2. {% trans "A second click selects the region of interest, denoted by a reddish area." %}</p>
         <img src="../static/django_website/images/tutorial/post_select.png"/>
     </div>
 </div>
-<p class="description">After selecting the region of interest just press <b>Get Images</b>. The platform will collect all the streets and their images and display it:</p>
+<p class="description">{% trans "After selecting the region of interest just press <b>Get Images</b>. The platform will collect all the streets and their images and display it" %}%:</p>
 <div class="flexcontainer">
     <div class="imgROI">
-        <p>Click at <b>Get Images</b> to start collecting the images for the selected region.</p>
+        {% comment %} Please keep the <b>INNER_TEXT</b> tags intact. Translate only the INNER_TEXT. Thanks. {% endcomment %}
+        <p>{% trans "Click at <b>Get Images</b> to start collecting the images for the selected region." %}</p>
         <img src="../static/django_website/images/tutorial/getImages.png"/>
     </div>
     <div class="imgROI">
-        <p>Images are being retrieved for streets collected through OpenStreetMap.</p>
+        <p>{% trans "Images are being retrieved for streets collected through OpenStreetMap." %}</p>
         <img src="../static/django_website/images/tutorial/gettingImages.png"/>
     </div>
 </div>
 
-<h1><a id="shapes"></a>Shapes</h1>
-<p class="description">By default the shape tool selected is the <b>box</b>. The user can select other shapes by clicking at the <b>shape</b> button:</p>
+<h1><a id="shapes"></a>{% trans "Shapes" %}</h1>
+<p class="description">{% trans "By default the shape tool selected is the <b>box</b>. The user can select other shapes by clicking at the <b>shape</b> button" %}:</p>
 <div class="flexcontainer">
     <div class="imgROI">
-        <p>By default the <i>box</i> shape is selected.</p>
+        {% comment %} Please keep the <i>INNER_TEXT</i> tags intact. Translate only the INNER_TEXT. Thanks. {% endcomment %}
+        <p>{% trans "By default the <i>box</i> shape is selected." %}</p>
         <img src="../static/django_website/images/tutorial/defaultShape.png"/>
     </div>
     <div class="imgROI">
-        <p>Clicking over the shape button reveals all possible shapes.</p>
+        <p>{% trans "Clicking over the shape button reveals all possible shapes." %}</p>
         <img src="../static/django_website/images/tutorial/allShapes.png"/>
     </div>
 </div>
 
-<p class="description">Currently there are 3 shapes:</p>
+<p class="description">{% trans "Currently there are 3 shapes" %}:</p>
 <ul>
-    <li>Box</li>
-    <li>Square</li>
-    <li>Dodecagon</li>
+    <li>{% trans "Box" %}</li>
+    <li>{% trans "Square" %}</li>
+    <li>{% trans "Dodecagon" %}</li>
 </ul>
 {% endblock %}

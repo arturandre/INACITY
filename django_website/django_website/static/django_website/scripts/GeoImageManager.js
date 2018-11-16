@@ -65,7 +65,7 @@ class GeoImageManager extends Subject {
      */
     autoPlayGeoImages(autoPlayNewState) {
         if (this._autoPlayState === autoPlayNewState) {
-            console.warn(`Tried to repeat GeoImageManager's autoplay state: ${autoPlayNewState}`);
+            console.warn(gettext("Tried to repeat GeoImageManager's autoplay state")+`: ${autoPlayNewState}`);
             return false;
         }
         else if (this._autoPlayState === 0 && autoPlayNewState === 2) {

@@ -1,0 +1,290 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-11-16 17:11-0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\ImageFilters\GreeneryFilter.py:20
+msgid "Greenery"
+msgstr "Vegetação"
+
+#: .\ImageFilters\GreeneryFilter.py:40 .\ImageFilters\GreeneryFilter.py:54
+#: .\ImageFilters\GreeneryFilter.py:66 .\ImageFilters\GreeneryFilter.py:79
+msgid "Error while parsing panorama: "
+msgstr "Erro durante a leitura do panorama: "
+
+#: .\Managers\ImageFilterManager.py:28
+msgid "filterId not found!"
+msgstr "filterId não encontrado!"
+
+#: .\templates\about.html:11 .\templates\base.html:35
+msgid "About"
+msgstr "Sobre"
+
+#: .\templates\about.html:18
+msgid ""
+"INACITY is a platform to collect and analyse urban images, that integrates "
+"Application Programming Interfaces (APIs), image retrieval systems, "
+"Geographical Information Systems (GISes), digital maps and Computer Vision "
+"techniques."
+msgstr ""
+"O INACITY é uma plataforma para coletar e analizar imagens urbanas que "
+"integra Interfaces de Programação de Aplicativos (APIs), sistemas de buscas "
+"de imagens, Sistemas de Informações Geográficas (SIGs), mapas digitais e "
+"técnicas de Visão Computacional."
+
+#: .\templates\about.html:20
+msgid ""
+"It was created during <a href='http://vision.ime.usp.br/~arturao/'>Artur "
+"André Oliveira</a> master's program at <a href='https://www.ime.usp.br/'>IME-"
+"USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto "
+"Hirata Jr.</a>"
+msgstr ""
+"Criado durante o programa de mestrado de <a href='http://vision.ime.usp.br/"
+"~arturao/'>Artur André Oliveira</a> no IME-USP e orientado por <a "
+"href='https://www.ime.usp.br/hirata'>Roberto Hirata Jr.</a>"
+
+#: .\templates\about.html:22
+msgid ""
+"You can download the <a href='http://vision.ime.usp.br/~arturao/"
+"INACITYDissertation.pdf'>master's thesis (in portuguese)</a> with deeper "
+"analyses about the greenery image filters and also the <a href='https://"
+"github.com/arturandre/INACITY_groundtruth'>groundtruth</a> used to estimate "
+"the filter's parameters and to compare their performance."
+msgstr ""
+"Você pode fazer o download da <a href='http://vision.ime.usp.br/~arturao/"
+"INACITYDissertation.pdf'>dissertação de mestrado (em português)</a> a qual "
+"contém uma análise mais profunda a respeito dos filtros de imagem para "
+"vegetação e também o <a href='https://github.com/arturandre/"
+"INACITY_groundtruth'>conjunto de dados</a> usado para estimar parâmetros "
+"para os filtros e também comparar seus desempenhos."
+
+#: .\templates\about.html:24
+msgid ""
+"The project source code can be found at <a href='https://github.com/"
+"arturandre/INACITY_python'>INACITY's Github repository</a>."
+msgstr ""
+"O código fonte pode ser encontrado no <a href='https://github.com/arturandre/"
+"INACITY_python'> repositório do INACITY no Github</a>."
+
+#: .\templates\base.html:33 .\templates\home.html:32
+msgid "Home"
+msgstr "Inicial"
+
+#: .\templates\base.html:34 .\templates\tutorial.html:15
+msgid "Get started"
+msgstr "Tutorial"
+
+#: .\templates\base.html:36
+msgid "API"
+msgstr ""
+
+#: .\templates\base.html:52
+msgid "Sponsors &amp; Associated Projects:"
+msgstr "Patrocinadores &amp; Projetos Associados:"
+
+#: .\templates\base.html:72
+msgid "Previous"
+msgstr "Anterior"
+
+#: .\templates\base.html:76
+msgid "Next"
+msgstr "Próximo"
+
+#: .\templates\base.html:92
+msgid ""
+"We acknowledge Microsoft for a sponsorship through the Microsoft Azure "
+"Sponsorship and Google for their Streetview API."
+msgstr ""
+"Agradecemos à Microsoft pelo apoio através do Microsoft Azure Sponsorship e "
+"ao Google pelo Streetview API."
+
+#: .\templates\base.html:93
+msgid ""
+"The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São "
+"Paulo Research Foundation (FAPESP)."
+msgstr ""
+"O projeto INACITY é apoiado pela FAPESP, processo nº 2018/10767-0, Fundação "
+"de Amparo à Pesquisa do Estado de São Paulo (FAPESP)."
+
+#: .\templates\base.html:94
+msgid ""
+"The opinions, hypotheses, conclusions or recommendations contained in this "
+"material are the sole responsibility of the author(s) and do not necessarily "
+"reflect FAPESP opinion."
+msgstr ""
+"As opiniões, hipóteses e conclusões ou recomendações expressas neste "
+"material são de responsabilidade do(s) autor(es) e não necessariamente "
+"refletem a visão da FAPESP."
+
+#: .\templates\home.html:38
+msgid ""
+"The platform was developed and tested with the browser Google Chrome version "
+"58.0.3029.110 (64-bit). If you're having troubles while using some other "
+"browser try that."
+msgstr ""
+"A plataforma foi testada e desenvolvida com o navegador Google Chrome versão "
+"58.0.3029.110 (64-bit). Se estiver tendo problemas usando outro navegador "
+"por favor tente ele."
+
+#: .\templates\home.html:56
+msgid "Map Miner"
+msgstr "Minerador de Mapa"
+
+#: .\templates\home.html:64
+msgid "Feature"
+msgstr "Característica"
+
+#: .\templates\home.html:70
+msgid "Clear selections"
+msgstr "Limpar seleções"
+
+#: .\templates\home.html:73
+msgid "Execute Query"
+msgstr "Executar consulta"
+
+#: .\templates\home.html:81
+msgid "Map provider"
+msgstr "Provedor de mapa"
+
+#: .\templates\home.html:89
+#, fuzzy
+#| msgid "Shapes"
+msgid "Shape type"
+msgstr "Tipo de forma"
+
+#: .\templates\home.html:94
+msgid "Cancel draw"
+msgstr "Cancelar desenho"
+
+#: .\templates\home.html:101
+msgid "Image provider"
+msgstr "Provedor de imagens"
+
+#: .\templates\home.html:110
+msgid "Image filter"
+msgstr "Filtro de imagens"
+
+#: .\templates\home.html:116
+msgid "Get Images"
+msgstr "Coletar imagens"
+
+#: .\templates\home.html:123
+msgid "Created regions"
+msgstr "Criar região"
+
+#: .\templates\home.html:125
+msgid "None"
+msgstr "Nenhuma"
+
+#: .\templates\home.html:129
+msgid "Hold shift to zoom"
+msgstr "Pressione shift para dar zoom"
+
+#: .\templates\tutorial.html:23
+msgid "Contents"
+msgstr "Sumário"
+
+#: .\templates\tutorial.html:25 .\templates\tutorial.html:30
+msgid "Sample video"
+msgstr "Vídeo de exemplo"
+
+#: .\templates\tutorial.html:26 .\templates\tutorial.html:37
+msgid "Fishing expedition"
+msgstr "Expedição exploratória"
+
+#: .\templates\tutorial.html:27 .\templates\tutorial.html:66
+msgid "Shapes"
+msgstr "Figuras"
+
+#: .\templates\tutorial.html:33
+msgid "Sorry, your browser doesn't support embedded videos."
+msgstr "Desculpe, seu navegador não suporta a execução deste vídeo."
+
+#: .\templates\tutorial.html:40
+msgid ""
+"INACITY have two modes of use, a <b>simple mode</b> and an <b>advanced one</"
+"b>. In the former you can choose a region by clicking at two different "
+"locations over the map to select a region"
+msgstr ""
+"O INACITY possui dois modos de uso, um <b>modo simples</b> e um <b>advanced</"
+"b>. No primeiro você pode escolher uma região clicando em dois locais "
+"diferentes sobre o mapa"
+
+#: .\templates\tutorial.html:44
+msgid "The first click selects the starting point for the region of interest."
+msgstr ""
+"O primeiro clique seleciona o ponto inicial para a região de interesse."
+
+#: .\templates\tutorial.html:48
+msgid ""
+"A second click selects the region of interest, denoted by a reddish area."
+msgstr ""
+"Um segundo clique seleciona a região de interesse, demarcada por uma área "
+"vermelha"
+
+#: .\templates\tutorial.html:52
+msgid ""
+"After selecting the region of interest just press <b>Get Images</b>. The "
+"platform will collect all the streets and their images and display it"
+msgstr ""
+"Após selecionara região de interesse pressione o botão <b>Pegar imagens</b>. "
+"A plataforma irá então coletar todas as ruas e suas imagens para exibição."
+
+#: .\templates\tutorial.html:57
+msgid ""
+"Click at <b>Get Images</b> to start collecting the images for the selected "
+"region."
+msgstr ""
+"Clique em <b>Coletar imagens</b> para iniciar a coleta de imagens para a "
+"região selecionada."
+
+#: .\templates\tutorial.html:61
+msgid "Images are being retrieved for streets collected through OpenStreetMap."
+msgstr "Imagens estão sendo buscadas para ruas coletadas pelo OpenStreetMap."
+
+#: .\templates\tutorial.html:67
+msgid ""
+"By default the shape tool selected is the <b>box</b>. The user can select "
+"other shapes by clicking at the <b>shape</b> button"
+msgstr ""
+"Por padrão a ferramenta de forma selecionada é a <b>caixa</b>. O usuário "
+"pode selecionar outras formas clicando no botão <b>forma</b>."
+
+#: .\templates\tutorial.html:72
+msgid "By default the <i>box</i> shape is selected."
+msgstr "Por padrão a forma <i>caixa</i> está selecionada."
+
+#: .\templates\tutorial.html:76
+msgid "Clicking over the shape button reveals all possible shapes."
+msgstr "Clicando sobre o botão forma irá exibir todas as formas possíveis."
+
+#: .\templates\tutorial.html:81
+msgid "Currently there are 3 shapes"
+msgstr "Atualmente existem 3 formas"
+
+#: .\templates\tutorial.html:83
+msgid "Box"
+msgstr "Caixa"
+
+#: .\templates\tutorial.html:84
+msgid "Square"
+msgstr "Quadrado"
+
+#: .\templates\tutorial.html:85
+msgid "Dodecagon"
+msgstr "Dodecágono"

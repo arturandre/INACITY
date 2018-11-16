@@ -16,7 +16,18 @@ from django_website import settings
 
 #from django_website import admin
 from django.contrib import admin
+
+#https://docs.djangoproject.com/en/2.0/topics/i18n/translation/#module-django.views.i18n
+from django.views.i18n import JavaScriptCatalog
+
 urlpatterns = [
+
+    #Internationalization
+    re_path(r'^lang/(?P<lang_code>[\w]{2}(-[\w]{2})?)/?$', lang, name='lang'),
+    #path('i18n/', include('django.conf.urls.i18n')),
+    path('jsi18n/', JavaScriptCatalog.as_view(packages=['django_website']), name='javascript-catalog'),
+    
+
     # Pages
     re_path(r'^$', home, name='root'),
     re_path(r'^home/?$', home, name='home'),

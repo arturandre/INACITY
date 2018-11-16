@@ -11,13 +11,13 @@ from json import JSONDecodeError
 from .ImageFilter import *
 from .commonFunctions import mt_li_espectral, overlay_mask
 from django_website.Primitives.GeoImage import GeoImage
-
+from django.utils.translation import gettext as _
 
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
     
 
-    filterName = "Greenery"
+    filterName = _("Greenery")
     filterId = "greenery"
 
     def _initialize(cls):
@@ -37,7 +37,7 @@ class GreeneryFilter(ImageFilter):
                             try:
                                 geoImage = GeoImage.fromJSON(geoImage)
                             except JSONDecodeError:
-                                print('Error while parsing panorama: ' + str(geoImage)[:100])
+                                print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                                 ndarrayImage = img_as_float(imageio.imread(geoImage.data))
                                 mask = mt_li_espectral(ndarrayImage)
                                 mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
@@ -51,7 +51,7 @@ class GreeneryFilter(ImageFilter):
                         try:
                             geoImage = GeoImage.fromJSON(geoImage)
                         except JSONDecodeError:
-                            print('Error while parsing panorama: ' + str(geoImage)[:100])
+                            print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                         ndarrayImage = img_as_float(imageio.imread(geoImage.data))
                         mask = mt_li_espectral(ndarrayImage)
                         mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
@@ -63,7 +63,7 @@ class GreeneryFilter(ImageFilter):
                     try:
                         geoImage = GeoImage.fromJSON(geoImage)
                     except JSONDecodeError:
-                        print('Error while parsing panorama: ' + str(geoImage)[:100])
+                        print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                     ndarrayImage = img_as_float(imageio.imread(geoImage.data))
                     mask = mt_li_espectral(ndarrayImage)
                     mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
@@ -76,7 +76,7 @@ class GreeneryFilter(ImageFilter):
                 try:
                     geoImage = GeoImage.fromJSON(geoImage)
                 except JSONDecodeError:
-                    print('Error while parsing panorama: ' + str(geoImage)[:100])
+                    print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                 ndarrayImage = img_as_float(imageio.imread(geoImage.data))
                 mask = mt_li_espectral(ndarrayImage)
                 mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))

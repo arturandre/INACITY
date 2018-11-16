@@ -7,7 +7,8 @@ from django.shortcuts import render
 from django.template import loader
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from urllib.parse import unquote
 
 import json
 import datetime
@@ -22,6 +23,8 @@ from django_website.Managers.UserManager import UserManager
 
 from django_website.Primitives import *
 
+from django.utils import translation
+from django.conf import settings
 
 ########### TESTING ##################
 from django.core.files.storage import FileSystemStorage
@@ -39,8 +42,26 @@ __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 imageFilterManager = ImageFilterManager()
 imageProviderManager = ImageProviderManager()
 mapMinerManager = MapMinerManager()
-userManager = UserManager()
+userManager = UserManager() 
 ##############GLOBALS####################
+
+def lang(request, lang_code):
+    user_language = lang_code
+    translation.activate(user_language)
+    request.session[translation.LANGUAGE_SESSION_KEY] = user_language
+    next = request.META.get('HTTP_REFERER')
+    if next:
+        next = unquote(next)  # HTTP_REFERER may be encoded.
+    response = HttpResponseRedirect(next)
+    response.set_cookie(
+                    settings.LANGUAGE_COOKIE_NAME, lang_code,
+                    max_age=settings.LANGUAGE_COOKIE_AGE,
+                    path=settings.LANGUAGE_COOKIE_PATH,
+                    domain=settings.LANGUAGE_COOKIE_DOMAIN,
+                )
+    print(lang_code)
+    return response
+
 
 def about(request):
     htmlfile = 'about.html'

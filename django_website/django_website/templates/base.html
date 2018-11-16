@@ -1,4 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+
 <html lang="en">
 <head>
     {% load staticfiles %}
@@ -12,6 +16,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="{% static 'django_website/scripts/base.js' %}"></script>
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     {% block scripts %}{% endblock %}
 
     <title>{% block title %}{% endblock %}</title>
@@ -25,16 +30,17 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div id="divNavBar" class="navbar-nav">
-            <a class="nav-item nav-link active" href="{% url 'home' %}">Home</a>
-            <a class="nav-item nav-link" href="{% url 'tutorial' %}">Get started</a>
-            <a class="nav-item nav-link" href="{% url 'about' %}">About</a>
-            <a class="nav-item nav-link" href="/docs/index.html">API</a>
+            <a class="nav-item nav-link active" href="{% url 'home' %}">{% trans "Home"%}</a>
+            <a class="nav-item nav-link" href="{% url 'tutorial' %}">{% trans "Get started"%}</a>
+            <a class="nav-item nav-link" href="{% url 'about' %}">{% trans "About"%}</a>
+            <a class="nav-item nav-link" href="/docs/index.html">{% trans "API" noop %}</a>
           </div>
         </div>
         <div class="navbar-nav navbar-right">
-                <a href="/fr"><img class="language-flag" border="0" alt="Langue française" src="{% static 'django_website/images/flag_fr.png' %}"></a>
-                <a href="/en-us"><img class="language-flag" border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}"></a>
-                <a href="/pt-br"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
+                <a href="lang/fr"><img class="language-flag" border="0" alt="Langue française" src="{% static 'django_website/images/flag_fr.png' %}"></a>
+                <a href="lang/en"><img class="language-flag" border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}"></a>
+                <a href="lang/pt-br"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
+                <a href="lang/es-es"><img class="language-flag" border="0" alt="Lengua española" src="{% static 'django_website/images/flag_es.png' %}"></a>
         </div>
     </nav>
 
@@ -44,7 +50,7 @@
           <p class="lead">INvestigate and Analyze a CITY - INACITY</p>
         </div>
         <div class="col-sm">
-            <h4>Sponsors & Associated Projects:</h4>
+            <h4>{% trans "Sponsors &amp; Associated Projects:"%}</h4>
             <div id="carouselSponsors" class="carousel slide" data-ride="carousel">
               <ol class="carousel-indicators">
                 <li data-target="#carouselSponsors" data-slide-to="0" class="active"></li>
@@ -64,11 +70,11 @@
               </div>
               <a class="carousel-control-prev" href="#carouselSponsors" role="button" data-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
+                <span class="sr-only">{% trans "Previous" %}</span>
               </a>
               <a class="carousel-control-next" href="#carouselSponsors" role="button" data-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
+                <span class="sr-only">{% trans "Next" %}</span>
               </a>
             </div>
         </div>
@@ -84,9 +90,9 @@
     {% block footer %}
     <hr>
     <p>2018 - INACITY</p>
-    <p>We acknowledge Microsoft for a sponsorship through the Microsoft Azure Sponsorship and Google for their Streetview API.</p>
-    <p>The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São Paulo Research Foundation (FAPESP).</p>
-    <p>The opinions, hypotheses, conclusions or recommendations contained in this material are the sole responsibility of the author(s) and do not necessarily reflect FAPESP opinion</p>
+    <p>{% trans "We acknowledge Microsoft for a sponsorship through the Microsoft Azure Sponsorship and Google for their Streetview API." %}</p>
+    <p>{% trans "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São Paulo Research Foundation (FAPESP)." %}</p>
+    <p>{% trans "The opinions, hypotheses, conclusions or recommendations contained in this material are the sole responsibility of the author(s) and do not necessarily reflect FAPESP opinion." %}</p>
     <!--<p>As opiniões, hipóteses e conclusões ou recomendações expressas neste material são de responsabilidade do(s) autor(es) e não necessariamente refletem a visão da FAPESP.</p>-->
 
     {% endblock %}
