@@ -28,11 +28,11 @@ msgstr ""
 
 #: .\Managers\ImageFilterManager.py:28
 msgid "filterId not found!"
-msgstr ""
+msgstr "filterId n'a pas trouvé!"
 
 #: .\templates\about.html:11 .\templates\base.html:35
 msgid "About"
-msgstr ""
+msgstr "À propos d'INACITY"
 
 #: .\templates\about.html:18
 msgid ""
@@ -41,6 +41,10 @@ msgid ""
 "Geographical Information Systems (GISes), digital maps and Computer Vision "
 "techniques."
 msgstr ""
+"L'INACITY est une platform crée pour obtenir et analyser des images urbaines "
+"qui intègre Interface de Programmation Applicative, des moteurs de recherche d'image, "
+"des Systèmes d'Information Géographique (SIG), des cartes numériques et des techniques "
+"de la vision par ordinateur."
 
 #: .\templates\about.html:20
 msgid ""
@@ -49,6 +53,11 @@ msgid ""
 "USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto "
 "Hirata Jr.</a>"
 msgstr ""
+"C'était créée lord de program du master "
+"d'<a href='http://vision.ime.usp.br/~arturao/'>Artur "
+"André Oliveira</a> dans <a href='https://www.ime.usp.br/'>IME-"
+"USP</a> et conseillé par <a href='https://www.ime.usp.br/hirata'>Roberto "
+"Hirata Jr.</a>"
 
 #: .\templates\about.html:22
 msgid ""
@@ -58,12 +67,20 @@ msgid ""
 "github.com/arturandre/INACITY_groundtruth'>groundtruth</a> used to estimate "
 "the filter's parameters and to compare their performance."
 msgstr ""
+"Vous pouvez télécharger la  <a href='http://vision.ime.usp.br/~arturao/"
+"INACITYDissertation.pdf'>thèse de maîtrise (en portugais)</a> avec plus "
+"de détails à propos des filtres de la verdure dans des images, et aussi le "
+"<a href='https://github.com/arturandre/INACITY_groundtruth'>vérité terrain"
+"</a> utilisée pour estimer les paramètres des filtres et pour l’évaluation "
+"de performances des résultats."
 
 #: .\templates\about.html:24
 msgid ""
 "The project source code can be found at <a href='https://github.com/"
 "arturandre/INACITY_python'>INACITY's Github repository</a>."
 msgstr ""
+"Le code source du projet peut être trouvé sur <a href='https://github.com/"
+"arturandre/INACITY_python'> le référentiel d'INACITY sur Github</a>."
 
 #: .\templates\base.html:33 .\templates\home.html:32
 msgid "Home"

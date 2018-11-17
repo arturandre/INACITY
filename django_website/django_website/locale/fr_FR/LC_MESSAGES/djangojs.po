@@ -16,7 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: .\static\django_website\docs\_static\doctools.js:193
 msgid "Permalink to this headline"
@@ -59,89 +58,89 @@ msgstr ""
 
 #: .\static\django_website\scripts\GeoImageManager.js:68
 msgid "Tried to repeat GeoImageManager's autoplay state"
-msgstr "O sistema tentou repetir um estado do GeoImageManager."
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIModel.js:873
 msgid "already present in regions list!"
-msgstr "já presente na lista de regiões!"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIModel.js:882
 msgid "not found in regions list!"
-msgstr "não encontrada na lista de regiões!"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:13
 msgid "Invalid DrawToolName"
-msgstr "DrawToolName inválido"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:22
 #: .\static\django_website\scripts\home\UIView.js:685
 msgid "Box"
-msgstr "Caixa"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:23
 #: .\static\django_website\scripts\home\UIView.js:686
 msgid "Square"
-msgstr "Quadrado"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:24
 #: .\static\django_website\scripts\home\UIView.js:687
 msgid "Dodecagon"
-msgstr "Dodecágono"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:157
 msgid "Unknown mode selected!"
-msgstr "Modo selecionado desconhecido!"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:258
 msgid "Shape"
-msgstr "Forma"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:269
 msgid "Invalid DrawTool."
-msgstr "DrawTool inválido"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:300
 #: .\static\django_website\scripts\home\home.js:335
 msgid "Unknown event type!"
-msgstr "Tipo de evento desconhecido!"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:402
 msgid "Map Miner"
-msgstr "Mineirador de mapa"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:403
 msgid "Feature"
-msgstr "Característica"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:409
 #: .\static\django_website\scripts\home\UIView.js:440
 msgid "Undefined layer!"
-msgstr "Camada não definida!"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:463
 msgid "Loading"
-msgstr "Carregando"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:514
 msgid "Selected layers are"
-msgstr "As camadas selecionadas são"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:713
 msgid "Image Mode"
-msgstr "Modo de Imagem"
+msgstr ""
 
 #: .\static\django_website\scripts\home\UIView.js:714
 msgid "Map Mode"
-msgstr "Modo de Mapa"
+msgstr ""
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Error during server at"
-msgstr "Erro durante"
+msgstr ""
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Status"
-msgstr "Estado"
+msgstr ""
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Error message"
-msgstr "Mensagem de erro"
+msgstr ""
