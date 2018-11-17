@@ -73,7 +73,7 @@ def tutorial(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-
+# User session
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def users(request):
     retMethod = ''
@@ -90,6 +90,12 @@ def users(request):
     retMethod = request.method
 
     return HttpResponse(f'Hello Users! {retMethod}')
+
+@api_view(['GET'])
+def profile(request):
+    htmlfile = 'registration/profile.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 @api_view(['GET'])
 def getavailablemapminers(request):

@@ -26,7 +26,7 @@ SECRET_KEY = '07a40fcc-4996-4361-9961-84850cdfa842'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dev.inacity.org']
+ALLOWED_HOSTS = ['dev.inacity.org', '127.0.0.1']
 
 
 # Application definition
