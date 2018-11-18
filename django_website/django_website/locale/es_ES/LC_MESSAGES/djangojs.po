@@ -16,6 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: .\static\django_website\docs\_static\doctools.js:193
 msgid "Permalink to this headline"
@@ -58,19 +59,19 @@ msgstr ""
 
 #: .\static\django_website\scripts\GeoImageManager.js:68
 msgid "Tried to repeat GeoImageManager's autoplay state"
-msgstr ""
+msgstr "El sistema intentó repetir un estado del GeoImageManager."
 
 #: .\static\django_website\scripts\home\UIModel.js:873
 msgid "already present in regions list!"
-msgstr ""
+msgstr "ya presente en la lista de regiones!"
 
 #: .\static\django_website\scripts\home\UIModel.js:882
 msgid "not found in regions list!"
-msgstr ""
+msgstr "no se encuentra en la lista de regiones!"
 
 #: .\static\django_website\scripts\home\UIView.js:13
 msgid "Invalid DrawToolName"
-msgstr ""
+msgstr "DrawToolName inválido"
 
 #: .\static\django_website\scripts\home\UIView.js:22
 #: .\static\django_website\scripts\home\UIView.js:685
@@ -89,58 +90,58 @@ msgstr "Dodecágono"
 
 #: .\static\django_website\scripts\home\UIView.js:157
 msgid "Unknown mode selected!"
-msgstr ""
+msgstr "Modo seleccionado desconocido!"
 
 #: .\static\django_website\scripts\home\UIView.js:258
 msgid "Shape"
-msgstr ""
+msgstr "Forma"
 
 #: .\static\django_website\scripts\home\UIView.js:269
 msgid "Invalid DrawTool."
-msgstr ""
+msgstr "DrawTool inválido"
 
 #: .\static\django_website\scripts\home\UIView.js:300
 #: .\static\django_website\scripts\home\home.js:335
 msgid "Unknown event type!"
-msgstr ""
+msgstr "Tipo de evento desconocido!"
 
 #: .\static\django_website\scripts\home\UIView.js:402
 msgid "Map Miner"
-msgstr ""
+msgstr "Minero de Mapas"
 
 #: .\static\django_website\scripts\home\UIView.js:403
 msgid "Feature"
-msgstr ""
+msgstr "Característica"
 
 #: .\static\django_website\scripts\home\UIView.js:409
 #: .\static\django_website\scripts\home\UIView.js:440
 msgid "Undefined layer!"
-msgstr ""
+msgstr "Capa indefinido!"
 
 #: .\static\django_website\scripts\home\UIView.js:463
 msgid "Loading"
-msgstr ""
+msgstr "Cargando"
 
 #: .\static\django_website\scripts\home\UIView.js:514
 msgid "Selected layers are"
-msgstr ""
+msgstr "Las capas seleccionadas son"
 
 #: .\static\django_website\scripts\home\UIView.js:713
 msgid "Image Mode"
-msgstr ""
+msgstr "Modo de imagen"
 
 #: .\static\django_website\scripts\home\UIView.js:714
 msgid "Map Mode"
-msgstr ""
+msgstr "Modo mapa"
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Error during server at"
-msgstr ""
+msgstr "Error durante"
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: .\static\django_website\scripts\home\home.js:290
 msgid "Error message"
-msgstr ""
+msgstr "Mensaje de error"

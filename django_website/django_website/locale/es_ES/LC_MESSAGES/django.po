@@ -65,7 +65,7 @@ msgid ""
 "The project source code can be found at <a href='https://github.com/"
 "arturandre/INACITY_python'>INACITY's Github repository</a>."
 msgstr ""
-"El código fuente del proyecto puede ser encontrado en el <a href='https://github.com/arturandre/"
+"El código fuente del proyecto puede ser encuentrado en el <a href='https://github.com/arturandre/"
 "INACITY_python'> repositorio del INACITY en Github</a>."
 
 #: .\templates\base.html:32 .\templates\home.html:32

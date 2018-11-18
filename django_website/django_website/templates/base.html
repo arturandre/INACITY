@@ -37,9 +37,9 @@
           </div>
         </div>
         <div class="navbar-nav navbar-right">
-                <a href="lang/fr"><img class="language-flag" border="0" alt="Langue française" src="{% static 'django_website/images/flag_fr.png' %}"></a>
-                <a href="lang/en"><img class="language-flag" border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}"></a>
-                <a href="lang/pt-br"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
+                <a href="{% url 'lang' 'fr' %}"><img class="language-flag" border="0" alt="Langue française" src="{% static 'django_website/images/flag_fr.png' %}"></a>
+                <a href="{% url 'lang' 'en' %}"><img class="language-flag" border="0" alt="English language" src="{% static 'django_website/images/flag_en-us.png' %}"></a>
+                <a href="{% url 'lang' 'pt-br' %}"><img class="language-flag" border="0" alt="Língua portuguesa" src="{% static 'django_website/images/flag_pt-br.png' %}"></a>
                 <a href="lang/es-es"><img class="language-flag" border="0" alt="Lengua española" src="{% static 'django_website/images/flag_es.png' %}"></a>
         </div>
         <div class="navbar-nav navbar-right loginPanel">
@@ -47,7 +47,8 @@
                   <a href="{% url 'profile' %}">Hi {{ user.username }}!</a> | 
                   <a href="{% url 'logout' %}">Logout</a>
                 {% else %}
-                  <a href="{% url 'login' %}">Login</a>
+                  <a href="{% url 'login' %}">Login</a> |
+                  <a href="{% url 'register' %}">Sign Up</a>                  
                 {% endif %}
         </div>
     </nav>

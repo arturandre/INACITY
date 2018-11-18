@@ -3,8 +3,6 @@
 import sys
 
 import requests
-from django.shortcuts import render
-from django.template import loader
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
@@ -23,8 +21,18 @@ from django_website.Managers.UserManager import UserManager
 
 from django_website.Primitives import *
 
-from django.utils import translation
+# General functions
 from django.conf import settings
+from django.shortcuts import render, redirect
+from django.template import loader
+
+#User Auth
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, authenticate, logout
+
+#Translation & Internationalization
+from django.utils import translation
+
 
 ########### TESTING ##################
 from django.core.files.storage import FileSystemStorage
@@ -45,6 +53,7 @@ mapMinerManager = MapMinerManager()
 userManager = UserManager() 
 ##############GLOBALS####################
 
+# @TODO: Make the translation call accept POST, store it's session and then translate the page keeping user data unchanged (forms/session)
 def lang(request, lang_code):
     user_language = lang_code
     translation.activate(user_language)
@@ -73,7 +82,7 @@ def tutorial(request):
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-# User session
+# User Auth
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def users(request):
     retMethod = ''
@@ -96,6 +105,34 @@ def profile(request):
     htmlfile = 'registration/profile.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['GET', 'POST'])
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            #@TODO: Redirect to user sessions page
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    htmlfile = 'registration/register.html'
+    local_vars = {'sample_key': 'sample_data', 'form': form}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['GET'])
+def logout(request):
+    # The request will be a Django REST Framework 'HttpRequest'
+    # In order to logout an user it's needed the Django 'HttpRequest' object 
+    # It can be accessed by 'request._request'
+    # ref: https://stackoverflow.com/a/27456639/3562468
+    logout(request)
+    return redirect('home')
+
 
 @api_view(['GET'])
 def getavailablemapminers(request):
