@@ -28,7 +28,12 @@ from django.template import loader
 
 #User Auth
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate
+
+# To avoid an override of the function logout
+# Define an alias for django.contrib.auth.login function using as keyword.
+# https://stackoverflow.com/questions/31779234/runtime-error-when-trying-to-logout-django
+from django.contrib.auth import logout as django_logout
 
 #Translation & Internationalization
 from django.utils import translation
@@ -124,13 +129,9 @@ def register(request):
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-@api_view(['GET'])
 def logout(request):
-    # The request will be a Django REST Framework 'HttpRequest'
-    # In order to logout an user it's needed the Django 'HttpRequest' object 
-    # It can be accessed by 'request._request'
-    # ref: https://stackoverflow.com/a/27456639/3562468
-    logout(request)
+    
+    django_logout(request)
     return redirect('home')
 
 
