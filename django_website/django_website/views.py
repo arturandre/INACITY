@@ -129,8 +129,31 @@ def register(request):
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
+@api_view(['POST'])
+def loadsession(request):
+    if request.user.is_authenticated:
+        #@TODO: Load session from user's sessions table
+        pass
+    else:
+        ret = request.session.get('uiModelJSON')
+        if ret:
+            return JsonResponse(ret)
+        else:
+            return Http404
+    return HttpResponse(status=200)
+
+
+@api_view(['POST'])
+def savesession(request):
+    if request.user.is_authenticated:
+        #@TODO: Save session "request.data['uiModelJSON']" to user's sessions table
+        pass
+    else:
+        #@TODO: Check if session "request.data['uiModelJSON']" is valid 
+        request.session['uiModelJSON'] = request.data['uiModelJSON']
+    return HttpResponse(status=204)
+
 def logout(request):
-    
     django_logout(request)
     return redirect('home')
 

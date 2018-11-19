@@ -200,6 +200,7 @@ function initializeUI() {
 
         uiController.initialize();
         uiView.initialize();
+        uiModel.loadSession();
     }, console.error);
 }
 

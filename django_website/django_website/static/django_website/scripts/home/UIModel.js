@@ -581,6 +581,52 @@ class UIModel extends Subject {
 
     }
 
+    /**
+     * @todo Display success and error messages.
+     */
+    saveSession() {
+        $.ajax('/savesession/',
+            {
+                method: 'POST',
+                processData: false,
+                data: JSON.stringify({
+                    uiModelJSON: this.saveToJSON()
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                }.bind(this),
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }.bind(this)
+            });
+        
+    }
+    loadSession(){
+        $.ajax('/loadsession/',
+            {
+                method: 'POST',
+                processData: false,
+                data: undefined,
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                    try {
+                        this.loadFromJSON(data);
+                    } catch (error) {
+                        defaultAjaxErrorHandler('saveSession', textStatus, error);
+                    }
+                }.bind(this),
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }.bind(this)
+            });
+    }
+
 
     /**
      * Represents an Image Provider
@@ -831,7 +877,7 @@ class UIModel extends Subject {
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(feature, active, name=null) {
+    createRegion(feature, active, name = null) {
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
         let idNumber = getNewId();
@@ -870,7 +916,7 @@ class UIModel extends Subject {
             return newRegion;
         }
         else {
-            throw Error(`id: '${id}' `+gettext("already present in regions list!"));
+            throw Error(`id: '${id}' ` + gettext("already present in regions list!"));
         }
     }
 
@@ -879,7 +925,7 @@ class UIModel extends Subject {
             return delete this._regions[id];
         }
         else {
-            throw Error(`id: '${id}' `+gettext("not found in regions list!"));
+            throw Error(`id: '${id}' ` + gettext("not found in regions list!"));
         }
     }
 

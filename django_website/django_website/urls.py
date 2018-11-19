@@ -33,6 +33,9 @@ urlpatterns = [
     path('accounts/register/', register, name='register'),
     path('logout/', logout, name='logout'),
 
+    path('savesession/', savesession, name='savesession'),
+    path('loadsession/', loadsession, name='loadsession'),
+
     # Pages
     re_path(r'^$', home, name='root'),
     re_path(r'^home/?$', home, name='home'),
