@@ -244,14 +244,14 @@ class UIView {
     */
     changeMapProviderClick(tileProvider) {
         this.SelectedMapProvider = tileProvider;
-        openLayersHandler.changeMapProvider(tileProvider.provider);
+        this.uiModel.openLayersHandler.changeMapProvider(tileProvider.provider);
     }
 
     cancelDrawing() {
         this._SelectedDrawTool = null;
 
         if (this._drawInteraction) {
-            openLayersHandler.map.removeInteraction(this._drawInteraction);
+            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
             this._drawInteraction = null;
         }
 
@@ -269,18 +269,18 @@ class UIView {
             throw Error(gettext("Invalid DrawTool."));
         }
         if (this._drawInteraction) {
-            openLayersHandler.map.removeInteraction(this._drawInteraction);
+            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
         }
         this.SelectedDrawTool = drawTool;
 
 
         this._drawInteraction = new ol.interaction.Draw({
-            source: globalVectorSource,
+            source: this.uiModel.openLayersHandler.globalVectorSource,
             type: 'Circle',
             geometryFunction: this.SelectedDrawTool.geometryFunction,
         });
         this._drawInteraction.on('drawend', this.drawingHandlers, this);
-        openLayersHandler.map.addInteraction(this._drawInteraction);
+        this.uiModel.openLayersHandler.map.addInteraction(this._drawInteraction);
 
     }
 
@@ -417,10 +417,10 @@ class UIView {
 
             if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed) {
                 if (forceRedraw) {
-                    let olFeature = globalVectorSource.getFeatureById(feature.id);
-                    globalVectorSource.removeFeature(olFeature);
+                    let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                    this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
                     olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                    globalVectorSource.addFeature(olFeature);
+                    this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                     this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
                 }
                 else {
@@ -429,7 +429,7 @@ class UIView {
             }
             else {
                 let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                globalVectorSource.addFeature(olFeature);
+                this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
             }
 
@@ -448,8 +448,8 @@ class UIView {
             */
             if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
             else {
-                let olFeature = globalVectorSource.getFeatureById(feature.id);
-                globalVectorSource.removeFeature(olFeature);
+                let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
             }
         }

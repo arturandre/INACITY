@@ -352,7 +352,7 @@ class FeatureRegions {
 * @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
 class UIModel extends Subject {
-    constructor(regionsDivId, defaults) {
+    constructor(regionsDivId, openLayersHandler, defaults) {
         super();
         this.setTarget(regionsDivId);
 
@@ -362,6 +362,12 @@ class UIModel extends Subject {
         this._imageProviders = [];
         this._imageFilters = [];
         this._mapMinersAndFeatures = [];
+        this._openLayersHandler = openLayersHandler;
+
+        /*OpenLayers Event Handlers*/
+        this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
+        this._openLayersHandler.globalVectorSource.on('removefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
+        this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
 
 
         if (defaults) {
@@ -549,7 +555,7 @@ class UIModel extends Subject {
         //featuresByLayerId = this.featuresByLayerId;
 
         for (let regionId in this.regions) {
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(regionId)]);
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(regionId)]);
             openLayersFeatures[regionId] = geoJsonFeatures;
             regions[regionId] = this.regions[regionId].saveToJSON();
         }
@@ -562,7 +568,7 @@ class UIModel extends Subject {
     }
 
     clear() {
-        globalVectorSource.clear();
+        this._openLayersHandler.globalVectorSource.clear();
         this.updateRegionsDiv();
     }
 
@@ -573,12 +579,12 @@ class UIModel extends Subject {
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         if (typeof session === "string") session = JSON.parse(session);
 
-        globalVectorSource.clear();
+        this._openLayersHandler.globalVectorSource.clear();
         for (let regionId in session.regions) {
             //  let geoJsonFeatures = olGeoJson.readFeatures(
             //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
             let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
-            globalVectorSource.addFeatures(geoJsonFeatures);
+            this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
             let region = this.createRegion(
                 olGeoJson.readFeature(session.regions[regionId].boundaries),
                 session.regions[regionId].active);
@@ -783,7 +789,7 @@ class UIModel extends Subject {
                         return reject("Please, select a Feature to continue.");
                     }
 
-                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
+                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(region.id)]);
 
                     geoJsonFeatures.crs = {
                         "type": "name",
@@ -921,7 +927,7 @@ class UIModel extends Subject {
             this._regions[regionId] = newRegion;
 
             Region.on('activechange', function (region) {
-                globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+                this._openLayersHandler.globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
                 if (region.active) {
                     for (let layerIdx in region.layers) {
                         let layer = region.layers[layerIdx];

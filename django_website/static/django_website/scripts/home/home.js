@@ -18,18 +18,7 @@ var geoImageManager = null;
 */
 var openLayersHandler = null;
 
-/**
-* Used as the global vector layer
-* @param {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorLayer = null;
-/**
-* Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
-* @type {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorSource = null;
+
 /**
 * Used as a global auxiliary variable to allow drawing interactions over the map
 * @type {ol.interaction.Draw}
@@ -166,8 +155,6 @@ $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
 
-    initializeOpenLayers();
-
     initializeUI();
 
     setDefaults();
@@ -175,10 +162,17 @@ $(document).ready(function () {
 
 //#region Initializer functions
 
+/**
+ * @todo: Make the defaults parameters part of an object (maybe a config file?)
+ */
 function initializeUI() {
+
+    /* OpenLayers init */
+    let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
-    uiModel = new UIModel('regionsList', { mapMiner: "osm", mapFeature: "Streets" });
+    uiModel = new UIModel('regionsList', openLayersHandler, { mapMiner: "osm", mapFeature: "Streets" });
     uiModel.initialize().then(() => {
         geoImageManager = new GeoImageManager(uiModel);
 
@@ -205,27 +199,6 @@ function initializeUI() {
 }
 
 
-
-/**
- * Auxiliar function used to initialize OpenLayers related objects and events
- */
-function initializeOpenLayers() {
-    /* OpenLayers init */
-    openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
-
-    globalVectorSource = new ol.source.Vector({ wrapX: false });
-    globalVectorLayer = new ol.layer.Vector({
-        source: globalVectorSource
-    });
-    globalVectorLayer.setMap(openLayersHandler.map);
-
-    /*OpenLayers Event Handlers*/
-    globalVectorSource.on('addfeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('removefeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('changefeature', updateRegionsList, globalVectorSource);
-
-}
-
 /**
  * Used to set default options such default drawing mode, map tiles provider, etc.
  * @todo Make changeShapeClick part of UIView class
@@ -238,7 +211,7 @@ function setDefaults() {
     * Box drawing tool
     * Google Street View Image Provider
     */
-    openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+    
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
     //changeShapeClick('Box', document.getElementById("btnBox"));
@@ -288,7 +261,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 * @see {@link http://api.jquery.com/jquery.ajax/}
 */
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
-    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. `+gettext('Error message') + ` : ${errorThrown} `);
+    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. ` + gettext('Error message') + ` : ${errorThrown} `);
     if (errorThrown)
         console.error(textStatus, errorThrown);
     else

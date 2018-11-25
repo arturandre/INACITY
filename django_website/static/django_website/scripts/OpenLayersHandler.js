@@ -66,6 +66,29 @@ class OpenLayersHandler {
             }
         });
 
+        /**
+        * Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
+        * @type {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+        this.globalVectorSource = new ol.source.Vector({ wrapX: false });
+        /**
+        * Used as the global vector layer
+        * @param {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+       this.globalVectorLayer = new ol.layer.Vector({
+            source: this.globalVectorSource
+        });
+
+        this.globalVectorLayer.setMap(openLayersHandler.map);
+
+        /** 
+         * Default selections:
+         * Tiles provider - Google maps road and satellite
+        */
+        changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+
         return instance;
     }
 
@@ -109,15 +132,15 @@ if (!OpenLayersHandler.init) {
                 provider: new ol.layer.Tile({ source: new ol.source.OSM() })
             },
             GOOGLE_ROADMAP_TILES:
-                {
-                    name: 'Google Maps Roads',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
-                },
+            {
+                name: 'Google Maps Roads',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
+            },
             GOOGLE_HYBRID_TILES:
-                {
-                    name: 'Google Maps Hybrid',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
-                }
+            {
+                name: 'Google Maps Hybrid',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
+            }
         };
 }
 
