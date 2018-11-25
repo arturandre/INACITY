@@ -12,6 +12,9 @@ let instance = null;
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
 class OpenLayersHandler {
+
+
+
     constructor(HTMLDIVtarget, defaultTileProvider) {
 
 
@@ -27,6 +30,9 @@ class OpenLayersHandler {
             }
             return instance;
         }
+
+
+
 
         var ime_usp_location = { lat: -23.5595116, lon: -46.731304 };
         var initial_zoom_level = 16;
@@ -65,6 +71,36 @@ class OpenLayersHandler {
                 });
             }
         });
+
+        /**
+        * Used as the global vector layer
+        * @param {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+        this.globalVectorLayer = new ol.source.Vector({ wrapX: false });;
+        /**
+        * Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
+        * @type {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+        this.globalVectorLayer = new ol.layer.Vector({
+            source: globalVectorSource
+        });
+        this.globalVectorLayer.setMap(this.map);
+        /**
+        * Used as a global auxiliary variable to allow drawing interactions over the map
+        * @type {ol.interaction.Draw}
+        * @see [ol.interaction.Draw]{@link https://openlayers.org/en/latest/apidoc/ol.interaction.Draw.html}
+        */
+
+        //Default selections:
+        /*
+        * Tiles provider - Google maps road and satellite
+        * Focus mode - Image mode
+        * Box drawing tool
+        * Google Street View Image Provider
+        */
+        this.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
 
         return instance;
     }
@@ -109,15 +145,15 @@ if (!OpenLayersHandler.init) {
                 provider: new ol.layer.Tile({ source: new ol.source.OSM() })
             },
             GOOGLE_ROADMAP_TILES:
-                {
-                    name: 'Google Maps Roads',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
-                },
+            {
+                name: 'Google Maps Roads',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
+            },
             GOOGLE_HYBRID_TILES:
-                {
-                    name: 'Google Maps Hybrid',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
-                }
+            {
+                name: 'Google Maps Hybrid',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
+            }
         };
 }
 

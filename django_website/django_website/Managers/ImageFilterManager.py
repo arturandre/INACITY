@@ -1,6 +1,6 @@
 from geojson import Polygon, Feature, FeatureCollection
 from django_website.ImageFilters.ImageFilter import ImageFilter
-from django_website.Primitives.Primitives import GeoImage
+from django_website.Primitives.GeoImage import GeoImage
 
 from django.utils.translation import gettext as _
 

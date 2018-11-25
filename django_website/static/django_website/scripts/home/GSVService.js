@@ -1,24 +1,3 @@
-if (!GSVService.init) {
-    GSVService.init = true;
-    GSVService.defaultKey = 'AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc';
-    GSVService.baseurl = "https://maps.googleapis.com/maps/api/streetview";
-
-    /**
-    * StreetViewService component used to collect the panoramas
-    * @see StreetViewPanoramaData
-    * @const {google.maps.StreetViewService}
-    */
-    GSVService.streetViewService = new google.maps.StreetViewService();
-
-    /** 
-    * Used to define the radius of the area, around given location, to search for a panorama. 
-    * @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
-    * @const {int} 
-    */
-    GSVService.maxRadius = 10;
-
-}
-
 class GSVService {
     /**
      * Auxiliar function to print errors caught.
@@ -68,67 +47,13 @@ class GSVService {
      * features[0].coordinates[x][y][z]
      * @param {Feature} feature - [GeoJson Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2}
      * object with one or more coordinates
-     * @returns {Promise} Promise object with the input feature with a new property (geoImages).
+     * @returns {null} The input feature is changed in place receiving a new property (geoImages).
      */
-    //static getPanoramaForFeature(feature, featureIndex) {
-    //    return new Promise(function (resolve, reject) {
-    //        let geometryType = feature.geometry.type;
 
-    //        let coordinates = feature.geometry.coordinates;
-    //        let geoImages = feature.properties.geoImages = new Array();
-    //        let numCalls = 0;
-    //        if (geometryType === "MultiPolygon") {
-    //            //Number of Polygons
-    //            for (let i = 0; i < coordinates.length; i++) {
-    //                geoImages[i] = new Array(coordinates[i].length);
-    //                //Number of LineStrings/Linear Rings
-    //                for (let j = 0; j < coordinates[i].length; j++) {
-    //                    let coordsLen = coordinates[i][j].length;
-    //                    numCalls += coordsLen;
-    //                    geoImages[i][j] = new Array(coordsLen);
-    //                    //Number of coordinates [(lon, lat)]
-    //                    for (let k = 0; k < coordsLen; j++) {
-    //                        let lonLatCoordinate = coordinates[i][j];
-    //                        setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages[i][j], k);
-    //                    }
-    //                }
-    //            }
-    //        }
-    //        else if (
-    //            geometryType === "MultiLineString" ||
-    //            geometryType === "Polygon"
-    //        ) {
-    //            //Number of LineStrings/Linear Rings
-    //            for (let i = 0; i < coordinates.length; i++) {   //Number of coordinates [(lon, lat)]
-    //                let coordsLen = coordinates[i].length;
-    //                geoImages[i] = new Array(coordsLen);
-    //                numCalls += coordsLen;
-    //                for (let j = 0; j < coordsLen; j++) {
-    //                    let lonLatCoordinate = coordinates[i][j];
-    //                    setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages[i], j);
-    //                }
-    //            }
-    //        }
-    //        else if (geometryType === "LineString" || geometryType === "MultiPoint") {
-    //            let coordsLen = coordinates.length;
-    //            numCalls = coordsLen;
-    //            //Number of coordinates [(lon, lat)]
-    //            for (let i = 0; i < coordsLen; i++) {
-    //                let lonLatCoordinate = coordinates[i];
-    //                setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages, i);
-    //            }
-    //        }
-    //        else if (geometryType === "Point") {
-    //            numCalls = 1;
-    //            let lonLatCoordinate = coordinates;
-    //            setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImages, 0);
-    //        }
-    //        else {
-    //            console.error(`Geometry type (${geometryType}) not recognized!`);
-    //            reject(`Geometry type (${geometryType}) not recognized!`);
-    //        }
-    //    });
-    //}
+    static async setPanoramaForFeatureCollection(featureCollection) {
+        const promises = featureCollection.features.map(GSVService.setPanoramaForFeature);
+        await Promise.all(promises);
+    }
 
     //Works in-place
     static async setPanoramaForFeature(feature) {
@@ -136,7 +61,7 @@ class GSVService {
             /*Not leaf function*/ undefined,
             /*Leaf function*/ async function (node) {
                 return await GSVService.getPanoramaByLocation(node).then(
-                    (streetViewPanoramaData) => streetViewPanoramaData,
+                    (streetViewPanoramaData) => streetViewPanoramaData.toGeoImage(),
                     (err) => err
                 );
             });
@@ -155,7 +80,7 @@ class GSVService {
             }
             let nextNode = root[index++];
             do {
-                newRoot.push(await cloneTree(nextNode, notLeafFunction, LeafFunction, root));
+                newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction, root));
                 nextNode = root[index++];
             }
             while (nextNode);
@@ -268,7 +193,40 @@ class GSVService {
 
     static imageURLBuilderForGeoImage(geoImage, size, key) {
         let _size = size || [640, 640];
-        let _key = key || defaultKey;
-
+        let _key = key || GSVService.defaultKey;
+        return GSVService.imageURLBuilder(
+            _size,
+            geoImage.id,
+            geoImage.heading,
+            geoImage.pitch,
+            _key);
     }
+    static imageURLBuilder(size, panoid, heading, pitch, key) {
+        return `${GSVService.baseurl}${GSVService.queryStringBuilderPanorama(size, panoid, heading, pitch, key)}`;
+    }
+
+    static queryStringBuilderPanorama(size, panoid, heading, pitch, key) { 
+        return `?size=${size[0]}x${size[1]}&pano=${panoid}&heading=${heading}&pitch=${pitch}&key=${key}`;
+    }
+}
+
+if (!GSVService.init) {
+    GSVService.init = true;
+    GSVService.defaultKey = 'AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc';
+    GSVService.baseurl = "https://maps.googleapis.com/maps/api/streetview";
+
+    /**
+    * StreetViewService component used to collect the panoramas
+    * @see StreetViewPanoramaData
+    * @const {google.maps.StreetViewService}
+    */
+    GSVService.streetViewService = new google.maps.StreetViewService();
+
+    /** 
+    * Used to define the radius of the area, around given location, to search for a panorama. 
+    * @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
+    * @const {int} 
+    */
+    GSVService.maxRadius = 10;
+
 }

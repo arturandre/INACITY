@@ -13,13 +13,12 @@ import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
+from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
 
 from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
 from django_website.Managers.UserManager import UserManager
-
-from django_website.Primitives import *
 
 # General functions
 from django.conf import settings
@@ -41,7 +40,7 @@ from django.utils import translation
 
 ########### TESTING ##################
 from django.core.files.storage import FileSystemStorage
-from django_website.Primitives.Primitives import GeoImage
+
 ########### TESTING ##################
 
 ##############GLOBALS####################
@@ -139,7 +138,7 @@ def loadsession(request):
         if ret:
             return JsonResponse(ret)
         else:
-            return Http404
+            return HttpResponse(status=200)
     return HttpResponse(status=200)
 
 
@@ -152,6 +151,12 @@ def savesession(request):
         #@TODO: Check if session "request.data['uiModelJSON']" is valid 
         request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
+
+@api_view(['POST'])
+def clearsession(request):
+    del request.session['uiModelJSON']
+    return HttpResponse(status=204)
+
 
 def logout(request):
     django_logout(request)
@@ -219,7 +224,7 @@ def processimagesfromfeaturecollection(request):
     ret['featureCollection'] = imageFilterManager.processImageFromFeatureCollection(imageFilterId, featureCollection)
     ret['regionId'] = jsondata['regionId']
     ret['layerId'] = jsondata['layerId']
-    return JsonResponse(ret)
+    return JsonResponse(ret, CustomJSONEncoder)
 
     
 @api_view(['POST'])

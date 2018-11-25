@@ -52,8 +52,8 @@ class Link
 * Class representing sizes for tileSize and worldSize
 * @param {string} [b="px"] - Unknow
 * @param {string} [f="px"] - Unknow
-* @param {int} [height=512]
-* @param {int} [width=512]
+* @param {int} [height=512] - Height
+* @param {int} [width=512]  - Width
 */
 class gsvSize {
     constructor(parameters) {
@@ -184,7 +184,7 @@ class StreetViewPanoramaData {
      * @param {Link[]} data.links - See [Link]{@link module:StreetViewPanoramaData~Link}
      * @param {Tile} data.tiles - See [Tile]{@link module:StreetViewPanoramaData~Tile}
      * @param {Time[]} data.time - See [Time]{@link module:StreetViewPanoramaData~Time}
-     * @returns An instance fufilled of StreetViewPanoramaData
+     * @returns {StreetViewPanoramaData} - An instance fufilled of StreetViewPanoramaData
      * @see [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng}
      */
     static fromStreetViewServiceData(data) {
@@ -205,7 +205,7 @@ class StreetViewPanoramaData {
 
     toGeoImage()
     {
-        let ret = GeoImage();
+        let ret = new GeoImage();
         ret.id = this.location.pano;
         ret.location = this.location;
         ret.heading = this.tiles.centerHeading;
@@ -213,7 +213,7 @@ class StreetViewPanoramaData {
         ret.metadata = this;
         ret.data = GSVService.imageURLBuilderForGeoImage(ret);
         ret.dataType = "URL";
-        ret.metadata['imageURL'] = GSVService.imageURLBuilderForGeoImage(ret);
+        ret.metadata['imageURL'] = ret.data;
         return ret;
         
     }
