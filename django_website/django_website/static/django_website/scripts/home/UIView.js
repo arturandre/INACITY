@@ -275,7 +275,7 @@ class UIView {
 
 
         this._drawInteraction = new ol.interaction.Draw({
-            source: globalVectorSource,
+            source: this.uiModel.openLayersHandler.globalVectorSource,
             type: 'Circle',
             geometryFunction: this.SelectedDrawTool.geometryFunction,
         });

@@ -19,6 +19,11 @@ var geoImageManager = null;
 var openLayersHandler = null;
 
 
+/**
+* Used as a global auxiliary variable to allow drawing interactions over the map
+* @type {ol.interaction.Draw}
+* @see [ol.interaction.Draw]{@link https://openlayers.org/en/latest/apidoc/ol.interaction.Draw.html}
+*/
 
 
 /**
@@ -157,17 +162,16 @@ $(document).ready(function () {
 
 //#region Initializer functions
 
-/** 
+/**
  * @todo: Make the defaults parameters part of an object (maybe a config file?)
-*/
+ */
 function initializeUI() {
+
     /* OpenLayers init */
     let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
 
-    /** 
-     * @todo: Make the defaults parameters part of an object (maybe a config file?)
-    */
     /* UIModel init*/
+    //TODO: Make the defaults parameters part of an object (maybe a config file?)
     uiModel = new UIModel('regionsList', openLayersHandler, { mapMiner: "osm", mapFeature: "Streets" });
     uiModel.initialize().then(() => {
         geoImageManager = new GeoImageManager(uiModel);
@@ -194,11 +198,20 @@ function initializeUI() {
     }, console.error);
 }
 
+
 /**
  * Used to set default options such default drawing mode, map tiles provider, etc.
  * @todo Make changeShapeClick part of UIView class
  */
 function setDefaults() {
+    //Default selections:
+    /*
+    * Tiles provider - Google maps road and satellite
+    * Focus mode - Image mode
+    * Box drawing tool
+    * Google Street View Image Provider
+    */
+    
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
     //changeShapeClick('Box', document.getElementById("btnBox"));

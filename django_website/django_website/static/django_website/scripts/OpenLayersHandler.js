@@ -12,9 +12,6 @@ let instance = null;
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
 class OpenLayersHandler {
-
-
-
     constructor(HTMLDIVtarget, defaultTileProvider) {
 
 
@@ -30,9 +27,6 @@ class OpenLayersHandler {
             }
             return instance;
         }
-
-
-
 
         var ime_usp_location = { lat: -23.5595116, lon: -46.731304 };
         var initial_zoom_level = 16;
@@ -73,32 +67,25 @@ class OpenLayersHandler {
         });
 
         /**
-        * Used as the global vector layer
-        * @param {ol.layer.Vector}
-        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-        */
-        this.globalVectorLayer = new ol.source.Vector({ wrapX: false });;
-        /**
         * Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
         * @type {ol.layer.Vector}
         * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
         */
-        this.globalVectorLayer = new ol.layer.Vector({
-            source: globalVectorSource
-        });
-        this.globalVectorLayer.setMap(this.map);
+        this.globalVectorSource = new ol.source.Vector({ wrapX: false });
         /**
-        * Used as a global auxiliary variable to allow drawing interactions over the map
-        * @type {ol.interaction.Draw}
-        * @see [ol.interaction.Draw]{@link https://openlayers.org/en/latest/apidoc/ol.interaction.Draw.html}
+        * Used as the global vector layer
+        * @param {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
         */
+       this.globalVectorLayer = new ol.layer.Vector({
+            source: this.globalVectorSource
+        });
 
-        //Default selections:
-        /*
-        * Tiles provider - Google maps road and satellite
-        * Focus mode - Image mode
-        * Box drawing tool
-        * Google Street View Image Provider
+        this.globalVectorLayer.setMap(this.map);
+
+        /** 
+         * Default selections:
+         * Tiles provider - Google maps road and satellite
         */
         this.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
 
