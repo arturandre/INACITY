@@ -193,7 +193,7 @@ class Region extends Subject {
 
         this._layers = {};
 
-        this.active = active;
+        this._active = active;
     }
 
     saveToJSON() {
@@ -204,7 +204,7 @@ class Region extends Subject {
         let regionSession = {
             id: this.id,
             name: this.name,
-            active: this.active,
+            active: this._active,
             boundaries: this.boundaries,
             layers: layersJSON
         };
@@ -365,9 +365,9 @@ class UIModel extends Subject {
         this._openLayersHandler = openLayersHandler;
 
         /*OpenLayers Event Handlers*/
-        this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
-        this._openLayersHandler.globalVectorSource.on('removefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
-        this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
+        this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this);
+        this._openLayersHandler.globalVectorSource.on('removefeature', this.updateRegionsList, this);
+        this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this);
 
 
         if (defaults) {
@@ -386,7 +386,7 @@ class UIModel extends Subject {
             case 'removefeature':
                 if (vectorevent.feature.getProperties()['type'] === 'region') {
                     let featureId = vectorevent.feature.getId();
-                    uiModel.removeRegion(featureId);
+                    this.removeRegion(featureId);
                 }
                 break;
             case 'changefeature':
@@ -394,6 +394,9 @@ class UIModel extends Subject {
             default:
                 console.error(gettext('Unknown event type!'));
                 break;
+        }
+        if (vectorevent.feature.getProperties()['type'] === 'region'){
+            this.saveSession();
         }
     
     }
@@ -414,6 +417,22 @@ class UIModel extends Subject {
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
+    async _collectLayersForEmptyRegions(region){
+        return new Promise(function (resolve){ if (Object.keys(region.layers).length === 0) {
+            this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
+            {
+                resolve();
+                this.saveSession();
+            }).bind(this);
+        }
+        else {
+            //Otherwise simply collect the image's from the feature selected
+            this.saveSession();
+            return resolve();
+        }
+    });
+    }
+
     async getImages(selectedImageProvider) {
         return new Promise(function (resolve, reject) {
             let numCalls = 0;
@@ -429,13 +448,19 @@ class UIModel extends Subject {
                           Case the user simply select a region and then try to get the images
                           by default the Streets from OSM will be used as features
                         */
-                        if (Object.keys(region.layers).length === 0) {
-                            this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
-                        }
-                        else {
-                            //Otherwise simply collect the image's from the feature selected
-                            return resolve();
-                        }
+                       this._collectLayersForEmptyRegions(region).then(() => resolve());
+                        // if (Object.keys(region.layers).length === 0) {
+                        //     this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
+                        //     {
+                        //         this.saveSession();
+                        //         resolve();
+                        //     }).bind(this);
+                        // }
+                        // else {
+                        //     //Otherwise simply collect the image's from the feature selected
+                        //     this.saveSession();
+                        //     return resolve();
+                        // }
                     }.bind(this))).then(async () => {
                         let activeLayers = region.getActiveLayers();
 
@@ -455,6 +480,7 @@ class UIModel extends Subject {
                             layer.geoImagesLoaded = true;
                             numCalls -= 1;
                             if (numCalls === 0) {
+                                this.saveSession();
                                 return resolve();
                             }
                         }
@@ -494,13 +520,14 @@ class UIModel extends Subject {
                           Case the user simply select a region and then try to get the images
                           by default the Streets from OSM will be used as features
                         */
-                        if (Object.keys(region.layers).length === 0) {
-                            this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
-                        }
-                        else {
-                            //Otherwise simply collect the image's from the feature selected
-                            return resolve();
-                        }
+                       this._collectLayersForEmptyRegions(region).then(() => resolve());
+                        // if (Object.keys(region.layers).length === 0) {
+                        //     this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
+                        // }
+                        // else {
+                        //     //Otherwise simply collect the image's from the feature selected
+                        //     return resolve();
+                        // }
                     }.bind(this))).then(() => {
                         let activeLayers = region.getActiveLayers();
 
@@ -576,7 +603,8 @@ class UIModel extends Subject {
         //featuresByLayerId = this.featuresByLayerId;
 
         for (let regionId in this.regions) {
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(regionId)]);
+            let olFeature = this._openLayersHandler.globalVectorSource.getFeatureById(regionId);
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([olFeature]);
             openLayersFeatures[regionId] = geoJsonFeatures;
             regions[regionId] = this.regions[regionId].saveToJSON();
         }
@@ -666,7 +694,7 @@ class UIModel extends Subject {
                 success: function (data, textStatus, jqXHR) {
                     //Success message
                     try {
-                        if (data && data.length > 0) {
+                        if (data) {
                             this.loadFromJSON(data);
                         }
                     } catch (error) {
@@ -927,6 +955,7 @@ class UIModel extends Subject {
         element.toggleClass("active");
         let region = event.data;
         region.toggleActive();
+        this.saveSession();
         UIModel.notify('regionlistitemclick', region);
     }
 
@@ -938,7 +967,11 @@ class UIModel extends Subject {
 
         feature.setId(regionId);
         feature.setProperties({ 'type': 'region' });
-        feature.setStyle(active ? selectedRegionStyle : null);
+        let style = active ? 'selectedRegionStyle' : 'transparentStyle';
+        feature.setProperties({'style': style});
+        //createRegion is called in response to drawend event, so setProperties won't generate another event
+        //setStyle always fires an change event that can't be silenced! 
+        feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
 
         name = name || `Region ${idNumber}`;
         //active default is false
@@ -948,7 +981,10 @@ class UIModel extends Subject {
             this._regions[regionId] = newRegion;
 
             Region.on('activechange', function (region) {
-                this._openLayersHandler.globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+                let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
+                let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
+                feature.setProperties({'style': style});
+                feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
                 if (region.active) {
                     for (let layerIdx in region.layers) {
                         let layer = region.layers[layerIdx];
@@ -963,7 +999,7 @@ class UIModel extends Subject {
                         uiView.removeLayer(layer);
                     }
                 }
-            }.bind(null, newRegion));
+            }.bind(this, newRegion));
 
             this.updateRegionsDiv();
             return newRegion;
@@ -1054,8 +1090,7 @@ class UIModel extends Subject {
                 UIModel.notify('featuresmerged', layer);
             }
         }
-
-
+        this.saveSession();
     }
 }
 

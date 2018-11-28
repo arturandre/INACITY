@@ -49,33 +49,7 @@ var availableImageMiners = [];
 
 //#region Styles
 
-/**
- * Style used to mark a select(active) region
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var selectedRegionStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
-    stroke: new ol.style.Stroke({
-        color: '#ff0000',
-        width: 1
-    })
-});
 
-/**
- * Auxiliar style to give transparency for OpenLayers' features
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var transparentStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.0)' }),
-    stroke: new ol.style.Stroke({
-        color: 'rgba(0,0,0,0.0)',
-        width: 1
-    })
-});
 
 //#endregion Styles 
 
