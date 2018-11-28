@@ -633,6 +633,14 @@ class UIModel extends Subject {
             //  let geoJsonFeatures = olGeoJson.readFeatures(
             //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
             let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
+            for (const feature in geoJsonFeatures)
+            {
+                let style = geoJsonFeatures[feature].getProperties().style;
+                if (style)
+                {
+                    geoJsonFeatures[feature].setStyle(OpenLayersHandler.Styles[style]);
+                }
+            }
             this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
             let region = this.createRegion(
                 olGeoJson.readFeature(session.regions[regionId].boundaries),
