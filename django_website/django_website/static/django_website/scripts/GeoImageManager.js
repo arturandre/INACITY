@@ -52,7 +52,7 @@ class GeoImageManager extends Subject {
     }
 
     loadLayerAtIndex(layerIndex) {
-        return this.setCurrentGeoImagesCollection(this._displayingLayers[layerIndex].featureCollection);
+        return this._setCurrentGeoImagesCollection(this._displayingLayers[layerIndex].featureCollection);
     }
 
     /**
@@ -193,7 +193,7 @@ class GeoImageManager extends Subject {
      * @fires [geoimagescollectionchange]{@link module:GeoImageManager~GeoImageManager.geoimagescollectionchange}
      * @returns {boolean} True if the change is successful, false if otherwise
      */
-    setCurrentGeoImagesCollection(newFeatureCollection) {
+    _setCurrentGeoImagesCollection(newFeatureCollection) {
         if (!(newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0)) return false;
 
         this._currentGeoImagesCollection = [];
