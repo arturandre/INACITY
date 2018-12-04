@@ -799,6 +799,10 @@ class UIModel extends Subject {
         }.bind(this));
     }
 
+    /**
+     * All active layers from getActiveLayers() with geoImagesLoaded set to true are displayingLayers
+     * and contains GeoImages to be displayed.
+     */
     getDisplayingLayers() {
         let displayingLayers = [];
         let activeLayers = this.getActiveLayers();

@@ -4,8 +4,11 @@
  */
 
 /**
- * Responsible for displaying GeoImages from features.
+ * Responsible for displaying GeoImages
  * @param {string} DOMImageId - The id of the image element (from DOM) that will be used to display the collected GeoImages.
+ * @param {UIModel} uiModel - Source of GIS features and GeoImages
+ * @param {Object} [options] - Optional settings
+ * @param {int} [options.autoPlayTimeInterval=3000] - Interval for autoplay (default 2 seconds)
  */
 class GeoImageManager extends Subject {
     constructor(uiModel, options) {
@@ -39,22 +42,28 @@ class GeoImageManager extends Subject {
      * Getter for [_validImages]{@link module:GeoImageManager~_validImages}; the number of valid images in the [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection}
      */
     get validImages() { return this._validImages; }
+    /**
+     * Which image is currently being displayed. Ranges from 0 to [_validImages]{@link module:GeoImageManager~_validImages}.
+     */
     get currentIndex() { return this._currentIndex; }
 
+    /**
+     * Collects from [uiModel]{@link module:GeoImageManager~uiModel} all active layers with GeoImagesLoaded set to true.
+     * @param {String} [filterId] - If set then all layers with processedImages with this filterId will be presented
+     * instead of the raw images collected from some Image Provider
+     * @todo What to do when there's no active layer? (Stop the current presentation?)
+     */
     updateDisplayingLayers(filterId) {
         this._displayingLayers = this.uiModel.getDisplayingLayers();
         if (!this._displayingLayers.length > 0) return;
         this._currentLayer = 0;
-        if (!this.loadLayerAtIndex(this._currentLayer)) return;
+        if (!this._setCurrentGeoImagesCollection(this._displayingLayers[layerIndex].featureCollection)) return;
         this._currentIndex = 0;
         this.imageFilterId = filterId;
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
     }
 
-    loadLayerAtIndex(layerIndex) {
-        return this._setCurrentGeoImagesCollection(this._displayingLayers[layerIndex].featureCollection);
-    }
-
+    
     /**
      * Changes automatically the currently presented geoImage
      * @param {int} autoPlayNewState - Controls the state of GeoImageManager's autoplay
