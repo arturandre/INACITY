@@ -417,20 +417,25 @@ class UIModel extends Subject {
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
-    async _collectLayersForEmptyRegions(region){
-        return new Promise(function (resolve){ if (Object.keys(region.layers).length === 0) {
-            this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
+    async _collectLayersForEmptyRegions(region)
+    {
+        return new Promise(function (resolve)
+        { 
+            if (Object.keys(region.layers).length === 0)
+                {
+                this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
+                {
+                    this.saveSession();
+                    resolve();
+                }).bind(this);
+            }
+            else 
             {
-                resolve();
+                //Otherwise simply collect the image's from the feature selected
                 this.saveSession();
-            }).bind(this);
-        }
-        else {
-            //Otherwise simply collect the image's from the feature selected
-            this.saveSession();
-            return resolve();
-        }
-    });
+                return resolve();
+            }
+        }.bind(this));
     }
 
     async getImages(selectedImageProvider) {
@@ -594,6 +599,10 @@ class UIModel extends Subject {
         }.bind(this));
     }
 
+    /**
+     * Serialize user session
+     * @todo Create a function out of UIModel to aggregate all components data 
+     */
     saveToJSON() {
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
@@ -611,7 +620,8 @@ class UIModel extends Subject {
         let session = {
             //featuresByLayerId: featuresByLayerId,
             regions: regions,
-            openLayersFeatures: openLayersFeatures
+            openLayersFeatures: openLayersFeatures,
+            geoImageManager: geoImageManager.saveToJSON()
         };
         return session;
     }
@@ -646,6 +656,7 @@ class UIModel extends Subject {
                 olGeoJson.readFeature(session.regions[regionId].boundaries),
                 session.regions[regionId].active);
             region.loadFromJSON(session.regions[regionId]);
+            geoImageManager.loadFromJSON(session.geoImageManager);
             //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
         }
 
@@ -808,7 +819,8 @@ class UIModel extends Subject {
         let activeLayers = this.getActiveLayers();
         for (let layerIdx in activeLayers) {
             let layer = activeLayers[layerIdx];
-            if (layer.geoImagesLoaded) {
+            if (layer.geoImagesLoaded)
+            {
                 displayingLayers.push(layer);
             }
         }

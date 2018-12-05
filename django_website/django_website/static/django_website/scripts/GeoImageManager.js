@@ -8,7 +8,7 @@
  * @param {string} DOMImageId - The id of the image element (from DOM) that will be used to display the collected GeoImages.
  * @param {UIModel} uiModel - Source of GIS features and GeoImages
  * @param {Object} [options] - Optional settings
- * @param {int} [options.autoPlayTimeInterval=3000] - Interval for autoplay (default 2 seconds)
+ * @param {int} [options.autoPlayTimeInterval=2000] - Interval for autoplay (default 2 seconds)
  */
 class GeoImageManager extends Subject {
     constructor(uiModel, options) {
@@ -38,6 +38,27 @@ class GeoImageManager extends Subject {
         }
     }
 
+    saveToJSON()
+    {
+        let ret = 
+        {
+            _displayingLayers: this._displayingLayers,
+            _currentLayer: this._currentLayer,
+            _currentIndex: this._currentIndex,
+            _validImages: this._validImages
+        };
+
+        return ret;
+    }
+
+    loadFromJSON(geoImageManagerSession)
+    {
+        this._displayingLayers = geoImageManagerSession._displayingLayers;
+        this._currentLayer = geoImageManagerSession._currentLayer;
+        this._currentIndex = geoImageManagerSession._currentIndex;
+        this._validImages = geoImageManagerSession._validImages;
+    }
+
     /**
      * Getter for [_validImages]{@link module:GeoImageManager~_validImages}; the number of valid images in the [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection}
      */
@@ -51,19 +72,31 @@ class GeoImageManager extends Subject {
      * Collects from [uiModel]{@link module:GeoImageManager~uiModel} all active layers with GeoImagesLoaded set to true.
      * @param {String} [filterId] - If set then all layers with processedImages with this filterId will be presented
      * instead of the raw images collected from some Image Provider
-     * @todo What to do when there's no active layer? (Stop the current presentation?)
      */
     updateDisplayingLayers(filterId) {
         this._displayingLayers = this.uiModel.getDisplayingLayers();
-        if (!this._displayingLayers.length > 0) return;
+        if (!this._displayingLayers.length > 0)
+        {
+            this._clearPresentation();
+            return;
+        }
         this._currentLayer = 0;
-        if (!this._setCurrentGeoImagesCollection(this._displayingLayers[layerIndex].featureCollection)) return;
+        if (!this._setCurrentGeoImagesCollection(this._displayingLayers[this._currentLayer].featureCollection))
+        {
+            this._clearPresentation();
+            return;
+        }
         this._currentIndex = 0;
         this.imageFilterId = filterId;
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
     }
 
-    
+
+    _clearPresentation()
+    {
+            throw "NotImplemented";
+    }
+
     /**
      * Changes automatically the currently presented geoImage
      * @param {int} autoPlayNewState - Controls the state of GeoImageManager's autoplay
@@ -85,13 +118,13 @@ class GeoImageManager extends Subject {
         if (this._autoPlayState === 0 && autoPlayNewState === 1) //Stopped -> Playing
         {
             this._autoPlayIntervalID = setInterval(function () {
-                this.displayFeatures(false);
+                this._displayNextValidImage(false);
             }.bind(this), this._autoPlayTimeInterval);
         }
         else if (this._autoPlayState === 2 && autoPlayNewState === 1) //Paused -> Playing
         {
             this._autoPlayIntervalID = setInterval(function () {
-                this.displayFeatures(false);
+                this._displayNextValidImage(false);
             }.bind(this), this._autoPlayTimeInterval);
         }
         else if ((this._autoPlayState === 1 || this._autoPlayState === 2) && (autoPlayNewState === 0 || autoPlayNewState === 2)) //Playing/Paused -> Stopped/Paused
@@ -107,16 +140,6 @@ class GeoImageManager extends Subject {
     }
 
     /**
-     * Check if object is a leaf (geoImage)
-     * @private
-     * @param {any} object - The object to be tested
-     * @returns {Boolean} True if the object is not undefined nor an Array
-     */
-    _isLeaf(object) {
-        return !!object && !(object instanceof Array);
-    }
-
-    /**
      * Get the geoImage from [_currentGeoImagesCollection]{@link module:GeoImageManager~_currentGeoImagesCollection} at "index" position.
      * Updates the [_validImages]{@link module:GeoImageManager~_validImages} property as a side effect when the index is greater than
      * the number of available images.
@@ -125,74 +148,9 @@ class GeoImageManager extends Subject {
      * @returns {GeoImage|int} Case the index is greater than the number of GeoImages then it returns the number of GeoImages
      */
     _getGeoImageAtIndex(index) {
-        let ret = this._traverseCollection(this._currentGeoImagesCollection, index);
+        let ret = traverseCollection(this._currentGeoImagesCollection, index);
         if (typeof ret === "number") this._validImages = ret;
         return ret;
-    }
-
-    _countValidImages(root) {
-        if (this._isLeaf(root)) {
-            //return this._isValidJsonObject(root) ? 1 : 0;
-            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
-        }
-        let n = 0;
-        let count = 0;
-        while (root[n]) {
-            count += this._countValidImages(root[n]);
-            n += 1;
-        }
-        return count;
-    }
-
-    _removeInvalidImages(root) {
-        if (this._isLeaf(root)) {
-            //return this._isValidJsonObject(root) ? 1 : 0;
-            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
-        }
-        let n = 0;
-        let count = 0;
-        let oldCount = 0;
-        while (root[n]) {
-            count += this._removeInvalidImages(root[n]);
-            if (count === oldCount) {
-                root.splice(n, 1);
-                n -= 1;
-            }
-            oldCount = count;
-            n += 1;
-        }
-        return count;
-    }
-
-
-    /**
-     * Traverses the GeoImages graph and select the leaf in the "index" position.
-     * If "index" is greater than the number of leafs (geoImages) then it returns the number of leafs
-     * @private
-     * @param {Array} root - The graph of GeoImages
-     * @param {int} index - Index of the desired leaf (geoImage)
-     * @param {int} currentIndex - Should be zero (used by recursion)
-     * @returns {Object|int} - The node or 1
-     */
-    _traverseCollection(root, index, currentIndex) {
-        if (typeof currentIndex !== 'number') currentIndex = 0;
-        if (this._isLeaf(root)) {
-            if (currentIndex === index) {
-                return root;
-            }
-            else {
-                return 1;
-            }
-        }
-        let n = 0;
-        while (root[n]) {
-            let k = this._traverseCollection(root[n], index - currentIndex, 0);
-            if (typeof k !== 'number') return k;
-            currentIndex += k;
-            n += 1;
-        }
-        return currentIndex;
-
     }
 
     /**
@@ -213,8 +171,8 @@ class GeoImageManager extends Subject {
                 this._currentGeoImagesCollection.push(geoImages);
             }
         }
-        let removedCount = this._removeInvalidImages(this._currentGeoImagesCollection);
-        this._validImages = this._countValidImages(this._currentGeoImagesCollection);
+        let removedCount = removeInvalidImages(this._currentGeoImagesCollection);
+        this._validImages = countValidImages(this._currentGeoImagesCollection);
         if (removedCount !== this._validImages)
             throw "removedCount different from this._validImages!";
         GeoImageManager.notify('geoimagescollectionchange', this._currentGeoImagesCollection);
@@ -222,36 +180,33 @@ class GeoImageManager extends Subject {
     }
 
     /**
-     * Start the displaying of the current GeoImages collection
+     * Displays the next valid image. Except if fromStart is set to "true".
      * @todo Make the access to the image data more generic (e.g. without metadata)
      * @param {Boolean} fromStart - If true then the counter will be reset
      * @param {Boolean} startAutoPlay - Set a timer to change the images automatically
-     * @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
+     
      * @fires [imagechange]{@link module:GeoImageManager~GeoImageManager.imagechange}
      * @returns {Boolean} - True if the state was changed correctly
-     */
-    displayFeatures(fromStart, startAutoPlay) {
+     */ // @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
+    _displayNextValidImage(fromStart, startAutoPlay) {
         if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length === 0) {
             console.warn("Error: Trying to display empty geoImages collection.");
+            console.trace();
             return false;
         }
-        if (fromStart || (this._validImages < this._currentIndex)) this._currentIndex = -1;
+        if (fromStart || (this._validImages < this._currentIndex)) 
+        {
+            this._currentIndex = -1;
+            this._currentLayer = (this._currentLayer+1) % this._displayingLayers.length;
+            this._setCurrentGeoImagesCollection(this._displayingLayers[this._currentLayer].featureCollection);
+        }
         let geoImage = this._getNextImage();
         if (!geoImage) {
-            GeoImageManager.notify('invalidcollection', null);
+            //GeoImageManager.notify('invalidcollection', null);
             return false;
         }
         this.displayGeoImage(geoImage);
-        //if (geoImage.dataType === 'URL') {
-        //    this._DOMImage.attr("src", geoImage.metadata.imageURL);
-        //}
-        //else if (geoImage.dataType === 'data:image/jpeg;base64') {
-        //    this._DOMImage.attr("src", `${geoImage.dataType}, ${geoImage.data}`);
-        //}
-        //else
-        //{
-        //    throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);
-        //}
+        
         GeoImageManager.notify('imagechange', geoImage);
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
@@ -260,6 +215,11 @@ class GeoImageManager extends Subject {
         return true;
     }
 
+    /**
+     * Display an image from a GeoImage tree. That is, a tree where leafs are GeoImage objects 
+     * @param {int} index - An integer value representing some geoImage between 0 and _validImages
+     * @param {Bool} silentChange - If true then it won't trigger an event
+     */
     displayFeatureAtIndex(index, silentChange) {
         if (index > this._validImages) {
             console.error(`Index (${index}) out of valid range [0-${this.validImages}]. `);
@@ -375,7 +335,7 @@ class GeoImageManager extends Subject {
 * @property {GeoImage} geoimage - The currently displayed geoimage
 */
 
-/**
+/*
 * Triggered while trying to display a GeoImage from a collection without any valid GeoImage.
 * @event module:GeoImageManager~GeoImageManager.invalidcollection
 */
@@ -385,7 +345,7 @@ if (!GeoImageManager.init) {
     GeoImageManager.registerEventNames([
     'imagechange',
     'geoimagescollectionchange',
-    'invalidcollection'
+    //'invalidcollection'
     ]);
     GeoImageManager.PlayCommands =
         {
