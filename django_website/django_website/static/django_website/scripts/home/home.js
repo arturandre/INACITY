@@ -18,18 +18,7 @@ var geoImageManager = null;
 */
 var openLayersHandler = null;
 
-/**
-* Used as the global vector layer
-* @param {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorLayer = null;
-/**
-* Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
-* @type {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorSource = null;
+
 /**
 * Used as a global auxiliary variable to allow drawing interactions over the map
 * @type {ol.interaction.Draw}
@@ -60,33 +49,7 @@ var availableImageMiners = [];
 
 //#region Styles
 
-/**
- * Style used to mark a select(active) region
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var selectedRegionStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
-    stroke: new ol.style.Stroke({
-        color: '#ff0000',
-        width: 1
-    })
-});
 
-/**
- * Auxiliar style to give transparency for OpenLayers' features
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var transparentStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.0)' }),
-    stroke: new ol.style.Stroke({
-        color: 'rgba(0,0,0,0.0)',
-        width: 1
-    })
-});
 
 //#endregion Styles 
 
@@ -166,8 +129,6 @@ $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
 
-    initializeOpenLayers();
-
     initializeUI();
 
     setDefaults();
@@ -175,10 +136,17 @@ $(document).ready(function () {
 
 //#region Initializer functions
 
+/**
+ * @todo: Make the defaults parameters part of an object (maybe a config file?)
+ */
 function initializeUI() {
+
+    /* OpenLayers init */
+    let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
-    uiModel = new UIModel('regionsList', { mapMiner: "osm", mapFeature: "Streets" });
+    uiModel = new UIModel('regionsList', openLayersHandler, { mapMiner: "osm", mapFeature: "Streets" });
     uiModel.initialize().then(() => {
         geoImageManager = new GeoImageManager(uiModel);
 
@@ -189,9 +157,9 @@ function initializeUI() {
                 shape: UIView.DrawTools.Box,
                 tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
                 imageProvider: "gsvProvider", //Retrieved from server
-                imageFilter: "greenery", //Retrieved from server
-                mapMiner: "osm", //Retrieved from server
-                mapFeature: "Streets", //Retrieved from server
+                imageFilter: "greenery",      //Retrieved from server
+                mapMiner: "osm",              //Retrieved from server
+                mapFeature: "Streets",        //Retrieved from server
                 viewmode: UIView.ViewModes.ImageMode
             });
 
@@ -230,30 +198,10 @@ function initializeUI() {
 
 
 
+        uiModel.loadSession();
     }, console.error);
 }
 
-
-
-/**
- * Auxiliar function used to initialize OpenLayers related objects and events
- */
-function initializeOpenLayers() {
-    /* OpenLayers init */
-    openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
-
-    globalVectorSource = new ol.source.Vector({ wrapX: false });
-    globalVectorLayer = new ol.layer.Vector({
-        source: globalVectorSource
-    });
-    globalVectorLayer.setMap(openLayersHandler.map);
-
-    /*OpenLayers Event Handlers*/
-    globalVectorSource.on('addfeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('removefeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('changefeature', updateRegionsList, globalVectorSource);
-
-}
 
 /**
  * Used to set default options such default drawing mode, map tiles provider, etc.
@@ -267,7 +215,7 @@ function setDefaults() {
     * Box drawing tool
     * Google Street View Image Provider
     */
-    openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+    
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
     //changeShapeClick('Box', document.getElementById("btnBox"));
@@ -317,7 +265,7 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 * @see {@link http://api.jquery.com/jquery.ajax/}
 */
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
-    alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
+    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. ` + gettext('Error message') + ` : ${errorThrown} `);
     if (errorThrown)
         console.error(textStatus, errorThrown);
     else
@@ -347,54 +295,9 @@ function disableSiblings(element) {
 
 //#region Event Handlers
 
-function updateRegionsList(vectorevent) {
-    switch (vectorevent.type) {
-        case 'addfeature':
-            uiView.cancelDrawing();
-            if (!vectorevent.feature.getId()) {
-                let idNumber = getNewId();
-                let regionId = 'region' + idNumber;
 
-                vectorevent.feature.setId(regionId);
-                vectorevent.feature.setProperties({ 'type': 'region' });
 
-                let newRegion = uiModel.createRegion(regionId, `Region ${idNumber}`, true);
 
-                globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
-
-                Region.on('activechange', function (region) {
-                    globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-                    if (region.active) {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //drawLayer@home.js
-                            uiView.drawLayer(layer);
-                        }
-                    }
-                    else {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //removeLayer@home.js
-                            uiView.removeLayer(layer);
-                        }
-                    }
-                });
-            }
-            break;
-        case 'removefeature':
-            if (vectorevent.feature.getProperties()['type'] === 'region') {
-                let featureId = vectorevent.getId();
-                uiModel.removeRegion(featureId);
-            }
-            break;
-        case 'changefeature':
-            break;
-        default:
-            console.error('Unknown event type!');
-            break;
-    }
-
-}
 
 
 

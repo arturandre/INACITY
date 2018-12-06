@@ -7,18 +7,6 @@
 
 //#region Global variables
 
-///**
-// * Responsible for keeping user selections.
-// * @todo Make it a class.
-// * @param {string} SelectedMapMiner - Selected map miner's id
-// * @param {string} SelectedMapFeature - Selected map features's id
-// * @param {string} SelectedImageProvider - Selected image providers' id
-// */
-//var uiView = {}
-//uiView.SelectedMapMiner = null;
-//uiView.SelectedMapFeature = null;
-//uiView.SelectedImageProvider = null;
-
 var uiView = null;
 
 var geoImageManager = null;
@@ -30,18 +18,7 @@ var geoImageManager = null;
 */
 var openLayersHandler = null;
 
-/**
-* Used as the global vector layer
-* @param {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorLayer = null;
-/**
-* Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
-* @type {ol.layer.Vector}
-* @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
-*/
-var globalVectorSource = null;
+
 /**
 * Used as a global auxiliary variable to allow drawing interactions over the map
 * @type {ol.interaction.Draw}
@@ -178,8 +155,6 @@ $(document).ready(function () {
     /* Bootstrap tooltips initializer*/
     $('[data-toggle="tooltip"]').tooltip();
 
-    initializeOpenLayers();
-
     initializeUI();
 
     setDefaults();
@@ -187,10 +162,17 @@ $(document).ready(function () {
 
 //#region Initializer functions
 
+/**
+ * @todo: Make the defaults parameters part of an object (maybe a config file?)
+ */
 function initializeUI() {
+
+    /* OpenLayers init */
+    let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
-    uiModel = new UIModel('regionsList', { mapMiner: "osm", mapFeature: "Streets" });
+    uiModel = new UIModel('regionsList', openLayersHandler, { mapMiner: "osm", mapFeature: "Streets" });
     uiModel.initialize().then(() => {
         geoImageManager = new GeoImageManager(uiModel);
 
@@ -201,9 +183,9 @@ function initializeUI() {
                 shape: UIView.DrawTools.Box,
                 tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
                 imageProvider: "gsvProvider", //Retrieved from server
-                imageFilter: "greenery", //Retrieved from server
-                mapMiner: "osm", //Retrieved from server
-                mapFeature: "Streets", //Retrieved from server
+                imageFilter: "greenery",      //Retrieved from server
+                mapMiner: "osm",              //Retrieved from server
+                mapFeature: "Streets",        //Retrieved from server
                 viewmode: UIView.ViewModes.ImageMode
             });
 
@@ -212,30 +194,10 @@ function initializeUI() {
 
         uiController.initialize();
         uiView.initialize();
+        uiModel.loadSession();
     }, console.error);
 }
 
-
-
-/**
- * Auxiliar function used to initialize OpenLayers related objects and events
- */
-function initializeOpenLayers() {
-    /* OpenLayers init */
-    openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
-
-    globalVectorSource = new ol.source.Vector({ wrapX: false });
-    globalVectorLayer = new ol.layer.Vector({
-        source: globalVectorSource
-    });
-    globalVectorLayer.setMap(openLayersHandler.map);
-
-    /*OpenLayers Event Handlers*/
-    globalVectorSource.on('addfeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('removefeature', updateRegionsList, globalVectorSource);
-    globalVectorSource.on('changefeature', updateRegionsList, globalVectorSource);
-
-}
 
 /**
  * Used to set default options such default drawing mode, map tiles provider, etc.
@@ -249,7 +211,7 @@ function setDefaults() {
     * Box drawing tool
     * Google Street View Image Provider
     */
-    openLayersHandler.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+    
     $('#btnOSMMapsTiles').addClass('disabled');
     $('#btnImageMode').addClass('disabled');
     //changeShapeClick('Box', document.getElementById("btnBox"));
@@ -293,12 +255,13 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
 
 /**
 * Auxiliar function to display to the user eventual errors during ajax calls
+* @param {string} locationName - Indication of where the error occured. (i.e. function's name)
 * @param {string} textStatus - The type of error that occurred and an optional exception object, if one occurred. Possible values for the second argument (besides null) are "timeout", "error", "abort", and "parsererror".
 * @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
 * @see {@link http://api.jquery.com/jquery.ajax/}
 */
 function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
-    alert(`Error during server at ${locationName}. Status: ${textStatus}. Error message: ${errorThrown} `);
+    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. ` + gettext('Error message') + ` : ${errorThrown} `);
     if (errorThrown)
         console.error(textStatus, errorThrown);
     else
@@ -307,22 +270,10 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
 
 //#endregion Auxiliar functions for caller functions
 
-//#region UI Functions 
-
-
-
-
-
-//#endregion UI Functions
-
 //#region UI Auxiliary Functions
 
-
-
-
-
 /**
- * Remove the 'disabled' css class from the element passed as parameter and adds the
+ * Removes the 'disabled' css class from the element passed as parameter and adds the
  * 'disabled' css class to any siblings (other elements with a common parent element) of the element.
  * @param {JQueryObject} element - A DOMElement encapsulated with JQuery (i.e. $('#myElementId') )
  */
@@ -340,50 +291,22 @@ function disableSiblings(element) {
 
 //#region Event Handlers
 
+
+
 function updateRegionsList(vectorevent) {
     switch (vectorevent.type) {
         case 'addfeature':
-            uiView.cancelDrawing();
-            if (!vectorevent.feature.getId()) {
-                let idNumber = getNewId();
-                let regionId = 'region' + idNumber;
-
-                vectorevent.feature.setId(regionId);
-                vectorevent.feature.setProperties({ 'type': 'region' });
-
-                let newRegion = uiModel.createRegion(regionId, `Region ${idNumber}`, true);
-
-                globalVectorSource.getFeatureById(newRegion.id).setStyle(newRegion.active ? selectedRegionStyle : null);
-
-                Region.on('activechange', function (region) {
-                    globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
-                    if (region.active) {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //drawLayer@home.js
-                            uiView.drawLayer(layer);
-                        }
-                    }
-                    else {
-                        for (let layerIdx in region.layers) {
-                            let layer = region.layers[layerIdx];
-                            //removeLayer@home.js
-                            uiView.removeLayer(layer);
-                        }
-                    }
-                });
-            }
             break;
         case 'removefeature':
             if (vectorevent.feature.getProperties()['type'] === 'region') {
-                let featureId = vectorevent.getId();
+                let featureId = vectorevent.feature.getId();
                 uiModel.removeRegion(featureId);
             }
             break;
         case 'changefeature':
             break;
         default:
-            console.error('Unknown event type!');
+            console.error(gettext('Unknown event type!'));
             break;
     }
 
@@ -418,7 +341,7 @@ function getClickedElement(event) {
 /**
 * Used to disable a button inside a selection group of buttons (i.e. Map Tiles provider).
 * If the target (i.e. button) can't be defined "undefined" is returned.
-* @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+* @param {Event} event - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
 * @returns {DOMElement|undefined} - See [Element]{@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
 */
 function btnElementChecker(event) {

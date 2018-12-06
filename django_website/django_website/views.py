@@ -3,28 +3,44 @@
 import sys
 
 import requests
-from django.shortcuts import render
-from django.template import loader
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from urllib.parse import unquote
 
 import json
 import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
+from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
 
 from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
+from django_website.Managers.UserManager import UserManager
 
-from django_website.Primitives import *
+# General functions
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.template import loader
+
+#User Auth
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, authenticate
+
+# To avoid an override of the function logout
+# Define an alias for django.contrib.auth.login function using as keyword.
+# https://stackoverflow.com/questions/31779234/runtime-error-when-trying-to-logout-django
+from django.contrib.auth import logout as django_logout
+
+#Translation & Internationalization
+from django.utils import translation
 
 
 ########### TESTING ##################
 from django.core.files.storage import FileSystemStorage
-from django_website.Primitives.Primitives import GeoImage
+
 ########### TESTING ##################
 
 ##############GLOBALS####################
@@ -38,7 +54,27 @@ __TEMPLATE_GLOBAL_VARS = {'WebsiteName': 'INACITY'}
 imageFilterManager = ImageFilterManager()
 imageProviderManager = ImageProviderManager()
 mapMinerManager = MapMinerManager()
+userManager = UserManager() 
 ##############GLOBALS####################
+
+# @TODO: Make the translation call accept POST, store it's session and then translate the page keeping user data unchanged (forms/session)
+def lang(request, lang_code):
+    user_language = lang_code
+    translation.activate(user_language)
+    request.session[translation.LANGUAGE_SESSION_KEY] = user_language
+    next = request.META.get('HTTP_REFERER')
+    if next:
+        next = unquote(next)  # HTTP_REFERER may be encoded.
+    response = HttpResponseRedirect(next)
+    response.set_cookie(
+                    settings.LANGUAGE_COOKIE_NAME, lang_code,
+                    max_age=settings.LANGUAGE_COOKIE_AGE,
+                    path=settings.LANGUAGE_COOKIE_PATH,
+                    domain=settings.LANGUAGE_COOKIE_DOMAIN,
+                )
+    print(lang_code)
+    return response
+
 
 def about(request):
     htmlfile = 'about.html'
@@ -49,6 +85,82 @@ def tutorial(request):
     htmlfile = 'tutorial.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+# User Auth
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def users(request):
+    retMethod = ''
+    jsonData = request.data
+    if request.method == 'GET':
+        retMethod = ''
+    elif  request.method == 'POST':
+        userManager.createUser(jsonData)
+        retMethod = ''
+    elif  request.method == 'PUT':
+        retMethod = ''
+    elif  request.method == 'DELETE':
+        retMethod = ''
+    retMethod = request.method
+
+    return HttpResponse(f'Hello Users! {retMethod}')
+
+@api_view(['GET'])
+def profile(request):
+    htmlfile = 'registration/profile.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['GET', 'POST'])
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            #@TODO: Redirect to user sessions page
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    htmlfile = 'registration/register.html'
+    local_vars = {'sample_key': 'sample_data', 'form': form}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+@api_view(['POST'])
+def loadsession(request):
+    if request.user.is_authenticated:
+        #@TODO: Load session from user's sessions table
+        pass
+    else:
+        ret = request.session.get('uiModelJSON')
+        if ret:
+            return JsonResponse(ret)
+        else:
+            return HttpResponse(status=200)
+    return HttpResponse(status=200)
+
+
+@api_view(['POST'])
+def savesession(request):
+    if request.user.is_authenticated:
+        #@TODO: Save session "request.data['uiModelJSON']" to user's sessions table
+        pass
+    else:
+        #@TODO: Check if session "request.data['uiModelJSON']" is valid 
+        request.session['uiModelJSON'] = request.data['uiModelJSON']
+    return HttpResponse(status=204)
+
+@api_view(['POST'])
+def clearsession(request):
+    del request.session['uiModelJSON']
+    return HttpResponse(status=204)
+
+
+def logout(request):
+    django_logout(request)
+    return redirect('home')
 
 
 @api_view(['GET'])
@@ -100,8 +212,8 @@ def getimagesforfeaturecollection(request):
             status=tryGetImagesForCollection.status_code,
             content_type=tryGetImagesForCollection.headers['Content-Type'])
     ret['featureCollection'] = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
-    ret['regionId'] = jsondata['regionId'];
-    ret['layerId'] = jsondata['layerId'];
+    ret['regionId'] = jsondata['regionId']
+    ret['layerId'] = jsondata['layerId']
     return JsonResponse(ret)
 
 @api_view(['POST'])
@@ -113,7 +225,7 @@ def processimagesfromfeaturecollection(request):
     ret['featureCollection'] = imageFilterManager.processImageFromFeatureCollection(imageFilterId, featureCollection)
     ret['regionId'] = jsondata['regionId']
     ret['layerId'] = jsondata['layerId']
-    return JsonResponse(ret)
+    return JsonResponse(ret, CustomJSONEncoder)
 
     
 @api_view(['POST'])

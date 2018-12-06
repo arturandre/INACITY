@@ -2,6 +2,7 @@ import imageio
 import numpy as np
 from typing import List
 import json
+from json import JSONEncoder
 import geojson
 from PIL import Image
 from io import BytesIO
@@ -28,9 +29,20 @@ class SimpleDTO(object):
         print(ret)
         return ret
 
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__
 
+class ProcessedImageData():
+    def __init__(self):
+        self.id = None
+        self.imageData = None
+        self.imageDataType = None
+        self.filterId = None
+        self.density = -1
+        self.isPresent = None
 
-class GeoImage(SimpleDTO):
+class GeoImage():
     """Object responsible for keeping image and panorama's data"""
     def __init__(self):
         self.id = None
@@ -39,8 +51,8 @@ class GeoImage(SimpleDTO):
         self.location = geojson.Point()
         self.heading = 0
         self.pitch = 0
-        self.metadata = {} #Json Structured list
-        self.processedData = {}
+        self.metadata = {} #Json Structured dict
+        self.processedDataList = {} #Dictionary containing ProcessedData objects as values and filterId's as keys
 
     @classmethod
     def fromJSON(cls, jsonData: dict):
@@ -52,7 +64,7 @@ class GeoImage(SimpleDTO):
         geoImage.heading = jsonData.get('heading', 0)
         geoImage.pitch = jsonData.get('pitch', 0)
         geoImage.metadata = jsonData.get('metadata', {}) or {}
-        geoImage.processedData = jsonData.get('processedData', {}) or {}
+        geoImage.processedDataList = jsonData.get('processedDataList', {}) or {}
         #if geoImage.dataType == 'URL':
         #    geoImage.setDataFromImage(imageio.imread(geoImage.data))
         return geoImage
@@ -94,18 +106,39 @@ class GeoImage(SimpleDTO):
         inputImage.save(buff, format="JPEG")
         return base64.b64encode(buff.getvalue()).decode("utf-8")
 
-    def setProcessedData(self, filterId: str, type, value):
-        if type == 'ndarray':
-            value = Image.fromarray(img_as_ubyte(value))
-            value = GeoImage.imageToBase64JPEG(value)
-        self.processedData[filterId] = f'data:image/jpeg;base64,{value}'
+    def setProcessedData(self, filterId: str, type, imageData=None, density=-1, isPresent=None):
+        """Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict
+        
+        :param filterId: Identifies the ProcessedData object
+        :type filterId: str
+        :param type: Defines the image format ('ndarray' or None)
+        :type type: str
+        :param imageData: Image's pixel data, defaults to None
+        :param imageData: Numpy.ndarray, optional
+        :param density: Defines how much of a feature is present in an image (eg. greenery), defaults to -1
+        :param density: float (range: [0, 1]), optional
+        :param isPresent: Defines if a feature exists in the image (eg. Poles), defaults to None
+        :param isPresent: bool, optional
+        """
 
-    def getPNG(self):
-        """Converts the image to a PNG file"""
-        outdata = self.data.copy()
-        if outdata.dtype != 'uint8': 
-            outdata = np.uint8(outdata*255)
-        return imageio.imwrite(imageio.RETURN_BYTES, outdata, format='PNG-PIL')
+        pImageData = ProcessedImageData()
+        if type == 'ndarray':
+            imageData = Image.fromarray(img_as_ubyte(imageData))
+            imageData = GeoImage.imageToBase64JPEG(imageData)
+            pImageData.imageData = f'data:image/jpeg;base64,{imageData}'
+        pImageData.filterId = filterId
+        pImageData.density = density
+        pImageData.isPresent = isPresent
+
+        self.processedDataList[filterId] = pImageData
+        
+
+    # def getPNG(self):
+    #     """Converts the image to a PNG file"""
+    #     outdata = self.data.copy()
+    #     if outdata.dtype != 'uint8': 
+    #         outdata = np.uint8(outdata*255)
+    #     return imageio.imwrite(imageio.RETURN_BYTES, outdata, format='PNG-PIL')
         
 
 

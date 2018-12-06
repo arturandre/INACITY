@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block scripts %}
+{% load staticfiles %}
+{% endblock %}
+
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+
+{% block title %}{{WebsiteName}} | {% trans "Login" %}{% endblock %}
+
+{% block pageheader %}
+
+{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+  Hi {{ user.username }}!
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">login</a>
+{% endif %}
+
+{% endblock %}

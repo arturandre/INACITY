@@ -10,7 +10,7 @@ class DrawTool {
             this.geometryFunction = geoFunction;
         }
         else {
-            throw Error(`Invalid DrawToolName: ${DrawToolName}`);
+            throw Error(gettext("Invalid DrawToolName")+`: ${DrawToolName}`);
         }
     }
 }
@@ -19,9 +19,9 @@ if (!DrawTool.init) {
     DrawTool.init = true;
     DrawTool.validNames =
         [
-            'Box',
-            'Square',
-            'Dodecagon'
+            gettext('Box'),
+            gettext('Square'),
+            gettext('Dodecagon')
         ];
     DrawTool.isNameValid = function (name) {
         return (DrawTool.validNames.indexOf(name) >= 0);
@@ -154,7 +154,7 @@ class UIView {
                 this.jqimageDiv.removeClass('hidden');
                 break;
             default:
-                console.error("Unknown mode selected!")
+                console.error(gettext("Unknown mode selected!"));
                 break;
         }
         let viewModeLabel = $(`#changeModeDiv > label:contains('${viewmode.name}')`);
@@ -244,18 +244,18 @@ class UIView {
     */
     changeMapProviderClick(tileProvider) {
         this.SelectedMapProvider = tileProvider;
-        openLayersHandler.changeMapProvider(tileProvider.provider);
+        this.uiModel.openLayersHandler.changeMapProvider(tileProvider.provider);
     }
 
     cancelDrawing() {
         this._SelectedDrawTool = null;
 
         if (this._drawInteraction) {
-            openLayersHandler.map.removeInteraction(this._drawInteraction);
+            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
             this._drawInteraction = null;
         }
 
-        this.setLabelSelectionBtn(this.jqbtnShapeSelector, "Shape", true);
+        this.setLabelSelectionBtn(this.jqbtnShapeSelector, gettext("Shape"), true);
 
         this.jqbtnCancelDrawing.addClass("hidden");
 
@@ -266,21 +266,40 @@ class UIView {
 
     changeShapeClick(drawTool) {
         if (!DrawTool.isNameValid(drawTool.name)) {
-            throw Error("Invalid DrawTool.");
+            throw Error(gettext("Invalid DrawTool."));
         }
         if (this._drawInteraction) {
-            openLayersHandler.map.removeInteraction(this._drawInteraction);
+            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
         }
         this.SelectedDrawTool = drawTool;
 
 
         this._drawInteraction = new ol.interaction.Draw({
-            source: globalVectorSource,
+            source: this.uiModel.openLayersHandler.globalVectorSource,
             type: 'Circle',
-            geometryFunction: this.SelectedDrawTool.geometryFunction
+            geometryFunction: this.SelectedDrawTool.geometryFunction,
         });
-        openLayersHandler.map.addInteraction(this._drawInteraction);
+        this._drawInteraction.on('drawend', this.drawingHandlers, this);
+        this.uiModel.openLayersHandler.map.addInteraction(this._drawInteraction);
 
+    }
+
+    drawingHandlers(eventKey) {
+        switch (eventKey.type) {
+            case 'drawend':
+                // let idNumber = getNewId();
+                // let regionId = 'region' + idNumber;
+    
+                // eventKey.feature.setId(regionId);
+                // eventKey.feature.setProperties({ 'type': 'region' });
+                
+                this.uiModel.createRegion(eventKey.feature, true);
+                this.cancelDrawing();
+                break;
+            default:
+                console.error(gettext('Unknown event type!'));
+                break;
+        }
     }
 
 
@@ -380,14 +399,14 @@ class UIView {
         this.jqbtnExecuteQuery.addClass("hidden");
 
         //Selection buttons
-        this.setLabelSelectionBtn(this.jqbtnMapMiner, "Map Miner", true);
-        this.setLabelSelectionBtn(this.jqbtnMapFeature, "Feature", true);
+        this.setLabelSelectionBtn(this.jqbtnMapMiner, gettext("Map Miner"), true);
+        this.setLabelSelectionBtn(this.jqbtnMapFeature, gettext("Feature"), true);
 
         
     }
 
     drawLayer(layer, forceRedraw) {
-        if (!layer) { console.warn("Undefined layer!"); return; }
+        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollection = layer.featureCollection;
         let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
@@ -398,10 +417,10 @@ class UIView {
 
             if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed) {
                 if (forceRedraw) {
-                    let olFeature = globalVectorSource.getFeatureById(feature.id);
-                    globalVectorSource.removeFeature(olFeature);
+                    let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                    this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
                     olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                    globalVectorSource.addFeature(olFeature);
+                    this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                     this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
                 }
                 else {
@@ -410,7 +429,7 @@ class UIView {
             }
             else {
                 let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                globalVectorSource.addFeature(olFeature);
+                this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
             }
 
@@ -418,7 +437,7 @@ class UIView {
     }
 
     removeLayer(layer) {
-        if (!layer) { console.warn("Undefined layer!"); return; }
+        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollection = layer.featureCollection;
 
         for (let featureIdx in featureCollection.features) {
@@ -429,8 +448,8 @@ class UIView {
             */
             if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
             else {
-                let olFeature = globalVectorSource.getFeatureById(feature.id);
-                globalVectorSource.removeFeature(olFeature);
+                let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
             }
         }
@@ -441,7 +460,7 @@ class UIView {
     * @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
     */
     setLoadingText(jqElement) {
-        let loadingText = '<i class="far fa-compass fa-spin"></i> Loading...';
+        let loadingText = '<i class="far fa-compass fa-spin"></i> '+gettext('Loading')+'...';
         jqElement.data('original-text', jqElement.html());
         jqElement.html(loadingText);
     }
@@ -492,7 +511,7 @@ class UIView {
             }
         }
 
-        this.jqbtnCollectImages.attr('data-original-title', "Selected layers are:\n" + hintLayers.join('\n'));
+        this.jqbtnCollectImages.attr('data-original-title', gettext("Selected layers are")+":\n" + hintLayers.join('\n'));
 
         //function refreshHintTitle()
         //{
@@ -663,9 +682,9 @@ if (!UIView.init) {
      */
     UIView.DrawTools =
         {
-            Box: new DrawTool('Box', ol.interaction.Draw.createBox()),
-            Square: new DrawTool('Square', ol.interaction.Draw.createRegularPolygon(4)),
-            Dodecagon: new DrawTool('Dodecagon', function (coordinates, geometry) {
+            Box: new DrawTool(gettext('Box'), ol.interaction.Draw.createBox()),
+            Square: new DrawTool(gettext('Square'), ol.interaction.Draw.createRegularPolygon(4)),
+            Dodecagon: new DrawTool(gettext('Dodecagon'), function (coordinates, geometry) {
                 if (!geometry) {
                     geometry = new ol.geom.Polygon(null);
                 }
@@ -691,8 +710,8 @@ if (!UIView.init) {
 
     UIView.ViewModes =
     {
-        ImageMode: { name: "Image Mode", viewmode: "Image" },
-        MapMode: { name: "Map Mode", viewmode: "Map" },
+        ImageMode: { name: gettext("Image Mode"), viewmode: "Image" },
+        MapMode: { name: gettext("Map Mode"), viewmode: "Map" },
     };
 }
 

@@ -9,7 +9,7 @@ class GeoImage
         this.data = null;
         this.dataType = null;
         this.metadata = null;
-        this.processedData = null;
+        this.processedDataList = null;
     }
     static fromObject(obj)
     {

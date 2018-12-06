@@ -5,14 +5,13 @@
  */
 
 /**
- * Each layer is named after a MapMiner and a Feature
- * concatenated by an underscore.
- * Each layer contains a collection of regions 
- * named 'regions' and a list of features called featureCollection
- * with all the features collapsed into a single list.
+ * Each layer is named after a MapMiner and a Feature (e.g. Streets)
+ * concatenated by an underscore (e.g. osm - streets).
+ * Each Layer contains a list of geographical features called featureCollection.
+ * A Layer should be identified by a [LayerId]{@link LayerId} object.
  * Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)
  * related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)
- * @param {LayerId} layerId
+ * @param {LayerId} layerId - Represents an Id object for a Layer
  * @param {string} layerId.MapMinerId - The MapMiner used to collect the features from this layer
  * @param {string} layerId.FeatureName - Feature's name as reported by the backend
  * @param {bool} active - Indicates if this layers is currently active (e.g. drawed over the map)
@@ -29,14 +28,46 @@ class Layer extends Subject {
         this._layerId = layerId;
         this._featureCollection = null;
         this._active = !!active;
-
-
-
-        this.geoImagesLoaded = false;
+        this._geoImagesLoaded = false;
     }
+
+    saveToJSON() {
+        let layerSession = {
+            layerId: this._layerId.saveToJSON(),
+            featureCollection: this.featureCollection,
+            active: this.active,
+            geoImagesLoaded: this.geoImagesLoaded
+        };
+        return layerSession;
+    }
+
+    static createFromJSON(layerSession) {
+        let layerId = LayerId.createFromJSON(layerSession.layerId);
+
+        let ret = new Layer(layerId, layerSession.active);
+
+        ret.featureCollection = layerSession.featureCollection;
+        ret.active = layerSession.active;
+        ret.geoImagesLoaded = layerSession.geoImagesLoaded;
+        return ret;
+    }
+
+    loadFromJSON(layerSession) {
+        this.featureCollection = layerSession.featureCollection;
+        this.active = layerSession.active;
+        this.geoImagesLoaded = layerSession.geoImagesLoaded;
+    }
+
     get active() { return this._active; }
 
-
+    get geoImagesLoaded() { return this._geoImagesLoaded; }
+    set geoImagesLoaded(newState) {
+        let triggered = (newState !== this._geoImagesLoaded);
+        this._geoImagesLoaded = newState;
+        if (triggered) {
+            Layer.notify('featurecollectionchange', this);
+        }
+    }
 
     /** 
      * @param {LayerId} layerId - The LayerId object representing the MapMinerId and FeatureName displayed in this layer
@@ -49,6 +80,7 @@ class Layer extends Subject {
 
     /**
      * The active property controls wheter the features should or not be rendered 
+     * @param {Boolean} newActiveState - New value for active attribute
      * @acess public 
      * @fires [activechange]{@link module:UIModel~Layer#activechange}
      */
@@ -62,6 +94,7 @@ class Layer extends Subject {
 
     /** 
      * Represents all the geographical features (e.g. Streets) in this layer
+     * @param {FeatureCollection} newFeatureCollection - New feature collection value
      * @acess public 
      * @fires [featurecollectionchange]{@link module:UIModel~Layer#featurecollectionchange}
      */
@@ -95,6 +128,23 @@ class LayerId {
     toString() {
         return this.MapMinerId + " - " + this.FeatureName;
     }
+
+    saveToJSON() {
+        let layerIdJSON = {
+            MapMinerId: this.MapMinerId,
+            FeatureName: this.FeatureName
+        };
+        return layerIdJSON;
+    }
+
+    static createFromJSON(layerIdJSON) {
+        return (new LayerId(layerIdJSON.MapMinerId, layerIdJSON.FeatureName));
+    }
+
+    loadFromJSON(layerIdJSON) {
+        this.MapMinerId = layerIdJSON.MapMinerId;
+        this.FeatureName = layerIdJSON.FeatureName;
+    }
 }
 
 /**
@@ -120,8 +170,8 @@ Layer.createLayerId = function (mapMinerId, featureName) {
 if (!Layer.init) {
     Layer.init = true;
     Layer.registerEventNames([
-    'featurecollectionchange',
-    'activechange',
+        'featurecollectionchange',
+        'activechange',
     ]);
 }
 
@@ -145,8 +195,45 @@ class Region extends Subject {
 
         this.active = active;
     }
+
+    saveToJSON() {
+        let layersJSON = {};
+        for (let layerKey in this.layers) {
+            layersJSON[layerKey] = this.layers[layerKey].saveToJSON();
+        }
+        let regionSession = {
+            id: this.id,
+            name: this.name,
+            active: this.active,
+            boundaries: this.boundaries,
+            layers: layersJSON
+        };
+        return regionSession;
+    }
+
+    static createFromJSON(regionSession) {
+        let ret = new Region(regionSession.id, regionSession.name, regionSession.active);
+
+        for (let layerKey in regionSession.layers) {
+            ret[layerKey] = Layer.createFromJSON(regionSession.layers[layerKey]);
+        }
+        return ret;
+    }
+
+    loadFromJSON(regionSession) {
+        for (let layerKey in regionSession.layers) {
+            let layerSession = regionSession.layers[layerKey];
+            let layerId = LayerId.createFromJSON(layerSession.layerId);
+            let layer = this.createLayer(layerId);
+            layer.loadFromJSON(layerSession);
+
+            //this.layers[layerKey] = Layer.createFromJSON(regionSession.layers[layerKey]);
+        }
+    }
+
     /** Creates a new Layer with the specified id
-    * @param {string} id - Layer's identifier 
+    * @param {LayerId} layerId - Layer's identifier
+    * @returns {Layer} - A new instance of Layer
     * @fires [addlayer]{@link module:UIModel~Region#addlayer}
     */
     createLayer(layerId) {
@@ -162,6 +249,7 @@ class Region extends Subject {
     }
 
     /** [De]activate a region for displaying or colleting geographical features. 
+     * @returns {Boolean} - The new active value
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
     toggleActive() {
@@ -207,6 +295,7 @@ class Region extends Subject {
     get active() { return this._active; }
 
     /**
+     * @param {Boolean} newState - New value for the 'active' property
      * @type {boolean}
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
@@ -241,8 +330,8 @@ class Region extends Subject {
 if (!Region.init) {
     Region.init = true;
     Region.registerEventNames([
-    'activechange',
-    'addlayer',
+        'activechange',
+        'addlayer',
     ]);
 }
 
@@ -263,7 +352,7 @@ class FeatureRegions {
 * @param {div} regionsDivId - An HTML div element responsible for displaying the list of regions of interest selected by the user.
 */
 class UIModel extends Subject {
-    constructor(regionsDivId, defaults) {
+    constructor(regionsDivId, openLayersHandler, defaults) {
         super();
         this.setTarget(regionsDivId);
 
@@ -273,6 +362,12 @@ class UIModel extends Subject {
         this._imageProviders = [];
         this._imageFilters = [];
         this._mapMinersAndFeatures = [];
+        this._openLayersHandler = openLayersHandler;
+
+        /*OpenLayers Event Handlers*/
+        this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
+        this._openLayersHandler.globalVectorSource.on('removefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
+        this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this._openLayersHandler.globalVectorSource);
 
 
         if (defaults) {
@@ -282,9 +377,11 @@ class UIModel extends Subject {
 
     }
 
+
+
     /**
      * Collects images' providers and filters and maps' miners and features.
-     * @returns {Promise}
+     * @returns {Promise} - All the providers as registered at server's side
      */
     initialize() {
         let getServerDataPromises = Promise.all([this.getImageProviders(), this.getMapMinersAndFeatures(), this.getImageFilters()]);
@@ -296,7 +393,7 @@ class UIModel extends Subject {
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
-    getImages(selectedImageProvider) {
+    async getImages(selectedImageProvider) {
         return new Promise(function (resolve, reject) {
             let numCalls = 0;
             try {
@@ -318,7 +415,7 @@ class UIModel extends Subject {
                             //Otherwise simply collect the image's from the feature selected
                             return resolve();
                         }
-                    }.bind(this))).then(() => {
+                    }.bind(this))).then(async () => {
                         let activeLayers = region.getActiveLayers();
 
                         for (let layerIdx in activeLayers) {
@@ -333,46 +430,12 @@ class UIModel extends Subject {
                             }
 
                             numCalls += 1;
-
-                            $.ajax('/getimagesforfeaturecollection/',
-                            {
-                                method: 'POST',
-                                processData: false,
-                                data: JSON.stringify({
-                                    'imageMinerName': selectedImageProvider,
-                                    'featureCollection': JSON.stringify(layer.featureCollection),
-                                    'regionId': region.id,
-                                    'layerId': layer.layerId.toString()
-                                }),
-                                contentType: "application/json; charset=utf-8",
-                                dataType: 'json',
-                                success: function (data, textStatus, jqXHR) {
-                                    //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
-                                    let layer = this.regions[data['regionId']].layers[data['layerId']];
-                                    layer.featureCollection = data['featureCollection'];
-                                }.bind(this),
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    //@todo: Create a error handling mechanism
-                                    if (jqXHR.status === 413) {
-                                        alert("The request was too big to be processed. Try a smaller region.");
-                                    }
-                                    else {
-                                        defaultAjaxErrorHandler('getImages', textStatus, errorThrown);
-                                    }
-                                },
-                                complete: function (jqXHR, textStatus) {
-                                    /**
-                                    @todo: Treat parcial returns, the user should be able to see the results
-                                    as they are being received, rather than wait all of them.
-                                    */
-                                    numCalls -= 1;
-                                    if (numCalls == 0) {
-                                        return resolve();
-                                    }
-                                },
-                            },
-                            'json'
-                            );
+                            await GSVService.setPanoramaForFeatureCollection(layer.featureCollection);
+                            layer.geoImagesLoaded = true;
+                            numCalls -= 1;
+                            if (numCalls === 0) {
+                                return resolve();
+                            }
                         }
                     });
                 }
@@ -392,6 +455,8 @@ class UIModel extends Subject {
      * This function sends a feature collection already filled with geoImages. 
      * The data processed by the filters will be appended to each GeoImage as the
      * property processedData['filterId']
+     * @param {string} selectedImageFilter - Indicates which filter should be used to process images from the active layers.
+     * @returns {Promise} - Empty
      */
     getProcessedImages(selectedImageFilter) {
         return new Promise(function (resolve, reject) {
@@ -432,43 +497,43 @@ class UIModel extends Subject {
                             numCalls += 1;
 
                             $.ajax('/processimagesfromfeaturecollection/',
-                            {
-                                method: 'POST',
-                                processData: false,
-                                data: JSON.stringify({
-                                    'imageFilterId': selectedImageFilter,
-                                    'featureCollection': JSON.stringify(layer.featureCollection),
-                                    'regionId': region.id,
-                                    'layerId': layer.layerId.toString()
-                                }),
-                                contentType: "application/json; charset=utf-8",
-                                dataType: 'json',
-                                success: function (data, textStatus, jqXHR) {
-                                    //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
-                                    let layer = this.regions[data['regionId']].layers[data['layerId']];
-                                    layer.featureCollection = data['featureCollection'];
-                                }.bind(this),
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    //@todo: Create a error handling mechanism
-                                    if (jqXHR.status === 413) {
-                                        alert("The request was too big to be processed. Try a smaller region.");
-                                    }
-                                    else {
-                                        defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
-                                    }
+                                {
+                                    method: 'POST',
+                                    processData: false,
+                                    data: JSON.stringify({
+                                        'imageFilterId': selectedImageFilter,
+                                        'featureCollection': JSON.stringify(layer.featureCollection),
+                                        'regionId': region.id,
+                                        'layerId': layer.layerId.toString()
+                                    }),
+                                    contentType: "application/json; charset=utf-8",
+                                    dataType: 'json',
+                                    success: function (data, textStatus, jqXHR) {
+                                        //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
+                                        let layer = this.regions[data['regionId']].layers[data['layerId']];
+                                        layer.featureCollection = data['featureCollection'];
+                                    }.bind(this),
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        //@todo: Create a error handling mechanism
+                                        if (jqXHR.status === 413) {
+                                            alert("The request was too big to be processed. Try a smaller region.");
+                                        }
+                                        else {
+                                            defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
+                                        }
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+                                        /**
+                                        @todo: Treat parcial returns, the user should be able to see the results
+                                        as they are being received, rather than wait all of them.
+                                        */
+                                        numCalls -= 1;
+                                        if (numCalls === 0) {
+                                            return resolve();
+                                        }
+                                    },
                                 },
-                                complete: function (jqXHR, textStatus) {
-                                    /**
-                                    @todo: Treat parcial returns, the user should be able to see the results
-                                    as they are being received, rather than wait all of them.
-                                    */
-                                    numCalls -= 1;
-                                    if (numCalls == 0) {
-                                        return resolve();
-                                    }
-                                },
-                            },
-                            'json'
+                                'json'
                             );
                         }
                     });
@@ -479,6 +544,119 @@ class UIModel extends Subject {
                 throw err;
             }
         }.bind(this));
+    }
+
+    saveToJSON() {
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        //let featuresByLayerId = null; /* Features data for tracking */
+        let regions = {}; /* Regions data for tracking */
+        let openLayersFeatures = {}; /*OpenLayers features for drawing*/
+        //featuresByLayerId = this.featuresByLayerId;
+
+        for (let regionId in this.regions) {
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(regionId)]);
+            openLayersFeatures[regionId] = geoJsonFeatures;
+            regions[regionId] = this.regions[regionId].saveToJSON();
+        }
+        let session = {
+            //featuresByLayerId: featuresByLayerId,
+            regions: regions,
+            openLayersFeatures: openLayersFeatures
+        };
+        return session;
+    }
+
+    clear() {
+        this._openLayersHandler.globalVectorSource.clear();
+        this.updateRegionsDiv();
+    }
+
+    /** 
+     * @todo Treat possible exceptions
+     * **/
+    loadFromJSON(session) {
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        if (typeof session === "string") session = JSON.parse(session);
+
+        this._openLayersHandler.globalVectorSource.clear();
+        for (let regionId in session.regions) {
+            //  let geoJsonFeatures = olGeoJson.readFeatures(
+            //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
+            let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
+            this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
+            let region = this.createRegion(
+                olGeoJson.readFeature(session.regions[regionId].boundaries),
+                session.regions[regionId].active);
+            region.loadFromJSON(session.regions[regionId]);
+            //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
+        }
+
+    }
+
+    /**
+     * @todo Display success and error messages.
+     */
+    saveSession() {
+        $.ajax('/savesession/',
+            {
+                method: 'POST',
+                processData: false,
+                data: JSON.stringify({
+                    uiModelJSON: this.saveToJSON()
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                }.bind(this),
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }.bind(this)
+            });
+
+    }
+    clearSession() {
+        $.ajax('/clearsession/',
+            {
+                method: 'POST',
+                processData: false,
+                data: undefined,
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                    this.clear();
+                }.bind(this),
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }.bind(this)
+            });
+
+    }
+    loadSession() {
+        $.ajax('/loadsession/',
+            {
+                method: 'POST',
+                processData: false,
+                data: undefined,
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                    try {
+                        if (data && data.length > 0) {
+                            this.loadFromJSON(data);
+                        }
+                    } catch (error) {
+                        defaultAjaxErrorHandler('loadSession', textStatus, error);
+                    }
+                }.bind(this),
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }.bind(this)
+            });
     }
 
 
@@ -580,7 +758,9 @@ class UIModel extends Subject {
      * Function used to collect map features, from the server,
      * based on [UIView.SelectedMapMiner]{@link module:"UIView.js"~UIView.SelectedMapMiner}
      * and [UIView.SelectedMapFeature]{@link module:"UIView.js"~UIView.SelectedMapFeature}
-     * @param {Event} event - Event object generated by clicking over the 'this.jqbtnExecuteQuery' DOMElement button.
+     * @param {string} selectedMapMiner - Map miner used to search for features (i.e. OpenStreetMap)
+     * @param {string} selectedMapFeature - Which kind of feature should be fetched
+     * @returns {Promise} - Empty
      */
     executeQuery(selectedMapMiner, selectedMapFeature) {
         return new Promise(function (resolve, reject) {
@@ -609,7 +789,7 @@ class UIModel extends Subject {
                         return reject("Please, select a Feature to continue.");
                     }
 
-                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([globalVectorSource.getFeatureById(region.id)]);
+                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(region.id)]);
 
                     geoJsonFeatures.crs = {
                         "type": "name",
@@ -618,17 +798,17 @@ class UIModel extends Subject {
                         }
                     };
                     getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
-                    .then(function (data) {
-                        layer.featureCollection = data;
-                        numCalls = numCalls - 1;
-                        if (numCalls == 0) {
-                            return resolve();
-                        }
-                    }.bind(this))
-                    .catch(function (err) {
-                        //TODO: Set it as a reject
-                        defaultAjaxErrorHandler('executeQuery', "error", err);
-                    });
+                        .then(function (data) {
+                            layer.featureCollection = data;
+                            numCalls = numCalls - 1;
+                            if (numCalls === 0) {
+                                return resolve();
+                            }
+                        }.bind(this))
+                        .catch(function (err) {
+                            //TODO: Set it as a reject
+                            defaultAjaxErrorHandler('executeQuery', "error", err);
+                        });
                 }
 
                 if (noSelectedRegions) {
@@ -653,6 +833,7 @@ class UIModel extends Subject {
      * layer and feature belongs to some active region
      * @param {string} layerId - Layer's id
      * @param {int} featureId - Feature's id
+     * @returns {Boolean} - True if the feature and layer belongs to at least 1 active region
      */
     isFeatureActive(layerId, featureId) {
         for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions) {
@@ -728,17 +909,46 @@ class UIModel extends Subject {
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(id, name, active) {
+    createRegion(feature, active, name = null) {
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+
+        let idNumber = getNewId();
+        let regionId = 'region' + idNumber;
+
+        feature.setId(regionId);
+        feature.setProperties({ 'type': 'region' });
+        feature.setStyle(active ? selectedRegionStyle : null);
+
+        name = name || `Region ${idNumber}`;
         //active default is false
-        if (!(id in this._regions)) {
-            let newRegion = new Region(id, name, active);
-            this._regions[id] = newRegion;
+        if (!(regionId in this._regions)) {
+            let newRegion = new Region(regionId, name, active);
+            newRegion.boundaries = olGeoJson.writeFeature(feature);
+            this._regions[regionId] = newRegion;
+
+            Region.on('activechange', function (region) {
+                this._openLayersHandler.globalVectorSource.getFeatureById(region.id).setStyle(region.active ? selectedRegionStyle : null);
+                if (region.active) {
+                    for (let layerIdx in region.layers) {
+                        let layer = region.layers[layerIdx];
+                        //drawLayer@home.js
+                        uiView.drawLayer(layer);
+                    }
+                }
+                else {
+                    for (let layerIdx in region.layers) {
+                        let layer = region.layers[layerIdx];
+                        //removeLayer@home.js
+                        uiView.removeLayer(layer);
+                    }
+                }
+            }.bind(null, newRegion));
 
             this.updateRegionsDiv();
             return newRegion;
         }
         else {
-            throw Error(`id: '${id}' already present in regions list!`);
+            throw Error(`id: '${id}' ` + gettext("already present in regions list!"));
         }
     }
 
@@ -747,7 +957,7 @@ class UIModel extends Subject {
             return delete this._regions[id];
         }
         else {
-            throw Error(`id: '${id}' not found in regions list!`);
+            throw Error(`id: '${id}' ` + gettext("not found in regions list!"));
         }
     }
 
@@ -759,6 +969,7 @@ class UIModel extends Subject {
     /** 
     * Feature collections with Polygons representing regions of interest
     * @param {string} regionId - The id of the region
+    * @returns {Region} - The region with id = 'regionId' or 'undefined' if it doesn't exists
     */
     getRegionById(regionId) { return this._regions[regionId]; }
 
@@ -787,7 +998,17 @@ class UIModel extends Subject {
                     featureRegionsIndex[feature.id] = new FeatureRegions(feature, [region.id]);
                 }
                 else {
-                    if (featureRegionsIndex[feature.id].feature === feature) continue;
+                    if (featureRegionsIndex[feature.id].feature === feature)
+                    {
+                    continue;
+                    }
+                    else
+                    {
+                        //A retrieved feature that's been already collected
+                        //usually contains new information (e.g. processed data)
+                        featureRegionsIndex[feature.id].feature.properties = feature.properties;
+                    }
+
 
                     /*
                     If the different parts of the same multilinearstring feature appears in different layers
@@ -828,6 +1049,7 @@ class UIModel extends Subject {
  * @todo Transfer it to a more appropriate place
  * @param {float[]} lonLat1 - Array with 2 values
  * @param {float[]} lonLat2 - Array with 2 values
+ * @returns {Boolean} - True if both coordinates have the same values
  */
 function compareCoordinates(lonLat1, lonLat2) {
     return ((lonLat1[0] === lonLat2[0]) && (lonLat1[1] === lonLat2[1]));
@@ -845,8 +1067,8 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
         allLineStrings.push(feature1.geometry.coordinates[i]);
     for (let i = 0; i < feature2.geometry.coordinates.length; i++)
         allLineStrings.push(feature2.geometry.coordinates[i]);
-    let merged = false;
-    while (true) {
+    let merged = true;
+    while (merged) {
         merged = false;
         for (let i = allLineStrings.length - 1; i > 0; i--) {
             for (let j = i - 1; j >= 0; j--) {
@@ -854,7 +1076,7 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
                 if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0])
                     &&
                     compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1],
-                    allLineStrings[j][allLineStrings[j].length - 1])) //heads-heads and tails-tails
+                        allLineStrings[j][allLineStrings[j].length - 1])) //heads-heads and tails-tails
                 {
                     merged = true;
                     break;
@@ -897,9 +1119,9 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
                 break;
             }
         }
-        if (!merged) {
-            break;
-        }
+        //if (!merged) {
+        //    break;
+        //}
     }
     feature1.geometry.coordinates = feature2.geometry.coordinates = allLineStrings;
 }
@@ -925,7 +1147,7 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
 if (!UIModel.init) {
     UIModel.init = true;
     UIModel.registerEventNames([
-    'regionlistitemclick',
-    'featuresmerged',
+        'regionlistitemclick',
+        'featuresmerged',
     ]);
 }

@@ -26,7 +26,7 @@ class ImageFilter(ABC):
             errors = ", ".join(notImplementedFields)
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
     
-        cls._initialize(cls)
+        cls._initialize()
         pass
 
     __all__ = ["filterName", "filterId", "processImageFromFeatureCollection"]

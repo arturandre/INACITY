@@ -1,0 +1,147 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-11-17 15:51-0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\static\django_website\docs\_static\doctools.js:193
+msgid "Permalink to this headline"
+msgstr ""
+
+#: .\static\django_website\docs\_static\doctools.js:199
+msgid "Permalink to this definition"
+msgstr ""
+
+#: .\static\django_website\docs\_static\doctools.js:232
+msgid "Hide Search Matches"
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:400
+msgid "Searching"
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:405
+msgid "Preparing search..."
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:569
+msgid "Search Results"
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:571
+msgid ""
+"Your search did not match any documents. Please make sure that all words are "
+"spelled correctly and that you've selected enough categories."
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:573
+#, javascript-format
+msgid "Search finished, found %s page(s) matching the search query."
+msgstr ""
+
+#: .\static\django_website\docs\_static\searchtools.js:626
+msgid ", in "
+msgstr ""
+
+#: .\static\django_website\scripts\GeoImageManager.js:68
+msgid "Tried to repeat GeoImageManager's autoplay state"
+msgstr "O sistema tentou repetir um estado do GeoImageManager."
+
+#: .\static\django_website\scripts\home\UIModel.js:873
+msgid "already present in regions list!"
+msgstr "já presente na lista de regiões!"
+
+#: .\static\django_website\scripts\home\UIModel.js:882
+msgid "not found in regions list!"
+msgstr "não encontrada na lista de regiões!"
+
+#: .\static\django_website\scripts\home\UIView.js:13
+msgid "Invalid DrawToolName"
+msgstr "DrawToolName inválido"
+
+#: .\static\django_website\scripts\home\UIView.js:22
+#: .\static\django_website\scripts\home\UIView.js:685
+msgid "Box"
+msgstr "Caixa"
+
+#: .\static\django_website\scripts\home\UIView.js:23
+#: .\static\django_website\scripts\home\UIView.js:686
+msgid "Square"
+msgstr "Quadrado"
+
+#: .\static\django_website\scripts\home\UIView.js:24
+#: .\static\django_website\scripts\home\UIView.js:687
+msgid "Dodecagon"
+msgstr "Dodecágono"
+
+#: .\static\django_website\scripts\home\UIView.js:157
+msgid "Unknown mode selected!"
+msgstr "Modo selecionado desconhecido!"
+
+#: .\static\django_website\scripts\home\UIView.js:258
+msgid "Shape"
+msgstr "Forma"
+
+#: .\static\django_website\scripts\home\UIView.js:269
+msgid "Invalid DrawTool."
+msgstr "DrawTool inválido"
+
+#: .\static\django_website\scripts\home\UIView.js:300
+#: .\static\django_website\scripts\home\home.js:335
+msgid "Unknown event type!"
+msgstr "Tipo de evento desconhecido!"
+
+#: .\static\django_website\scripts\home\UIView.js:402
+msgid "Map Miner"
+msgstr "Mineirador de mapa"
+
+#: .\static\django_website\scripts\home\UIView.js:403
+msgid "Feature"
+msgstr "Característica"
+
+#: .\static\django_website\scripts\home\UIView.js:409
+#: .\static\django_website\scripts\home\UIView.js:440
+msgid "Undefined layer!"
+msgstr "Camada não definida!"
+
+#: .\static\django_website\scripts\home\UIView.js:463
+msgid "Loading"
+msgstr "Carregando"
+
+#: .\static\django_website\scripts\home\UIView.js:514
+msgid "Selected layers are"
+msgstr "As camadas selecionadas são"
+
+#: .\static\django_website\scripts\home\UIView.js:713
+msgid "Image Mode"
+msgstr "Modo de Imagem"
+
+#: .\static\django_website\scripts\home\UIView.js:714
+msgid "Map Mode"
+msgstr "Modo de Mapa"
+
+#: .\static\django_website\scripts\home\home.js:290
+msgid "Error during server at"
+msgstr "Erro durante"
+
+#: .\static\django_website\scripts\home\home.js:290
+msgid "Status"
+msgstr "Estado"
+
+#: .\static\django_website\scripts\home\home.js:290
+msgid "Error message"
+msgstr "Mensagem de erro"

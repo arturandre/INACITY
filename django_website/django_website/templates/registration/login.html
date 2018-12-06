@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block scripts %}
+{% load staticfiles %}
+{% endblock %}
+
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+
+{% block title %}{{WebsiteName}} | {% trans "Login" %}{% endblock %}
+
+{% block pageheader %}
+
+{% endblock %}
+
+{% block content %}
+
+<h2>Login</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">{% trans "Login" %}</button>
+</form>
+
+{% endblock %}

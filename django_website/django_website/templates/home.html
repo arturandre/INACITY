@@ -2,6 +2,10 @@
 {% block scripts %}
 {% load staticfiles %}
 
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
 <link rel="stylesheet" href="{% static 'django_website/css/home.css' %}" />
 <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
 <link rel="stylesheet" href="{% static 'django_website/css/fontawesome-pro-5.3.1-web/css/all.css' %}">
@@ -17,6 +21,7 @@
 <script type="text/javascript" src="{% static 'django_website/scripts/Primitives.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/Observer.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/GeoImage.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/Helper.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/GeoImageManager.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIModel.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIView.js' %}"></script>
@@ -37,11 +42,12 @@
 >>>>>>> master
 {% endblock %}
 
-{% block title %}{{WebsiteName}} | Home{% endblock %}
+{% block title %}{{WebsiteName}} | {% trans "Home"%}{% endblock %}
 
 {% block pageheader %}
 <div class="container alert alert-warning text-center" role="alert">
-    The platform was developed and tested with the browser Google Chrome version 58.0.3029.110 (64-bit). If you're having troubles while using some other browser try that.
+    {% comment %} A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele. {% endcomment %}
+    {% trans "The platform was developed and tested with the browser Google Chrome version 58.0.3029.110 (64-bit). If you're having troubles while using some other browser try that." %}
     <!--A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.-->
 </div>
 
@@ -60,7 +66,7 @@
             <div class="col-sm">
                 <div class="btn-group" role="group">
                     <button id="btnMapMiner" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Map Miner
+                        {% trans "Map Miner" %}
                     </button>
                     <div id="mapMinerDiv" class="dropdown-menu" aria-labelledby="btnMapMiner">
                     </div>
@@ -68,16 +74,16 @@
                 </div>
                 <div class="btn-group" role="group">
                     <button id="btnMapFeature" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Feature
+                        {% trans "Feature" %}
                     </button>
                     <div id="mapFeatureDiv" class="dropdown-menu" aria-labelledby="btnMapFeature">
                     </div>
 
                 </div>
-                <button id="btnClearSelections" type="button" class="btn btn-danger hidden">Clear selections</button>
+                <button id="btnClearSelections" type="button" class="btn btn-danger hidden">{% trans "Clear selections" %}</button>
             </div>
             <div class="horizontal-padding">
-                <button id="btnExecuteQuery" type="button" class="btn btn-warning hidden">Execute Query</button>
+                <button id="btnExecuteQuery" type="button" class="btn btn-warning hidden">{% trans "Execute Query" %}</button>
             </div>
         </div>
 
@@ -85,7 +91,7 @@
     <div class="col-sm left-column map-div">
         <div class="btn-group" role="group">
             <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Map provider
+                {% trans "Map provider" %}
             </button>
             <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
             </div>
@@ -93,19 +99,19 @@
         </div>
         <div class="btn-group" role="group">
             <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Shape type
+                {% trans "Shape type" %}
             </button>
             <div id="shapeSelectorDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
             </div>
         </div>
-        <a id="btnCancelDrawing" class="btn btn-danger" href="javascript:void(0);">Cancel draw</a>
+        <a id="btnCancelDrawing" class="btn btn-danger" href="javascript:void(0);">{% trans "Cancel draw" %}</a>
     </div>
     <div class="col-sm right-column image-div">
         <div class="row">
             <div class="col-sm">
                 <div class="btn-group" role="group">
                     <button id="btnImageProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Image provider
+                        {% trans "Image provider" %}
                     </button>
                     <div id="imageProviderDiv" class="dropdown-menu" aria-labelledby="btnImageProvider">
                     </div>
@@ -114,26 +120,26 @@
             <div class="horizontal-padding">
                 <div class="btn-group" role="group">
                     <button id="btnImageFilter" type="button" class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Image filter
+                        {% trans "Image filter" %}
                     </button>
                     <div id="imageFilterDiv" class="dropdown-menu" aria-labelledby="btnImageFilter">
                     </div>
                     <button id="btnExecuteImageFilter" type="button" class="btn btn-warning"><i class="far fa-play-circle"></i></button>
                 </div>
-                <button type="button" id="btnCollectImages" class="btn btn-warning hidden" role="button" data-container="body" data-toggle="tooltip" data-trigger="hover" data-placement="right" data-title="Selected layers:">Get Images</button>
+                <button type="button" id="btnCollectImages" class="btn btn-warning hidden" role="button" data-container="body" data-toggle="tooltip" data-trigger="hover" data-placement="right" data-title="Selected layers:">{% trans "Get Images" %}</button>
             </div>
         </div>
     </div>
 </div>
 <div class="row">
     <div class="col-sm left-column region-div hidden">
-        <h2>Created regions:</h2>
+        <h2>{% trans "Created regions" %}:</h2>
         <div id="regionsList" class="list-group">
-            <a href="#" class="list-group-item list-group-item-action active">None</a>
+            <a href="#" class="list-group-item list-group-item-action active">{% trans "None" %}</a>
         </div>
     </div>
     <div class="col-sm left-column map-div">
-        <div id="mapOverlay" class="hidden"><p class="mapOverlayText text-center align-middle">Hold shift to zoom</p></div>
+        <div id="mapOverlay" class="hidden"><p class="mapOverlayText text-center align-middle">{% trans "Hold shift to zoom" %}</p></div>
         <div id="map" class="map"></div>
 
     </div>

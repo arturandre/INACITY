@@ -26,7 +26,7 @@ SECRET_KEY = '07a40fcc-4996-4361-9961-84850cdfa842'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['dev.inacity.org', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -41,14 +41,16 @@ INSTALLED_APPS = [# Add your apps here to enable them
     'rest_framework',
     'django_website',]
 
-MIDDLEWARE_CLASSES = ['django.middleware.security.SecurityMiddleware',
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',]
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
 
 ROOT_URLCONF = 'django_website.urls'
 
@@ -98,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [{
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
-LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
@@ -109,6 +110,11 @@ USE_L10N = True
 USE_TZ = True
 
 
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
@@ -117,6 +123,11 @@ STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+#https://docs.djangoproject.com/en/2.0/ref/settings/#login-url
+#Default: '/accounts/login/'
+#The URL where requests are redirected for login, especially when using the login_required() decorator.
+#LOGIN_URL = '/accounts/login'
 
 #When set to True, if the request URL does not match any of the patterns
 #in the URLconf and it doesn’t end in a slash, an HTTP redirect is issued to

@@ -257,3 +257,4 @@ ModelManifest.xml
 #include node bin
 !INACITY_nodejs/bin/
 
+django_website/django_website/static/django_website/images/country_flag_full.png

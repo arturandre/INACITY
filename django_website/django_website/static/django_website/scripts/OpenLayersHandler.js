@@ -66,6 +66,33 @@ class OpenLayersHandler {
             }
         });
 
+        /**
+        * Used as the global vector source of the [globalVectorLayer]{@link module:"home.js"~globalVectorLayer}
+        * @type {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+        this.globalVectorSource = new ol.source.Vector({ wrapX: false });
+        /**
+        * Used as the global vector layer
+        * @param {ol.layer.Vector}
+        * @see [ol.layer.Vector]{@link https://openlayers.org/en/latest/apidoc/ol.layer.Vector.html}
+        */
+       this.globalVectorLayer = new ol.layer.Vector({
+            source: this.globalVectorSource
+        });
+
+        this.globalVectorLayer.setMap(this.map);
+
+        //this.globalVectorSource.on('addfeature', this._updateFeature, this);
+        //this.globalVectorSource.on('removefeature', this._updateFeature, this);
+        //this.globalVectorSource.on('changefeature', this._updateFeature, this);
+
+        /** 
+         * Default selections:
+         * Tiles provider - Google maps road and satellite
+        */
+        this.changeMapProvider(OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
+
         return instance;
     }
 
@@ -86,7 +113,8 @@ class OpenLayersHandler {
     }
 }
 
-if (!OpenLayersHandler.init) {
+if (!OpenLayersHandler.init) 
+{
     OpenLayersHandler.init = true;
 
     /**
@@ -109,15 +137,47 @@ if (!OpenLayersHandler.init) {
                 provider: new ol.layer.Tile({ source: new ol.source.OSM() })
             },
             GOOGLE_ROADMAP_TILES:
-                {
-                    name: 'Google Maps Roads',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
-                },
+            {
+                name: 'Google Maps Roads',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
+            },
             GOOGLE_HYBRID_TILES:
-                {
-                    name: 'Google Maps Hybrid',
-                    provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
-                }
+            {
+                name: 'Google Maps Hybrid',
+                provider: new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=y&hl=en&&x={x}&y={y}&z={z}' }) })
+            }
         };
+    OpenLayersHandler.Styles = 
+    {
+        /**
+         * Style used to mark a select(active) region
+         * @const
+         * @param {ol.style.Style}
+         * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
+         */
+        selectedRegionStyle: new ol.style.Style({
+            fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
+            stroke: new ol.style.Stroke({
+                color: '#ff0000',
+                width: 1
+            })
+        }),
+
+        /**
+         * Auxiliar style to give transparency for OpenLayers' features
+         * @const
+         * @param {ol.style.Style}
+         * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
+         */
+        transparentStyle: new ol.style.Style({
+            fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.0)' }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0,0,0,0.0)',
+                width: 1
+            })
+        })
+    };
+
+
 }
 
