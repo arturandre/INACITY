@@ -42,10 +42,10 @@ class GeoImageManager extends Subject {
     {
         let ret = 
         {
-            _displayingLayers: this._displayingLayers,
             _currentLayer: this._currentLayer,
             _currentIndex: this._currentIndex,
-            _validImages: this._validImages
+            _validImages: this._validImages,
+            filterId: this.filterId
         };
 
         return ret;
@@ -53,10 +53,11 @@ class GeoImageManager extends Subject {
 
     loadFromJSON(geoImageManagerSession)
     {
-        this._displayingLayers = geoImageManagerSession._displayingLayers;
+        this.updateDisplayingLayers();
         this._currentLayer = geoImageManagerSession._currentLayer;
         this._currentIndex = geoImageManagerSession._currentIndex;
         this._validImages = geoImageManagerSession._validImages;
+        this.filterId = geoImageManagerSession.filterId;
     }
 
     /**

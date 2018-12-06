@@ -427,7 +427,7 @@ class UIModel extends Subject {
                 {
                     this.saveSession();
                     resolve();
-                }).bind(this);
+                }.bind(this));
             }
             else 
             {
@@ -489,12 +489,16 @@ class UIModel extends Subject {
                                 return resolve();
                             }
                         }
+                        if (numCalls === 0) {
+                            this.saveSession();
+                            return resolve();
+                        }
                     });
                 }
             }
             catch (err) {
-
-                throw err;
+                console.error(err);
+                //throw err;
             }
         }.bind(this));
     }
