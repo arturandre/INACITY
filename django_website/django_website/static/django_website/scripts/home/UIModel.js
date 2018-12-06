@@ -377,7 +377,7 @@ class UIModel extends Subject {
 
     }
 
-    get openLayersHandler(){ return this._openLayersHandler; }
+    get openLayersHandler() { return this._openLayersHandler; }
 
     updateRegionsList(vectorevent) {
         switch (vectorevent.type) {
@@ -395,10 +395,10 @@ class UIModel extends Subject {
                 console.error(gettext('Unknown event type!'));
                 break;
         }
-        if (vectorevent.feature.getProperties()['type'] === 'region'){
+        if (vectorevent.feature.getProperties()['type'] === 'region') {
             this.saveSession();
         }
-    
+
     }
 
 
@@ -417,20 +417,15 @@ class UIModel extends Subject {
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
-    async _collectLayersForEmptyRegions(region)
-    {
-        return new Promise(function (resolve)
-        { 
-            if (Object.keys(region.layers).length === 0)
-                {
-                this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
-                {
+    async _collectLayersForEmptyRegions(region) {
+        return new Promise(function (resolve) {
+            if (Object.keys(region.layers).length === 0) {
+                this.executeQuery(this.mapMiner, this.mapFeature).then(function () {
                     this.saveSession();
                     resolve();
                 }.bind(this));
             }
-            else 
-            {
+            else {
                 //Otherwise simply collect the image's from the feature selected
                 this.saveSession();
                 return resolve();
@@ -453,7 +448,7 @@ class UIModel extends Subject {
                           Case the user simply select a region and then try to get the images
                           by default the Streets from OSM will be used as features
                         */
-                       this._collectLayersForEmptyRegions(region).then(() => resolve());
+                        this._collectLayersForEmptyRegions(region).then(() => resolve());
                         // if (Object.keys(region.layers).length === 0) {
                         //     this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
                         //     {
@@ -497,8 +492,7 @@ class UIModel extends Subject {
                 }
             }
             catch (err) {
-                console.error(err);
-                //throw err;
+                throw err;
             }
         }.bind(this));
     }
@@ -529,7 +523,7 @@ class UIModel extends Subject {
                           Case the user simply select a region and then try to get the images
                           by default the Streets from OSM will be used as features
                         */
-                       this._collectLayersForEmptyRegions(region).then(() => resolve());
+                        this._collectLayersForEmptyRegions(region).then(() => resolve());
                         // if (Object.keys(region.layers).length === 0) {
                         //     this.executeQuery(this.mapMiner, this.mapFeature).then(() => resolve());
                         // }
@@ -608,26 +602,31 @@ class UIModel extends Subject {
      * @todo Create a function out of UIModel to aggregate all components data 
      */
     saveToJSON() {
-        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        try {
 
-        //let featuresByLayerId = null; /* Features data for tracking */
-        let regions = {}; /* Regions data for tracking */
-        let openLayersFeatures = {}; /*OpenLayers features for drawing*/
-        //featuresByLayerId = this.featuresByLayerId;
+            const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
-        for (let regionId in this.regions) {
-            let olFeature = this._openLayersHandler.globalVectorSource.getFeatureById(regionId);
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject([olFeature]);
-            openLayersFeatures[regionId] = geoJsonFeatures;
-            regions[regionId] = this.regions[regionId].saveToJSON();
+            //let featuresByLayerId = null; /* Features data for tracking */
+            let regions = {}; /* Regions data for tracking */
+            let openLayersFeatures = {}; /*OpenLayers features for drawing*/
+            //featuresByLayerId = this.featuresByLayerId;
+
+            for (let regionId in this.regions) {
+                let olFeature = this._openLayersHandler.globalVectorSource.getFeatureById(regionId);
+                let geoJsonFeatures = olGeoJson.writeFeaturesObject([olFeature]);
+                openLayersFeatures[regionId] = geoJsonFeatures;
+                regions[regionId] = this.regions[regionId].saveToJSON();
+            }
+            let session = {
+                //featuresByLayerId: featuresByLayerId,
+                regions: regions,
+                openLayersFeatures: openLayersFeatures,
+                geoImageManager: geoImageManager.saveToJSON()
+            };
+            return session;
+        } catch (error) {
+            console.error(err);
         }
-        let session = {
-            //featuresByLayerId: featuresByLayerId,
-            regions: regions,
-            openLayersFeatures: openLayersFeatures,
-            geoImageManager: geoImageManager.saveToJSON()
-        };
-        return session;
     }
 
     clear() {
@@ -647,11 +646,9 @@ class UIModel extends Subject {
             //  let geoJsonFeatures = olGeoJson.readFeatures(
             //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
             let geoJsonFeatures = olGeoJson.readFeatures(session.openLayersFeatures[regionId]);
-            for (const feature in geoJsonFeatures)
-            {
+            for (const feature in geoJsonFeatures) {
                 let style = geoJsonFeatures[feature].getProperties().style;
-                if (style)
-                {
+                if (style) {
                     geoJsonFeatures[feature].setStyle(OpenLayersHandler.Styles[style]);
                 }
             }
@@ -823,8 +820,7 @@ class UIModel extends Subject {
         let activeLayers = this.getActiveLayers();
         for (let layerIdx in activeLayers) {
             let layer = activeLayers[layerIdx];
-            if (layer.geoImagesLoaded)
-            {
+            if (layer.geoImagesLoaded) {
                 displayingLayers.push(layer);
             }
         }
@@ -996,7 +992,7 @@ class UIModel extends Subject {
         feature.setId(regionId);
         feature.setProperties({ 'type': 'region' });
         let style = active ? 'selectedRegionStyle' : 'transparentStyle';
-        feature.setProperties({'style': style});
+        feature.setProperties({ 'style': style });
         //createRegion is called in response to drawend event, so setProperties won't generate another event
         //setStyle always fires an change event that can't be silenced! 
         feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
@@ -1011,7 +1007,7 @@ class UIModel extends Subject {
             Region.on('activechange', function (region) {
                 let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
                 let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
-                feature.setProperties({'style': style});
+                feature.setProperties({ 'style': style });
                 feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
                 if (region.active) {
                     for (let layerIdx in region.layers) {
@@ -1083,12 +1079,10 @@ class UIModel extends Subject {
                     featureRegionsIndex[feature.id] = new FeatureRegions(feature, [region.id]);
                 }
                 else {
-                    if (featureRegionsIndex[feature.id].feature === feature)
-                    {
-                    continue;
+                    if (featureRegionsIndex[feature.id].feature === feature) {
+                        continue;
                     }
-                    else
-                    {
+                    else {
                         //A retrieved feature that's been already collected
                         //usually contains new information (e.g. processed data)
                         featureRegionsIndex[feature.id].feature.properties = feature.properties;
