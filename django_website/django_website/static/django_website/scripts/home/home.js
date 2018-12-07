@@ -199,7 +199,7 @@ function setDefaults() {
 
 function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures) {
     return new Promise(function (resolve) {
-        let that = this; /* window */
+        //let that = this; /* window */
         $.ajax
             (
             "/getmapminerfeatures/",

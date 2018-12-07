@@ -141,11 +141,14 @@ def loadsession(request):
             return HttpResponse(status=200)
     return HttpResponse(status=200)
 
+from django_website.models import Session
 
 @api_view(['POST'])
 def savesession(request):
     if request.user.is_authenticated:
         #@TODO: Save session "request.data['uiModelJSON']" to user's sessions table
+        print(request) 
+        session = Session.objects.create(user=request.user, sessionName=request.sessionid, uimodelJSON=request.data['uiModelJSON'])
         pass
     else:
         #@TODO: Check if session "request.data['uiModelJSON']" is valid 

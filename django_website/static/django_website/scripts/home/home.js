@@ -49,33 +49,7 @@ var availableImageMiners = [];
 
 //#region Styles
 
-/**
- * Style used to mark a select(active) region
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var selectedRegionStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(255,0,0,0.1)' }),
-    stroke: new ol.style.Stroke({
-        color: '#ff0000',
-        width: 1
-    })
-});
 
-/**
- * Auxiliar style to give transparency for OpenLayers' features
- * @const
- * @param {ol.style.Style}
- * @see [ol.style.Style]{@link https://openlayers.org/en/latest/apidoc/ol.style.Style.html}
- */
-var transparentStyle = new ol.style.Style({
-    fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.0)' }),
-    stroke: new ol.style.Stroke({
-        color: 'rgba(0,0,0,0.0)',
-        width: 1
-    })
-});
 
 //#endregion Styles 
 
@@ -226,6 +200,7 @@ function setDefaults() {
 function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures) {
     return new Promise(function (resolve) {
         let that = this; /* window */
+        let csrftoken = getCookie('csrftoken');
         $.ajax
             (
             "/getmapminerfeatures/",
@@ -238,6 +213,9 @@ function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJs
                 }),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
+                beforeSend: function(request){
+                    request.setRequestHeader("X-CSRFToken", csrftoken);
+                },
                 success: function (data, textStatus, jqXHR) {
                     return resolve(data);
                 }.bind(region),
@@ -293,24 +271,7 @@ function disableSiblings(element) {
 
 
 
-function updateRegionsList(vectorevent) {
-    switch (vectorevent.type) {
-        case 'addfeature':
-            break;
-        case 'removefeature':
-            if (vectorevent.feature.getProperties()['type'] === 'region') {
-                let featureId = vectorevent.feature.getId();
-                uiModel.removeRegion(featureId);
-            }
-            break;
-        case 'changefeature':
-            break;
-        default:
-            console.error(gettext('Unknown event type!'));
-            break;
-    }
 
-}
 
 
 

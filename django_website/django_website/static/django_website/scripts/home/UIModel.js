@@ -1026,6 +1026,7 @@ class UIModel extends Subject {
             }.bind(this, newRegion));
 
             this.updateRegionsDiv();
+            UIModel.notify('regioncreated', newRegion);
             return newRegion;
         }
         else {
@@ -1227,5 +1228,6 @@ if (!UIModel.init) {
     UIModel.registerEventNames([
         'regionlistitemclick',
         'featuresmerged',
+        'regioncreated',
     ]);
 }
