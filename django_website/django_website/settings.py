@@ -26,7 +26,7 @@ SECRET_KEY = '07a40fcc-4996-4361-9961-84850cdfa842'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dev.inacity.org', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -77,7 +77,8 @@ DATABASES = {
         'NAME': 'INACITYdb',
         'USER': 'postgres',
         'PASSWORD': '1234',
-        'HOST': 'localhost',
+        'HOST': 'db',
+        #'HOST': 'localhost',
     }
 }
 

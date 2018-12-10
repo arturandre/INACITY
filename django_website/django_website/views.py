@@ -133,14 +133,19 @@ from django.core.exceptions import MultipleObjectsReturned
 @api_view(['POST'])
 def loadsession(request):
     if request.user.is_authenticated:
-        #@TODO: Load session from user's sessions table
-        sessionid = request.COOKIES['sessionid']
+        sessionName = request.COOKIES['sessionid']
+        if ('sessionName' in request.data):
+            sessionName = request.data['sessionName']
         try:
-            Session.objects.get(sessionName=sessionid)
+            Session.objects.get(sessionName=sessionName)
         except Session.DoesNotExist:
-            return HttpResponse(status=200)
+            ret = request.session.get('uiModelJSON')
+            if ret:
+                return JsonResponse(ret)
+            else:
+                return HttpResponse(status=200)
         except MultipleObjectsReturned:
-            return HttpResponse(f'Multiple sessions with this name: {sessionid}!', status=500)
+            return HttpResponse(f'Multiple sessions with this name: {sessionName}!', status=500)
         pass
     else:
         ret = request.session.get('uiModelJSON')
@@ -148,26 +153,24 @@ def loadsession(request):
             return JsonResponse(ret)
         else:
             return HttpResponse(status=200)
-    return HttpResponse(status=200)
 
 from django_website.models import Session
 
 @api_view(['POST'])
 def savesession(request):
     if request.user.is_authenticated:
-        #@TODO: Save session "request.data['uiModelJSON']" to user's sessions table
-        print(request.COOKIES)
         sessionName = request.COOKIES['sessionid']
         if ('sessionName' in request.data):
             sessionName = request.data['sessionName']
         try:
             session = Session.objects.get(sessionName)
+            session.uimodelJSON = request.data['uiModelJSON']
+            session.save()
         except Session.DoesNotExist:
-            session = Session.objects.create(user=request.user, sessionName=request.COOKIES['sessionid'], uimodelJSON=request.data['uiModelJSON'])
+            session = Session.objects.create(user=request.user, sessionName=sessionName, uimodelJSON=request.data['uiModelJSON'])
             session.save()
         pass
     else:
-        #@TODO: Check if session "request.data['uiModelJSON']" is valid 
         request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
 

@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  db:
+    image: kartoza/postgis:9.6-2.4
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432/tcp"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=1234
+      - POSTGRES_DBNAME=INACITYdb
+
+  web:
+    build: .
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000/tcp"
+    depends_on:
+      - db
