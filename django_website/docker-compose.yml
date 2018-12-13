@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 services:
   db:
@@ -11,15 +11,17 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASS=1234
       - POSTGRES_DBNAME=INACITYdb
-
   web:
     build: .
-    command: python3 manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/code
+    #entrypoint: ./wait-for-postgres.sh db
+    environment:
+      - POSTGRES_PASS=1234
+    command: bash -c "./wait-for-postgres.sh db && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    #command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    #command: bash -c "while !</dev/tcp/db/5432; do sleep 1; done; && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     expose:
       - "8000"
     ports:
       - "8000:8000/tcp"
     depends_on:
-      - db
+      - db        

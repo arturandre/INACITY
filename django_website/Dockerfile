@@ -9,11 +9,14 @@ WORKDIR /code
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
+ADD wait-for-postgres.sh /code/
 
 RUN apt-get update && apt-get install -y \
 binutils \
 libproj-dev \
-gdal-bin
+gdal-bin \
+postgresql-client
+
 
 # Server
 #EXPOSE 8000
