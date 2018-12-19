@@ -77,8 +77,8 @@ DATABASES = {
         'NAME': 'INACITYdb',
         'USER': 'postgres',
         'PASSWORD': '1234',
-        'HOST': 'db',
-        #'HOST': 'localhost',
+        #'HOST': 'db',
+        'HOST': 'localhost',
     }
 }
 
