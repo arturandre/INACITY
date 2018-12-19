@@ -12,6 +12,7 @@ ADD ./demo_site.conf /etc/apache2/sites-available/000-default.conf
 # Set the working directory to /var/www/html/
 WORKDIR /var/www/html/
 ADD requirements.txt /var/www/html/
+RUN pip3 install --upgrade setuptools
 RUN pip3 install -r requirements.txt
 ADD . /var/www/html/
 ADD wait-for-postgres.sh /var/www/html/
