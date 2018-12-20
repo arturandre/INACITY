@@ -1,0 +1,56 @@
+# Use an official Python runtime as a parent image
+FROM ubuntu:bionic
+
+RUN apt-get update
+RUN apt-get install -y apt-utils \
+	apache2 \
+	apache2-utils \
+	libapache2-mod-wsgi-py3 \
+	python3-pip \
+	binutils \
+	libproj-dev \
+	gdal-bin \
+	postgresql-client
+#	libmysqlclient-dev \
+#	vim \
+#	curl 
+	
+#ENV TZ=America/Sao_Paulo
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+#RUN apt-get install -y python3.6-tk
+	
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade setuptools
+ADD ./demo_site.conf /etc/apache2/sites-available/000-default.conf
+
+# Set the working directory to /var/www/html/
+WORKDIR /var/www/html/
+ADD requirements.txt /var/www/html/
+
+#RUN pip3 install ptvsd
+RUN pip3 install -r requirements.txt
+ADD . /var/www/html/
+ADD wait-for-postgres.sh /var/www/html/
+
+
+#EXPOSE 80 3500
+#EXPOSE 8000
+CMD ["apache2ctl", "-D", "FOREGROUND"]
+
+#RUN mkdir /code
+
+
+
+
+
+
+
+
+
+
+
+# Server
+#EXPOSE 8000
+#STOPSIGNAL SIGINT
+#ENTRYPOINT ["python", "manage.py"]
+#CMD ["runserver", "0:8000"]

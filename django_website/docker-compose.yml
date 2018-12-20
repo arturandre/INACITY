@@ -11,17 +11,25 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASS=1234
       - POSTGRES_DBNAME=INACITYdb
-  web:
+  inacity:
+    #image: inacity
     build: .
-    #entrypoint: ./wait-for-postgres.sh db
     environment:
       - POSTGRES_PASS=1234
-    command: bash -c "./wait-for-postgres.sh db && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
-    #command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    #command: bash -c "while !</dev/tcp/db/5432; do sleep 1; done; && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    #APACHE WEB SERVER
+    command: bash -c "./wait-for-postgres.sh db && python3 manage.py migrate"
+    command: bash -c "apache2ctl -D FOREGROUND"
+    
+    #DJANGO WEB SERVER
+    #command: bash -c "./wait-for-postgres.sh db && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    
+    
     expose:
       - "8000"
+      - "80"
     ports:
       - "8000:8000/tcp"
+      - "80:80/tcp"
     depends_on:
-      - db        
+      - db
+    
