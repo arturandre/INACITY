@@ -17,22 +17,11 @@ services:
     environment:
       - POSTGRES_PASS=1234
     #APACHE WEB SERVER
-    command: bash -c "./wait-for-postgres.sh db && python3 manage.py migrate"
-    #command: bash -c "touch ./anything && tail -f ./anything"
-    #command: bash -c "echo 'deb http://ftp.de.debian.org/debian testing main' >> /etc/apt/sources.list"
-    #command: bash -c "echo 'APT::Default-Release "stable";' | tee -a /etc/apt/apt.conf.d/00local"
-    
-    #command: bash -c "apt-get update"
-    #command: bash -c "apt-get -t testing install -y python3.6-dev"
-    #command: bash -c "a2enmod wsgi_express"
-    #command: bash -c ""
-    #command: bash -c ""
-    command: bash -c "apache2ctl -D FOREGROUND"
-    
-    #DJANGO WEB SERVER
-    #command: bash -c "./wait-for-postgres.sh db && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
-    
-    
+    command: >
+        sh -c "./wait-for-postgres.sh db
+        && python3 manage.py migrate
+        && apache2ctl -D FOREGROUND"
+
     expose:
       - "8000"
       - "80"
