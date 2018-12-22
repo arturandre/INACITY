@@ -18,7 +18,8 @@ services:
       - POSTGRES_PASS=1234
     #APACHE WEB SERVER
     command: >
-        sh -c "./wait-for-postgres.sh db
+        sh -c "chmod +x wait-for-postgres.sh
+        && ./wait-for-postgres.sh db
         && python3 manage.py migrate
         && apache2ctl -D FOREGROUND"
 

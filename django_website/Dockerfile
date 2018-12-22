@@ -37,6 +37,7 @@ ADD . /var/www/html/
 RUN mv /var/www/html/django_website/settings.py /var/www/html/django_website/settings_old.py
 RUN mv /var/www/html/django_website/settings_docker.py /var/www/html/django_website/settings.py
 ADD wait-for-postgres.sh /var/www/html/
+
 ADD ./demo_site.conf /etc/apache2/sites-available/inacity.conf
 RUN a2dissite 000-default
 RUN a2ensite inacity
