@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
 from urllib.parse import unquote
 
+
+import ast
 import json
 import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
@@ -19,6 +21,10 @@ from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
 from django_website.Managers.UserManager import UserManager
+
+from django_website.models import Session
+from django.core.exceptions import MultipleObjectsReturned
+
 
 # General functions
 from django.conf import settings
@@ -128,8 +134,6 @@ def register(request):
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-from django.core.exceptions import MultipleObjectsReturned
-
 @api_view(['POST'])
 def loadsession(request):
     if request.user.is_authenticated:
@@ -137,7 +141,8 @@ def loadsession(request):
         if ('sessionName' in request.data):
             sessionName = request.data['sessionName']
         try:
-            Session.objects.get(sessionName=sessionName)
+            ret = Session.objects.get(sessionName=sessionName)
+            return JsonResponse(ast.literal_eval(ret.uimodelJSON))
         except Session.DoesNotExist:
             ret = request.session.get('uiModelJSON')
             if ret:
@@ -154,7 +159,7 @@ def loadsession(request):
         else:
             return HttpResponse(status=200)
 
-from django_website.models import Session
+
 
 @api_view(['POST'])
 def savesession(request):
@@ -163,7 +168,7 @@ def savesession(request):
         if ('sessionName' in request.data):
             sessionName = request.data['sessionName']
         try:
-            session = Session.objects.get(sessionName)
+            session = Session.objects.get(sessionName=sessionName)
             session.uimodelJSON = request.data['uiModelJSON']
             session.save()
         except Session.DoesNotExist:
