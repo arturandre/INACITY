@@ -1,11 +1,18 @@
 {% extends "base.html" %}
 {% block scripts %}
-{% load staticfiles %}
-{% endblock %}
-
+{% load staticfiles %}  
 {% load i18n %}
 
 {% get_current_language as LANGUAGE_CODE %}
+
+<script type="text/javascript" src="{% static 'django_website/scripts/profile/UIProfileModel.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/profile/UIProfileView.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/profile/UIProfileController.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/profile/profile.js' %}"></script>
+
+
+{% endblock %}
+
 
 
 {% block title %}{{WebsiteName}} | {% trans "Login" %}{% endblock %}
@@ -17,7 +24,35 @@
 {% block content %}
 
 {% if user.is_authenticated %}
-  Hi {{ user.username }}!
+  <h1>{% trans "Hi" %} {{ user.username }}!</h1>
+  <p>{% trans "Here you can reload a previously saved work session." %}</p>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">{% trans "Name"%}</th>
+        <th scope="col">{% trans "Actions"%}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% comment %} <tr>
+      <th scope="row"> - </th>
+        <td> {% trans "Anonymous"%} ({{ cookieSessionName }}) </td>
+        <td> <button type="button" class="btn btn-success">{% trans "Load" %}</button>
+          <button type="button" class="btn btn-danger">{% trans "Clear" %}</button> </td>
+      </tr> {% endcomment %}
+       {% for session in sessionList %}
+        <tr>
+          <th scope="row"> {{ forloop.counter }} </th>
+          <td id="td{{ session.id }}"> {{ session.sessionName }} </td>
+          <td> <button type="button" data-session-id="{{ session.id }}" class="btn btn-success">{% trans "Load" %}</button>
+            <button type="button" data-session-id="{{ session.id }}" class="btn btn-warning">{% trans "Rename" %}</button>
+            <button type="button" data-session-id="{{ session.id }}" class="btn btn-danger">{% trans "Clear" %}</button> </td>
+        </tr>
+       {% endfor %}
+    </tbody>
+  </table>
+
 {% else %}
   <p>You are not logged in</p>
   <a href="{% url 'login' %}">login</a>

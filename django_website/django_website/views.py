@@ -114,6 +114,11 @@ def users(request):
 def profile(request):
     htmlfile = 'registration/profile.html'
     local_vars = {'sample_key': 'sample_data'}
+    if request.user.is_authenticated:
+        #cookieSessionName = request.COOKIES['sessionid']
+        userSessions = Session.objects.filter(user_id=request.user.id).values('id', 'sessionName')
+        #local_vars = {'sessionList': userSessions, 'cookieSessionName': cookieSessionName}
+        local_vars = {'sessionList': userSessions}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 @api_view(['GET', 'POST'])

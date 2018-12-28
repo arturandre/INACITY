@@ -57,6 +57,23 @@ function loadScript(url, callback) {
     document.getElementsByTagName("head")[0].appendChild(script);
 }
 
+/**
+* Auxiliar function to display to the user eventual errors during ajax calls
+* @param {string} locationName - Indication of where the error occured. (i.e. function's name)
+* @param {string} textStatus - The type of error that occurred and an optional exception object, if one occurred. Possible values for the second argument (besides null) are "timeout", "error", "abort", and "parsererror".
+* @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
+* @see {@link http://api.jquery.com/jquery.ajax/}
+*/
+function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
+    console.trace();
+    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. ` + gettext('Error message') + ` : ${errorThrown} `);
+    if (errorThrown)
+        console.error(textStatus, errorThrown);
+    else
+        console.error(textStatus);
+}
+
+
 $(document).ready(function () {
     $('body').on('wheel', function (event) {
         if (event.shiftKey)

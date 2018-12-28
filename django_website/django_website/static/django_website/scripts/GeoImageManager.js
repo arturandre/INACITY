@@ -36,28 +36,29 @@ class GeoImageManager extends Subject {
         else {
             this._autoPlayTimeInterval = 2000; //2 seconds
         }
+        if (options && options.defaultImageUrl) {
+            this._defaultImageUrl = options.defaultImageUrl;
+        }
     }
 
-    saveToJSON()
-    {
-        let ret = 
+    saveToJSON() {
+        let ret =
         {
             _currentLayer: this._currentLayer,
             _currentIndex: this._currentIndex,
             _validImages: this._validImages,
-            filterId: this.filterId
+            _imageFilterId: this._imageFilterId
         };
 
         return ret;
     }
 
-    loadFromJSON(geoImageManagerSession)
-    {
+    loadFromJSON(geoImageManagerSession) {
         this.updateDisplayingLayers();
         this._currentLayer = geoImageManagerSession._currentLayer;
         this._currentIndex = geoImageManagerSession._currentIndex;
         this._validImages = geoImageManagerSession._validImages;
-        this.filterId = geoImageManagerSession.filterId;
+        this._imageFilterId = geoImageManagerSession._imageFilterId;
     }
 
     /**
@@ -76,14 +77,14 @@ class GeoImageManager extends Subject {
      */
     updateDisplayingLayers(filterId) {
         this._displayingLayers = this.uiModel.getDisplayingLayers();
-        if (!this._displayingLayers.length > 0)
-        {
+        if (!this._displayingLayers.length > 0) {
             this._clearPresentation();
             return;
         }
         this._currentLayer = 0;
-        if (!this._setCurrentGeoImagesCollection(this._displayingLayers[this._currentLayer].featureCollection))
-        {
+
+        this.currentGeoImagesCollection = this._displayingLayers[this._currentLayer].featureCollection;
+        if (!this.currentGeoImagesCollection.length > 0) {
             this._clearPresentation();
             return;
         }
@@ -93,9 +94,24 @@ class GeoImageManager extends Subject {
     }
 
 
-    _clearPresentation()
-    {
-            throw "NotImplemented";
+    _clearPresentation() {
+        this._displayingLayers = [];
+        this.currentGeoImagesCollection = [];
+        this._currentLayer = -1;
+        this._currentIndex = -1;
+        this._validImages = -1;
+
+        if (this._autoPlayIntervalID) {
+            clearInterval(this._autoPlayIntervalID);
+            this._autoPlayIntervalID = null;
+        }
+        this._autoPlayState = 0;
+
+        //null for original images
+        this._imageFilterId = null;
+        if (this._defaultImageUrl) {
+            this._DOMImage.attr("src", this._defaultImageUrl);
+        }
     }
 
     /**
@@ -108,7 +124,7 @@ class GeoImageManager extends Subject {
      */
     autoPlayGeoImages(autoPlayNewState) {
         if (this._autoPlayState === autoPlayNewState) {
-            console.warn(gettext("Tried to repeat GeoImageManager's autoplay state")+`: ${autoPlayNewState}`);
+            console.warn(gettext("Tried to repeat GeoImageManager's autoplay state") + `: ${autoPlayNewState}`);
             return false;
         }
         else if (this._autoPlayState === 0 && autoPlayNewState === 2) {
@@ -131,6 +147,7 @@ class GeoImageManager extends Subject {
         else if ((this._autoPlayState === 1 || this._autoPlayState === 2) && (autoPlayNewState === 0 || autoPlayNewState === 2)) //Playing/Paused -> Stopped/Paused
         {
             clearInterval(this._autoPlayIntervalID);
+            this._autoPlayIntervalID = null;
         }
         else {
             console.error(`Unrecognized autoPlayNewState code: ${autoPlayNewState}.`);
@@ -154,30 +171,33 @@ class GeoImageManager extends Subject {
         return ret;
     }
 
-    /**
-     * Change the current GeoImage's Collection being presented
-     * @param {FeatureCollection} newFeatureCollection - A feature collection object with its features containing the geoImages as a property
-     * @todo If there was some features being presented before, treat the update
-     * @fires [geoimagescollectionchange]{@link module:GeoImageManager~GeoImageManager.geoimagescollectionchange}
-     * @returns {boolean} True if the change is successful, false if otherwise
-     */
-    _setCurrentGeoImagesCollection(newFeatureCollection) {
-        if (!(newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0)) return false;
-
-        this._currentGeoImagesCollection = [];
-        for (let featureIndex in newFeatureCollection.features) {
-            let feature = newFeatureCollection.features[featureIndex];
-            let geoImages = feature.properties.geoImages;
-            if (geoImages) {
-                this._currentGeoImagesCollection.push(geoImages);
-            }
-        }
+    _cleanGeoImagesCollection() {
         let removedCount = removeInvalidImages(this._currentGeoImagesCollection);
         this._validImages = countValidImages(this._currentGeoImagesCollection);
         if (removedCount !== this._validImages)
             throw "removedCount different from this._validImages!";
+    }
+
+    get currentGeoImagesCollection() { return this._currentGeoImagesCollection; }
+
+    /**
+     * Change the current GeoImage's Collection being presented
+     * @param {FeatureCollection} newFeatureCollection - A feature collection object with its features containing the geoImages as a property
+     * @fires [geoimagescollectionchange]{@link module:GeoImageManager~GeoImageManager.geoimagescollectionchange}
+     */
+    set currentGeoImagesCollection(newFeatureCollection) {
+        this._currentGeoImagesCollection = [];
+        if (newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0) {
+            for (let featureIndex in newFeatureCollection.features) {
+                let feature = newFeatureCollection.features[featureIndex];
+                let geoImages = feature.properties.geoImages;
+                if (geoImages) {
+                    this._currentGeoImagesCollection.push(geoImages);
+                }
+            }
+            this._cleanGeoImagesCollection();
+        }
         GeoImageManager.notify('geoimagescollectionchange', this._currentGeoImagesCollection);
-        return true;
     }
 
     /**
@@ -190,16 +210,15 @@ class GeoImageManager extends Subject {
      * @returns {Boolean} - True if the state was changed correctly
      */ // @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
     _displayNextValidImage(fromStart, startAutoPlay) {
-        if (!this._currentGeoImagesCollection || this._currentGeoImagesCollection.length === 0) {
+        if (!this.currentGeoImagesCollection || this.currentGeoImagesCollection.length === 0) {
             console.warn("Error: Trying to display empty geoImages collection.");
             console.trace();
             return false;
         }
-        if (fromStart || (this._validImages < this._currentIndex)) 
-        {
+        if (fromStart || (this._validImages < this._currentIndex)) {
             this._currentIndex = -1;
-            this._currentLayer = (this._currentLayer+1) % this._displayingLayers.length;
-            this._setCurrentGeoImagesCollection(this._displayingLayers[this._currentLayer].featureCollection);
+            this._currentLayer = (this._currentLayer + 1) % this._displayingLayers.length;
+            this.currentGeoImagesCollection = this._displayingLayers[this._currentLayer].featureCollection;
         }
         let geoImage = this._getNextImage();
         if (!geoImage) {
@@ -207,7 +226,7 @@ class GeoImageManager extends Subject {
             return false;
         }
         this.displayGeoImage(geoImage);
-        
+
         GeoImageManager.notify('imagechange', geoImage);
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
@@ -249,8 +268,7 @@ class GeoImageManager extends Subject {
             //This assumes that geoImage.dataType = 'data:image/jpeg;base64'
             this._DOMImage.attr("src", `${geoImage.processedDataList[this._imageFilterId].imageData}`);
         }
-        else
-        {
+        else {
             if (geoImage.dataType === 'URL') {
                 this._DOMImage.attr("src", geoImage.data);
             }
@@ -286,8 +304,7 @@ class GeoImageManager extends Subject {
     _findNextValidImage(startingIndex) {
         let geoImage = this._getGeoImageAtIndex(startingIndex);
         //while (!(this._isValidJsonObject(geoImage)))//Try to find a valid image
-        while (!(GeoImage.isGeoImageCompliant(geoImage)))
-        {
+        while (!(GeoImage.isGeoImageCompliant(geoImage))) {
             startingIndex += 1;
             //If _getGeoImageAtIndex returns a number then the collection has ended
             geoImage = this._getGeoImageAtIndex(startingIndex);
@@ -344,9 +361,9 @@ class GeoImageManager extends Subject {
 if (!GeoImageManager.init) {
     GeoImageManager.init = true;
     GeoImageManager.registerEventNames([
-    'imagechange',
-    'geoimagescollectionchange',
-    //'invalidcollection'
+        'imagechange',
+        'geoimagescollectionchange',
+        //'invalidcollection'
     ]);
     GeoImageManager.PlayCommands =
         {

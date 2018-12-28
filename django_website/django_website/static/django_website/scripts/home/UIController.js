@@ -30,6 +30,7 @@
 
     onGeoImagesCollectionChange() {
         this.uiView.updateGeoImgSlider();
+        this.uiModel.saveSession();
     }
 
     onFeatureCollectionChange(layer) {

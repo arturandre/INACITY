@@ -148,7 +148,7 @@ function initializeUI() {
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
     uiModel = new UIModel('regionsList', openLayersHandler, { mapMiner: "osm", mapFeature: "Streets" });
     uiModel.initialize().then(() => {
-        geoImageManager = new GeoImageManager(uiModel);
+        geoImageManager = new GeoImageManager(uiModel, {defaultImageUrl: "https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"});
 
         uiView = new UIView(
             uiModel,
@@ -192,57 +192,6 @@ function setDefaults() {
 }
 
 //#endregion Initializer functions
-
-//#region Caller functions
-
-
-
-function getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures) {
-    return new Promise(function (resolve) {
-        //let that = this; /* window */
-        $.ajax
-            (
-            "/getmapminerfeatures/",
-            {
-                method: 'POST',
-                data: JSON.stringify({
-                    "mapMinerId": selectedMapMiner,
-                    "featureName": selectedMapFeature,
-                    "regions": JSON.stringify(geoJsonFeatures),
-                }),
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data, textStatus, jqXHR) {
-                    return resolve(data);
-                }.bind(region),
-                error: function (jqXHR, textStatus, errorThrown) {
-                    defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
-                    //reject(errorThrown);
-                },
-            });
-    });
-}
-
-//#endregion Caller functions
-
-//#region Auxiliar functions for caller functions
-
-/**
-* Auxiliar function to display to the user eventual errors during ajax calls
-* @param {string} locationName - Indication of where the error occured. (i.e. function's name)
-* @param {string} textStatus - The type of error that occurred and an optional exception object, if one occurred. Possible values for the second argument (besides null) are "timeout", "error", "abort", and "parsererror".
-* @param {string} errorThrown - When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error."
-* @see {@link http://api.jquery.com/jquery.ajax/}
-*/
-function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
-    alert(gettext('Error during server at') + `: ${locationName}. ` + gettext('Status') + `: ${textStatus}. ` + gettext('Error message') + ` : ${errorThrown} `);
-    if (errorThrown)
-        console.error(textStatus, errorThrown);
-    else
-        console.error(textStatus);
-}
-
-//#endregion Auxiliar functions for caller functions
 
 //#region UI Auxiliary Functions
 

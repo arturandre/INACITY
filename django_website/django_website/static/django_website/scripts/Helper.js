@@ -26,9 +26,28 @@
         return count;
     }
 
+    /**
+     * Given an DAG (Tree graph) or a GeoImage checks if it has some processed collection
+     * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
+     * @param {String} filterName - Image processing filter name (e.g. greenery)
+     */
+    function isFiltered(root, filterName)
+    {
+        while (!isLeaf(root))
+        {
+            root = root[0];
+        }
+        if (GeoImage.isGeoImageCompliant(root))
+        {
+            root = GeoImage.fromObject(root);
+            return root.processedDataList && (filterName in root.processedDataList);
+        }
+        throw "Root should be an tree-like structure or a GeoImage";
+    }
+
 /**
  * Given an DAG (Tree graph) root count how many leafs are GeoImages objects and remove leafs that aren't GeoImages
- * @param {Graph} root - Represents the roots node from a tree (e.g. FeatureCollection)
+ * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
  */
     function removeInvalidImages(root) {
         if (isLeaf(root)) {
