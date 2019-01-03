@@ -139,14 +139,19 @@ def register(request):
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
+# If user is connected then return the session with id = 'currentSessionId' (only if it belongs to the current user)
+# If user isn't connected then return the session stored in request.sessionxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 @api_view(['POST'])
 def loadsession(request):
     if request.user.is_authenticated:
-        sessionName = request.COOKIES['sessionid']
-        if ('sessionName' in request.data):
-            sessionName = request.data['sessionName']
         try:
-            ret = Session.objects.get(sessionName=sessionName)
+            sessionId = request.data.get('currentSessionId')
+            if sessionId == None:
+                return HttpResponse(status=200)
+            ret = Session.objects.get(id = sessionId)
+            if not ret.user_id == request.user.id:
+                return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
             return JsonResponse(ast.literal_eval(ret.uimodelJSON))
         except Session.DoesNotExist:
             ret = request.session.get('uiModelJSON')
@@ -154,8 +159,6 @@ def loadsession(request):
                 return JsonResponse(ret)
             else:
                 return HttpResponse(status=200)
-        except MultipleObjectsReturned:
-            return HttpResponse(f'Multiple sessions with this name: {sessionName}!', status=500)
         pass
     else:
         ret = request.session.get('uiModelJSON')
@@ -168,20 +171,28 @@ def loadsession(request):
 
 @api_view(['POST'])
 def savesession(request):
+    if not request.data.get('uiModelJSON'):
+        return HttpResponse('No content to be saved!', status = 400)
+
     if request.user.is_authenticated:
-        sessionName = request.COOKIES['sessionid']
-        if ('sessionName' in request.data):
-            sessionName = request.data['sessionName']
-        try:
-            session = Session.objects.get(sessionName=sessionName)
-            session.uimodelJSON = request.data['uiModelJSON']
+        sessionId = request.session.get('currentSessionId')
+        if sessionId == None:
+            sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
+            session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
             session.save()
-        except Session.DoesNotExist:
-            session = Session.objects.create(user=request.user, sessionName=sessionName, uimodelJSON=request.data['uiModelJSON'])
-            session.save()
-        pass
-    else:
-        request.session['uiModelJSON'] = request.data['uiModelJSON']
+        else:
+            try:
+                session = Session.objects.get(id = sessionId)
+                if not session.user_id == request.user.id:
+                    return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
+                session.uimodelJSON = request.data['uiModelJSON']
+                session.save()
+            except Session.DoesNotExist:
+                sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
+                session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
+                session.save()
+
+    request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
 
 from django.utils.translation import gettext
