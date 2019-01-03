@@ -184,6 +184,26 @@ def savesession(request):
         request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
 
+from django.utils.translation import gettext
+
+@api_view(['POST'])
+def renamesession(request):
+    if request.user.is_authenticated:
+        jsonData = request.data
+        sessionId = jsonData['sessionId']
+        sessionNewName = jsonData['newName']
+        try:
+            session = Session.objects.get(id=int(sessionId))
+            session.sessionName = sessionNewName
+            session.save()
+        except Session.DoesNotExist:
+            HttpResponse(gettext("This session could not be found. Try saving it first."), status=404)
+        pass
+    else:
+        HttpResponse(gettext("User needs to be logged to rename a session."),  status=403)
+    return HttpResponse(status=204)
+
+# Clears session data
 @api_view(['POST'])
 def clearsession(request):
     del request.session['uiModelJSON']

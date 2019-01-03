@@ -26,8 +26,11 @@ SECRET_KEY = '07a40fcc-4996-4361-9961-84850cdfa842'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+#import ptvsd
 
+#ptvsd.enable_attach(SECRET_KEY, address = ('0.0.0.0', 3500))
+
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [# Add your apps here to enable them
@@ -79,7 +82,7 @@ DATABASES = {
         'PASSWORD': '1234',
         #'HOST': 'db',
         'HOST': 'localhost',
-        'PORT': '25432',
+        'PORT': '5432',
     }
 }
 

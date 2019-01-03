@@ -1,6 +1,6 @@
-let uiProfileModel = null;
-let uiProfileView = null;
-let uiProfileController = null;
+var uiProfileModel = null;
+var uiProfileView = null;
+var uiProfileController = null;
 
 function initializeUI() {
     uiProfileModel = new UIProfileModel();

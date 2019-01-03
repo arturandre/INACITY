@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  db:
+    image: kartoza/postgis:9.6-2.4
+    expose:
+      - "5432"
+    ports:
+      - "25432:5432/tcp"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=1234
+      - POSTGRES_DBNAME=INACITYdb

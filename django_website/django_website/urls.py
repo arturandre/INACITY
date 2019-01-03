@@ -33,6 +33,8 @@ urlpatterns = [
     path('accounts/register/', register, name='register'),
     path('logout/', logout, name='logout'),
 
+    #api/session/
+    path('api/session/rename/', renamesession, name='renamesession'),
     path('clearsession/', clearsession, name='clearsession'),
     path('savesession/', savesession, name='savesession'),
     path('loadsession/', loadsession, name='loadsession'),

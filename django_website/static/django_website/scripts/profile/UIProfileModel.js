@@ -1,16 +1,17 @@
 class UIProfileModel extends Subject {
     constructor()
     {
-        super();
+
     }
 
-    renameSession(sessionId, newName)
+    renameSession(userId, sessionId, newName)
     {
         $.ajax('/api/session/rename',
         {
             method: 'POST',
             processData: false,
             data: JSON.stringify({
+                'userId': userId,
                 'sessionId': sessionId,
                 'newName': newName
             }),
