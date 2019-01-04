@@ -148,25 +148,36 @@ def loadsession(request):
         try:
             sessionId = request.data.get('currentSessionId')
             if sessionId == None:
-                return HttpResponse(status=200)
-            ret = Session.objects.get(id = sessionId)
-            if not ret.user_id == request.user.id:
-                return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
-            return JsonResponse(ast.literal_eval(ret.uimodelJSON))
+                uiModelJSON = request.session.get('uiModelJSON')
+                if uiModelJSON:
+                    return JsonResponse(uiModelJSON)
+                else:
+                    return HttpResponse(status=200)
+            session = Session.objects.get(id = sessionId)
+            if not isUserSession(request.user, session):
+                return forbiddenUserSessionHttpResponse()
+            return JsonResponse(ast.literal_eval(session.uimodelJSON))
         except Session.DoesNotExist:
-            ret = request.session.get('uiModelJSON')
-            if ret:
-                return JsonResponse(ret)
+            uiModelJSON = request.session.get('uiModelJSON')
+            if uiModelJSON:
+                return JsonResponse(uiModelJSON)
             else:
                 return HttpResponse(status=200)
         pass
     else:
-        ret = request.session.get('uiModelJSON')
-        if ret:
-            return JsonResponse(ret)
+        uiModelJSON = request.session.get('uiModelJSON')
+        if uiModelJSON:
+            return JsonResponse(uiModelJSON)
         else:
             return HttpResponse(status=200)
 
+def forbiddenUserSessionHttpResponse():
+    return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
+
+def isUserSession(user, session):
+    if user.is_authenticated:
+        return session.user_id == user.id
+    return False
 
 
 @api_view(['POST'])
@@ -183,15 +194,15 @@ def savesession(request):
         else:
             try:
                 session = Session.objects.get(id = sessionId)
-                if not session.user_id == request.user.id:
-                    return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
+                if not isUserSession(request.user, session):
+                    return forbiddenUserSessionHttpResponse()
                 session.uimodelJSON = request.data['uiModelJSON']
                 session.save()
             except Session.DoesNotExist:
                 sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
                 session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
                 session.save()
-
+    request.session['currentSessionId'] = session.id
     request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
 
@@ -205,6 +216,8 @@ def renamesession(request):
         sessionNewName = jsonData['newName']
         try:
             session = Session.objects.get(id=int(sessionId))
+            if not isUserSession(request.user, session):
+                return forbiddenUserSessionHttpResponse()
             session.sessionName = sessionNewName
             session.save()
         except Session.DoesNotExist:
