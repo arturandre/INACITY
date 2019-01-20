@@ -112,8 +112,8 @@ class OSMMiner(MapMiner):
             return ret
         pass
 
-    #_overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
-    _overpassBaseUrl = "http://inacity.eastus.cloudapp.azure.com/api/interpreter?data="
+    _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
+    #_overpassBaseUrl = "http://inacity.eastus.cloudapp.azure.com/api/interpreter?data="
     _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
     _outFormat = "[out:json]"
     _timeout = "[timeout:60]"
