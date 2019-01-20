@@ -202,7 +202,8 @@ def savesession(request):
                 sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
                 session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
                 session.save()
-    request.session['currentSessionId'] = session.id
+        request.session['currentSessionId'] = session.id
+
     request.session['uiModelJSON'] = request.data['uiModelJSON']
     return HttpResponse(status=204)
 
