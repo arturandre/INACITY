@@ -95,7 +95,7 @@ class GeoImageManager extends Subject {
 
     _clearPresentation()
     {
-            throw "NotImplemented";
+            alert("GeoImageManager._clearPresentation NotImplemented");
     }
 
     /**
