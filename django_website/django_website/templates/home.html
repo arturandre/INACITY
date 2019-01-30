@@ -43,8 +43,20 @@
 
 {% block content %}
 
-<div id="changeModeDiv" class="btn-group btn-group-toggle" data-toggle="buttons" aria-labelledby="btnChangeMode">
-    <!--changeModeClick@home.js-->
+<div class="row">
+    <div id="changeModeDiv" class="col-sm left-column btn-group btn-group-toggle" data-toggle="buttons" aria-labelledby="btnChangeMode">
+        <!--changeModeClick@home.js-->
+    </div>    
+    <div id="sessionDiv" class="col-sm right-column">
+        <div class="row">
+            <div class="col-sm"></div>
+            <div class="horizontal-padding">
+                <div class="btn-group" role="group">
+                    <a class="btn btn-danger">Save session</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">

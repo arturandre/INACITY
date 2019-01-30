@@ -264,9 +264,9 @@ class GeoImageManager extends Subject {
     }
 
     displayGeoImage(geoImage) {
-        if (this._imageFilterId && geoImage.processedDataList[this._imageFilterId]) {
+        if (this._imageFilterId && geoImage.getProcessedDataList(this._imageFilterId)) {
             //This assumes that geoImage.dataType = 'data:image/jpeg;base64'
-            this._DOMImage.attr("src", `${geoImage.processedDataList[this._imageFilterId].imageData}`);
+            this._DOMImage.attr("src", `${geoImage.getProcessedDataList(this._imageFilterId).imageData}`);
         }
         else {
             if (geoImage.dataType === 'URL') {
