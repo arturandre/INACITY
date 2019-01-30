@@ -186,9 +186,10 @@ def savesession(request):
         return HttpResponse('No content to be saved!', status = 400)
 
     if request.user.is_authenticated:
-        sessionId = request.session.get('currentSessionId')
-        if sessionId == None:
-            sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
+        sessionId = request.data.get('sessionId')
+        sessionName = request.data.get('sessionName')
+        if sessionId is None:
+            sessionName = (request.data.get('sessionName') or request.COOKIES.get('sessionid')) if sessionName is None else sessionName
             session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
             session.save()
         else:
@@ -202,10 +203,9 @@ def savesession(request):
                 sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
                 session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
                 session.save()
-        request.session['currentSessionId'] = session.id
 
     request.session['uiModelJSON'] = request.data['uiModelJSON']
-    return HttpResponse(status=204)
+    return HttpResponse(session.id,status=200)
 
 from django.utils.translation import gettext
 

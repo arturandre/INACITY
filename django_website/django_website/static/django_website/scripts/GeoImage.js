@@ -11,6 +11,18 @@ class GeoImage
         this.metadata = null;
         this.processedDataList = null;
     }
+
+    getProcessedDataList(filterId){
+        if (this.processedDataList === null)
+        {
+            return null;
+        }
+        else
+        {
+            return this.processedDataList[filterId];
+        }
+    }
+
     static fromObject(obj)
     {
         let newGeoImage = new GeoImage();

@@ -46,6 +46,9 @@ class UIView {
         this.onClickExecuteImageFilterBtn = null;
         this.onClickGetImagesBtn = null;
         this.onClickClearSelectionsBtn = null;
+        
+        this.onClickSaveSessionBtn = null;
+        
 
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqimageFilterDiv = $(`#imageFilterDiv`);
@@ -54,6 +57,8 @@ class UIView {
         this.jqshapeSelectorDiv = $(`#shapeSelectorDiv`);
         this.jqmapProviderDiv = $(`#mapProviderDiv`);
         this.jqchangeModeDiv = $(`#changeModeDiv`);
+
+        this.jqbtnSaveSession = $(`#btnSaveSession`);
 
         this.jqbtnExecuteImageFilter = $(`#btnExecuteImageFilter`);
         this.jqbtnImageFilter = $(`#btnImageFilter`);
@@ -113,6 +118,8 @@ class UIView {
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
         this.jqbtnClearSelections.on("click", this.onClickClearSelectionsBtn.bind(this));
+
+        this.jqbtnSaveSession.on("click", this.onClickSaveSessionBtn.bind(this));
 
     }
 
@@ -180,6 +187,11 @@ class UIView {
         this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
 
         this.jqbtnCancelDrawing.removeClass('hidden');
+    }
+
+    askSessionName(currentSessionName="")
+    {
+        return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
     }
 
     populateChangeModeDiv() {

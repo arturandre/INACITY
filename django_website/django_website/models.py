@@ -20,5 +20,5 @@ class FilterResult(models.Model):
 
 class Session(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    sessionName = models.CharField(max_length=256, unique=True)
+    sessionName = models.CharField(max_length=256, unique=False)
     uimodelJSON = models.TextField()

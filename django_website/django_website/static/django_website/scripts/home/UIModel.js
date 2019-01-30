@@ -418,6 +418,11 @@ class UIModel extends Subject {
         return getServerDataPromises;
     }
 
+    get currentSessionName()
+    {
+        
+    }
+
     get imageProviders() { return this._imageProviders; }
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
@@ -726,15 +731,27 @@ class UIModel extends Subject {
     /**
      * @todo Display success and error messages.
      */
-    saveSession() {
+    saveSession(sessionName) {
         if (this._loading) return;
+        let sentData = "";
+        if (sessionName)
+        {
+            sentData = JSON.stringify({
+                sessionName: sessionName,
+                uiModelJSON: this.saveToJSON()
+            });
+        }
+        else
+        {
+            sentData = JSON.stringify({
+                uiModelJSON: this.saveToJSON()
+            });
+        }
         $.ajax('/savesession/',
             {
                 method: 'POST',
                 processData: false,
-                data: JSON.stringify({
-                    uiModelJSON: this.saveToJSON()
-                }),
+                data: sentData,
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json',
                 success: function (data, textStatus, jqXHR) {

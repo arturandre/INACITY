@@ -11,6 +11,8 @@
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
         this.uiView.onClickClearSelectionsBtn = this.onClickClearSelectionsBtn.bind(this);
         this.uiView.onClickExecuteImageFilterBtn = this.onClickExecuteImageFilterBtn.bind(this);
+        
+        this.uiView.onClickSaveSessionBtn = this.onClickSaveSessionBtn.bind(this);
 
         /*UIModel Event Handlers*/
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
@@ -52,6 +54,14 @@
     onClickClearSelectionsBtn() {
         this.uiView.clearSelections();
     }
+
+    onClickSaveSessionBtn() {
+        let currentSessionName = this.uiModel.getCurrentSessionName();
+        let sessionName = this.uiView.askSessionName(currentSessionName);
+        
+    }
+
+    
 
     onClickExecuteQueryBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteQuery);

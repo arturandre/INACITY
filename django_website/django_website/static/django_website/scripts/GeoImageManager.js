@@ -292,7 +292,8 @@ class GeoImageManager extends Subject {
                 return null;
             }
         }
-        return geoImage;
+
+        return GeoImage.fromObject(geoImage);
     }
 
     /**
