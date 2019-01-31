@@ -38,6 +38,7 @@ urlpatterns = [
     path('clearsession/', clearsession, name='clearsession'),
     path('savesession/', savesession, name='savesession'),
     path('loadsession/', loadsession, name='loadsession'),
+    path('getlastsessionid/', getlastsessionid, name='getlastsessionid'),
 
     # Pages
     re_path(r'^$', home, name='root'),

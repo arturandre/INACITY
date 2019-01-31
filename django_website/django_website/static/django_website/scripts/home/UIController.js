@@ -56,9 +56,9 @@
     }
 
     onClickSaveSessionBtn() {
-        let currentSessionName = this.uiModel.getCurrentSessionName();
+        let currentSessionName = this.uiModel.currentSessionName;
         let sessionName = this.uiView.askSessionName(currentSessionName);
-        
+        this.uiModel.saveSession(sessionName);
     }
 
     

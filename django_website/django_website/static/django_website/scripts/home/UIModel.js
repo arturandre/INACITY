@@ -734,6 +734,9 @@ class UIModel extends Subject {
     saveSession(sessionName) {
         if (this._loading) return;
         let sentData = "";
+        sessionName = sessionName ? sessionName : 
+                      this.currentSessionName ? this.currentSessionName : 
+                      undefined;
         if (sessionName)
         {
             sentData = JSON.stringify({
@@ -783,27 +786,68 @@ class UIModel extends Subject {
             });
 
     }
-    loadSession() {
-        $.ajax('/loadsession/',
+    loadSession(sessionId) {
+        let loadSessionWithId = function(sessionId) {$.ajax('/loadsession/',
+        {
+            method: 'POST',
+            processData: false,
+            context: this,
+            data: JSON.stringify({sessionId: sessionId}),
+            success: function (data, textStatus, jqXHR) {
+                //Success message
+                try {
+                    if (data) {
+                        this.loadFromJSON(data);
+                    }
+                } catch (error) {
+                    defaultAjaxErrorHandler('loadSession', textStatus, error);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+            },
+            complete: function (jqXHR, textStatus) { }
+        });}.bind(this);
+
+
+
+        if (sessionId){
+            loadSessionWithId(sessionId);
+        }
+        else
+        {
+            $.ajax('/getlastsessionid/',
             {
                 method: 'POST',
                 processData: false,
                 data: undefined,
-                success: function (data, textStatus, jqXHR) {
+                context: this,
+                success: function (sessionId, textStatus, jqXHR) {
                     //Success message
                     try {
-                        if (data) {
-                            this.loadFromJSON(data);
+                        if (sessionId >= 0) {
+                            loadSessionWithId(sessionId);
+                        }
+                        else
+                        {
+                            loadSessionWithId();
                         }
                     } catch (error) {
                         defaultAjaxErrorHandler('loadSession', textStatus, error);
                     }
-                }.bind(this),
+                },
                 error: function (jqXHR, textStatus, errorThrown) {
                     defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
                 },
-                complete: function (jqXHR, textStatus) { }.bind(this)
+                complete: function (jqXHR, textStatus) { }
             });
+        }
+
+        
+
+
+
+
     }
 
 
