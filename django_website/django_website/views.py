@@ -162,6 +162,8 @@ def loadsession(request):
                     return HttpResponse(status=200)
             session = Session.objects.get(id = sessionId)
             if not isUserSession(request.user, session):
+                if request.session['sessionId'] is not None:
+                    del request.session['sessionId']
                 return forbiddenUserSessionHttpResponse()
             request.session['sessionId'] = sessionId
             return JsonResponse(ast.literal_eval(session.uimodelJSON))
@@ -191,32 +193,37 @@ def isUserSession(user, session):
 @api_view(['POST'])
 def savesession(request):
     uiModelJSON = request.data.get('uiModelJSON')
+    
     if uiModelJSON is None:
         return HttpResponse('No content to be saved!', status = 400)
-    
+    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.COOKIES.get('sessionid'))
     if request.user.is_authenticated:
-        sessionId = request.data.get('sessionId')
+        sessionId = request.session.get('sessionId')
+        print(uiModelJSON.get('sessionName'))
+        print(sessionId)
         if sessionId is None:
-            sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.COOKIES.get('sessionid'))
             session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
             session.save()
         else:
             try:
                 session = Session.objects.get(id = sessionId)
                 if not isUserSession(request.user, session):
+                    del request.session['sessionId']
                     return forbiddenUserSessionHttpResponse()
+                if (sessionName is not None) and (len(sessionName) > 0):
+                    session.sessionName = sessionName
                 session.uimodelJSON = request.data['uiModelJSON']
                 session.save()
             except Session.DoesNotExist:
-                sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
+                #sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
                 session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
                 session.save()
-        request.session['sessionId'] = request.data['sessionId']
-    if sessionName is not None:
-        request.session['sessionName'] = request.data['sessionName']     
-
+        request.session['sessionId'] = session.id
     request.session['uiModelJSON'] = request.data['uiModelJSON']
-    return HttpResponse(session.id,status=200)
+    if request.session.get('sessionId') is not None:
+        return HttpResponse(request.session['sessionId'],status=200)
+    else:
+        return HttpResponse(status=204)
 
 from django.utils.translation import gettext
 

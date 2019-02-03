@@ -20,7 +20,11 @@ class UIProfileController{
 
     onClickRenameSessionBtn(evt){
         let btn = $(evt.target);
-        this.uiProfileModel.renameSession(btn);
+        let sessionId = btn.attr('data-session-id');
+        let sessionName = $(`#td${sessionId}`)[0].innerText;
+        let newSessionName = this.uiProfileView.askSessionName(sessionName);
+    
+        this.uiProfileModel.renameSession(sessionId, newSessionName);
     }
     onClickDeleteSessionBtn(){
 

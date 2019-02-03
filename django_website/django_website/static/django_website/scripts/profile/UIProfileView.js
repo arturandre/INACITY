@@ -24,5 +24,10 @@ class UIProfileView{
         this.btnDeleteSessionList.each(function(_, btn) { $(btn).on("click", this.onClickDeleteSessionBtn.bind(this));}.bind(this));
     }
 
+    askSessionName(currentSessionName="")
+    {
+        return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
+    }
+
 
 }

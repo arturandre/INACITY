@@ -6,7 +6,7 @@ class UIProfileModel extends Subject {
 
     renameSession(sessionId, newName)
     {
-        $.ajax('/api/session/rename',
+        $.ajax('/api/session/rename/',
         {
             method: 'POST',
             processData: false,
@@ -17,7 +17,7 @@ class UIProfileModel extends Subject {
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             success: function (data, textStatus, XHR) {
-                document.getElementById(`td${sessionId}`).innerHTML = newName;
+                document.getElementById(`td${sessionId}`).innerText = newName;
             }.bind(this),
             error: function (jqXHR, textStatus, errorThrown) {
                 defaultAjaxErrorHandler('renameSession', textStatus, errorThrown);

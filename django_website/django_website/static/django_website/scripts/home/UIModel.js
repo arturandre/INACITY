@@ -369,6 +369,7 @@ class UIModel extends Subject {
         this._imageFilters = [];
         this._mapMinersAndFeatures = [];
         this._openLayersHandler = openLayersHandler;
+        this._currentSessionName = "";
 
         /*OpenLayers Event Handlers*/
         this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this);
@@ -420,7 +421,7 @@ class UIModel extends Subject {
 
     get currentSessionName()
     {
-        
+        return this._currentSessionName;
     }
 
     get imageProviders() { return this._imageProviders; }
@@ -625,7 +626,7 @@ class UIModel extends Subject {
      * Serialize user session
      * @todo Create a function out of UIModel to aggregate all components' data 
      */
-    saveToJSON() {
+    saveToJSON(sessionName) {
         try {
 
             const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
@@ -647,6 +648,7 @@ class UIModel extends Subject {
                 openLayersFeatures: openLayersFeatures,
                 geoImageManager: geoImageManager.saveToJSON()
             };
+            if (sessionName) session.sessionName = sessionName;
             return session;
         } catch (error) {
             console.error(err);
@@ -737,11 +739,11 @@ class UIModel extends Subject {
         sessionName = sessionName ? sessionName : 
                       this.currentSessionName ? this.currentSessionName : 
                       undefined;
+        this._currentSessionName = sessionName;
         if (sessionName)
         {
             sentData = JSON.stringify({
-                sessionName: sessionName,
-                uiModelJSON: this.saveToJSON()
+                uiModelJSON: this.saveToJSON(sessionName)
             });
         }
         else
