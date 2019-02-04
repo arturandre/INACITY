@@ -35,6 +35,7 @@ urlpatterns = [
 
     #api/session/
     path('api/session/rename/', renamesession, name='renamesession'),
+    path('newsession/', newsession, name='newsession'),
     path('clearsession/', clearsession, name='clearsession'),
     path('savesession/', savesession, name='savesession'),
     path('loadsession/', loadsession, name='loadsession'),

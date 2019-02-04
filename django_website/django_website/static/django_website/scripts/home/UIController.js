@@ -64,7 +64,7 @@
     }
 
     onClickNewSessionBtn(){
-
+        this.uiModel.newSession();
     }
 
     onClickExecuteQueryBtn() {

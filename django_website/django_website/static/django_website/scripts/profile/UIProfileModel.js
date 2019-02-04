@@ -8,6 +8,7 @@ class UIProfileModel extends Subject {
     {
         $.ajax('/loadsession/',
         {
+            method: 'POST',
             processData: false,
             data: JSON.stringify({
                 sessionId: sessionId
@@ -18,7 +19,7 @@ class UIProfileModel extends Subject {
                 
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                defaultAjaxErrorHandler('renameSession', textStatus, errorThrown);
+                defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
             }
         });
     }

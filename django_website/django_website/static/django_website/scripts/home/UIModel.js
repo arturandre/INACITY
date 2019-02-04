@@ -651,7 +651,7 @@ class UIModel extends Subject {
             if (sessionName) session.sessionName = sessionName;
             return session;
         } catch (error) {
-            console.error(err);
+            console.error(error);
         }
     }
 
@@ -682,9 +682,12 @@ class UIModel extends Subject {
                     }
                 }
                 this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
+                let sessionRegion = session.regions[regionId];
                 let region = this.createRegion(
                     olGeoJson.readFeature(session.regions[regionId].boundaries),
-                    session.regions[regionId].active);
+                    sessionRegion.active,
+                    sessionRegion.name,
+                    sessionRegion.id);
                 region.loadFromJSON(session.regions[regionId]);
                 geoImageManager.loadFromJSON(session.geoImageManager);
                 //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
@@ -769,6 +772,24 @@ class UIModel extends Subject {
             });
 
     }
+
+    newSession(){
+        $.ajax('newsession/',
+        {
+            method: 'POST',
+            processData: false,
+            data: undefined,
+            context: this,
+            success: function (data, textStatus, jqXHR) {
+                //Success message
+                this.clear();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
+            },
+            complete: function (jqXHR, textStatus) { }
+        });
+    }
     clearSession() {
         $.ajax('/clearsession/',
             {
@@ -777,14 +798,15 @@ class UIModel extends Subject {
                 data: undefined,
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json',
+                context: this,
                 success: function (data, textStatus, jqXHR) {
                     //Success message
                     this.clear();
-                }.bind(this),
+                },
                 error: function (jqXHR, textStatus, errorThrown) {
                     defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
                 },
-                complete: function (jqXHR, textStatus) { }.bind(this)
+                complete: function (jqXHR, textStatus) { }
             });
 
     }
@@ -1109,11 +1131,11 @@ class UIModel extends Subject {
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(feature, active, name = null) {
+    createRegion(feature, active, name = null, pre_regionid = null) {
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
 
         let idNumber = getNewId();
-        let regionId = 'region' + idNumber;
+        let regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
 
         feature.setId(regionId);
         feature.setProperties({ 'type': 'region' });

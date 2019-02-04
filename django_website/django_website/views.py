@@ -139,6 +139,11 @@ def register(request):
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
+@api_view(['POST'])
+def newsession(request):
+    if request.session.get('sessionId') is not None: del request.session['sessionId']
+    if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
+    return HttpResponse(status=200)
 
 @api_view(['POST'])
 def getlastsessionid(request):
@@ -166,6 +171,8 @@ def loadsession(request):
                     del request.session['sessionId']
                 return forbiddenUserSessionHttpResponse()
             request.session['sessionId'] = sessionId
+            request.session['uiModelJSON'] = ast.literal_eval(session.uimodelJSON)
+            print(request.session['uiModelJSON'])
             return JsonResponse(ast.literal_eval(session.uimodelJSON))
         except Session.DoesNotExist:
             uiModelJSON = request.session.get('uiModelJSON')
