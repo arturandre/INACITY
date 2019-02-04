@@ -14,8 +14,11 @@ class UIProfileController{
         this.uiProfileView.onClickDeleteSessionBtn = this.onClickDeleteSessionBtn.bind(this);
     }
 
-    onClickLoadSessionBtn(){
-
+    onClickLoadSessionBtn(evt){
+        let btn = $(evt.target);
+        let sessionId = btn.attr('data-session-id');
+        //let sessionName = $(`#td${sessionId}`)[0].innerText;
+        this.uiProfileModel.loadSession(sessionId);
     }
 
     onClickRenameSessionBtn(evt){

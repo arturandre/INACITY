@@ -4,6 +4,25 @@ class UIProfileModel extends Subject {
         super();
     }
 
+    loadSession(sessionId)
+    {
+        $.ajax('/loadsession/',
+        {
+            processData: false,
+            data: JSON.stringify({
+                sessionId: sessionId
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            success: function (data, textStatus, XHR) {
+                
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                defaultAjaxErrorHandler('renameSession', textStatus, errorThrown);
+            }
+        });
+    }
+
     renameSession(sessionId, newName)
     {
         $.ajax('/api/session/rename/',
@@ -14,11 +33,12 @@ class UIProfileModel extends Subject {
                 'sessionId': sessionId,
                 'newName': newName
             }),
+            context: this,
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             success: function (data, textStatus, XHR) {
                 document.getElementById(`td${sessionId}`).innerText = newName;
-            }.bind(this),
+            },
             error: function (jqXHR, textStatus, errorThrown) {
                 defaultAjaxErrorHandler('renameSession', textStatus, errorThrown);
             }

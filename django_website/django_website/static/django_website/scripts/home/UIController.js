@@ -13,6 +13,8 @@
         this.uiView.onClickExecuteImageFilterBtn = this.onClickExecuteImageFilterBtn.bind(this);
         
         this.uiView.onClickSaveSessionBtn = this.onClickSaveSessionBtn.bind(this);
+        this.uiView.onClickNewSessionBtn = this.onClickNewSessionBtn.bind(this);
+        
 
         /*UIModel Event Handlers*/
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
@@ -61,7 +63,9 @@
         this.uiModel.saveSession(sessionName);
     }
 
-    
+    onClickNewSessionBtn(){
+
+    }
 
     onClickExecuteQueryBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteQuery);

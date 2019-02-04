@@ -48,6 +48,8 @@ class UIView {
         this.onClickClearSelectionsBtn = null;
         
         this.onClickSaveSessionBtn = null;
+        this.onClickNewSessionBtn = null;
+        
         
 
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
@@ -59,6 +61,8 @@ class UIView {
         this.jqchangeModeDiv = $(`#changeModeDiv`);
 
         this.jqbtnSaveSession = $(`#btnSaveSession`);
+        this.jqbtnNewSession = $(`#btnNewSession`);
+        
 
         this.jqbtnExecuteImageFilter = $(`#btnExecuteImageFilter`);
         this.jqbtnImageFilter = $(`#btnImageFilter`);
@@ -120,6 +124,8 @@ class UIView {
         this.jqbtnClearSelections.on("click", this.onClickClearSelectionsBtn.bind(this));
 
         this.jqbtnSaveSession.on("click", this.onClickSaveSessionBtn.bind(this));
+        this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
+        
 
     }
 
