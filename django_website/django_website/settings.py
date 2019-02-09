@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import posixpath
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -143,4 +144,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 APPEND_SLASH = True
 
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs')
+
+#Password files, secret keys, publish settings, etc. should be stored in folder below
+KEYS_ROOT = os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'keys'))
+
+with open(os.path.join(KEYS_ROOT, 'gsv_settings.json'), 'r') as gsv_config_file:
+    gsv_settings_dict = json.loads(gsv_config_file.read())
+    #GSV_SIGNING_SECRET = gsv_settings_dict['signing_key']
+    GSV_SIGNING_SECRET = gsv_settings_dict['old_signing_key']
 

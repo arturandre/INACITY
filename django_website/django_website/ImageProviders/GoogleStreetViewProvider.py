@@ -9,6 +9,13 @@ from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, Fea
 from typing import List
 import json
 
+from django.conf import settings
+
+import hashlib
+import hmac
+import base64
+import urllib
+
 class Size():
     def __init__(self, width, height):
         self.width = width
@@ -113,18 +120,60 @@ class GoogleStreetViewProvider(ImageProvider):
         return geoImage
 
     #Unused
-    def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
-        if key is None: key = GoogleStreetViewProvider._key
-        if size is None: size = Size(640, 640)
-        imageURL = GoogleStreetViewProvider._imageURLBuilderLocation(size, location, heading, pitch, key)
-        data = requests.get(imageURL).content
-        GeoImage = GeoImage(imageio.imread(BytesIO(data)))
-        return GeoImage
+    #def getImageFromLocation(location, size: Size=None, heading=0, pitch=0, key=None):
+    #    if key is None: key = GoogleStreetViewProvider._key
+    #    if size is None: size = Size(640, 640)
+    #    imageURL = GoogleStreetViewProvider._imageURLBuilderLocation(size, location, heading, pitch, key)
+    #    data = requests.get(imageURL).content
+    #    GeoImage = GeoImage(imageio.imread(BytesIO(data)))
+    #    return GeoImage
+
+    #ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
+    def _sign_url(input_url=None):
+        """ Sign a request URL with a URL signing secret.
+
+            Usage:
+            signed_url = _sign_url(input_url=my_url)
+
+            Args:
+            input_url - The URL to sign
+
+            Returns:
+            The signed request URL
+        """
+        secret = settings.GSV_SIGNING_SECRET
+
+        if not input_url or not secret:
+            raise Exception("input_url is required")
+
+        url = urllib.parse(input_url)
+
+        # We only need to sign the path+query part of the string
+        url_to_sign = url.path + "?" + url.query
+
+        # Decode the private key into its binary format
+        # We need to decode the URL-encoded private key
+        decoded_key = base64.urlsafe_b64decode(secret)
+
+        # Create a signature using the private key and the URL-encoded
+        # string using HMAC SHA1. This signature will be binary.
+        signature = hmac.new(decoded_key, url_to_sign, hashlib.sha1)
+
+        # Encode the binary signature into base64 for use within a URL
+        encoded_signature = base64.urlsafe_b64encode(signature.digest())
+
+        original_url = url.scheme + "://" + url.netloc + url.path + "?" + url.query
+
+        # Return signed URL
+        return original_url + "&signature=" + encoded_signature
         
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
-        return GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderLocation(size, location, heading, pitch, key)
+        unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderLocation(size, location, heading, pitch, key)
+        signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        return signed_url
+
 
     def _queryStringBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
         return "?size=%dx%d&location=%f,%f&heading=%f&pitch=%f&key=%s"% (size.width, size.height, location['lat'], location['lon'], heading,pitch,key)
@@ -141,7 +190,9 @@ class GoogleStreetViewProvider(ImageProvider):
  
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
-        return GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
+        unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
+        signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        return signed_url
 
     def _queryStringBuilderPanorama(size: Size, panoid: str, heading: float, pitch: float, key: str):
         return "?size=%dx%d&pano=%s&heading=%f&pitch=%f&key=%s" % (size.width,size.height, panoid, heading,pitch,key)
