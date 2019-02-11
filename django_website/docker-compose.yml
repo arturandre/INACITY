@@ -13,6 +13,8 @@ services:
       - POSTGRES_DBNAME=INACITYdb
   inacity:
     #image: inacity
+    volumes:
+      - ./:/var/www/html/
     build: .
     environment:
       - POSTGRES_PASS=1234

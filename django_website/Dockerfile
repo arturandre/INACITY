@@ -23,7 +23,7 @@ WORKDIR /var/www/html/
 ADD requirements.txt /var/www/html/
 
 
-#RUN pip3 install ptvsd
+RUN pip3 install ptvsd
 RUN pip3 install -r requirements.txt
 
 # Since in debian (image base os) mod_wsgi is for python3.5 it's needed to use the one
@@ -34,6 +34,7 @@ RUN pip3 install mod_wsgi
 
 
 ADD . /var/www/html/
+
 RUN mv /var/www/html/django_website/settings.py /var/www/html/django_website/settings_old.py
 RUN mv /var/www/html/django_website/settings_docker.py /var/www/html/django_website/settings.py
 ADD wait-for-postgres.sh /var/www/html/
