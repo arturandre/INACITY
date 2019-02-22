@@ -22,6 +22,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_website.settings")
 # setting points here.
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
+from django_website.LogGenerator import write_to_log
+write_to_log('wsgi loaded')
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication

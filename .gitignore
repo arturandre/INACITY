@@ -1,3 +1,9 @@
+#Secrets/Keys file
+settings_secret.py
+
+# Django general static folder
+django_website/static/
+
 #PyCharm files ignored
 .idea/
 

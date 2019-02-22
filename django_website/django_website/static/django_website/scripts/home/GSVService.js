@@ -61,7 +61,7 @@ class GSVService {
             /*Not leaf function*/ undefined,
             /*Leaf function*/ async function (node) {
                 return await GSVService.getPanoramaByLocation(node).then(
-                    (streetViewPanoramaData) => streetViewPanoramaData.toGeoImage(),
+                    async (streetViewPanoramaData) => await streetViewPanoramaData.toGeoImage(),
                     (err) => err
                 );
             });
@@ -94,112 +94,39 @@ class GSVService {
         return newRoot;
     }
 
-
-    
-    //static setGeoImageForLonLatCoordinate(lonLatCoordinate, geoImagesArray, position) {
-    //    let p = GSVService.getPanoramaByLocation(lonLatCoordinate);
-    //    p.then(
-    //        function (streetViewPanoramaData) {
-    //            geoImagesArray[position] = streetViewPanoramaData;
-    //        },
-    //        function (failedStatus) {
-    //            geoImagesArray[position] = failedStatus;
-    //            console.warn(`Status for coordinates(lon: ${lonLatCoordinate[0]}, lat: ${lonLatCoordinate[1]}): ${failedStatus}`);
-    //        }
-    //    )
-    //        .catch(
-    //            function (err) {
-    //                defaultError(err, "getPanoramaForFeature");
-    //                throw new Error(err);
-    //            }
-    //        )
-    //        .finally(
-    //            function () {
-
-    //                numCalls -= 1;
-    //                if (numCalls == 0) {
-    //                    resolve([feature, featureIndex]);
-    //                }
-    //            }
-    //        );
-
-    //}
-
-    ///**
-    // * This function receives a collection (array) of "Data" objects obtained
-    // * through the StreetViewService API and returns a collection of
-    // * StreetViewPanoramaData.
-    // * @param {StreetViewResponse[]} gsvArrayOfData - [{data: ..., status: 'OK' }]
-    // * @param {DataObject} StreetViewResponse.data - Data object from StreetViewService API to be converted to StreetViewPanoramaData.
-    // * @param {string} StreetViewResponse.status - String indicating the status of the request. Can be 'OK' for successfull requests, 'NOTFOUNT' if there's not a panorama within a radius of [maxRadius]{@link module:node/routes/index~maxRadius} from the [location] used in the request.
-    // */
-    //static formatStreetViewPanoramaDataArray(gsvArrayOfData) {
-    //    let ret = [];
-    //    for (let coordIdx = 0; coordIdx < gsvArrayOfData.length; coordIdx++) {
-    //        let coord = gsvArrayOfData[coordIdx];
-    //        if (coord.status === "OK") {
-    //            ret.push(StreetViewPanoramaData.fromStreetViewServiceData(coord.data));
-    //        }
-    //        else {
-    //            continue;
-    //        }
-    //    }
-    //    return ret;
-    //}
-
-    ///**
-    // * Collects panoramas for [Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2} in a [FeatureCollection]{@link https://tools.ietf.org/html/rfc7946#section-3.3} or for a single [Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2} from the geojson parameter.
-    // * @name collectfcpanoramas
-    // * @param {Feature|FeatureColletion} GeoJson's [FeatureCollection]{@link https://tools.ietf.org/html/rfc7946#section-3.3} or [Feature]{@link https://tools.ietf.org/html/rfc7946#section-3.2}
-    // */
-    //static collectfcpanoramas(geojson) {
-    //    return new Promise(function (resolve, reject) {
-    //        if (geojson.type === 'Feature') {
-    //            getPanoramaForFeature(geojson).then(
-    //                function (featureAndIndex) { /* Index will be null in this case */
-    //                    let featureWithGeoImage = featureAndIndex[0];
-    //                    let jsonString = JSON.stringify(featureWithGeoImage);
-    //                    resolve(jsonString);
-    //                }, (err) => { defaultError(err, "collectfcpanoramas"); reject(err); }
-    //            );
-    //        }
-    //        else if (geojson.type === 'FeatureCollection') {
-    //            let features = geojson.features;
-    //            let nCalls = features.length;
-    //            for (let featureIdx = 0; featureIdx < features.length; featureIdx++) {
-    //                getPanoramaForFeature(features[featureIdx], featureIdx)
-    //                    .then(
-    //                        function (featureAndIndex) {
-    //                            let featureWithGeoImage = featureAndIndex[0];
-    //                            let featureIdx = featureAndIndex[1];
-    //                            geojson.features[featureIdx] = featureWithGeoImage;
-    //                            nCalls -= 1;
-    //                            if (nCalls == 0) {
-    //                                let jsonString = JSON.stringify(geojson);
-    //                                resolve(jsonString);
-    //                            }
-    //                        }, (err) => { defaultError(err, "collectfcpanoramas"); reject(err); }
-    //                    );
-    //            }
-    //        }
-    //        else {
-    //            let err = "Geojson type unaccepted. Acceptable types: 'Feature', 'FeatureCollection'.";
-    //            defaultError(err, "collectfcpanoramas");
-    //            reject(err);
-    //        }
-    //    });
-    //    console.log(geojson);
-    //}
-
     static imageURLBuilderForGeoImage(geoImage, size, key) {
         let _size = size || [640, 640];
         let _key = key || GSVService.defaultKey;
-        return GSVService.imageURLBuilder(
+        let gsv_unsigned_url = GSVService.imageURLBuilder(
             _size,
             geoImage.id,
             geoImage.heading,
             geoImage.pitch,
             _key);
+        return new Promise((s, r) => 
+        {
+            $.ajax("/sign_gsv_url/",
+            {
+                method: "POST",
+                processData: false,
+                data: JSON.stringify({
+                    'gsv_unsigned_url': gsv_unsigned_url
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'text',
+                success: function (data, textStatus, XHR) 
+                {
+                    s(data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) 
+                {
+                    defaultAjaxErrorHandler('imageURLBuilderForGeoImage', textStatus, errorThrown);
+                }
+            });
+            
+        });
+        
+            return
     }
     static imageURLBuilder(size, panoid, heading, pitch, key) {
         return `${GSVService.baseurl}${GSVService.queryStringBuilderPanorama(size, panoid, heading, pitch, key)}`;

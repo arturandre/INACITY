@@ -12,25 +12,43 @@ services:
       - POSTGRES_PASS=1234
       - POSTGRES_DBNAME=INACITYdb
   inacity:
-    #image: inacity
+    image: inacity
     volumes:
       - ./:/var/www/html/
     build: .
     environment:
       - POSTGRES_PASS=1234
+    #user: dockeruser
+    working_dir: /var/www/html/
     #APACHE WEB SERVER
+#        sh -c "cd /var/www/html/
+#        && chmod +x /var/www/html/install_script.sh 
+#        && bash /var/www/html/install_script.sh
+#        && chmod +x /var/www/html/wait-for-postgres.sh
+#        && bash /var/www/html/wait-for-postgres.sh db
+#        && python3 manage.py migrate
+#        && apache2ctl -D FOREGROUND
+#        && tail -f /dev/null"
+
     command: >
-        sh -c "chmod +x wait-for-postgres.sh
-        && ./wait-for-postgres.sh db
+        sh -c "cd /var/www/html/
+        && chmod +x /var/www/html/install_script.sh 
+        && bash /var/www/html/install_script.sh
+        && chmod +x /var/www/html/wait-for-postgres.sh
+        && bash /var/www/html/wait-for-postgres.sh db
         && python3 manage.py migrate
-        && apache2ctl -D FOREGROUND"
+        && apache2ctl -D FOREGROUND
+        && tail -f /dev/null"
+        
 
     expose:
+      - "3000"
       - "8000"
       - "80"
     ports:
+      - "3000:3000/tcp"
       - "8000:8000/tcp"
       - "80:80/tcp"
     depends_on:
       - db
-    
+    tty: true

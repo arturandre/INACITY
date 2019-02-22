@@ -16,30 +16,34 @@ RUN apt-get update && apt-get install -y \
 RUN echo 'deb http://ftp.de.debian.org/debian testing main' >> /etc/apt/sources.list
 RUN echo 'APT::Default-Release "stable";' | tee -a /etc/apt/apt.conf.d/00local
 
-RUN apt-get update && apt-get -t testing install -y python3.6-dev
+#RUN apt-get update && apt-get -t testing install -y python3.6-dev
+RUN apt-get update 
+#&& apt-get install -y python3.6-dev
 	
 # Set the working directory to /var/www/html/
-WORKDIR /var/www/html/
-ADD requirements.txt /var/www/html/
+#WORKDIR /var/www/html/
 
 
-RUN pip3 install ptvsd
-RUN pip3 install -r requirements.txt
+#ADD requirements.txt /var/www/html/
+
+
+#RUN pip3 install ptvsd
+#RUN pip3 install -r requirements.txt
 
 # Since in debian (image base os) mod_wsgi is for python3.5 it's needed to use the one
 # from pip
-RUN pip3 install mod_wsgi
+#RUN pip3 install mod_wsgi
 
 
 
 
-ADD . /var/www/html/
+#ADD . /var/www/html/
 
-RUN mv /var/www/html/django_website/settings.py /var/www/html/django_website/settings_old.py
-RUN mv /var/www/html/django_website/settings_docker.py /var/www/html/django_website/settings.py
-ADD wait-for-postgres.sh /var/www/html/
+#RUN mv /var/www/html/django_website/settings.py /var/www/html/django_website/settings_old.py
+#RUN mv /var/www/html/django_website/settings_docker.py /var/www/html/django_website/settings.py
+#ADD ./wait-for-postgres.sh /var/www/html/
 
 ADD ./demo_site.conf /etc/apache2/sites-available/inacity.conf
-RUN a2dissite 000-default
-RUN a2ensite inacity
+#RUN a2dissite 000-default
+#RUN a2ensite inacity
 

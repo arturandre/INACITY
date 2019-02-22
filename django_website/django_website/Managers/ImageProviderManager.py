@@ -5,11 +5,13 @@ from django_website.ImageProviders.ImageProvider import ImageProvider
 from geojson import FeatureCollection
 from typing import List
 from django_website.Primitives.GeoImage import GeoImage
+from django_website.LogGenerator import write_to_log
 
 class ImageProviderManager(object):
     """Mediator class instantiated as a singleton responsible for managing all the image platforms adaptors implemented"""
     __instance = None
     def __init__(self):
+        write_to_log('ImageProviderManager.__init__')
         self._ImageProviders = {}
         for imageProviderClass in ImageProvider._subclasses:
             self.registerImageProvider(imageProviderClass)
@@ -25,14 +27,15 @@ class ImageProviderManager(object):
         pass
 
     #Unused
-    def requestGeoImageToImageProvider(self, imageProviderId: str, locations: FeatureCollection) -> List[FeatureCollection]:
-        """Delegate request to the selected image provider"""
-        return self._ImageProviders[imageProviderId].getGeoImagesFromLocations(locations)
+    #def requestGeoImageToImageProvider(self, imageProviderId: str, locations: FeatureCollection) -> List[FeatureCollection]:
+    #    """Delegate request to the selected image provider"""
+    #    return self._ImageProviders[imageProviderId].getGeoImagesFromLocations(locations)
         
         
 
     @property
     def ImageProviders(self):
+        
         return self._ImageProviders
 
     def getAvailableImageProviders(self):

@@ -6,7 +6,7 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 
 import ast
@@ -28,6 +28,8 @@ from django.core.exceptions import MultipleObjectsReturned
 
 # General functions
 from django.conf import settings
+from django_website import settings_secret
+from django_website.LogGenerator import write_to_log
 from django.shortcuts import render, redirect
 from django.template import loader
 
@@ -42,6 +44,12 @@ from django.contrib.auth import logout as django_logout
 
 #Translation & Internationalization
 from django.utils import translation
+
+# GSV URL Signing
+import hashlib
+import hmac
+import base64
+
 
 
 ########### TESTING ##################
@@ -109,6 +117,53 @@ def users(request):
     retMethod = request.method
 
     return HttpResponse(f'Hello Users! {retMethod}')
+
+#ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
+@api_view(['POST'])
+def sign_gsv_url(request):
+    """ Sign a request URL with a URL signing secret.
+
+        Usage:
+        signed_url = _sign_url(input_url=my_url)
+
+        Args:
+        input_url - The URL to sign
+
+        Returns:
+        The signed request URL
+    """
+    write_to_log(f'sign_gsv_url')
+    jsonData = request.data
+    write_to_log(json.dumps(jsonData))
+    
+    
+    
+    input_url=jsonData['gsv_unsigned_url']
+    secret = settings_secret.GSV_SIGNING_SECRET
+
+    if not input_url or not secret:
+        raise Exception("input_url and secret are required")
+
+    url = urlparse(input_url)
+
+    # We only need to sign the path+query part of the string
+    url_to_sign = url.path + "?" + url.query
+
+    # Decode the private key into its binary format
+    # We need to decode the URL-encoded private key
+    decoded_key = base64.urlsafe_b64decode(secret)
+
+    # Create a signature using the private key and the URL-encoded
+    # string using HMAC SHA1. This signature will be binary.
+    signature = hmac.new(decoded_key, url_to_sign.encode('utf-8'), hashlib.sha1)
+
+    # Encode the binary signature into base64 for use within a URL
+    encoded_signature = base64.urlsafe_b64encode(signature.digest())
+
+    original_url = url.scheme + "://" + url.netloc + url.path + "?" + url.query
+
+    # Return signed URL
+    return HttpResponse(original_url + "&signature=" + encoded_signature.decode('utf-8'))
 
 @api_view(['GET'])
 def profile(request):
@@ -272,6 +327,7 @@ def getavailablemapminers(request):
 
 @api_view(['GET'])
 def getimageproviders(request):
+    write_to_log('getimageproviders')
     ret = imageProviderManager.getAvailableImageProviders()
     return JsonResponse(ret)
 
@@ -303,6 +359,7 @@ def getmapminerfeatures(request):
 
 @api_view(['POST'])
 def getimagesforfeaturecollection(request):
+    write_to_log('getimagesforfeaturecollection')
     jsondata = request.data
     imageMinerName = jsondata['imageMinerName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
@@ -340,6 +397,7 @@ def getstreets(request):
 
 @api_view(['GET', 'POST'])
 def integrationTest(request):
+    write_to_log('integrationTest')
     htmlfile = 'integrationTest.html'
     local_vars = {'sample_key': 'sample_data'}
     if request.method == 'GET':

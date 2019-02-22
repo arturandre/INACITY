@@ -203,7 +203,7 @@ class StreetViewPanoramaData {
         return newSVPano;
     }
 
-    toGeoImage()
+    async toGeoImage()
     {
         let ret = new GeoImage();
         ret.id = this.location.pano;
@@ -211,7 +211,7 @@ class StreetViewPanoramaData {
         ret.heading = this.tiles.centerHeading;
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
-        ret.data = GSVService.imageURLBuilderForGeoImage(ret);
+        ret.data = await GSVService.imageURLBuilderForGeoImage(ret);
         ret.dataType = "URL";
         ret.metadata['imageURL'] = ret.data;
         return ret;

@@ -9,7 +9,8 @@ from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, Fea
 from typing import List
 import json
 
-from django.conf import settings
+from django_website import settings_secret
+from django_website.LogGenerator import write_to_log
 
 import hashlib
 import hmac
@@ -23,7 +24,8 @@ class Size():
 
 
 class GoogleStreetViewProvider(ImageProvider):
-    """Google Street View wrapper"""
+    """Google Street View wrapper (DEPRECATED)
+    GSV is now managed by javascript (home/GSVService.js)"""
 
     __all__ = ["imageProviderName", "imageProviderId", "getImageFromLocation"]
 
@@ -41,6 +43,8 @@ class GoogleStreetViewProvider(ImageProvider):
 
     def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
+        write_to_log(f'getImageForFeatureCollection')
+        
         gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
         if not gsvpanoramas.ok:
             #gsvpanoramas.status_code #413
@@ -108,6 +112,7 @@ class GoogleStreetViewProvider(ImageProvider):
         return featureCollection
 
     def createGeoImageFromStreetViewPanoramaData(streetViewPanoramaData):
+        write_to_log(f'createGeoImageFromStreetViewPanoramaData')
         geoImage = GeoImage()
         geoImage.id = streetViewPanoramaData['location']['pano']
         geoImage.location = streetViewPanoramaData['location']
@@ -141,10 +146,12 @@ class GoogleStreetViewProvider(ImageProvider):
             Returns:
             The signed request URL
         """
-        secret = settings.GSV_SIGNING_SECRET
+        write_to_log(f'_sign_url')
+        secret = settings_secret.GSV_SIGNING_SECRET
+        write_to_log(f'secret: {secret}')
 
         if not input_url or not secret:
-            raise Exception("input_url is required")
+            raise Exception("input_url and secret are required")
 
         url = urllib.parse(input_url)
 
@@ -170,15 +177,19 @@ class GoogleStreetViewProvider(ImageProvider):
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
+        write_to_log(f'_imageURLBuilderLocation')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderLocation(size, location, heading, pitch, key)
         signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        write_to_log(f'signed_url: {signed_url}')
         return signed_url
 
 
     def _queryStringBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
+        write_to_log(f'_queryStringBuilderLocation')
         return "?size=%dx%d&location=%f,%f&heading=%f&pitch=%f&key=%s"% (size.width, size.height, location['lat'], location['lon'], heading,pitch,key)
     
     def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size=None, key: str=None):
+        write_to_log(f'_imageURLBuilderForGeoImage')
         if size is None: size = Size(640, 640)
         if key is None: key = GoogleStreetViewProvider._key
         return GoogleStreetViewProvider._imageURLBuilder(
@@ -190,10 +201,13 @@ class GoogleStreetViewProvider(ImageProvider):
  
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
+        write_to_log(f'_imageURLBuilder')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
         signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        print(f'signed_url: {signed_url}')
         return signed_url
 
     def _queryStringBuilderPanorama(size: Size, panoid: str, heading: float, pitch: float, key: str):
+        write_to_log(f'_queryStringBuilderPanorama')
         return "?size=%dx%d&pano=%s&heading=%f&pitch=%f&key=%s" % (size.width,size.height, panoid, heading,pitch,key)
 

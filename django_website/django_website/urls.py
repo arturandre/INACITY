@@ -21,6 +21,7 @@ from django.contrib import admin
 from django.views.i18n import JavaScriptCatalog
 
 urlpatterns = [
+    
 
     #Internationalization
     re_path(r'^lang/(?P<lang_code>[\w]{2}(-[\w]{2})?)/?$', lang, name='lang'),
@@ -40,6 +41,9 @@ urlpatterns = [
     path('savesession/', savesession, name='savesession'),
     path('loadsession/', loadsession, name='loadsession'),
     path('getlastsessionid/', getlastsessionid, name='getlastsessionid'),
+
+    #Google Services
+    path('sign_gsv_url/', sign_gsv_url, name='sign_gsv_url'),
 
     # Pages
     re_path(r'^$', home, name='root'),
