@@ -1,0 +1,1 @@
+docker run -v ${PSScriptRoot}:/var/www/html/ arturandre/inacity

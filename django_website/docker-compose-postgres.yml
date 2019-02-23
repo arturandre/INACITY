@@ -3,6 +3,8 @@ version: '2'
 services:
   db:
     image: kartoza/postgis:9.6-2.4
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     expose:
       - "5432"
     ports:

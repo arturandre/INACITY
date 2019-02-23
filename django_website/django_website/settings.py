@@ -14,8 +14,6 @@ import os
 import posixpath
 from django_website.settings_secret import *
 
-
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,19 +21,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
-
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Ref.: https://stackoverflow.com/questions/37031749/django-allowed-hosts-ips-range
-from socket import gethostname, gethostbyname 
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost', 
-    '.inacity.org',
-    ]
 
 # Application definition
 INSTALLED_APPS = [# Add your apps here to enable them
