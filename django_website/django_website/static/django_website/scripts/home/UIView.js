@@ -3,30 +3,7 @@
 * @module "UIView.js"
 */
 
-class DrawTool {
-    constructor(DrawToolName, geoFunction) {
-        if (DrawTool.isNameValid(DrawToolName)) {
-            this.name = DrawToolName;
-            this.geometryFunction = geoFunction;
-        }
-        else {
-            throw Error(gettext("Invalid DrawToolName")+`: ${DrawToolName}`);
-        }
-    }
-}
 
-if (!DrawTool.init) {
-    DrawTool.init = true;
-    DrawTool.validNames =
-        [
-            gettext('Box'),
-            gettext('Square'),
-            gettext('Dodecagon')
-        ];
-    DrawTool.isNameValid = function (name) {
-        return (DrawTool.validNames.indexOf(name) >= 0);
-    }
-}
 
 
 /**
@@ -38,7 +15,7 @@ if (!DrawTool.init) {
  * @param {MapMiner[]} _mapMinersAndFeatures - The collection of Map Miners and its respective features as reported by the backend
  */
 class UIView {
-    constructor(uiModel, geoImageManager, defaults) {
+    constructor(uiModel, geoImageManager) {
         this.uiModel = uiModel;
         this.geoImageManager = geoImageManager;
 
@@ -49,6 +26,12 @@ class UIView {
         
         this.onClickSaveSessionBtn = null;
         this.onClickNewSessionBtn = null;
+
+        this.onClickChangeShapeBtn = null;
+        this.onClickChangeMapProviderBtn = null;
+        this.onClickCancelDrawingBtn = null;
+        this.onClickChangeImageFilter = null;
+        
         
         
 
@@ -73,7 +56,9 @@ class UIView {
         this.jqbtnMapProvider = $(`#btnMapProvider`);
 
         this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
+
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
+        
 
         this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
         this.jqbtnCollectImages = $(`#btnCollectImages`);
@@ -84,40 +69,15 @@ class UIView {
 
         this.jqimageDiv = $(".image-div");
         this.jqregionDiv = $(".region-div");
-
-        this._SelectedMapMiner = null;
-        this._SelectedMapFeature = null;
-        this._SelectedImageProvider = null;
-        this._SelectedImageFilter = null;
-
-        this._SelectedMapProvider = null;
-
-        this._SelectedDrawTool = null;
-        this._drawInteraction = null;
-
-        this._SelectedViewMode = null;
-
-
-        this.populateShapeDiv();
-        this.populateMapProviderDiv();
-        this.populateChangeModeDiv();
-
-        this._fillImageProviderDiv();
-        this._fillImageFilterDiv();
-        this._fillMapMinersAndFeaturesDiv();
         
 
 
-
-
-        this.jqbtnCancelDrawing.on("click", this.cancelDrawing.bind(this));
-
-        if (defaults) {
-            this.setDefaults(defaults);
-        }
+        
+        
+        this._fillMapMinersAndFeaturesDiv();
     }
 
-    initialize() {
+    initialize(defaults) {
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
@@ -126,25 +86,46 @@ class UIView {
         this.jqbtnSaveSession.on("click", this.onClickSaveSessionBtn.bind(this));
         this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
         
+        this.jqbtnCancelDrawing.on("click", this.onClickCancelDrawingBtn);
 
+        //this.populateShapeDiv();
+        this.createSelectionButton(this.jqshapeSelectorDiv, OpenLayersHandler.DrawTools, this.onClickChangeShapeBtn);
+        //this.populateMapProviderDiv();
+        this.createSelectionButton(this.jqmapProviderDiv, OpenLayersHandler.TileProviders, this.onClickChangeMapProviderBtn);
+        //this._fillImageProviderDiv();
+        this.createSelectionButton(this.jqimageProviderDiv, this.uiModel.imageProviders, this.changeImageProviderClick);
+        //this.populateChangeModeDiv();
+        this.createToggleRadioSelection('viewmodeloptions', this.jqchangeModeDiv, UIView.ViewModes, this.onClickChangeViewMode);
+        //this._fillImageFilterDiv();
+        //this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.changeImageFilterClick);
+        this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.onClickChangeImageFilter);
+        if (defaults) {
+            this.setDefaults(defaults);
+        }
     }
 
     setDefaults(defaults) {
         if (defaults.shape) {
-            this.changeShapeClick(defaults.shape);
+            this.updateShapeToolView(defaults.shape);
+            //this.uiModel.changeShapeTool(defaults.shape);
+            //this.changeShapeClick(defaults.shape);
         }
         if (defaults.tileProvider) {
-            this.changeMapProviderClick(defaults.tileProvider);
+            //this.uiModel.changeMapProvider(defaults.tileProvider);
+            this.updateMapProviderView(defaults.tileProvider);
         }
         if (defaults.viewmode) {
-            this.changeModeClick(defaults.viewmode);
+            this.changeViewMode(defaults.viewmode);
+            this.uiModel.SelectedViewMode = defaults.viewmode;
         }
         if (defaults.imageProvider) {
-            this.changeImageProviderClick(this.uiModel.imageProviders[defaults.imageProvider]);
+            this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
+            this.updateImageProviderView(this.uiModel.imageProviders[defaults.imageProvider]);
         }
         if (defaults.imageFilter)
         {
-            this.changeImageFilterClick(this.uiModel.imageFilters[defaults.imageFilter]);
+            this.updateImageFilterView(defaults.imageFilter);
+            this.uiModel.SelectedImageFilter = defaults.imageFilter;
         }
         if (defaults.mapMiner) {
             this.changeMapMiner(defaults.mapMiner);
@@ -155,8 +136,15 @@ class UIView {
 
     }
 
-    get SelectedViewMode() { return this._SelectedViewMode; }
-    set SelectedViewMode(viewmode) {
+    askSessionName(currentSessionName="")
+    {
+        return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
+    }
+
+    
+
+    changeViewMode(viewmode)
+    {
         switch (viewmode.viewmode) {
             case 'Map':
                 this.jqimageDiv.addClass('hidden');
@@ -176,42 +164,6 @@ class UIView {
             viewModeLabel.button('toggle');
             viewModeLabel.removeClass('focus');
         }
-        this._SelectedViewMode = viewmode;
-    }
-
-    set SelectedMapProvider(tileProvider) {
-        this._SelectedMapProvider = tileProvider;
-
-        this.setLabelSelectionBtn(this.jqbtnMapProvider, tileProvider.name, false);
-    }
-
-    get SelectedMapProvider() { return this._SelectedMapProvider; }
-
-    set SelectedDrawTool(drawTool) {
-        this._SelectedDrawTool = drawTool;
-
-        this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
-
-        this.jqbtnCancelDrawing.removeClass('hidden');
-    }
-
-    askSessionName(currentSessionName="")
-    {
-        return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
-    }
-
-    populateChangeModeDiv() {
-        for (let viewModeIdx in UIView.ViewModes) {
-            let viewMode = UIView.ViewModes[viewModeIdx];
-            this.jqchangeModeDiv.append(this.createToggleRadioButton('viewmodeloptions', viewMode.name, viewMode, this.changeModeClick.bind(this)));
-        }
-    }
-
-    populateMapProviderDiv() {
-        for (let tileProviderId in OpenLayersHandler.TileProviders) {
-            const tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
-            this.jqmapProviderDiv.append(this.createDropDownAnchorButton(tileProvider.name, tileProvider, this.changeMapProviderClick.bind(this)));
-        };
     }
 
     setLabelSelectionBtn(jqselectorButton, label, deselected) {
@@ -250,75 +202,11 @@ class UIView {
         geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
     }
 
-    changeModeClick(mode) {
-        this.SelectedViewMode = mode;
-    }
+    // changeModeClick(mode) {
+    //     this.SelectedViewMode = mode;
+    // }
 
-
-    /**
-    * Handler for changing map tiles.
-    * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
-    * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
-    */
-    changeMapProviderClick(tileProvider) {
-        this.SelectedMapProvider = tileProvider;
-        this.uiModel.openLayersHandler.changeMapProvider(tileProvider.provider);
-    }
-
-    cancelDrawing() {
-        this._SelectedDrawTool = null;
-
-        if (this._drawInteraction) {
-            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
-            this._drawInteraction = null;
-        }
-
-        this.setLabelSelectionBtn(this.jqbtnShapeSelector, gettext("Shape"), true);
-
-        this.jqbtnCancelDrawing.addClass("hidden");
-
-    }
-
-    get SelectedDrawTool() { return this._SelectedDrawTool; }
-
-
-    changeShapeClick(drawTool) {
-        if (!DrawTool.isNameValid(drawTool.name)) {
-            throw Error(gettext("Invalid DrawTool."));
-        }
-        if (this._drawInteraction) {
-            this.uiModel.openLayersHandler.map.removeInteraction(this._drawInteraction);
-        }
-        this.SelectedDrawTool = drawTool;
-
-
-        this._drawInteraction = new ol.interaction.Draw({
-            source: this.uiModel.openLayersHandler.globalVectorSource,
-            type: 'Circle',
-            geometryFunction: this.SelectedDrawTool.geometryFunction,
-        });
-        this._drawInteraction.on('drawend', this.drawingHandlers, this);
-        this.uiModel.openLayersHandler.map.addInteraction(this._drawInteraction);
-
-    }
-
-    drawingHandlers(eventKey) {
-        switch (eventKey.type) {
-            case 'drawend':
-                // let idNumber = getNewId();
-                // let regionId = 'region' + idNumber;
     
-                // eventKey.feature.setId(regionId);
-                // eventKey.feature.setProperties({ 'type': 'region' });
-                
-                this.uiModel.createRegion(eventKey.feature, true);
-                this.cancelDrawing();
-                break;
-            default:
-                console.error(gettext('Unknown event type!'));
-                break;
-        }
-    }
 
 
     set SelectedMapMiner(mapMinerId) {
@@ -354,25 +242,41 @@ class UIView {
         }
     }
 
-    set SelectedImageProvider(imageProvider) {
-        this._SelectedImageProvider = imageProvider;
-
+    updateImageProviderView(imageProvider)
+    {
         this.jqbtnCollectImages.removeClass("hidden");
         this.jqbtnImageFilter.removeClass("hidden");
-
         this.setLabelSelectionBtn(this.jqbtnImageProvider, imageProvider.name, false);
     }
 
-    set SelectedImageFilter(imageFilter) {
-        this._SelectedImageFilter = imageFilter;
+    updateMapProviderView(tileProvider)
+    {
+        this.setLabelSelectionBtn(this.jqbtnMapProvider, tileProvider.name, false);
+    }
 
+    updateImageFilterView(imageFilter)
+    {
         this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter.name, false);
     }
 
+    updateShapeToolView(drawTool)
+    {
+        if (drawTool === null)
+        {
+            this.setLabelSelectionBtn(this.jqbtnShapeSelector, gettext("Shape"), true);
+            this.jqbtnCancelDrawing.addClass("hidden");
+            return;
+        }
+        this.setLabelSelectionBtn(this.jqbtnShapeSelector, drawTool.name, false);
+        this.jqbtnCancelDrawing.removeClass('hidden');
+    }
+
+    
+
     get SelectedMapMiner() { return this._SelectedMapMiner; }
     get SelectedMapFeature() { return this._SelectedMapFeature; }
-    get SelectedImageProvider() { return this._SelectedImageProvider; }
-    get SelectedImageFilter() { return this._SelectedImageFilter; }
+    
+    
 
     /**
      * Creates an anchor button (<a href...>)
@@ -385,21 +289,11 @@ class UIView {
         button.addClass('dropdown-item');
         button.append(label);
         button.attr("href", "javascript:void(0);");
-        button.click(null, clickHandler.bind(this, optValue));
+        button.click(optValue, clickHandler);
         return button;
     }
 
-    createToggleRadioButton(groupName, label, optValue, clickHandler) {
-        let buttonLabel = $(document.createElement('label'));
-        let buttonInput = $('<input type="radio">');
-        buttonLabel.addClass('btn btn-success');
-        buttonInput.attr('name', groupName);
-        buttonInput.attr('autocomplete', 'off');
-        buttonLabel.html(label);
-        buttonInput.change(buttonInput, clickHandler.bind(this, optValue));
-        buttonLabel.append(buttonInput);
-        return buttonLabel;
-    }
+    
 
 
 
@@ -538,65 +432,117 @@ class UIView {
         //}
     }
 
+    createSelectionButton(jqContainerDiv, optionsDict, clickHandler)
+    {
+        jqContainerDiv.empty();
+        for (let optionIdx in optionsDict)
+        {
+            let option = optionsDict[optionIdx];
+            //let btnLabel = (!option.name) ? option.name : optionIdx;
+            const optionBtn = this.createDropDownAnchorButton(option.name, option, clickHandler);
+            jqContainerDiv.append(optionBtn);
+        }
+        return jqContainerDiv;
+    }
+
+    // populateChangeModeDiv() {
+    //     for (let viewModeIdx in UIView.ViewModes) {
+    //         let viewMode = UIView.ViewModes[viewModeIdx];
+    //         this.jqchangeModeDiv.append(this.createToggleRadioButton('viewmodeloptions', viewMode.name, viewMode, this.changeModeClick));
+    //     }
+    // }
+
+    createToggleRadioSelection(groupName, jqContainerDiv, optionsDict, clickHandler)
+    {
+        jqContainerDiv.empty();
+        for (let optionIdx in optionsDict)
+        {
+            let option = optionsDict[optionIdx];
+            const optionBtn = this.createToggleRadioButton(groupName, option.name, option, clickHandler);
+            jqContainerDiv.append(optionBtn);
+        }
+        return jqContainerDiv;
+    }
+
+    createToggleRadioButton(groupName, label, optValue, clickHandler) {
+        let buttonLabel = $(document.createElement('label'));
+        let buttonInput = $('<input type="radio">');
+        buttonLabel.addClass('btn btn-success');
+        buttonInput.attr('name', groupName);
+        buttonInput.attr('autocomplete', 'off');
+        buttonLabel.html(label);
+        buttonInput.change(optValue, clickHandler);
+        buttonLabel.append(buttonInput);
+        return buttonLabel;
+    }
+
 
 
 
     //#region Image Provider
 
-    populateShapeDiv() {
-        this.jqshapeSelectorDiv.empty();
-        for (let shapeIdx in UIView.DrawTools) {
-            const shape = UIView.DrawTools[shapeIdx];
-            const btnShape = this.createDropDownAnchorButton(shape.name, shape, this.changeShapeClick);
-            this.jqshapeSelectorDiv.append(btnShape);
-        }
-    }
+    // populateShapeDiv() {
+    //     this.createSelectionButton(this.jqshapeSelectorDiv, UIView.DrawTools, this.onChangeShapeClick);
+    //     // this.jqshapeSelectorDiv.empty();
+    //     // for (let shapeIdx in UIView.DrawTools) {
+    //     //     const shape = UIView.DrawTools[shapeIdx];
+    //     //     const btnShape = this.createDropDownAnchorButton(shape.name, shape, this.onChangeShapeClick);
+    //     //     this.jqshapeSelectorDiv.append(btnShape);
+    //     // }
+    // }
+
+    // populateMapProviderDiv() {
+    //     for (let tileProviderId in OpenLayersHandler.TileProviders) {
+    //         const tileProvider = OpenLayersHandler.TileProviders[tileProviderId];
+    //         this.jqmapProviderDiv.append(this.createDropDownAnchorButton(tileProvider.name, tileProvider, this.onClickChangeMapProviderBtn));
+    //     };
+    // }
 
     /**
      * Called when [_imageProviders]{@link module:UIView~_imageProviders} is loaded and
      * the Image Provider Div should be (re)loaded too.
      * @private
      */
-    _fillImageProviderDiv() {
-        this.jqimageProviderDiv.empty();
-        for (let imageProviderIdx in this.uiModel.imageProviders) {
-            let imageProviderName = this.uiModel.imageProviders[imageProviderIdx].name;
-            let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, this.uiModel.imageProviders[imageProviderIdx], this.changeImageProviderClick);
-            this.jqimageProviderDiv.append(btnImageProvider);
-        }
-    }
+    // _fillImageProviderDiv() {
+    //     this.createSelectionButton(this.jqimageProviderDiv, this.uiModel.imageProviders, this.changeImageProviderClick);
+    //     // this.jqimageProviderDiv.empty();
+    //     // for (let imageProviderIdx in this.uiModel.imageProviders) {
+    //     //     let imageProviderName = this.uiModel.imageProviders[imageProviderIdx].name;
+    //     //     let btnImageProvider = this.createDropDownAnchorButton(imageProviderName, this.uiModel.imageProviders[imageProviderIdx], this.changeImageProviderClick);
+    //     //     this.jqimageProviderDiv.append(btnImageProvider);
+    //     // }
+    // }
 
     /**
      * Called when [_imageFilters]{@link module:UIView~_imageFilters} is loaded and
      * the Image Filter Div should be (re)loaded too.
      * @private
      */
-    _fillImageFilterDiv() {
-        this.jqimageFilterDiv.empty();
-        for (let imageFilterIdx in this.uiModel.imageFilters) {
-            let imageFilterName = this.uiModel.imageFilters[imageFilterIdx].name;
-            let btnImageFilter = this.createDropDownAnchorButton(imageFilterName, this.uiModel.imageFilters[imageFilterIdx], this.changeImageFilterClick);
-            this.jqimageFilterDiv.append(btnImageFilter);
-        }
-    }
+    
+    // _fillImageFilterDiv() {
+    //     this.jqimageFilterDiv.empty();
+    //     for (let imageFilterIdx in this.uiModel.imageFilters) {
+    //         let imageFilterName = this.uiModel.imageFilters[imageFilterIdx].name;
+    //         let btnImageFilter = this.createDropDownAnchorButton(imageFilterName, this.uiModel.imageFilters[imageFilterIdx], this.changeImageFilterClick);
+    //         this.jqimageFilterDiv.append(btnImageFilter);
+    //     }
+    // }
 
     /**
      * Handler for changing image provider.
      * @param {string} imageProviderId - Id defined by backend's class ImageProvider's subclasses
      * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
      */
-    changeImageProviderClick(imageProvider) {
-        this.SelectedImageProvider = imageProvider;
-    }
+    // changeImageProviderClick(imageProvider) {
+    //     this.SelectedImageProvider = imageProvider;
+    // }
 
     /**
      * Handler for changing image filter.
      * @param {string} imageFilterId - Id defined by backend's class ImageFilter's subclasses
      * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
      */
-    changeImageFilterClick(imageFilter) {
-        this.SelectedImageFilter = imageFilter;
-    }
+    
 
 
     //#endregion Image Provider
@@ -684,47 +630,6 @@ class UIView {
 
 if (!UIView.init) {
     UIView.init = true;
-
-    /**
-     * Collection of registered tile providers from OpenLayers
-     * @example 
-     * //OpenStreetMaps tile provider
-     * OpenLayersHandler.TileProviders.OSM
-     * @example 
-     * //Google road maps tile provider
-     * OpenLayersHandler.TileProviders.GOOGLE_ROADMAP_TILES
-     * @example 
-     * //Google satelite with road maps tile provider
-     * OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES
-     * @see [OpenLayers Sources]{@link https://github.com/openlayers/openlayers/tree/v5.0.3/src/ol/source}
-     */
-    UIView.DrawTools =
-        {
-            Box: new DrawTool(gettext('Box'), ol.interaction.Draw.createBox()),
-            Square: new DrawTool(gettext('Square'), ol.interaction.Draw.createRegularPolygon(4)),
-            Dodecagon: new DrawTool(gettext('Dodecagon'), function (coordinates, geometry) {
-                if (!geometry) {
-                    geometry = new ol.geom.Polygon(null);
-                }
-                var center = coordinates[0];
-                var last = coordinates[1];
-                var dx = center[0] - last[0];
-                var dy = center[1] - last[1];
-                var radius = Math.sqrt(dx * dx + dy * dy);
-                var rotation = Math.atan2(dy, dx);
-                var newCoordinates = [];
-                var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i) {
-                    var angle = rotation + i * 2 * Math.PI / numPoints;
-                    var offsetX = radius * Math.cos(angle);
-                    var offsetY = radius * Math.sin(angle);
-                    newCoordinates.push([center[0] + offsetX, center[1] + offsetY]);
-                }
-                newCoordinates.push(newCoordinates[0].slice());
-                geometry.setCoordinates([newCoordinates]);
-                return geometry;
-            }),
-        };
 
     UIView.ViewModes =
     {

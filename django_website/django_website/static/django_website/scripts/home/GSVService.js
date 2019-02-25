@@ -94,7 +94,7 @@ class GSVService {
         return newRoot;
     }
 
-    static imageURLBuilderForGeoImage(geoImage, size, key) {
+    static async imageURLBuilderForGeoImage(geoImage, size, key) {
         let _size = size || [640, 640];
         let _key = key || GSVService.defaultKey;
         let gsv_unsigned_url = GSVService.imageURLBuilder(
@@ -103,9 +103,8 @@ class GSVService {
             geoImage.heading,
             geoImage.pitch,
             _key);
-        return new Promise((s, r) => 
-        {
-            $.ajax("/sign_gsv_url/",
+
+        return await $.ajax("/sign_gsv_url/",
             {
                 method: "POST",
                 processData: false,
@@ -114,25 +113,20 @@ class GSVService {
                 }),
                 contentType: "application/json; charset=utf-8",
                 dataType: 'text',
-                success: function (data, textStatus, XHR) 
-                {
-                    s(data);
+                success: function (data, textStatus, XHR) {
+                    return data;
                 },
-                error: function (jqXHR, textStatus, errorThrown) 
-                {
+                error: function (jqXHR, textStatus, errorThrown) {
                     defaultAjaxErrorHandler('imageURLBuilderForGeoImage', textStatus, errorThrown);
                 }
             });
-            
-        });
-        
-            return
     }
+
     static imageURLBuilder(size, panoid, heading, pitch, key) {
         return `${GSVService.baseurl}${GSVService.queryStringBuilderPanorama(size, panoid, heading, pitch, key)}`;
     }
 
-    static queryStringBuilderPanorama(size, panoid, heading, pitch, key) { 
+    static queryStringBuilderPanorama(size, panoid, heading, pitch, key) {
         return `?size=${size[0]}x${size[1]}&pano=${panoid}&heading=${heading}&pitch=${pitch}&key=${key}`;
     }
 }

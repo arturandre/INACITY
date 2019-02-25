@@ -286,7 +286,7 @@ class Region extends Subject {
         for (let layerIdx in this._layers) {
             const layerId = this._layers[layerIdx].layerId;
             if (layerId.MapMinerId === id.MapMinerId && layerId.FeatureName === id.FeatureName) {
-                return layerId;
+                return this._layers[layerIdx];
             }
         }
         return null;
@@ -362,6 +362,23 @@ class UIModel extends Subject {
 
         this._loading = false;
 
+        //#region View state variables
+
+
+        this._SelectedMapMiner = null;
+        this._SelectedMapFeature = null;
+        this._SelectedImageProvider = null;
+        this._SelectedImageFilter = null;
+
+        // this._SelectedMapProvider = null;
+
+        // this._SelectedDrawTool = null;
+        // this._drawInteraction = null;
+
+        this._SelectedViewMode = null;
+
+        //#endregion View state variables
+
         this._regions = {};
         this._featuresByLayerId = {};
 
@@ -377,11 +394,50 @@ class UIModel extends Subject {
         this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this);
 
         if (defaults) {
-            this.mapMiner = defaults.mapMiner;
-            this.mapFeature = defaults.mapFeature;
+            if (defaults.mapMiner) {
+                this.SelectedMapMiner = defaults.mapMiner;
+            }
+            if (defaults.mapFeature) {
+                this.SelectedMapFeature = defaults.mapFeature;
+            }
         }
 
     }
+
+    get SelectedMapMiner() { return this._SelectedMapMiner; }
+    set SelectedMapMiner(mapMiner) { this._SelectedMapMiner = mapMiner; }
+
+    get SelectedMapFeature() { return this._SelectedMapFeature; }
+    set SelectedMapFeature(mapFeature) { this._SelectedMapFeature = mapFeature; }
+
+    //#region View's getters and setters
+
+    // get SelectedMapProvider() { return this._SelectedMapProvider; }
+    // set SelectedMapProvider(tileProvider) {
+    //     this._SelectedMapProvider = tileProvider;
+    // }
+
+    // get SelectedDrawTool() { return this._SelectedDrawTool; }
+    // set SelectedDrawTool(drawTool) {
+    //     this._SelectedDrawTool = drawTool;
+    // }
+
+    get SelectedImageProvider() { return this._SelectedImageProvider; }
+    set SelectedImageProvider(imageProvider) {
+        this._SelectedImageProvider = imageProvider;
+    }
+
+    get SelectedImageFilter() { return this._SelectedImageFilter; }
+    set SelectedImageFilter(imageFilter) {
+        this._SelectedImageFilter = imageFilter;
+    }
+
+    get SelectedViewMode() { return this._SelectedViewMode; }
+    set SelectedViewMode(viewmode) {
+        this._SelectedViewMode = viewmode;
+    }
+
+    //#endregion View's getters and setters
 
     get openLayersHandler() { return this._openLayersHandler; }
 
@@ -419,8 +475,7 @@ class UIModel extends Subject {
         return getServerDataPromises;
     }
 
-    get currentSessionName()
-    {
+    get currentSessionName() {
         return this._currentSessionName;
     }
 
@@ -428,85 +483,133 @@ class UIModel extends Subject {
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
+    // changeMapProvider(tileProvider)
+    // {
+    //     this.SelectedMapProvider = tileProvider;
+    //     this.openLayersHandler.changeMapProvider(tileProvider.provider);
+    // }
+
+    // changeShapeTool(drawTool)
+    // {
+    //     // if (drawTool === null)
+    //     // {
+    //     //     if (this._drawInteraction) {
+    //     //         this.openLayersHandler.map.removeInteraction(this._drawInteraction);
+    //     //         this._drawInteraction = null;
+    //     //     }
+    //     //     return;
+    //     // }
+
+
+    //     // if (!DrawTool.isNameValid(drawTool.name)) {
+    //     //     throw Error(gettext("Invalid DrawTool."));
+    //     // }
+    //     // if (this._drawInteraction) {
+    //     //     this.openLayersHandler.map.removeInteraction(this._drawInteraction);
+    //     // }
+    //     // this.SelectedDrawTool = drawTool;
+
+
+    //     // this._drawInteraction = new ol.interaction.Draw({
+    //     //     source: this.openLayersHandler.globalVectorSource,
+    //     //     type: 'Circle',
+    //     //     geometryFunction: this.SelectedDrawTool.geometryFunction,
+    //     // });
+    //     // this._drawInteraction.on('drawend', this.drawingHandlers, this);
+    //     // this.openLayersHandler.map.addInteraction(this._drawInteraction);
+    // }
+
+    // drawingHandlers(eventKey) {
+    //     switch (eventKey.type) {
+    //         case 'drawend':
+    //             this.createRegion(eventKey.feature, true);
+    //             this.cancelDrawing();
+    //             break;
+    //         default:
+    //             console.error(gettext('Unknown event type!'));
+    //             break;
+    //     }
+    // }
+
     async _collectLayersForEmptyRegions(region) {
-        return new Promise(function (resolve) {
-            if (Object.keys(region.layers).length === 0) {
-                this.executeQuery(this.mapMiner, this.mapFeature).then(function () {
+        //#return new Promise(function (resolve) {
+        let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
+        //if (Object.keys(region.layers).length === 0) {
+        //When used as an index layerId will be cast to String (e.g. layerId - featureName)
+        if (!(layerId in region.layers) || !region.layers[layerId].featureCollection) {
+            await this.executeQuery(layerId)//.then(function () {
+            this.saveSession();
+            return;// resolve();
+            //}.bind(this));
+        }
+        else {
+            //Otherwise simply collect the image's from the feature selected
+            this.saveSession();
+            return;// resolve();
+        }
+        //}.bind(this));
+    }
+
+    async getImages() {
+        //return new Promise(function (resolve, reject) {
+        let numCalls = 0;
+
+        let activeRegions = this.getActiveRegions();
+        if (activeRegions.length === 0) {
+            //return reject(gettext("Please, select or activate a region to continue."));
+            throw gettext("Please, select or activate a region to continue.");
+        }
+        for (let regionIdx in activeRegions) {
+            var region = activeRegions[regionIdx];
+            //(new Promise(function (resolve) {
+            /*
+              Case the user simply select a region and then try to get the images
+              by default the Streets from OSM will be used as features
+            */
+            await this._collectLayersForEmptyRegions(region);//.then(() => resolve());
+            // if (Object.keys(region.layers).length === 0) {
+            //     this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
+            //     {
+            //         this.saveSession();
+            //         resolve();
+            //     }).bind(this);
+            // }
+            // else {
+            //     //Otherwise simply collect the image's from the feature selected
+            //     this.saveSession();
+            //     return resolve();
+            // }
+            //}.bind(this))).then(async () => {
+            let activeLayers = region.getActiveLayers();
+
+            for (let layerIdx in activeLayers) {
+                let layer = activeLayers[layerIdx];
+
+                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                //@todo: Warn user about the skipped layers
+                //@todo: Revise this
+                if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) {
+                    console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
+                    continue;
+                }
+
+                numCalls += 1;
+                await GSVService.setPanoramaForFeatureCollection(layer.featureCollection);
+                layer.geoImagesLoaded = true;
+                numCalls -= 1;
+                if (numCalls === 0) {
                     this.saveSession();
-                    resolve();
-                }.bind(this));
+                    //return resolve();
+                }
             }
-            else {
-                //Otherwise simply collect the image's from the feature selected
+            if (numCalls === 0) {
                 this.saveSession();
-                return resolve();
+                //return resolve();
             }
-        }.bind(this));
+            //});
+        }
     }
 
-    async getImages(selectedImageProvider) {
-        return new Promise(function (resolve, reject) {
-            let numCalls = 0;
-            try {
-                let activeRegions = this.getActiveRegions();
-                if (activeRegions.length === 0) {
-                    return reject(gettext("Please, select or activate a region to continue."));
-                }
-                for (let regionIdx in activeRegions) {
-                    var region = activeRegions[regionIdx];
-                    (new Promise(function (resolve) {
-                        /*
-                          Case the user simply select a region and then try to get the images
-                          by default the Streets from OSM will be used as features
-                        */
-                        this._collectLayersForEmptyRegions(region).then(() => resolve());
-                        // if (Object.keys(region.layers).length === 0) {
-                        //     this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
-                        //     {
-                        //         this.saveSession();
-                        //         resolve();
-                        //     }).bind(this);
-                        // }
-                        // else {
-                        //     //Otherwise simply collect the image's from the feature selected
-                        //     this.saveSession();
-                        //     return resolve();
-                        // }
-                    }.bind(this))).then(async () => {
-                        let activeLayers = region.getActiveLayers();
-
-                        for (let layerIdx in activeLayers) {
-                            let layer = activeLayers[layerIdx];
-
-                            //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                            //@todo: Warn user about the skipped layers
-                            //@todo: Revise this
-                            if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) {
-                                console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
-                                continue;
-                            }
-
-                            numCalls += 1;
-                            await GSVService.setPanoramaForFeatureCollection(layer.featureCollection);
-                            layer.geoImagesLoaded = true;
-                            numCalls -= 1;
-                            if (numCalls === 0) {
-                                this.saveSession();
-                                return resolve();
-                            }
-                        }
-                        if (numCalls === 0) {
-                            this.saveSession();
-                            return resolve();
-                        }
-                    });
-                }
-            }
-            catch (err) {
-                throw err;
-            }
-        }.bind(this));
-    }
 
     /**
      * Each image filter can return different kinds of responses like
@@ -520,106 +623,102 @@ class UIModel extends Subject {
      * @returns {Promise} - Empty
      * @todo: Treat parcial returns, the user should be able to see the results as they are being received, rather than wait all of them.
      */
-    getProcessedImages(selectedImageFilter) {
-        return new Promise(function (resolve, reject) {
-            let numCalls = 0;
-            let noCalls = true;
-            try {
-                let activeRegions = this.getActiveRegions();
-                if (activeRegions.length === 0) {
-                    return reject(gettext("Please, select or activate a region to continue."));
+    async getProcessedImages() {
+        //return new Promise(function (resolve, reject) {
+        let numCalls = 0;
+        let noCalls = true;
+
+        let activeRegions = this.getActiveRegions();
+        if (activeRegions.length === 0) {
+            throw gettext("Please, select or activate a region to continue.");
+        }
+        for (let regionIdx in activeRegions) {
+            var region = activeRegions[regionIdx];
+            /*
+              Case the user simply select a region and then try to get the images
+              by default the Streets from OSM will be used as features
+            */
+            await this._collectLayersForEmptyRegions(region);//.then(() => {
+            let activeLayers = region.getActiveLayers();
+            let skippedLayers = [];
+
+            for (let layerIdx in activeLayers) {
+                let layer = activeLayers[layerIdx];
+
+                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
+                if (!layer.featureCollection
+                    || !layer.featureCollection.features
+                    || !layer.featureCollection.features[0].properties.geoImages
+                    //isFiltered() is defined at Helper.js
+                    || isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) {
+                    let skippedLayer =
+                    {
+                        regionName: region.name,
+                        layerId: layer.layerId.toString(),
+                        reason: ""
+                    };
+                    if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
+                    if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
+                    if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
+                    if (isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
+
+                    skippedLayers.push(skippedLayer);
+                    continue;
                 }
-                for (let regionIdx in activeRegions) {
-                    var region = activeRegions[regionIdx];
-                    /*
-                      Case the user simply select a region and then try to get the images
-                      by default the Streets from OSM will be used as features
-                    */
-                    this._collectLayersForEmptyRegions(region).then(() => {
-                        let activeLayers = region.getActiveLayers();
-                        let skippedLayers = [];
 
-                        for (let layerIdx in activeLayers) {
-                            let layer = activeLayers[layerIdx];
-
-                            //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                            if (!layer.featureCollection
-                                || !layer.featureCollection.features
-                                || !layer.featureCollection.features[0].properties.geoImages
-                                //isFiltered() is defined at Helper.js
-                                || isFiltered(layer.featureCollection.features[0].properties.geoImages, selectedImageFilter)) {
-                                let skippedLayer =
-                                {
-                                    regionName: region.name,
-                                    layerId: layer.layerId.toString(),
-                                    reason: ""
-                                };
-                                if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
-                                if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
-                                if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
-                                if (isFiltered(layer.featureCollection.features[0].properties.geoImages, selectedImageFilter)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
-
-                                skippedLayers.push(skippedLayer);
-                                continue;
+                //numCalls += 1;
+                noCalls = false;
+                await $.ajax('/processimagesfromfeaturecollection/',
+                    {
+                        method: 'POST',
+                        processData: false,
+                        data: JSON.stringify({
+                            'imageFilterId': this.SelectedImageFilter,
+                            'featureCollection': JSON.stringify(layer.featureCollection),
+                            'regionId': region.id,
+                            'layerId': layer.layerId.toString()
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: 'json',
+                        success: function (data, textStatus, XHR) {
+                            //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
+                            let layer = this.regions[data['regionId']].layers[data['layerId']];
+                            layer.featureCollection = data['featureCollection'];
+                        }.bind(this),
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            //@todo: Create a error handling mechanism
+                            if (jqXHR.status === 413) {
+                                alert(gettext("The request was too big to be processed. Try a smaller region."));
                             }
-
-                            numCalls += 1;
-                            noCalls = false;
-                            $.ajax('/processimagesfromfeaturecollection/',
-                                {
-                                    method: 'POST',
-                                    processData: false,
-                                    data: JSON.stringify({
-                                        'imageFilterId': selectedImageFilter,
-                                        'featureCollection': JSON.stringify(layer.featureCollection),
-                                        'regionId': region.id,
-                                        'layerId': layer.layerId.toString()
-                                    }),
-                                    contentType: "application/json; charset=utf-8",
-                                    dataType: 'json',
-                                    success: function (data, textStatus, XHR) {
-                                        //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
-                                        let layer = this.regions[data['regionId']].layers[data['layerId']];
-                                        layer.featureCollection = data['featureCollection'];
-                                    }.bind(this),
-                                    error: function (jqXHR, textStatus, errorThrown) {
-                                        //@todo: Create a error handling mechanism
-                                        if (jqXHR.status === 413) {
-                                            alert(gettext("The request was too big to be processed. Try a smaller region."));
-                                        }
-                                        else {
-                                            defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
-                                        }
-                                    },
-                                    complete: function (jqXHR, textStatus) {
-                                        numCalls -= 1;
-                                        if (numCalls === 0) {
-                                            return resolve();
-                                        }
-                                    },
-                                },
-                                'json'
-                            );
-                        }
-                        if (skippedLayers.length > 0) {
-                            let warnSkippedMessage = gettext("The following layers were skipped: \n");
-                            for (let skippedLayerIdx in skippedLayers) {
-                                let skippedLayer = skippedLayers[skippedLayerIdx];
-                                warnSkippedMessage += gettext("Layer: ") + skippedLayer.layerId + "."
-                                + gettext(" From region: ") + skippedLayer.regionName + "."
-                                + gettext(" Reason: ") + skippedLayer.reason + "\n";
+                            else {
+                                defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
                             }
-                            alert(warnSkippedMessage);
-                        }
-                    });
+                        },
+                        complete: function (jqXHR, textStatus) {
+                            // numCalls -= 1;
+                            // if (numCalls === 0) {
+                            //     return resolve();
+                            // }
+                        },
+                    },
+                    'json'
+                );
+            }
+            if (skippedLayers.length > 0) {
+                let warnSkippedMessage = gettext("The following layers were skipped: \n");
+                for (let skippedLayerIdx in skippedLayers) {
+                    let skippedLayer = skippedLayers[skippedLayerIdx];
+                    warnSkippedMessage += gettext("Layer: ") + skippedLayer.layerId + "."
+                        + gettext(" From region: ") + skippedLayer.regionName + "."
+                        + gettext(" Reason: ") + skippedLayer.reason + "\n";
                 }
-                if (noCalls) return resolve();
+                alert(warnSkippedMessage);
             }
-            catch (err) {
+            //});
+        }
+        if (noCalls) return;// resolve();
 
-                throw err;
-            }
-        }.bind(this));
+        //}.bind(this));
     }
 
     /**
@@ -702,35 +801,33 @@ class UIModel extends Subject {
     /**
      * 
      * @param {Region} region - Region object that will have features collected for
-     * @param {String} selectedMapMiner - Specifies which GIS should be used (e.g. OSM)
-     * @param {String} selectedMapFeature - Specifies which kind of feature should be collected (e.g. Streets)
      * @param {GeoJson} geoJsonFeatures - GeoJson object that specifies the boundaries of the region
      * @returns {Promise} - Data will be a GeoJson
      */
-    getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures) {
-        return new Promise(function (resolve) {
-            //let that = this; /* window */
-            $.ajax
-                (
-                    "/getmapminerfeatures/",
-                    {
-                        method: 'POST',
-                        data: JSON.stringify({
-                            "mapMinerId": selectedMapMiner,
-                            "featureName": selectedMapFeature,
-                            "regions": JSON.stringify(geoJsonFeatures),
-                        }),
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function (data, textStatus, jqXHR) {
-                            return resolve(data);
-                        }.bind(region),
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
-                            //reject(errorThrown);
-                        },
-                    });
-        });
+    async getMapMinerFeatures(region, geoJsonFeatures) {
+        //return new Promise(function (resolve) {
+        //let that = this; /* window */
+        return await $.ajax
+            (
+                "/getmapminerfeatures/",
+                {
+                    method: 'POST',
+                    data: JSON.stringify({
+                        "mapMinerId": this.SelectedMapMiner,
+                        "featureName": this.SelectedMapFeature,
+                        "regions": JSON.stringify(geoJsonFeatures),
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+                        return data;
+                    }.bind(region),
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
+                        //reject(errorThrown);
+                    },
+                });
+        //});
     }
 
     /**
@@ -739,18 +836,16 @@ class UIModel extends Subject {
     saveSession(sessionName) {
         if (this._loading) return;
         let sentData = "";
-        sessionName = sessionName ? sessionName : 
-                      this.currentSessionName ? this.currentSessionName : 
-                      undefined;
+        sessionName = sessionName ? sessionName :
+            this.currentSessionName ? this.currentSessionName :
+                undefined;
         this._currentSessionName = sessionName;
-        if (sessionName)
-        {
+        if (sessionName) {
             sentData = JSON.stringify({
                 uiModelJSON: this.saveToJSON(sessionName)
             });
         }
-        else
-        {
+        else {
             sentData = JSON.stringify({
                 uiModelJSON: this.saveToJSON()
             });
@@ -773,22 +868,22 @@ class UIModel extends Subject {
 
     }
 
-    newSession(){
+    newSession() {
         $.ajax('newsession/',
-        {
-            method: 'POST',
-            processData: false,
-            data: undefined,
-            context: this,
-            success: function (data, textStatus, jqXHR) {
-                //Success message
-                this.clear();
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
-            },
-            complete: function (jqXHR, textStatus) { }
-        });
+            {
+                method: 'POST',
+                processData: false,
+                data: undefined,
+                context: this,
+                success: function (data, textStatus, jqXHR) {
+                    //Success message
+                    this.clear();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
+                },
+                complete: function (jqXHR, textStatus) { }
+            });
     }
     clearSession() {
         $.ajax('/clearsession/',
@@ -811,63 +906,63 @@ class UIModel extends Subject {
 
     }
     loadSession(sessionId) {
-        let loadSessionWithId = function(sessionId) {$.ajax('/loadsession/',
-        {
-            method: 'POST',
-            processData: false,
-            context: this,
-            data: JSON.stringify({sessionId: sessionId}),
-            success: function (data, textStatus, jqXHR) {
-                //Success message
-                try {
-                    if (data) {
-                        this.loadFromJSON(data);
-                    }
-                } catch (error) {
-                    defaultAjaxErrorHandler('loadSession', textStatus, error);
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
-            },
-            complete: function (jqXHR, textStatus) { }
-        });}.bind(this);
+        let loadSessionWithId = function (sessionId) {
+            $.ajax('/loadsession/',
+                {
+                    method: 'POST',
+                    processData: false,
+                    context: this,
+                    data: JSON.stringify({ sessionId: sessionId }),
+                    success: function (data, textStatus, jqXHR) {
+                        //Success message
+                        try {
+                            if (data) {
+                                this.loadFromJSON(data);
+                            }
+                        } catch (error) {
+                            defaultAjaxErrorHandler('loadSession', textStatus, error);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+                    },
+                    complete: function (jqXHR, textStatus) { }
+                });
+        }.bind(this);
 
 
 
-        if (sessionId){
+        if (sessionId) {
             loadSessionWithId(sessionId);
         }
-        else
-        {
+        else {
             $.ajax('/getlastsessionid/',
-            {
-                method: 'POST',
-                processData: false,
-                data: undefined,
-                context: this,
-                success: function (sessionId, textStatus, jqXHR) {
-                    //Success message
-                    try {
-                        if (sessionId >= 0) {
-                            loadSessionWithId(sessionId);
+                {
+                    method: 'POST',
+                    processData: false,
+                    data: undefined,
+                    context: this,
+                    success: function (sessionId, textStatus, jqXHR) {
+                        //Success message
+                        try {
+                            if (sessionId >= 0) {
+                                loadSessionWithId(sessionId);
+                            }
+                            else {
+                                loadSessionWithId();
+                            }
+                        } catch (error) {
+                            defaultAjaxErrorHandler('loadSession', textStatus, error);
                         }
-                        else
-                        {
-                            loadSessionWithId();
-                        }
-                    } catch (error) {
-                        defaultAjaxErrorHandler('loadSession', textStatus, error);
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
-                },
-                complete: function (jqXHR, textStatus) { }
-            });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+                    },
+                    complete: function (jqXHR, textStatus) { }
+                });
         }
 
-        
+
 
 
 
@@ -977,69 +1072,60 @@ class UIModel extends Subject {
      * Function used to collect map features, from the server,
      * based on [UIView.SelectedMapMiner]{@link module:"UIView.js"~UIView.SelectedMapMiner}
      * and [UIView.SelectedMapFeature]{@link module:"UIView.js"~UIView.SelectedMapFeature}
-     * @param {string} selectedMapMiner - Map miner used to search for features (i.e. OpenStreetMap)
-     * @param {string} selectedMapFeature - Which kind of feature should be fetched
      * @returns {Promise} - Empty
      */
-    executeQuery(selectedMapMiner, selectedMapFeature) {
-        return new Promise(function (resolve, reject) {
-            let noSelectedRegions = true;
-            let numCalls = 0;
-            try {
-                const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-                let activeRegions = this.getActiveRegions();
 
-                for (let regionIdx in activeRegions) {
-
-                    let region = activeRegions[regionIdx];
-                    let layerId = Layer.createLayerId(selectedMapMiner, selectedMapFeature);
-                    let layer = region.getLayerById(layerId);
-                    //If layer already exists in this region it means that no further request is needed
-                    if (layer) continue;
-
-                    layer = region.createLayer(layerId);
-                    numCalls = numCalls + 1;
-                    noSelectedRegions = false;
-
-                    if (selectedMapMiner === null) {
-                        return reject(gettext("Please, select a Map Miner to continue."));
-                    }
-                    if (selectedMapFeature === null) {
-                        return reject(gettext("Please, select a Feature to continue."));
-                    }
-
-                    let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(region.id)]);
-
-                    geoJsonFeatures.crs = {
-                        "type": "name",
-                        "properties": {
-                            "name": "EPSG:4326"
-                        }
-                    };
-                    this.getMapMinerFeatures(region, selectedMapMiner, selectedMapFeature, geoJsonFeatures)
-                        .then(function (data) {
-                            layer.featureCollection = data;
-                            numCalls = numCalls - 1;
-                            if (numCalls === 0) {
-                                return resolve();
-                            }
-                        }.bind(this))
-                        .catch(function (err) {
-                            //TODO: Set it as a reject
-                            defaultAjaxErrorHandler('executeQuery', "error", err);
-                        });
-                }
-
-                if (noSelectedRegions) {
-                    return reject(gettext("No region selected. Please, select or activate a region before making the request."));
-                }
-            }
-            catch (err) {
-                //TODO: Set it as a reject
-                defaultAjaxErrorHandler('executeQuery', null, err);
-            }
-        }.bind(this));
+    async executeQuery() {
+        let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
+        return await executeQuery(layerId);
     }
+
+    async executeQuery(layerId) {
+        //return new Promise(function (resolve, reject) {
+        let noSelectedRegions = true;
+        //let numCalls = 0;
+
+        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        let activeRegions = this.getActiveRegions();
+
+        for (let regionIdx in activeRegions) {
+
+            let region = activeRegions[regionIdx];
+            let layer = region.getLayerById(layerId);
+            //If layer already exists in this region it means that no further request is needed
+            if (layer && layer.featureCollection) continue;
+
+            layer = region.createLayer(layerId);
+            //numCalls = numCalls + 1;
+            noSelectedRegions = false;
+
+            if (this.SelectedMapMiner === null) {
+                //return reject(gettext("Please, select a Map Miner to continue."));
+                throw gettext("Please, select a Map Miner to continue.");
+            }
+            if (this.SelectedMapFeature === null) {
+                //return reject(gettext("Please, select a Feature to continue."));
+                throw gettext("Please, select a Feature to continue.");
+            }
+
+            let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(region.id)]);
+
+            geoJsonFeatures.crs = {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            };
+            let data = await this.getMapMinerFeatures(region, geoJsonFeatures);
+            layer.featureCollection = data;
+            //numCalls = numCalls - 1;
+        }
+
+        if (noSelectedRegions) {
+            throw gettext("No region selected. Please, select or activate a region before making the request.");
+        }
+    }
+
 
     /** 
     * An index for features, from all layers from all regions, grouped by layerId.
@@ -1267,7 +1353,7 @@ class UIModel extends Subject {
     }
 }
 
-
+/** @todo: Transfer GeoJson functions them to a more appropriate place*/
 //#region GeoJson functions
 /**
  * @todo Transfer the 'GeoJson functions region' to a more appropriate place
@@ -1355,7 +1441,7 @@ function mergeInPlaceMultilineStringFeatures(feature1, feature2) {
     feature1.geometry.coordinates = feature2.geometry.coordinates = allLineStrings;
 }
 
-//#endregion GeoJson functions TODO: Transfer them to a more appropriate place
+//#endregion GeoJson functions 
 
 /**
 * Triggered by a mouse click event in the user interface

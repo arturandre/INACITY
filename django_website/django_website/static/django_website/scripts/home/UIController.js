@@ -1,8 +1,9 @@
 ﻿class UIController {
-    constructor(uiModel, uiView, geoImageManager) {
+    constructor(uiModel, uiView, geoImageManager, openLayersHandler) {
         this.uiModel = uiModel;
         this.uiView = uiView;
         this.geoImageManager = geoImageManager;
+        this.openLayersHandler = openLayersHandler;
     }
 
     initialize() {
@@ -11,10 +12,22 @@
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
         this.uiView.onClickClearSelectionsBtn = this.onClickClearSelectionsBtn.bind(this);
         this.uiView.onClickExecuteImageFilterBtn = this.onClickExecuteImageFilterBtn.bind(this);
-        
+
         this.uiView.onClickSaveSessionBtn = this.onClickSaveSessionBtn.bind(this);
         this.uiView.onClickNewSessionBtn = this.onClickNewSessionBtn.bind(this);
-        
+
+
+        this.uiView.onClickChangeShapeBtn = this.onClickChangeShapeBtn.bind(this);
+        this.uiView.onClickChangeMapProviderBtn = this.onClickChangeMapProviderBtn.bind(this);
+        this.uiView.onClickCancelDrawingBtn = this.onClickCancelDrawingBtn.bind(this);
+        this.uiView.onClickChangeImageFilter = this.onClickChangeImageFilter.bind(this);
+        this.uiView.onClickChangeViewMode = this.onClickChangeViewMode.bind(this);
+
+        this.openLayersHandler.onDrawEnd = this.onDrawEnd.bind(this);
+
+
+
+
 
         /*UIModel Event Handlers*/
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
@@ -27,6 +40,67 @@
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
 
     }
+
+    onDrawEnd(eventKey) {
+        this.uiModel.createRegion(eventKey.feature, true);
+
+        //Cancel drawing
+        this.uiView.updateShapeToolView(null);
+        this.openLayersHandler.SelectedDrawTool = null;
+    }
+
+    onClickChangeShapeBtn(event) {
+        let drawTool = event.data;
+
+        this.uiView.updateShapeToolView(drawTool);
+        this.openLayersHandler.SelectedDrawTool = drawTool;
+    }
+
+    onClickChangeViewMode(event) {
+        let viewmode = event.data;
+
+        this.uiView.changeViewMode(viewmode);
+        this.uiModel.SelectedViewMode = viewmode;
+    }
+
+    /**
+    * Handler for changing map tiles.
+    * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
+    * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
+    */
+    onClickChangeMapProviderBtn(event) {
+        let tileProvider = event.data;
+
+        this.uiView.updateMapProviderView(tileProvider);
+        this.uiModel.changeMapProvider(tileProvider.provider);
+    }
+
+    onClickChangeImageProvider(event) {
+        let imageProvider = event.data;
+
+        this.uiView.updateImageProviderView(imageProvider);
+        this.uiModel.SelectedImageProvider = imageProvider;
+    }
+
+    onClickChangeImageFilter(event) {
+        let imageFilter = event.data;
+
+        this.uiView.updateImageFilterView(imageFilter);
+        this.uiModel.SelectedImageFilter = imageFilter;
+    }
+
+
+
+
+    //cancelDrawing() {
+    onClickCancelDrawingBtn(event) {
+        this.uiView.updateShapeToolView(null);
+        this.openLayersHandler.SelectedDrawTool = null;
+        //this.uiModel.changeShapeTool(null);
+
+    }
+
+
 
     onImageChange() {
         this.uiView.updateGeoImgSlider();
@@ -63,7 +137,7 @@
         this.uiModel.saveSession(sessionName);
     }
 
-    onClickNewSessionBtn(){
+    onClickNewSessionBtn() {
         this.uiModel.newSession();
     }
 
@@ -73,22 +147,22 @@
         this.uiModel.executeQuery.bind(this.uiModel)(this.uiView.SelectedMapMiner, this.uiView.SelectedMapFeature).then(unset, error => { alert(error); unset(); });
     }
 
-    onClickExecuteImageFilterBtn() {
+    async onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter));
-        this.uiModel.getProcessedImages.bind(this.uiModel)(this.uiView.SelectedImageFilter.id).then
-        (function (filterId) {
-                unset();
-                //Set the geoImageManager to display this collection
-                this.geoImageManager.updateDisplayingLayers(filterId);
-                
-            }.bind(this, this.uiView.SelectedImageFilter.id), error => { unset(); alert(error); });
+        let filterId = await this.uiModel.getProcessedImages.bind(this.uiModel)()
+        //.then(function (filterId) {
+        unset();
+        //Set the geoImageManager to display this collection
+        this.geoImageManager.updateDisplayingLayers(filterId);
+
+        //    }.bind(this), error => { unset(); alert(error); });
     }
 
     onClickGetImagesBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages));
-        this.uiModel.getImages(this.uiView.SelectedImageProvider.idprovider).then(
+        this.uiModel.getImages(this.uiModel.SelectedImageProvider.idprovider).then(
             () => {
                 unset();
                 //Set the geoImageManager to display this collection

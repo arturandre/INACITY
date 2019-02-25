@@ -7,9 +7,6 @@ import os
 import sys
 import ptvsd
 
-address = ('0.0.0.0', 3000)
-ptvsd.enable_attach(address)
-
 
 if __name__ == "__main__":
     os.environ.setdefault(
@@ -20,3 +17,10 @@ if __name__ == "__main__":
     from django.core.management import execute_from_command_line
 
     execute_from_command_line(sys.argv)
+
+    try:
+        address = ('0.0.0.0', 3000)
+        ptvsd.enable_attach(address)
+    except:
+        pass
+
