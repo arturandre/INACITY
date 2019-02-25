@@ -77,8 +77,8 @@
      * @param {int} currentIndex - Should be zero (used by recursion)
      * @returns {Object|int} - The node or the number of nodes found (if index is greater than the total number of leaves)
      */
-    function traverseCollection(root, index, currentIndex) {
-        if (typeof currentIndex !== 'number') currentIndex = 0;
+    function traverseCollection(root, index, currentIndex=0) {
+        //if (typeof currentIndex !== 'number') currentIndex = 0;
         if (isLeaf(root)) {
             if (currentIndex === index) {
                 return root;
@@ -89,7 +89,8 @@
         }
         let n = 0;
         while (root[n]) {
-            let k = traverseCollection(root[n], index - currentIndex, 0);
+            //let k = traverseCollection(root[n], index - currentIndex, 0);
+            let k = traverseCollection(root[n], index, currentIndex);
             if (typeof k !== 'number') return k;
             currentIndex += k;
             n += 1;

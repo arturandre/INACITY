@@ -31,6 +31,8 @@ class UIView {
         this.onClickChangeMapProviderBtn = null;
         this.onClickCancelDrawingBtn = null;
         this.onClickChangeImageFilter = null;
+
+        this.onImageSliderInput = null;
         
         
         
@@ -77,7 +79,7 @@ class UIView {
         this._fillMapMinersAndFeaturesDiv();
     }
 
-    initialize(defaults) {
+    initialize() {
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
@@ -87,6 +89,8 @@ class UIView {
         this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
         
         this.jqbtnCancelDrawing.on("click", this.onClickCancelDrawingBtn);
+
+        this.jqimgSlider.on("input", this.onImageSliderInput);
 
         //this.populateShapeDiv();
         this.createSelectionButton(this.jqshapeSelectorDiv, OpenLayersHandler.DrawTools, this.onClickChangeShapeBtn);
@@ -99,9 +103,6 @@ class UIView {
         //this._fillImageFilterDiv();
         //this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.changeImageFilterClick);
         this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.onClickChangeImageFilter);
-        if (defaults) {
-            this.setDefaults(defaults);
-        }
     }
 
     setDefaults(defaults) {
@@ -116,16 +117,16 @@ class UIView {
         }
         if (defaults.viewmode) {
             this.changeViewMode(defaults.viewmode);
-            this.uiModel.SelectedViewMode = defaults.viewmode;
+            //this.uiModel.SelectedViewMode = defaults.viewmode;
         }
         if (defaults.imageProvider) {
-            this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
+            //this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
             this.updateImageProviderView(this.uiModel.imageProviders[defaults.imageProvider]);
         }
         if (defaults.imageFilter)
         {
             this.updateImageFilterView(defaults.imageFilter);
-            this.uiModel.SelectedImageFilter = defaults.imageFilter;
+            //this.uiModel.SelectedImageFilter = defaults.imageFilter;
         }
         if (defaults.mapMiner) {
             this.changeMapMiner(defaults.mapMiner);
@@ -192,23 +193,6 @@ class UIView {
         }
     }
 
-    /**
-     * Updates the currently image displayed by the GeoImageManager
-     * when the user changes the imgSlider value (position).
-     * @param {int} value - The current position of the imgSlider as informed by itself
-     */
-    imageSliderChange(value) {
-        geoImageManager.displayFeatureAtIndex(value, true);
-        geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
-    }
-
-    // changeModeClick(mode) {
-    //     this.SelectedViewMode = mode;
-    // }
-
-    
-
-
     set SelectedMapMiner(mapMinerId) {
         this._SelectedMapMiner = mapMinerId;
 
@@ -256,7 +240,7 @@ class UIView {
 
     updateImageFilterView(imageFilter)
     {
-        this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter.name, false);
+        this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter, false);
     }
 
     updateShapeToolView(drawTool)

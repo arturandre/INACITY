@@ -22,6 +22,7 @@
         this.uiView.onClickCancelDrawingBtn = this.onClickCancelDrawingBtn.bind(this);
         this.uiView.onClickChangeImageFilter = this.onClickChangeImageFilter.bind(this);
         this.uiView.onClickChangeViewMode = this.onClickChangeViewMode.bind(this);
+        this.uiView.onImageSliderInput = this.onImageSliderInput.bind(this);
 
         this.openLayersHandler.onDrawEnd = this.onDrawEnd.bind(this);
 
@@ -39,6 +40,17 @@
         GeoImageManager.on('geoimagescollectionchange', this.onGeoImagesCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
 
+    }
+
+    /**
+     * Updates the currently image displayed by the GeoImageManager
+     * when the user changes the imgSlider value (position).
+     * @param {int} value - The current position of the imgSlider as informed by itself
+     */
+    onImageSliderInput(event) {
+        let slider = event.target;
+        geoImageManager.displayFeatureAtIndex(slider.value, true);
+        geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
     }
 
     onDrawEnd(eventKey) {
@@ -89,18 +101,11 @@
         this.uiModel.SelectedImageFilter = imageFilter;
     }
 
-
-
-
     //cancelDrawing() {
     onClickCancelDrawingBtn(event) {
         this.uiView.updateShapeToolView(null);
         this.openLayersHandler.SelectedDrawTool = null;
-        //this.uiModel.changeShapeTool(null);
-
     }
-
-
 
     onImageChange() {
         this.uiView.updateGeoImgSlider();
@@ -150,7 +155,8 @@
     async onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
         let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter));
-        let filterId = await this.uiModel.getProcessedImages.bind(this.uiModel)()
+        let filterId = this.uiModel.SelectedImageFilter;
+        await this.uiModel.getProcessedImages.bind(this.uiModel)()
         //.then(function (filterId) {
         unset();
         //Set the geoImageManager to display this collection

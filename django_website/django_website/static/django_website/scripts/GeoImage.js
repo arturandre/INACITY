@@ -37,12 +37,16 @@ class GeoImage
     {
         let exampleGeoImage = new GeoImage();
         let ret = true;
-        for (let prop in obj) {
-            if (!exampleGeoImage.hasOwnProperty(prop)) {
-                ret = false;
+        //for (let prop in obj) {
+        for (let prop in exampleGeoImage) {
+            //if (!exampleGeoImage.hasOwnProperty(prop)) {
+            if (!obj.hasOwnProperty(prop)) {
+                //ret = false;
+                return false
             }
         }
-        return ret;
+        //return ret;
+        return true;
     }
 
 }

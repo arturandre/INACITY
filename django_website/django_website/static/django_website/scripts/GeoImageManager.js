@@ -167,8 +167,14 @@ class GeoImageManager extends Subject {
      */
     _getGeoImageAtIndex(index) {
         let ret = traverseCollection(this._currentGeoImagesCollection, index);
-        if (typeof ret === "number") this._validImages = ret;
-        return ret;
+        if (typeof ret === "number") {
+            //this._validImages = ret;
+            //ret = 
+            throw `GeoImage at index ${index} is out of the valid limit: ${this._validImages}`;
+        }
+        //else if (GeoImage.isGeoImageCompliant(ret)) ret = GeoImage.fromObject(ret);
+        //return ret;
+        return GeoImage.fromObject(ret);
     }
 
     _cleanGeoImagesCollection() {
@@ -242,8 +248,8 @@ class GeoImageManager extends Subject {
      */
     displayFeatureAtIndex(index, silentChange) {
         if (index > this._validImages) {
-            console.error(`Index (${index}) out of valid range [0-${this.validImages}]. `);
-            return false;
+            throw `Index (${index}) out of valid range [0-${this.validImages}].`;
+            //return false;
         }
         //let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
         let geoImage = this._getGeoImageAtIndex(index);
@@ -280,6 +286,7 @@ class GeoImageManager extends Subject {
 
     _getNextImage() {
         this._currentIndex += 1;
+        this._currentIndex %= this._validImages;
         let geoImage = this._findNextValidImage(this._currentIndex);
 
         //No more valid images, try from the beggining

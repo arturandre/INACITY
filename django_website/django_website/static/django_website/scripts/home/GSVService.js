@@ -103,7 +103,13 @@ class GSVService {
             geoImage.heading,
             geoImage.pitch,
             _key);
+        
+        if (!GSVService.SignURLs)
+        {
+            return gsv_unsigned_url;
+        }
 
+        
         return await $.ajax("/sign_gsv_url/",
             {
                 method: "POST",
@@ -149,5 +155,7 @@ if (!GSVService.init) {
     * @const {int} 
     */
     GSVService.maxRadius = 10;
+
+    GSVService.SignURLs = false;
 
 }

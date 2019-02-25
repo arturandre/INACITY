@@ -356,7 +356,7 @@ class FeatureRegions {
 * @param {Object.mapFeature} - Default map feature selection (e.g. Streets)
 */
 class UIModel extends Subject {
-    constructor(regionsDivId, openLayersHandler, defaults) {
+    constructor(regionsDivId, openLayersHandler) {
         super();
         this.setTarget(regionsDivId);
 
@@ -392,7 +392,10 @@ class UIModel extends Subject {
         this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this);
         this._openLayersHandler.globalVectorSource.on('removefeature', this.updateRegionsList, this);
         this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this);
+    }
 
+    setDefaults(defaults)
+    {
         if (defaults) {
             if (defaults.mapMiner) {
                 this.SelectedMapMiner = defaults.mapMiner;
@@ -400,8 +403,17 @@ class UIModel extends Subject {
             if (defaults.mapFeature) {
                 this.SelectedMapFeature = defaults.mapFeature;
             }
-        }
+            if (defaults.imageProvider) {
+                this.SelectedImageProvider = defaults.imageProvider;
+            }
+            if (defaults.imageFilter) {
+                this.SelectedImageFilter = defaults.imageFilter;
+            }
+            if (defaults.viewmode) {
+                this.SelectedViewMode = defaults.viewmode;
+            }
 
+        }
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
