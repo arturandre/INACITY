@@ -49,7 +49,7 @@
      */
     onImageSliderInput(event) {
         let slider = event.target;
-        geoImageManager.displayFeatureAtIndex(slider.value, true);
+        geoImageManager.displayGeoImageAtIndex(parseInt(slider.value), true);
         geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
     }
 

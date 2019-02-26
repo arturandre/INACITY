@@ -6,6 +6,8 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from django.utils.translation import gettext
+from django.utils.crypto import get_random_string
 from urllib.parse import unquote, urlparse
 
 
@@ -170,9 +172,7 @@ def profile(request):
     htmlfile = 'registration/profile.html'
     local_vars = {'sample_key': 'sample_data'}
     if request.user.is_authenticated:
-        #cookieSessionName = request.COOKIES['sessionid']
         userSessions = Session.objects.filter(user_id=request.user.id).values('id', 'sessionName')
-        #local_vars = {'sessionList': userSessions, 'cookieSessionName': cookieSessionName}
         local_vars = {'sessionList': userSessions}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
@@ -196,8 +196,9 @@ def register(request):
 
 @api_view(['POST'])
 def newsession(request):
-    if request.session.get('sessionId') is not None: del request.session['sessionId']
+    request.session['sessionId'] = get_random_string()
     if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
+    print(f"request.session['sessionId']: {request.session['sessionId']}")
     return HttpResponse(status=200)
 
 @api_view(['POST'])
@@ -222,8 +223,8 @@ def loadsession(request):
                     return HttpResponse(status=200)
             session = Session.objects.get(id = sessionId)
             if not isUserSession(request.user, session):
-                if request.session['sessionId'] is not None:
-                    del request.session['sessionId']
+                if request.session.get('sessionId') is not None:
+                    request.session['sessionId'] = get_random_string()
                 return forbiddenUserSessionHttpResponse()
             request.session['sessionId'] = sessionId
             request.session['uiModelJSON'] = ast.literal_eval(session.uimodelJSON)
@@ -258,7 +259,9 @@ def savesession(request):
     
     if uiModelJSON is None:
         return HttpResponse('No content to be saved!', status = 400)
-    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.COOKIES.get('sessionid'))
+    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName'))
+    print(request.session.get('sessionId'))
+    print(f'sessionName: {sessionName}')
     if request.user.is_authenticated:
         sessionId = request.session.get('sessionId')
         print(uiModelJSON.get('sessionName'))
@@ -270,14 +273,13 @@ def savesession(request):
             try:
                 session = Session.objects.get(id = sessionId)
                 if not isUserSession(request.user, session):
-                    del request.session['sessionId']
+                    request.session['sessionId'] = get_random_string()
                     return forbiddenUserSessionHttpResponse()
                 if (sessionName is not None) and (len(sessionName) > 0):
                     session.sessionName = sessionName
                 session.uimodelJSON = request.data['uiModelJSON']
                 session.save()
             except Session.DoesNotExist:
-                #sessionName = request.data.get('sessionName') or request.COOKIES.get('sessionid')
                 session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
                 session.save()
         request.session['sessionId'] = session.id
@@ -287,7 +289,6 @@ def savesession(request):
     else:
         return HttpResponse(status=204)
 
-from django.utils.translation import gettext
 
 @api_view(['POST'])
 def renamesession(request):
@@ -311,6 +312,7 @@ def renamesession(request):
 # Clears session data
 @api_view(['POST'])
 def clearsession(request):
+    request.session['sessionId'] = get_random_string()
     del request.session['uiModelJSON']
     return HttpResponse(status=204)
 

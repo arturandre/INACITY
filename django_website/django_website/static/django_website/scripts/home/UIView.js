@@ -185,7 +185,7 @@ class UIView {
         if (numGeoImages > 0) {
             this.jqimgSlider.attr('min', 0);
             this.jqimgSlider.attr('value', this.geoImageManager.currentIndex);
-            this.jqimgSlider.attr('max', numGeoImages);
+            this.jqimgSlider.attr('max', numGeoImages-1);
             this.jqimgSliderDiv.removeClass("hidden");
         }
         else {
@@ -297,8 +297,6 @@ class UIView {
         //Selection buttons
         this.setLabelSelectionBtn(this.jqbtnMapMiner, gettext("Map Miner"), true);
         this.setLabelSelectionBtn(this.jqbtnMapFeature, gettext("Feature"), true);
-
-        
     }
 
     drawLayer(layer, forceRedraw) {

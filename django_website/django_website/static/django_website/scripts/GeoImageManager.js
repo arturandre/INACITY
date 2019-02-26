@@ -163,17 +163,13 @@ class GeoImageManager extends Subject {
      * the number of available images.
      * @private
      * @param {int} index - Starting index
-     * @returns {GeoImage|int} Case the index is greater than the number of GeoImages then it returns the number of GeoImages
+     * @returns {GeoImage}
      */
     _getGeoImageAtIndex(index) {
         let ret = traverseCollection(this._currentGeoImagesCollection, index);
         if (typeof ret === "number") {
-            //this._validImages = ret;
-            //ret = 
-            throw `GeoImage at index ${index} is out of the valid limit: ${this._validImages}`;
+            throw new Error(`GeoImage at index ${index} is out of the valid limit: ${this._validImages}`);
         }
-        //else if (GeoImage.isGeoImageCompliant(ret)) ret = GeoImage.fromObject(ret);
-        //return ret;
         return GeoImage.fromObject(ret);
     }
 
@@ -216,29 +212,29 @@ class GeoImageManager extends Subject {
      * @returns {Boolean} - True if the state was changed correctly
      */ // @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
     _displayNextValidImage(fromStart, startAutoPlay) {
+        let lastCurrentIndex = this._currentIndex;
+        let lastCurrentLayer = this._currentLayer;
         if (!this.currentGeoImagesCollection || this.currentGeoImagesCollection.length === 0) {
-            console.warn("Error: Trying to display empty geoImages collection.");
-            console.trace();
-            return false;
+            throw new Error("Error: Trying to display empty geoImages collection.");
+            // console.warn("Error: Trying to display empty geoImages collection.");
+            // console.trace();
+            // return false; 
         }
-        if (fromStart || (this._validImages < this._currentIndex)) {
+        if (fromStart || (this._validImages <= this._currentIndex)) {
             this._currentIndex = -1;
             this._currentLayer = (this._currentLayer + 1) % this._displayingLayers.length;
             this.currentGeoImagesCollection = this._displayingLayers[this._currentLayer].featureCollection;
         }
-        let geoImage = this._getNextImage();
-        if (!geoImage) {
-            //GeoImageManager.notify('invalidcollection', null);
-            return false;
-        }
+        let geoImage = this._getNextGeoImage();
         this.displayGeoImage(geoImage);
 
-        GeoImageManager.notify('imagechange', geoImage);
+        if (lastCurrentIndex !== this._currentIndex
+            || lastCurrentLayer !== this._currentLayer) {
+            GeoImageManager.notify('imagechange', geoImage);
+        }
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
         }
-
-        return true;
     }
 
     /**
@@ -246,19 +242,12 @@ class GeoImageManager extends Subject {
      * @param {int} index - An integer value representing some geoImage between 0 and _validImages
      * @param {Bool} silentChange - If true then it won't trigger an event
      */
-    displayFeatureAtIndex(index, silentChange) {
+    displayGeoImageAtIndex(index, silentChange) {
         if (index > this._validImages) {
-            throw `Index (${index}) out of valid range [0-${this.validImages}].`;
+            throw new Error(`Index (${index}) out of valid range [0-${this.validImages}].`);
             //return false;
         }
-        //let geoImage = this._isValidJsonObject(this._getGeoImageAtIndex(index));
         let geoImage = this._getGeoImageAtIndex(index);
-        //if (typeof geoImage === "number") {
-        if (!GeoImage.isGeoImageCompliant(geoImage)) {
-            throw "Tried to get an invalid image!";
-        }
-        //this._DOMImage.attr("src", geoImage.metadata.imageURL);
-        //this._DOMImage.attr("src", geoImage.dataType + "," + geoImage.data);
         this.displayGeoImage(geoImage);
         if (!silentChange) GeoImageManager.notify('imagechange', geoImage);
         return true;
@@ -270,6 +259,10 @@ class GeoImageManager extends Subject {
     }
 
     displayGeoImage(geoImage) {
+        if (!GeoImage.isGeoImageCompliant(geoImage)) {
+            throw new Error("Tried to display an invalid GeoImage!");
+        }
+
         if (this._imageFilterId && geoImage.getProcessedDataList(this._imageFilterId)) {
             //This assumes that geoImage.dataType = 'data:image/jpeg;base64'
             this._DOMImage.attr("src", `${geoImage.getProcessedDataList(this._imageFilterId).imageData}`);
@@ -284,46 +277,55 @@ class GeoImageManager extends Subject {
         }
     }
 
-    _getNextImage() {
+    _getNextGeoImage() {
         this._currentIndex += 1;
         this._currentIndex %= this._validImages;
         let geoImage = this._findNextValidImage(this._currentIndex);
 
         //No more valid images, try from the beggining
-        if (!(geoImage instanceof Object)) {
+        if (!geoImage/* null */) {
             geoImage = this._findNextValidImage(0);
             if (!geoImage) //There's no valid GeoImage in the entire GeoImage collection
             {
-                //throw new Error("There's no valid GeoImage in the entire GeoImage collection.");
-                console.error("There's no valid GeoImage in the entire GeoImage collection.");
-                return null;
+                throw new Error("There's no valid GeoImage in the entire GeoImage collection.");
+                //console.error("There's no valid GeoImage in the entire GeoImage collection.");
+                //return null;
             }
         }
 
-        return GeoImage.fromObject(geoImage);
+        //return GeoImage.fromObject(geoImage);
+        return geoImage;
     }
 
     /**
      * Tries to find the next valid image starting from "startingIndex".
      * If some valid GeoImage is found the [_currentIndex]{@link module:GeoImageManager~_currentIndex} is set to the index of the GeoJson found.
-     * @param {int} startingIndex - Start the search from this index (possibly zero) until the end of the GeoImage's collection
+     * @param {int} startingIndex - Start the search from this index (inclusive) until the end of the GeoImage's collection
      * @returns {GeoImage|null} If no valid GeoImage is found then returns null.
      */
     _findNextValidImage(startingIndex) {
-        let geoImage = this._getGeoImageAtIndex(startingIndex);
-        //while (!(this._isValidJsonObject(geoImage)))//Try to find a valid image
-        while (!(GeoImage.isGeoImageCompliant(geoImage))) {
-            startingIndex += 1;
-            //If _getGeoImageAtIndex returns a number then the collection has ended
-            geoImage = this._getGeoImageAtIndex(startingIndex);
-            if (typeof geoImage === 'number') //The collection was traversed from startingIndex to the end (no valid GeoImage could be found in this range)
-            {
-                return null;
+        try {
+            let geoImage = this._getGeoImageAtIndex(startingIndex);
+            return geoImage;
+        } catch (error) {
+            //Try to find a valid image
+            while (startingIndex < this._validImages) {
+                startingIndex++;
+                try {
+                    geoImage = this._getGeoImageAtIndex(startingIndex);
+                } catch (error) {
+                    console.error(`Invalid GeoImage present: startingIndex - ${startingIndex}.`);
+                    console.error(`error: ${error}`);
+                }
             }
         }
-        this._currentIndex = startingIndex;
-        //return this._isValidJsonObject(geoImage);
-        return geoImage;
+        if (GeoImage.isGeoImageCompliant(geoImage)) {
+            this._currentIndex = startingIndex;
+            return geoImage;
+        }
+        else {
+            return null;
+        }
     }
 
     /**

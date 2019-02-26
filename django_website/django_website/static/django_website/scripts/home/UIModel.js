@@ -868,9 +868,10 @@ class UIModel extends Subject {
                 processData: false,
                 data: sentData,
                 contentType: "application/json; charset=utf-8",
-                dataType: 'json',
+                dataType: 'text',
                 success: function (data, textStatus, jqXHR) {
                     //Success message
+                    //data -> sessionId
                 }.bind(this),
                 error: function (jqXHR, textStatus, errorThrown) {
                     defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);

@@ -25,6 +25,7 @@ class GeoImage
 
     static fromObject(obj)
     {
+        if (!GeoImage.isGeoImageCompliant(obj)) throw new Error('Input is not GeoImage compliant.');
         let newGeoImage = new GeoImage();
         for (let prop in obj) {
             if (newGeoImage.hasOwnProperty(prop)) {

@@ -88,13 +88,13 @@
             }
         }
         let n = 0;
+        let foundLeaves = 0;
         while (root[n]) {
             //let k = traverseCollection(root[n], index - currentIndex, 0);
-            let k = traverseCollection(root[n], index, currentIndex);
+            let k = traverseCollection(root[n], index, currentIndex + foundLeaves);
             if (typeof k !== 'number') return k;
-            currentIndex += k;
+            foundLeaves +=  k;
             n += 1;
         }
-        return currentIndex;
-
+        return foundLeaves;
     }
