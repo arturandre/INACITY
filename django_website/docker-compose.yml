@@ -38,7 +38,9 @@ services:
         && bash /var/www/html/install_script.sh
         && chmod +x /var/www/html/wait-for-postgres.sh
         && bash /var/www/html/wait-for-postgres.sh db
+        && python3 manage.py makemigrations
         && python3 manage.py migrate
+        && echo "from django_website import load; load.run(False)" | python manage.py shell
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         
