@@ -845,7 +845,7 @@ class UIModel extends Subject {
     /**
      * @todo Display success and error messages.
      */
-    saveSession(sessionName) {
+    async saveSession(sessionName) {
         if (this._loading) return;
         let sentData = "";
         sessionName = sessionName ? sessionName :
@@ -862,7 +862,7 @@ class UIModel extends Subject {
                 uiModelJSON: this.saveToJSON()
             });
         }
-        $.ajax('/savesession/',
+        return await $.ajax('/savesession/',
             {
                 method: 'POST',
                 processData: false,
@@ -874,15 +874,16 @@ class UIModel extends Subject {
                     //data -> sessionId
                 }.bind(this),
                 error: function (jqXHR, textStatus, errorThrown) {
-                    defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                    //defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
                 },
                 complete: function (jqXHR, textStatus) { }.bind(this)
             });
 
     }
 
-    newSession() {
-        $.ajax('newsession/',
+    async newSession() {
+        return await $.ajax('newsession/',
             {
                 method: 'POST',
                 processData: false,
@@ -1090,10 +1091,10 @@ class UIModel extends Subject {
 
     async executeQuery() {
         let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
-        return await executeQuery(layerId);
+        return await this._executeQuery(layerId);
     }
 
-    async executeQuery(layerId) {
+    async _executeQuery(layerId) {
         //return new Promise(function (resolve, reject) {
         let noSelectedRegions = true;
         //let numCalls = 0;

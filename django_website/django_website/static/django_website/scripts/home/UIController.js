@@ -136,43 +136,54 @@
         this.uiView.clearSelections();
     }
 
-    onClickSaveSessionBtn() {
+    async onClickSaveSessionBtn() {
         let currentSessionName = this.uiModel.currentSessionName;
         let sessionName = this.uiView.askSessionName(currentSessionName);
-        this.uiModel.saveSession(sessionName);
+        await this.uiModel.saveSession(sessionName);
     }
 
-    onClickNewSessionBtn() {
-        this.uiModel.newSession();
+    async onClickNewSessionBtn() {
+        await this.uiModel.newSession();
     }
 
-    onClickExecuteQueryBtn() {
+    async onClickExecuteQueryBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteQuery);
-        let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteQuery));
-        this.uiModel.executeQuery.bind(this.uiModel)(this.uiView.SelectedMapMiner, this.uiView.SelectedMapFeature).then(unset, error => { alert(error); unset(); });
+        try
+        {
+            //await this.uiModel.executeQuery.bind(this.uiModel)();
+            await this.uiModel.executeQuery();
+        }
+        finally
+        {
+            this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteQuery)
+        }
     }
 
     async onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
-        let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter));
-        let filterId = this.uiModel.SelectedImageFilter;
-        await this.uiModel.getProcessedImages.bind(this.uiModel)()
-        //.then(function (filterId) {
-        unset();
-        //Set the geoImageManager to display this collection
-        this.geoImageManager.updateDisplayingLayers(filterId);
 
-        //    }.bind(this), error => { unset(); alert(error); });
+        let filterId = this.uiModel.SelectedImageFilter;
+        try
+        {
+            await this.uiModel.getProcessedImages.bind(this.uiModel)()
+            //Set the geoImageManager to display this collection
+            this.geoImageManager.updateDisplayingLayers(filterId);
+        }
+        finally
+        {
+            this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter)
+        }
     }
 
-    onClickGetImagesBtn() {
+    async onClickGetImagesBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
-        let unset = (() => this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages));
-        this.uiModel.getImages(this.uiModel.SelectedImageProvider.idprovider).then(
-            () => {
-                unset();
-                //Set the geoImageManager to display this collection
-                this.geoImageManager.updateDisplayingLayers();
-            }, error => { unset(); alert(error); });
+        try {
+            await this.uiModel.getImages(this.uiModel.SelectedImageProvider.idprovider);
+            //Set the geoImageManager to display this collection
+            this.geoImageManager.updateDisplayingLayers();
+        }
+        finally {
+            this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages)
+        }
     }
 }

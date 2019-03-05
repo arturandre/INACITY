@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
 from django.utils.translation import gettext
-from django.utils.crypto import get_random_string
+from uuid import uuid4
 from urllib.parse import unquote, urlparse
 
 
@@ -196,10 +196,10 @@ def register(request):
 
 @api_view(['POST'])
 def newsession(request):
-    request.session['sessionId'] = get_random_string()
+    request.session['sessionId'] = str(uuid4())
     if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
     print(f"request.session['sessionId']: {request.session['sessionId']}")
-    return HttpResponse(status=200)
+    return HttpResponse(request.session.get('sessionId'), status=200)
 
 @api_view(['POST'])
 def getlastsessionid(request):
@@ -224,7 +224,7 @@ def loadsession(request):
             session = Session.objects.get(id = sessionId)
             if not isUserSession(request.user, session):
                 if request.session.get('sessionId') is not None:
-                    request.session['sessionId'] = get_random_string()
+                    request.session['sessionId'] = str(uuid4())
                 return forbiddenUserSessionHttpResponse()
             request.session['sessionId'] = sessionId
             request.session['uiModelJSON'] = ast.literal_eval(session.uimodelJSON)
@@ -259,7 +259,7 @@ def savesession(request):
     
     if uiModelJSON is None:
         return HttpResponse('No content to be saved!', status = 400)
-    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName'))
+    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.session.get('sessionId'))
     print(request.session.get('sessionId'))
     print(f'sessionName: {sessionName}')
     if request.user.is_authenticated:
@@ -273,7 +273,7 @@ def savesession(request):
             try:
                 session = Session.objects.get(id = sessionId)
                 if not isUserSession(request.user, session):
-                    request.session['sessionId'] = get_random_string()
+                    request.session['sessionId'] = str(uuid4())
                     return forbiddenUserSessionHttpResponse()
                 if (sessionName is not None) and (len(sessionName) > 0):
                     session.sessionName = sessionName
@@ -312,7 +312,7 @@ def renamesession(request):
 # Clears session data
 @api_view(['POST'])
 def clearsession(request):
-    request.session['sessionId'] = get_random_string()
+    request.session['sessionId'] = str(uuid4())
     del request.session['uiModelJSON']
     return HttpResponse(status=204)
 

@@ -3,6 +3,19 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 
+# Ref.: https://arthurpemberton.com/2015/04/fixing-uuid-is-not-json-serializable
+'''
+Dealing with no UUID serialization support in json
+'''
+from json import JSONEncoder
+from uuid import UUID
+JSONEncoder_olddefault = JSONEncoder.default
+def JSONEncoder_newdefault(self, o):
+    if isinstance(o, UUID): return str(o)
+    return JSONEncoder_olddefault(self, o)
+JSONEncoder.default = JSONEncoder_newdefault
+
+
 class GeoImage(models.Model):
     """
     featureReference - Some unique string used as an Id
