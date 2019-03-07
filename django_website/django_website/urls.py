@@ -50,6 +50,7 @@ urlpatterns = [
     re_path(r'^home/?$', home, name='home'),
     re_path(r'^about/?$', about, name='about'),
     re_path(r'^tutorial/?$', tutorial, name='tutorial'),
+    re_path(r'^backend_diag/?$', backend_diag, name='backend_diag'),
 
     # Docs
     #re_path(r'^docs/?$', include_docs_urls(title="INACITY's API")),

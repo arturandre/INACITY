@@ -428,10 +428,15 @@ def simple_upload(request):
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 def hello(request):
-    
     return HttpResponse("Hello world")
 
 def home(request):
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+def backend_diag(request):
+    htmlfile = 'backend_diag.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+    

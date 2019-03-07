@@ -1,0 +1,34 @@
+    {% extends "base.html" %}
+{% block scripts %}
+{% load staticfiles %}
+
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+<link rel="stylesheet" href="{% static 'django_website/css/joint.css' %}"/>
+<!-- dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone.js"></script>
+{% endblock %}
+
+{% block title %}{{WebsiteName}} | {% trans "Backend diagram"%}{% endblock %}
+
+{% block pageheader %}
+{% endblock %}
+{% block content %}
+    <div id="myholder"></div>
+
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/joint.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/joint.shapes.uml.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/Paper.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/notes.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/ModuleRect.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/ManagerRect.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/ManagerClass.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/ImageProviderManagerRect.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/ImageFilterManagerRect.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/MapMinerManagerRect.js' %}"></script>
+<script type="text/javascript" src="{% static 'django_website/scripts/diagrams/backend/urlsviews.js' %}"></script>        
+{% endblock %}
