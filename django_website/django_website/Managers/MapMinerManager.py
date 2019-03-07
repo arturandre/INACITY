@@ -5,16 +5,16 @@ from django_website.Primitives import *
 from django_website.MapMiners import *
 
 class MapMinerManager(object):
-    __instance = None
+    __instance__ = None
     def __init__(self):
         self._MapMiners = {}
         for mapMinerClass in MapMiner._subclasses:
             self.registerMapMiner(mapMinerClass)
 
     def __new__(cls):
-        if MapMinerManager.__instance is None:
-            MapMinerManager.__instance = object.__new__(cls)
-        return MapMinerManager.__instance
+        if MapMinerManager.__instance__ is None:
+            MapMinerManager.__instance__ = object.__new__(cls)
+        return MapMinerManager.__instance__
 
     def registerMapMiner(self, mapMiner: MapMiner):
         if not mapMiner.mapMinerId in self._MapMiners:
