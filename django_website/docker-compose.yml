@@ -20,6 +20,7 @@ services:
     build: .
     environment:
       - POSTGRES_PASS=1234
+      - POSTGRES_USER=postgres
     #user: dockeruser
     working_dir: /var/www/html/
     #APACHE WEB SERVER
