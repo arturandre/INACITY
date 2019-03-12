@@ -398,21 +398,20 @@ class UIModel extends Subject {
     {
         if (defaults) {
             if (defaults.mapMiner) {
-                this.SelectedMapMiner = defaults.mapMiner;
-            }
-            if (defaults.mapFeature) {
-                this.SelectedMapFeature = defaults.mapFeature;
+                this.SelectedMapMiner = this.mapMinersAndFeatures.find(p => p.id === defaults.mapMiner);
+                if (defaults.mapFeature) {
+                    this.SelectedMapFeature = this.SelectedMapMiner.features.find(p => p.id === defaults.mapFeature);
+                }
             }
             if (defaults.imageProvider) {
-                this.SelectedImageProvider = defaults.imageProvider;
+                this.SelectedImageProvider = this.imageProviders.find(p => p.id === defaults.imageProvider);
             }
             if (defaults.imageFilter) {
-                this.SelectedImageFilter = defaults.imageFilter;
+                this.SelectedImageFilter = this.imageFilters.find(p => p.id === defaults.imageFilter);
             }
             if (defaults.viewmode) {
                 this.SelectedViewMode = defaults.viewmode;
             }
-
         }
     }
 
@@ -481,7 +480,7 @@ class UIModel extends Subject {
      * Collects images' providers and filters and maps' miners and features.
      * @returns {Promise} - All the providers as registered at server's side
      */
-    initialize() {
+    async initialize() {
         let getServerDataPromises = Promise.all([this.getImageProviders(), this.getMapMinersAndFeatures(), this.getImageFilters()]);
 
         return getServerDataPromises;
@@ -685,7 +684,7 @@ class UIModel extends Subject {
                         method: 'POST',
                         processData: false,
                         data: JSON.stringify({
-                            'imageFilterId': this.SelectedImageFilter,
+                            'imageFilterId': this.SelectedImageFilter.id,
                             'featureCollection': JSON.stringify(layer.featureCollection),
                             'regionId': region.id,
                             'layerId': layer.layerId.toString()
@@ -703,7 +702,7 @@ class UIModel extends Subject {
                                 alert(gettext("The request was too big to be processed. Try a smaller region."));
                             }
                             else {
-                                defaultAjaxErrorHandler('getProcessedImages', textStatus, errorThrown);
+                                throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                             }
                         },
                         complete: function (jqXHR, textStatus) {
@@ -825,8 +824,8 @@ class UIModel extends Subject {
                 {
                     method: 'POST',
                     data: JSON.stringify({
-                        "mapMinerId": this.SelectedMapMiner,
-                        "featureName": this.SelectedMapFeature,
+                        "mapMinerId": this.SelectedMapMiner.id,
+                        "featureName": this.SelectedMapFeature.id,
                         "regions": JSON.stringify(geoJsonFeatures),
                     }),
                     contentType: "application/json; charset=utf-8",
@@ -835,7 +834,7 @@ class UIModel extends Subject {
                         return data;
                     }.bind(region),
                     error: function (jqXHR, textStatus, errorThrown) {
-                        defaultAjaxErrorHandler('executeQuery', textStatus, errorThrown);
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                         //reject(errorThrown);
                     },
                 });
@@ -875,7 +874,6 @@ class UIModel extends Subject {
                 }.bind(this),
                 error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
-                    //defaultAjaxErrorHandler('saveSession', textStatus, errorThrown);
                 },
                 complete: function (jqXHR, textStatus) { }.bind(this)
             });
@@ -894,7 +892,7 @@ class UIModel extends Subject {
                     this.clear();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                 },
                 complete: function (jqXHR, textStatus) { }
             });
@@ -913,7 +911,7 @@ class UIModel extends Subject {
                     this.clear();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    defaultAjaxErrorHandler('clearSession', textStatus, errorThrown);
+                    
                 },
                 complete: function (jqXHR, textStatus) { }
             });
@@ -934,11 +932,11 @@ class UIModel extends Subject {
                                 this.loadFromJSON(data);
                             }
                         } catch (error) {
-                            defaultAjaxErrorHandler('loadSession', textStatus, error);
+                            throw new Error(`error: ${error}`)
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                     },
                     complete: function (jqXHR, textStatus) { }
                 });
@@ -966,11 +964,11 @@ class UIModel extends Subject {
                                 loadSessionWithId();
                             }
                         } catch (error) {
-                            defaultAjaxErrorHandler('loadSession', textStatus, error);
+                            throw new Error(`error: ${error}`)
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        defaultAjaxErrorHandler('loadSession', textStatus, errorThrown);
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                     },
                     complete: function (jqXHR, textStatus) { }
                 });
@@ -995,20 +993,20 @@ class UIModel extends Subject {
      * image providers
      * @returns {Promise} resolve with an ImageProvider[] object array (with ImageProviderIds as keys) and rejects with the errorThrown string.
      */
-    getImageProviders() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getimageproviders/",
+    async getImageProviders() {
+        return await $.ajax("/getimageproviders/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._imageProviders = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**
@@ -1023,20 +1021,21 @@ class UIModel extends Subject {
      * map miners and its respective features
      * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
      */
-    getMapMinersAndFeatures() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getavailablemapminers/",
+    async getMapMinersAndFeatures() {
+            return await $.ajax("/getavailablemapminers/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._mapMinersAndFeatures = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) 
+                    {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**
@@ -1050,20 +1049,20 @@ class UIModel extends Subject {
      * image filters
      * @returns {Promise} resolve with an ImageFilter[] object array (with ImageFilters' Ids as keys) and rejects with the errorThrown string.
      */
-    getImageFilters() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getimagefilters/",
+    async getImageFilters() {
+        return await $.ajax("/getimagefilters/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._imageFilters = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**

@@ -19,6 +19,9 @@
 
         this.uiView.onClickChangeShapeBtn = this.onClickChangeShapeBtn.bind(this);
         this.uiView.onClickChangeMapProviderBtn = this.onClickChangeMapProviderBtn.bind(this);
+        this.uiView.onClickChangeMapMinerBtn = this.onClickChangeMapMinerBtn.bind(this);;
+        this.uiView.onClickChangeMapFeatureBtn = this.onClickChangeMapFeatureBtn.bind(this);;
+
         this.uiView.onClickCancelDrawingBtn = this.onClickCancelDrawingBtn.bind(this);
         this.uiView.onClickChangeImageFilter = this.onClickChangeImageFilter.bind(this);
         this.uiView.onClickChangeViewMode = this.onClickChangeViewMode.bind(this);
@@ -84,7 +87,7 @@
         let tileProvider = event.data;
 
         this.uiView.updateMapProviderView(tileProvider);
-        this.uiModel.changeMapProvider(tileProvider.provider);
+        this.openLayersHandler.SelectedMapProvider = tileProvider;
     }
 
     onClickChangeImageProvider(event) {
@@ -93,6 +96,22 @@
         this.uiView.updateImageProviderView(imageProvider);
         this.uiModel.SelectedImageProvider = imageProvider;
     }
+
+    onClickChangeMapMinerBtn(event) {
+        let mapMiner = event.data;
+
+        this.uiView.updateMapMinerView(mapMiner);
+        this.uiModel.SelectedMapMiner = mapMiner;
+    }
+
+    onClickChangeMapFeatureBtn(event) {
+        let mapFeature = event.data;
+
+        this.uiView.updateFeatureView(mapFeature);
+        this.uiModel.SelectedMapFeature = mapFeature;
+    }
+
+
 
     onClickChangeImageFilter(event) {
         let imageFilter = event.data;
@@ -133,6 +152,9 @@
     }
 
     onClickClearSelectionsBtn() {
+        this.uiModel.SelectedMapMiner = null;
+        this.uiModel.SelectedMapFeature = null;
+
         this.uiView.clearSelections();
     }
 
@@ -162,7 +184,7 @@
     async onClickExecuteImageFilterBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
 
-        let filterId = this.uiModel.SelectedImageFilter;
+        let filterId = this.uiModel.SelectedImageFilter.id;
         try
         {
             await this.uiModel.getProcessedImages.bind(this.uiModel)()
@@ -178,7 +200,7 @@
     async onClickGetImagesBtn() {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
         try {
-            await this.uiModel.getImages(this.uiModel.SelectedImageProvider.idprovider);
+            await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
             //Set the geoImageManager to display this collection
             this.geoImageManager.updateDisplayingLayers();
         }

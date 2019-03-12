@@ -1,3 +1,6 @@
+#Legacy project in nodejs (for GSV in backend)
+INACITY_nodejs/
+
 #Secrets/Keys file
 settings_secret.py
 

@@ -29,8 +29,12 @@ class UIView {
 
         this.onClickChangeShapeBtn = null;
         this.onClickChangeMapProviderBtn = null;
+        this.onClickChangeMapMinerBtn = null;
+        this.onClickChangeMapFeatureBtn = null;
+
         this.onClickCancelDrawingBtn = null;
         this.onClickChangeImageFilter = null;
+        
 
         this.onImageSliderInput = null;
         
@@ -76,7 +80,7 @@ class UIView {
 
         
         
-        this._fillMapMinersAndFeaturesDiv();
+        //this._fillMapMinersAndFeaturesDiv();
     }
 
     initialize() {
@@ -103,6 +107,13 @@ class UIView {
         //this._fillImageFilterDiv();
         //this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.changeImageFilterClick);
         this.createSelectionButton(this.jqimageFilterDiv, this.uiModel.imageFilters, this.onClickChangeImageFilter);
+
+        this.createSelectionButton(this.jqmapMinerDiv, this.uiModel.mapMinersAndFeatures, this.onClickChangeMapMinerBtn);
+        this.createSelectionButton(
+            this.jqmapFeatureDiv,
+            $.map(this.uiModel.mapMinersAndFeatures, function(v, k) { return v.features; }),
+            this.onClickChangeMapFeatureBtn
+        );
     }
 
     setDefaults(defaults) {
@@ -119,19 +130,19 @@ class UIView {
             this.changeViewMode(defaults.viewmode);
             //this.uiModel.SelectedViewMode = defaults.viewmode;
         }
-        if (defaults.imageProvider) {
+        if (this.uiModel.SelectedImageProvider) {
             //this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
-            this.updateImageProviderView(this.uiModel.imageProviders[defaults.imageProvider]);
+            this.updateImageProviderView(this.uiModel.SelectedImageProvider);
         }
-        if (defaults.imageFilter)
+        if (this.uiModel.SelectedImageFilter)
         {
-            this.updateImageFilterView(defaults.imageFilter);
+            this.updateImageFilterView(this.uiModel.SelectedImageFilter);
             //this.uiModel.SelectedImageFilter = defaults.imageFilter;
         }
-        if (defaults.mapMiner) {
-            this.changeMapMiner(defaults.mapMiner);
-            if (defaults.mapFeature) {
-                this.changeMapFeature(defaults.mapFeature);
+        if (this.uiModel.SelectedMapMiner) {
+            this.updateMapMinerView(this.uiModel.SelectedMapMiner);
+            if (this.uiModel.SelectedMapFeature) {
+                this.updateFeatureView(this.uiModel.SelectedMapFeature);
             }
         }
 
@@ -193,36 +204,65 @@ class UIView {
         }
     }
 
-    set SelectedMapMiner(mapMinerId) {
-        this._SelectedMapMiner = mapMinerId;
+    // set SelectedMapMiner(mapMinerId) {
+    //     //this._SelectedMapMiner = mapMinerId;
 
 
-        let mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
+    //     //let mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
 
+    //     //this.jqbtnExecuteQuery.removeClass("hidden");
+    //     //this.jqbtnClearSelections.removeClass("hidden");
+
+    //     //this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
+
+
+    //     // if (!this.SelectedMapFeature) {
+    //     //     this.filterFeaturesByMapMiner(mapMiner);
+    //     //     if (mapMiner.features.length === 1) {
+    //     //         this.changeMapFeature(mapMiner.features[0]);
+    //     //     }
+    //     // }
+    // }
+
+    // set SelectedMapFeature(mapFeatureName) {
+    //     //this._SelectedMapFeature = mapFeatureName;
+
+    //     // this.jqbtnClearSelections.removeClass("hidden");
+    //     // this.jqbtnExecuteQuery.removeClass("hidden");
+
+    //     //this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeatureName, false);
+
+    //     // if (!this.SelectedMapMiner) {
+    //     //     this.filterMinersByFeatureName(mapFeatureName);
+    //     // }
+    // }
+    updateFeatureView(mapFeature)
+    {
+        this.jqbtnClearSelections.removeClass("hidden");
+        this.jqbtnExecuteQuery.removeClass("hidden");
+
+        this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeature.name, false);
+
+        if (!this.uiModel.SelectedMapMiner) {
+            this.filterMinersByFeatureName(mapFeature.name);
+        }
+    }
+    
+
+    updateMapMinerView(mapMiner)
+    {
         this.jqbtnExecuteQuery.removeClass("hidden");
         this.jqbtnClearSelections.removeClass("hidden");
 
         this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
 
+        if (!this.uiModel.SelectedMapFeature) {
+            this.createSelectionButton(this.jqmapFeatureDiv,
+                mapMiner.features, this.onClickChangeMapFeatureBtn);
 
-        if (!this.SelectedMapFeature) {
-            this.filterFeaturesByMapMiner(mapMiner);
             if (mapMiner.features.length === 1) {
-                this.changeMapFeature(mapMiner.features[0]);
+                this.updateFeatureView(mapMiner.features[0]);
             }
-        }
-    }
-
-    set SelectedMapFeature(mapFeatureName) {
-        this._SelectedMapFeature = mapFeatureName;
-
-        this.jqbtnClearSelections.removeClass("hidden");
-        this.jqbtnExecuteQuery.removeClass("hidden");
-
-        this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeatureName, false);
-
-        if (!this.SelectedMapMiner) {
-            this.filterMinersByFeatureName(mapFeatureName);
         }
     }
 
@@ -240,7 +280,7 @@ class UIView {
 
     updateImageFilterView(imageFilter)
     {
-        this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter, false);
+        this.setLabelSelectionBtn(this.jqbtnImageFilter, imageFilter.name, false);
     }
 
     updateShapeToolView(drawTool)
@@ -257,8 +297,8 @@ class UIView {
 
     
 
-    get SelectedMapMiner() { return this._SelectedMapMiner; }
-    get SelectedMapFeature() { return this._SelectedMapFeature; }
+    // get SelectedMapMiner() { return this._SelectedMapMiner; }
+    // get SelectedMapFeature() { return this._SelectedMapFeature; }
     
     
 
@@ -287,8 +327,8 @@ class UIView {
     clearSelections() {
 
         //Selection fields
-        this._SelectedMapFeature = null;
-        this._SelectedMapMiner = null;
+        // this._SelectedMapFeature = null;
+        // this._SelectedMapMiner = null;
 
         //Execution buttons
         this.jqbtnClearSelections.addClass("hidden");
@@ -297,6 +337,13 @@ class UIView {
         //Selection buttons
         this.setLabelSelectionBtn(this.jqbtnMapMiner, gettext("Map Miner"), true);
         this.setLabelSelectionBtn(this.jqbtnMapFeature, gettext("Feature"), true);
+
+        this.createSelectionButton(this.jqmapMinerDiv, this.uiModel.mapMinersAndFeatures, this.onClickChangeMapMinerBtn);
+        this.createSelectionButton(
+            this.jqmapFeatureDiv,
+            $.map(this.uiModel.mapMinersAndFeatures, function(v, k) { return v.features; }),
+            this.onClickChangeMapFeatureBtn
+        );
     }
 
     drawLayer(layer, forceRedraw) {
@@ -396,8 +443,8 @@ class UIView {
             for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
-                const mapMinerName = this.uiModel.mapMinersAndFeatures[layerId.MapMinerId].name;
-                const featureName = layerId.FeatureName;
+                const mapMinerName = layerId.MapMinerId.name;
+                const featureName = layerId.FeatureName.name;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
                 if (hintLayers.indexOf(hintLayer) < 0) {
                     hintLayers.push(hintLayer);
@@ -414,12 +461,12 @@ class UIView {
         //}
     }
 
-    createSelectionButton(jqContainerDiv, optionsDict, clickHandler)
+    createSelectionButton(jqContainerDiv, optionsArray, clickHandler)
     {
         jqContainerDiv.empty();
-        for (let optionIdx in optionsDict)
+        for (let optionIdx in optionsArray)
         {
-            let option = optionsDict[optionIdx];
+            let option = optionsArray[optionIdx];
             //let btnLabel = (!option.name) ? option.name : optionIdx;
             const optionBtn = this.createDropDownAnchorButton(option.name, option, clickHandler);
             jqContainerDiv.append(optionBtn);
@@ -559,17 +606,11 @@ class UIView {
      * MapMinerDiv
      * @param {string} mapMinerId - The MapMiner's id as reported by the backend
      */
-    changeMapMiner(mapMinerId) {
-        this.SelectedMapMiner = mapMinerId;
-    }
-
-    /**
-     * Used as a handler for click events on Map Miner Feature buttons from mapFeatureDiv
-     * @param {string} mapFeatureName - The Feature's name as reported by the backend
-     */
-    changeMapFeature(mapFeatureName) {
-        this.SelectedMapFeature = mapFeatureName;
-    }
+    // changeMapMiner(mapMinerId) {
+    //     this.SelectedMapMiner = mapMinerId;
+    // }
+ 
+    
 
     /**
      * Given a feature name it removes all the map miners from mapMinerDiv that don't contains this feature's name
@@ -577,17 +618,25 @@ class UIView {
      */
     filterMinersByFeatureName(FeatureName) {
         this.jqmapMinerDiv.empty();
-        let currentMapMiners = [];
-        for (let mapMinerIdx in this._mapMinersAndFeatures) {
-            let mapMiner = this._mapMinersAndFeatures[mapMinerIdx];
-            if (mapMiner.features.indexOf(FeatureName) != -1) {
-                let btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMinerIdx, this.changeMapMiner);
-                this.jqmapMinerDiv.append(btnMapMiner);
-                currentMapMiners.push(mapMinerIdx);
-            }
-        }
+        let currentMapMiners = this.uiModel.mapMinersAndFeatures.filter(
+            p => $.map(p.features, (v,k) => v.name).indexOf(FeatureName) !== -1
+        );
+
+        // for (let mapMinerIdx in this.uiModel.mapMinersAndFeatures) {
+        //     let mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerIdx];
+        //     if ($.map(mapMiner.features, function(v,k){return v.name;}).indexOf(FeatureName) != -1) {
+        //         let btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMiner, this.updateMapMinerView);
+        //         this.jqmapMinerDiv.append(btnMapMiner);
+        //         currentMapMiners.push(mapMiner);
+        //     }
+        // }
         if (currentMapMiners.length === 1) {
-            this.changeMapMiner(currentMapMiners[0]);
+            this.uiModel.SelectedMapMiner = currentMapMiners[0];
+            this.updateMapMinerView(currentMapMiners[0]);
+        }
+        else
+        {
+            this.createSelectionButton(this.jqmapMinerDiv, currentMapMiners, this.onClickChangeMapMinerBtn);
         }
     }
 

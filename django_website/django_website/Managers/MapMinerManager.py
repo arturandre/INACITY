@@ -22,8 +22,14 @@ class MapMinerManager(object):
         pass
 
     def getAvailableMapMinersAndQueries(self):
-        return {mapMinerId: {'name': self._MapMiners[mapMinerId].mapMinerName, 'features': self._MapMiners[mapMinerId].getAvailableQueries()} for mapMinerId in self._MapMiners}
+        return [{'id': mapMinerId, 'name': self._MapMiners[mapMinerId].mapMinerName, 'features': [{'name': featureId, 'id': featureId} for featureId in self._MapMiners[mapMinerId].getAvailableQueries()]} for mapMinerId in self._MapMiners]
 
     def requestQueryToMapMiner(self, mapMinerId: str, query: str, region: FeatureCollection) -> List[FeatureCollection]:
         """Delegate the requested query call to the selected MapMiner"""
-        return self._MapMiners[mapMinerId].doQuery(query, region)
+        print(self._MapMiners)
+        print(mapMinerId)
+        print(query)
+        print(region)
+        ret = self._MapMiners[mapMinerId].doQuery(query, region)
+        
+        return ret
