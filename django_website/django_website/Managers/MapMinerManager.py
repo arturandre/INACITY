@@ -26,10 +26,6 @@ class MapMinerManager(object):
 
     def requestQueryToMapMiner(self, mapMinerId: str, query: str, region: FeatureCollection) -> List[FeatureCollection]:
         """Delegate the requested query call to the selected MapMiner"""
-        print(self._MapMiners)
-        print(mapMinerId)
-        print(query)
-        print(region)
         ret = self._MapMiners[mapMinerId].doQuery(query, region)
         
         return ret

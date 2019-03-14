@@ -443,8 +443,8 @@ class UIView {
             for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
-                const mapMinerName = layerId.MapMinerId.name;
-                const featureName = layerId.FeatureName.name;
+                const mapMinerName = layerId.MapMiner.name;
+                const featureName = layerId.Feature.name;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
                 if (hintLayers.indexOf(hintLayer) < 0) {
                     hintLayers.push(hintLayer);
