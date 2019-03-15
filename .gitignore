@@ -1,3 +1,8 @@
+#Docker bind folder
+django_website/var/
+#Django (collectstatic) static folder
+
+
 #Secrets/Keys file
 settings_secret.py
 

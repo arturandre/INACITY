@@ -211,30 +211,33 @@ class GeoImageManager extends Subject {
      * @fires [imagechange]{@link module:GeoImageManager~GeoImageManager.imagechange}
      * @returns {Boolean} - True if the state was changed correctly
      */ // @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
-    _displayNextValidImage(fromStart, startAutoPlay) {
-        let lastCurrentIndex = this._currentIndex;
-        let lastCurrentLayer = this._currentLayer;
+ _displayNextValidImage(fromStart, startAutoPlay) {
         if (!this.currentGeoImagesCollection || this.currentGeoImagesCollection.length === 0) {
             throw new Error("Error: Trying to display empty geoImages collection.");
             // console.warn("Error: Trying to display empty geoImages collection.");
             // console.trace();
             // return false; 
         }
-        if (fromStart || (this._validImages <= this._currentIndex)) {
+        if (fromStart || (this._lastCurrentIndex === this._validImages-1) && (this._currentIndex === 0)) {
             this._currentIndex = -1;
             this._currentLayer = (this._currentLayer + 1) % this._displayingLayers.length;
             this.currentGeoImagesCollection = this._displayingLayers[this._currentLayer].featureCollection;
         }
+        this._lastCurrentIndex = this._currentIndex;
+        this._lastCurrentLayer = this._currentLayer;
         let geoImage = this._getNextGeoImage();
         this.displayGeoImage(geoImage);
 
-        if (lastCurrentIndex !== this._currentIndex
-            || lastCurrentLayer !== this._currentLayer) {
+        if (this._lastCurrentIndex !== this._currentIndex
+            || this._lastCurrentLayer !== this._currentLayer) {
             GeoImageManager.notify('imagechange', geoImage);
         }
+        
         if (startAutoPlay) {
             this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
         }
+        
+   
     }
 
     /**
