@@ -183,9 +183,12 @@ class UIView {
         let numGeoImages = this.geoImageManager.validImages;
 
         if (numGeoImages > 0) {
-            this.jqimgSlider.attr('min', 0);
-            this.jqimgSlider.attr('value', this.geoImageManager.currentIndex);
-            this.jqimgSlider.attr('max', numGeoImages-1);
+            // this.jqimgSlider.attr('min', 0);
+            // this.jqimgSlider.attr('value', this.geoImageManager.currentIndex);
+            // this.jqimgSlider.attr('max', numGeoImages-1);
+            this.jqimgSlider[0].min = 0;
+            this.jqimgSlider[0].value = this.geoImageManager.currentIndex;
+            this.jqimgSlider[0].max = numGeoImages-1;
             this.jqimgSliderDiv.removeClass("hidden");
         }
         else {
