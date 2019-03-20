@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-16 12:20+0200\n"
+"POT-Creation-Date: 2019-03-20 14:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Vinícius Quintas Massimino <viniqmvor@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,20 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: .\templates\about.html:11 .\templates\base.html:34
+#: .\ImageFilters\GreeneryFilter.py:21
+msgid "Greenery"
+msgstr ""
+
+#: .\ImageFilters\GreeneryFilter.py:52 .\ImageFilters\GreeneryFilter.py:66
+#: .\ImageFilters\GreeneryFilter.py:79 .\ImageFilters\GreeneryFilter.py:92
+msgid "Error while parsing panorama: "
+msgstr ""
+
+#: .\Managers\ImageFilterManager.py:31
+msgid "filterId not found!"
+msgstr ""
+
+#: .\templates\about.html:11 .\templates\base.html:35
 msgid "About"
 msgstr "Sobre"
 
@@ -30,9 +43,9 @@ msgid ""
 "techniques."
 msgstr ""
 "INACITY es una plataforma para colectar y analizar imágenes urbanas, que "
-"integra Interfaces de Programación de Aplicaciones (APIs), sistemas de búsqueda "
-"de imágenes, Sistemas de Informaciones Geográficas (SIGs), mapas digitales y "
-"técnicas de Visión Computacional."
+"integra Interfaces de Programación de Aplicaciones (APIs), sistemas de "
+"búsqueda de imágenes, Sistemas de Informaciones Geográficas (SIGs), mapas "
+"digitales y técnicas de Visión Computacional."
 
 #: .\templates\about.html:20
 msgid ""
@@ -54,53 +67,57 @@ msgid ""
 "the filter's parameters and to compare their performance."
 msgstr ""
 "Puedes descargar la <a href='http://vision.ime.usp.br/~arturao/"
-"INACITYDissertation.pdf'>tesis de máster (en portugués)</a> con una "
-"análisis más profunda al respecto de los filtros de imagen para "
-"vegetación y también el <a href='https://github.com/arturandre/"
-"INACITY_groundtruth'>conjunto de datos</a> usado para estimar parámetros "
-"para los filtros y también comparar sus desempeños."
+"INACITYDissertation.pdf'>tesis de máster (en portugués)</a> con una análisis "
+"más profunda al respecto de los filtros de imagen para vegetación y también "
+"el <a href='https://github.com/arturandre/INACITY_groundtruth'>conjunto de "
+"datos</a> usado para estimar parámetros para los filtros y también comparar "
+"sus desempeños."
 
 #: .\templates\about.html:24
 msgid ""
 "The project source code can be found at <a href='https://github.com/"
 "arturandre/INACITY_python'>INACITY's Github repository</a>."
 msgstr ""
-"El código fuente del proyecto puede ser encuentrado en el <a href='https://github.com/arturandre/"
-"INACITY_python'> repositorio del INACITY en Github</a>."
+"El código fuente del proyecto puede ser encuentrado en el <a href='https://"
+"github.com/arturandre/INACITY_python'> repositorio del INACITY en Github</a>."
 
-#: .\templates\base.html:32 .\templates\home.html:32
+#: .\templates\backend_diag.html:15
+msgid "Backend diagram"
+msgstr ""
+
+#: .\templates\base.html:33 .\templates\home.html:33
 msgid "Home"
 msgstr "Inicio"
 
-#: .\templates\base.html:33 .\templates\tutorial.html:15
+#: .\templates\base.html:34 .\templates\tutorial.html:15
 msgid "Get started"
 msgstr "Tutorial"
 
-#: .\templates\base.html:35
+#: .\templates\base.html:36
 msgid "API"
 msgstr ""
 
-#: .\templates\base.html:51
+#: .\templates\base.html:62
 msgid "Sponsors &amp; Associated Projects:"
 msgstr "Patrocinadores &amp; Proyectos Asociados:"
 
-#: .\templates\base.html:71
+#: .\templates\base.html:82
 msgid "Previous"
 msgstr "Anterior"
 
-#: .\templates\base.html:75
+#: .\templates\base.html:86
 msgid "Next"
 msgstr "Siguiente"
 
-#: .\templates\base.html:91
+#: .\templates\base.html:102
 msgid ""
 "We acknowledge Microsoft for a sponsorship through the Microsoft Azure "
 "Sponsorship and Google for their Streetview API."
 msgstr ""
-"Agradecemos a Microsoft por el apoyo a través del Microsoft Azure Sponsorship y "
-"al Google por el Streetview API."
+"Agradecemos a Microsoft por el apoyo a través del Microsoft Azure "
+"Sponsorship y al Google por el Streetview API."
 
-#: .\templates\base.html:92
+#: .\templates\base.html:103
 msgid ""
 "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São "
 "Paulo Research Foundation (FAPESP)."
@@ -108,7 +125,7 @@ msgstr ""
 "El proyeto INACITY es apoyado pela FAPESP, proceso nº 2018/10767-0, Fundação "
 "de Amparo à Pesquisa do Estado de São Paulo (FAPESP)."
 
-#: .\templates\base.html:93
+#: .\templates\base.html:104
 msgid ""
 "The opinions, hypotheses, conclusions or recommendations contained in this "
 "material are the sole responsibility of the author(s) and do not necessarily "
@@ -118,69 +135,115 @@ msgstr ""
 "material son de responsabilidad del(de los) autor(es) y no necesariamente "
 "refleten las visiónes de la FAPESP."
 
-#: .\templates\home.html:38
+#: .\templates\home.html:39
 msgid ""
 "The platform was developed and tested with the browser Google Chrome version "
 "58.0.3029.110 (64-bit). If you're having troubles while using some other "
 "browser try that."
 msgstr ""
-"La plataforma ha sido probada y desarrollada con el navegador Google Chrome versión "
-"58.0.3029.110 (64-bit). Si tienes problemas mientras usa otros navegadores, "
-"por favor intente cambiar para el dicho navegador."
+"La plataforma ha sido probada y desarrollada con el navegador Google Chrome "
+"versión 58.0.3029.110 (64-bit). Si tienes problemas mientras usa otros "
+"navegadores, por favor intente cambiar para el dicho navegador."
 
 #: .\templates\home.html:56
+msgid "New session"
+msgstr ""
+
+#: .\templates\home.html:57
+msgid "Save session"
+msgstr ""
+
+#: .\templates\home.html:70
 msgid "Map Miner"
 msgstr "Minero de Mapas"
 
-#: .\templates\home.html:64
+#: .\templates\home.html:78
 msgid "Feature"
 msgstr "Característica"
 
-#: .\templates\home.html:70
+#: .\templates\home.html:84
 msgid "Clear selections"
 msgstr "Limpiar selecciones"
 
-#: .\templates\home.html:73
+#: .\templates\home.html:87
 msgid "Execute Query"
 msgstr "Ejecutar la solicitud"
 
-#: .\templates\home.html:81
+#: .\templates\home.html:95
 msgid "Map provider"
 msgstr "Proveedor de mapa"
 
-#: .\templates\home.html:89
+#: .\templates\home.html:103
 #, fuzzy
 #| msgid "Shapes"
 msgid "Shape type"
 msgstr "Tipo de forma"
 
-#: .\templates\home.html:94
+#: .\templates\home.html:108
 msgid "Cancel draw"
 msgstr "Cancelar diseño"
 
-#: .\templates\home.html:101
+#: .\templates\home.html:115
 msgid "Image provider"
 msgstr "Proveedor de imágenes"
 
-#: .\templates\home.html:110
+#: .\templates\home.html:124
 msgid "Image filter"
 msgstr "Filtro de imágenes"
 
-#: .\templates\home.html:116
+#: .\templates\home.html:130
 msgid "Get Images"
 msgstr "Obtener imágenes"
 
-#: .\templates\home.html:123
+#: .\templates\home.html:137
 msgid "Created regions"
 msgstr "Crear región"
 
-#: .\templates\home.html:125
+#: .\templates\home.html:139
 msgid "None"
 msgstr "Ninguna"
 
-#: .\templates\home.html:129
+#: .\templates\home.html:143
 msgid "Hold shift to zoom"
 msgstr "Mantenga pulsada la tecla Shift para ampliar"
+
+#: .\templates\registration\login.html:11
+#: .\templates\registration\login.html:23
+#: .\templates\registration\profile.html:20
+msgid "Login"
+msgstr ""
+
+#: .\templates\registration\profile.html:29
+msgid "Hi"
+msgstr ""
+
+#: .\templates\registration\profile.html:30
+msgid "Here you can reload a previously saved work session."
+msgstr ""
+
+#: .\templates\registration\profile.html:35
+msgid "Name"
+msgstr ""
+
+#: .\templates\registration\profile.html:36
+msgid "Actions"
+msgstr ""
+
+#: .\templates\registration\profile.html:52
+msgid "Load"
+msgstr ""
+
+#: .\templates\registration\profile.html:53
+msgid "Rename"
+msgstr ""
+
+#: .\templates\registration\profile.html:54
+msgid "Delete"
+msgstr ""
+
+#: .\templates\registration\register.html:11
+msgid "Register"
+msgstr ""
 
 #: .\templates\tutorial.html:23
 msgid "Contents"
@@ -209,36 +272,35 @@ msgid ""
 "locations over the map to select a region"
 msgstr ""
 "INACITY posee dos modos de uso, uno <b>modo simples</b> y uno <b>avanzado</"
-"b>. En el primeiro usted puede elegir una región haciendo clic en dos lugares "
-"diferentes en el mapa"
+"b>. En el primeiro usted puede elegir una región haciendo clic en dos "
+"lugares diferentes en el mapa"
 
 #: .\templates\tutorial.html:44
 msgid "The first click selects the starting point for the region of interest."
-msgstr ""
-"El primeir clic selecciona el punto inicial para la región de interés."
+msgstr "El primeir clic selecciona el punto inicial para la región de interés."
 
 #: .\templates\tutorial.html:48
 msgid ""
 "A second click selects the region of interest, denoted by a reddish area."
 msgstr ""
-"Un segundo clic selecciona la región de interés, demarcada por un área "
-"roja"
+"Un segundo clic selecciona la región de interés, demarcada por un área roja"
 
 #: .\templates\tutorial.html:52
 msgid ""
 "After selecting the region of interest just press <b>Get Images</b>. The "
 "platform will collect all the streets and their images and display it"
 msgstr ""
-"Después de seleccionar la región de interés, pulse el botón <b>Obtener imágenes</b>. "
-"La plataforma entonces recogerá todas las calles y sus imágenes para exhibición"
+"Después de seleccionar la región de interés, pulse el botón <b>Obtener "
+"imágenes</b>. La plataforma entonces recogerá todas las calles y sus "
+"imágenes para exhibición"
 
-#: .\templates\tutorial.html:57                                                                                                                                                                                                                                                                        
+#: .\templates\tutorial.html:57
 msgid ""
 "Click at <b>Get Images</b> to start collecting the images for the selected "
 "region."
 msgstr ""
-"Haga clic en <b>Obtener imágenes</b> para empezar a recoger las imágenes para la "
-"región seleccionada."
+"Haga clic en <b>Obtener imágenes</b> para empezar a recoger las imágenes "
+"para la región seleccionada."
 
 #: .\templates\tutorial.html:61
 msgid "Images are being retrieved for streets collected through OpenStreetMap."
@@ -249,8 +311,9 @@ msgid ""
 "By default the shape tool selected is the <b>box</b>. The user can select "
 "other shapes by clicking at the <b>shape</b> button"
 msgstr ""
-"Por estándar la herramienta de forma seleccionada es la <b>caja</b>. El usuario "
-"puedede seleccionar otras formas haciendo clic en el botón <b>forma</b>."
+"Por estándar la herramienta de forma seleccionada es la <b>caja</b>. El "
+"usuario puedede seleccionar otras formas haciendo clic en el botón <b>forma</"
+"b>."
 
 #: .\templates\tutorial.html:72
 msgid "By default the <i>box</i> shape is selected."
@@ -275,3 +338,15 @@ msgstr "Cuadrado"
 #: .\templates\tutorial.html:85
 msgid "Dodecagon"
 msgstr "Dodecágono"
+
+#: .\views.py:248
+msgid "This session does not belong to the connected user."
+msgstr ""
+
+#: .\views.py:306
+msgid "This session could not be found. Try saving it first."
+msgstr ""
+
+#: .\views.py:309
+msgid "User needs to be logged to rename a session."
+msgstr ""

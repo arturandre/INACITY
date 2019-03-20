@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-16 17:11-0200\n"
+"POT-Creation-Date: 2019-03-20 14:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: .\ImageFilters\GreeneryFilter.py:20
+#: .\ImageFilters\GreeneryFilter.py:21
 msgid "Greenery"
 msgstr ""
 
-#: .\ImageFilters\GreeneryFilter.py:40 .\ImageFilters\GreeneryFilter.py:54
-#: .\ImageFilters\GreeneryFilter.py:66 .\ImageFilters\GreeneryFilter.py:79
+#: .\ImageFilters\GreeneryFilter.py:52 .\ImageFilters\GreeneryFilter.py:66
+#: .\ImageFilters\GreeneryFilter.py:79 .\ImageFilters\GreeneryFilter.py:92
 msgid "Error while parsing panorama: "
 msgstr ""
 
-#: .\Managers\ImageFilterManager.py:28
+#: .\Managers\ImageFilterManager.py:31
 msgid "filterId not found!"
 msgstr "filterId n'a pas trouvé!"
 
@@ -42,9 +42,9 @@ msgid ""
 "techniques."
 msgstr ""
 "L'INACITY est une platform crée pour obtenir et analyser des images urbaines "
-"qui intègre Interface de Programmation Applicative, des moteurs de recherche d'image, "
-"des Systèmes d'Information Géographique (SIG), des cartes numériques et des techniques "
-"de la vision par ordinateur."
+"qui intègre Interface de Programmation Applicative, des moteurs de recherche "
+"d'image, des Systèmes d'Information Géographique (SIG), des cartes "
+"numériques et des techniques de la vision par ordinateur."
 
 #: .\templates\about.html:20
 msgid ""
@@ -53,11 +53,10 @@ msgid ""
 "USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto "
 "Hirata Jr.</a>"
 msgstr ""
-"C'était créée lord de program du master "
-"d'<a href='http://vision.ime.usp.br/~arturao/'>Artur "
-"André Oliveira</a> dans <a href='https://www.ime.usp.br/'>IME-"
-"USP</a> et conseillé par <a href='https://www.ime.usp.br/hirata'>Roberto "
-"Hirata Jr.</a>"
+"C'était créée lord de program du master d'<a href='http://vision.ime.usp.br/"
+"~arturao/'>Artur André Oliveira</a> dans <a href='https://www.ime.usp."
+"br/'>IME-USP</a> et conseillé par <a href='https://www.ime.usp.br/"
+"hirata'>Roberto Hirata Jr.</a>"
 
 #: .\templates\about.html:22
 msgid ""
@@ -68,11 +67,11 @@ msgid ""
 "the filter's parameters and to compare their performance."
 msgstr ""
 "Vous pouvez télécharger la  <a href='http://vision.ime.usp.br/~arturao/"
-"INACITYDissertation.pdf'>thèse de maîtrise (en portugais)</a> avec plus "
-"de détails à propos des filtres de la verdure dans des images, et aussi le "
-"<a href='https://github.com/arturandre/INACITY_groundtruth'>vérité terrain"
-"</a> utilisée pour estimer les paramètres des filtres et pour l’évaluation "
-"de performances des résultats."
+"INACITYDissertation.pdf'>thèse de maîtrise (en portugais)</a> avec plus de "
+"détails à propos des filtres de la verdure dans des images, et aussi le <a "
+"href='https://github.com/arturandre/INACITY_groundtruth'>vérité terrain</a> "
+"utilisée pour estimer les paramètres des filtres et pour l’évaluation de "
+"performances des résultats."
 
 #: .\templates\about.html:24
 msgid ""
@@ -82,7 +81,11 @@ msgstr ""
 "Le code source du projet peut être trouvé sur <a href='https://github.com/"
 "arturandre/INACITY_python'> le référentiel d'INACITY sur Github</a>."
 
-#: .\templates\base.html:33 .\templates\home.html:32
+#: .\templates\backend_diag.html:15
+msgid "Backend diagram"
+msgstr ""
+
+#: .\templates\base.html:33 .\templates\home.html:33
 msgid "Home"
 msgstr ""
 
@@ -94,38 +97,38 @@ msgstr ""
 msgid "API"
 msgstr ""
 
-#: .\templates\base.html:52
+#: .\templates\base.html:62
 msgid "Sponsors &amp; Associated Projects:"
 msgstr ""
 
-#: .\templates\base.html:72
+#: .\templates\base.html:82
 msgid "Previous"
 msgstr ""
 
-#: .\templates\base.html:76
+#: .\templates\base.html:86
 msgid "Next"
 msgstr ""
 
-#: .\templates\base.html:92
+#: .\templates\base.html:102
 msgid ""
 "We acknowledge Microsoft for a sponsorship through the Microsoft Azure "
 "Sponsorship and Google for their Streetview API."
 msgstr ""
 
-#: .\templates\base.html:93
+#: .\templates\base.html:103
 msgid ""
 "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São "
 "Paulo Research Foundation (FAPESP)."
 msgstr ""
 
-#: .\templates\base.html:94
+#: .\templates\base.html:104
 msgid ""
 "The opinions, hypotheses, conclusions or recommendations contained in this "
 "material are the sole responsibility of the author(s) and do not necessarily "
 "reflect FAPESP opinion."
 msgstr ""
 
-#: .\templates\home.html:38
+#: .\templates\home.html:39
 msgid ""
 "The platform was developed and tested with the browser Google Chrome version "
 "58.0.3029.110 (64-bit). If you're having troubles while using some other "
@@ -133,55 +136,101 @@ msgid ""
 msgstr ""
 
 #: .\templates\home.html:56
-msgid "Map Miner"
+msgid "New session"
 msgstr ""
 
-#: .\templates\home.html:64
-msgid "Feature"
+#: .\templates\home.html:57
+msgid "Save session"
 msgstr ""
 
 #: .\templates\home.html:70
+msgid "Map Miner"
+msgstr ""
+
+#: .\templates\home.html:78
+msgid "Feature"
+msgstr ""
+
+#: .\templates\home.html:84
 msgid "Clear selections"
 msgstr ""
 
-#: .\templates\home.html:73
+#: .\templates\home.html:87
 msgid "Execute Query"
 msgstr ""
 
-#: .\templates\home.html:81
+#: .\templates\home.html:95
 msgid "Map provider"
 msgstr ""
 
-#: .\templates\home.html:89
+#: .\templates\home.html:103
 msgid "Shape type"
 msgstr ""
 
-#: .\templates\home.html:94
+#: .\templates\home.html:108
 msgid "Cancel draw"
 msgstr ""
 
-#: .\templates\home.html:101
+#: .\templates\home.html:115
 msgid "Image provider"
 msgstr ""
 
-#: .\templates\home.html:110
+#: .\templates\home.html:124
 msgid "Image filter"
 msgstr ""
 
-#: .\templates\home.html:116
+#: .\templates\home.html:130
 msgid "Get Images"
 msgstr ""
 
-#: .\templates\home.html:123
+#: .\templates\home.html:137
 msgid "Created regions"
 msgstr ""
 
-#: .\templates\home.html:125
+#: .\templates\home.html:139
 msgid "None"
 msgstr ""
 
-#: .\templates\home.html:129
+#: .\templates\home.html:143
 msgid "Hold shift to zoom"
+msgstr ""
+
+#: .\templates\registration\login.html:11
+#: .\templates\registration\login.html:23
+#: .\templates\registration\profile.html:20
+msgid "Login"
+msgstr ""
+
+#: .\templates\registration\profile.html:29
+msgid "Hi"
+msgstr ""
+
+#: .\templates\registration\profile.html:30
+msgid "Here you can reload a previously saved work session."
+msgstr ""
+
+#: .\templates\registration\profile.html:35
+msgid "Name"
+msgstr ""
+
+#: .\templates\registration\profile.html:36
+msgid "Actions"
+msgstr ""
+
+#: .\templates\registration\profile.html:52
+msgid "Load"
+msgstr ""
+
+#: .\templates\registration\profile.html:53
+msgid "Rename"
+msgstr ""
+
+#: .\templates\registration\profile.html:54
+msgid "Delete"
+msgstr ""
+
+#: .\templates\registration\register.html:11
+msgid "Register"
 msgstr ""
 
 #: .\templates\tutorial.html:23
@@ -264,4 +313,16 @@ msgstr ""
 
 #: .\templates\tutorial.html:85
 msgid "Dodecagon"
+msgstr ""
+
+#: .\views.py:248
+msgid "This session does not belong to the connected user."
+msgstr ""
+
+#: .\views.py:306
+msgid "This session could not be found. Try saving it first."
+msgstr ""
+
+#: .\views.py:309
+msgid "User needs to be logged to rename a session."
 msgstr ""
