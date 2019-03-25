@@ -1,5 +1,7 @@
 #Legacy project in nodejs (for GSV in backend)
 INACITY_nodejs/
+#Docker bind folder
+django_website/var/
 
 #Secrets/Keys file
 settings_secret.py

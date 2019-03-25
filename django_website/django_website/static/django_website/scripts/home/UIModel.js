@@ -868,15 +868,15 @@ class UIModel extends Subject {
                 processData: false,
                 data: sentData,
                 contentType: "application/json; charset=utf-8",
+                context: this,
                 dataType: 'text',
                 success: function (data, textStatus, jqXHR) {
                     //Success message
                     //data -> sessionId
-                }.bind(this),
-                error: function (jqXHR, textStatus, errorThrown) {
-                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                 },
-                complete: function (jqXHR, textStatus) { }.bind(this)
+                error: function (jqXHR, textStatus, errorThrown) {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                }
             });
 
     }
@@ -893,7 +893,7 @@ class UIModel extends Subject {
                     this.clear();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                 },
                 complete: function (jqXHR, textStatus) { }
             });
@@ -912,7 +912,7 @@ class UIModel extends Subject {
                     this.clear();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                 },
                 complete: function (jqXHR, textStatus) { }
             });
@@ -933,11 +933,11 @@ class UIModel extends Subject {
                                 this.loadFromJSON(data);
                             }
                         } catch (error) {
-                            throw new Error(`error: ${error}`)
+                            throw new Error(`error: ${error}`);
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                     },
                     complete: function (jqXHR, textStatus) { }
                 });
@@ -965,11 +965,11 @@ class UIModel extends Subject {
                                 loadSessionWithId();
                             }
                         } catch (error) {
-                            throw new Error(`error: ${error}`)
+                            throw new Error(`error: ${error}`);
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                     },
                     complete: function (jqXHR, textStatus) { }
                 });
