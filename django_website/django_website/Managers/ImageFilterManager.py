@@ -5,6 +5,11 @@ from django_website.Primitives.GeoImage import GeoImage
 from django.utils.translation import gettext
 
 class ImageFilterManager(object):
+    """
+    ImageFilterManager: Responsible for keeping track of registered
+    image filters and for encapsulating responses from requests delegated
+    to them.
+    """
     __instance__ = None
     def __init__(self):
         self._ImageFilters = {}
@@ -17,6 +22,27 @@ class ImageFilterManager(object):
         return ImageFilterManager.__instance__
 
     def registerFilter(self, filter: ImageFilter):
+        """
+        Used during initialization to make some implemented
+        image filter available to clients (e.g. front-end).
+
+        Parameters
+        ----------
+        filter : ImageFilter
+            The ImageFilter object, it should be a specialization
+            of the class ImageFilter (e.g. GreeneryFilter)
+
+        Returns
+        -------
+        none
+
+        Raises
+        ------
+        KeyError
+            when a key error
+        OtherError
+            when an other error
+        """
         if not filter.filterId in self._ImageFilters:
             self._ImageFilters[filter.filterId] = filter
         pass

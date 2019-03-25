@@ -1,3 +1,7 @@
+#docs (sphinx) build files
+django_website/docs/_build/
+
+
 #Legacy project in nodejs (for GSV in backend)
 INACITY_nodejs/
 #Docker bind folder
