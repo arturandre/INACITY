@@ -101,8 +101,9 @@ django\_website\.views module
 
 .. automodule:: django_website.views
     :members:
-    :undoc-members:
+    :undoc-members: 
     :show-inheritance:
+    :exclude-members: hello, simple_upload, integrationTest, getstreets
 
 django\_website\.wsgi module
 ----------------------------

@@ -92,12 +92,72 @@ def lang(request, lang_code):
     return response
 
 
+def home(request):
+    """
+    End-point for the home page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+
+    Returns
+    -------
+    none
+    """
+    htmlfile = 'home.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+def backend_diag(request):
+    """
+    End-point for the backend interactive
+    diagram page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+
+    Returns
+    -------
+    none
+    """
+    htmlfile = 'backend_diag.html'
+    local_vars = {'sample_key': 'sample_data'}
+    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+
 def about(request):
+    """
+    End-point for the about page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+
+    Returns
+    -------
+    none
+    """
     htmlfile = 'about.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 def tutorial(request):
+    """
+    End-point for the tutorial page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+
+    Returns
+    -------
+    none
+    """
     htmlfile = 'tutorial.html'
     local_vars = {'sample_key': 'sample_data'}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
@@ -105,6 +165,19 @@ def tutorial(request):
 # User Auth
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def users(request):
+    """
+    End-point for the users login
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP 'POST' request with user data in json format.
+
+    Returns
+    -------
+    HttpResponse with an echo message.
+    """
+
     retMethod = ''
     jsonData = request.data
     if request.method == 'GET':
@@ -123,20 +196,27 @@ def users(request):
 #ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
 @api_view(['POST'])
 def sign_gsv_url(request):
-    """ Sign a request URL with a URL signing secret.
-
-        Usage:
-        signed_url = _sign_url(input_url=my_url)
-
-        Args:
-        input_url - The URL to sign
-
-        Returns:
-        The signed request URL
     """
-    write_to_log(f'sign_gsv_url')
+    Sign a request URL with a URL signing secret.
+    
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP 'POST' request with a json in payload with a
+        field gsv_unsigned_url with the url to be signed.
+
+        E.g. 
+        {
+            "gsv_unsigned_url": "https://maps.googleapis.com/maps/api/streetview?size=640..."
+        }
+
+    Returns
+    -------
+    HttpResponse with the signed request URL.
+    """
+    #write_to_log(f'sign_gsv_url')
     jsonData = request.data
-    write_to_log(json.dumps(jsonData))
+    #write_to_log(json.dumps(jsonData))
     
     
     
@@ -171,6 +251,21 @@ def sign_gsv_url(request):
 
 @api_view(['GET'])
 def profile(request):
+    """
+    End-point for the user profile page, containing his/her
+    saved sessions.
+    
+    Notice that user must be signed in.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP 'GET' request
+
+    Returns
+    -------
+    The requested page with the user sessions.
+    """
     htmlfile = 'registration/profile.html'
     local_vars = {'sample_key': 'sample_data'}
     if request.user.is_authenticated:
@@ -180,6 +275,24 @@ def profile(request):
 
 @api_view(['GET', 'POST'])
 def register(request):
+    """
+    End-point for the user register page.
+
+    If called with a 'GET' HTTP verb returns the rendered page.
+    
+    If called with a 'POST' HTTP verb must contain a form with
+    username and password1 fields
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP 'GET'/'POST' request
+
+    Returns
+    -------
+    The requested page with the form to be fulfilled or redirect to home
+    with the new user signed in.
+    """
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -198,13 +311,38 @@ def register(request):
 
 @api_view(['POST'])
 def newsession(request):
+    """
+    End-point to create a new session discarding the current one.
+    It does not delete a saved session.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'POST' request
+
+    Returns
+    -------
+    HttpResponse with the new sessionId
+    """
     request.session['sessionId'] = str(uuid4())
     if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
-    print(f"request.session['sessionId']: {request.session['sessionId']}")
+    #print(f"request.session['sessionId']: {request.session['sessionId']}")
     return HttpResponse(request.session.get('sessionId'), status=200)
 
 @api_view(['POST'])
 def getlastsessionid(request):
+    """
+    End-point to check the last sessionId created.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'POST' request
+
+    Returns
+    -------
+    HttpResponse with the last sessionId created or -1
+    """
     sessionId = request.session.get('sessionId')
     sessionId = sessionId if sessionId is not None else -1
     return HttpResponse(sessionId, status=200)
@@ -214,6 +352,24 @@ def getlastsessionid(request):
 
 @api_view(['POST'])
 def loadsession(request):
+    """
+    End-point to load an user session with its regions,
+    layers and images.
+
+    If user is signed in then returns or the
+    requested sessionId (if it belongs to the signed in user otherwise
+    returns a forbidden message) if the user is not signed in or none
+    sessionId is requested then returns the current session.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with a sessionId or empty.
+
+    Returns
+    -------
+    HttpResponse with a session, forbidden message or empty
+    """
     if request.user.is_authenticated:
         try:
             sessionId = request.data.get('sessionId')
@@ -230,7 +386,7 @@ def loadsession(request):
                 return forbiddenUserSessionHttpResponse()
             request.session['sessionId'] = sessionId
             request.session['uiModelJSON'] = ast.literal_eval(session.uimodelJSON)
-            print(request.session['uiModelJSON'])
+            #print(request.session['uiModelJSON'])
             return JsonResponse(ast.literal_eval(session.uimodelJSON))
         except Session.DoesNotExist:
             uiModelJSON = request.session.get('uiModelJSON')
@@ -247,9 +403,37 @@ def loadsession(request):
             return HttpResponse(status=200)
 
 def forbiddenUserSessionHttpResponse():
+    """
+    Inner function to return a forbidden message.
+    E.g. if the session requested doesn't belong to the
+    signed in user.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    HttpResponse with status code 401 and message (forbidden).
+    """
     return HttpResponse(gettext('This session does not belong to the connected user.', status = 401))
 
 def isUserSession(user, session):
+    """
+    Inner function to check if a saved session belongs
+    to an user.
+
+    Parameters
+    ----------
+    session : models.Session
+        A Session model object
+    user : django.contrib.auth.models.User
+        Django User object
+
+    Returns
+    -------
+    True if the session.used_id is the same as the user.id
+    """
     if user.is_authenticated:
         return session.user_id == user.id
     return False
@@ -257,6 +441,30 @@ def isUserSession(user, session):
 
 @api_view(['POST'])
 def savesession(request):
+    """
+    End-point to save a session with its regions,
+    layers and images.
+
+    If user is signed in then the session is saved
+    as an user session and can be retrieved in the
+    user profile. If the user is not signed then
+    the session is saved only as a django session
+    and can expire (and consequently be lost).
+
+    Either way the session is always stored at the
+    current django session.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with the uiModelJSON object
+        in the payload.
+
+    Returns
+    -------
+    HttpResponse sessionId if it's present, 204 if not and
+    400 (bad request) if no uiModelJSON is sent in payload.
+    """
     uiModelJSON = request.data.get('uiModelJSON')
     
     if uiModelJSON is None:
@@ -294,6 +502,36 @@ def savesession(request):
 
 @api_view(['POST'])
 def renamesession(request):
+    """
+    End-point to rename a previously saved user session.
+
+    When the session is automatically saved before the user
+    set a name to it, its name will be the uid generated
+    by django's framework. So the user can change this name
+    in his/her profile page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with a JSON object
+        containing the sessionId of the session 
+        to be renamed and the new name.
+
+        E.g.:
+        {
+            "sessionId": "4594-...",
+            "newName": "My neighborhood"
+        }
+
+        
+
+    Returns
+    -------
+    HttpResponse:
+    - 204 if the save is done successfully
+    - 403 Forbidden if the user has not signed in.
+    - 404 if the sessionId does not exists in the database
+    """
     if request.user.is_authenticated:
         jsonData = request.data
         sessionId = jsonData['sessionId']
@@ -314,35 +552,158 @@ def renamesession(request):
 # Clears session data
 @api_view(['POST'])
 def clearsession(request):
+    """
+    End-point to clear the current django session.
+
+    As a side effect a new session with a newly
+    generated uid will be created.    
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'POST' request 
+
+    Returns
+    -------
+    HttpResponse:
+    - 204 No Content
+    """
     request.session['sessionId'] = str(uuid4())
     del request.session['uiModelJSON']
     return HttpResponse(status=204)
 
 
 def logout(request):
+    """
+    End-point to sign out an user.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'GET' request.
+
+    Returns
+    -------
+    Redirect to the Home page.
+    """
     django_logout(request)
     return redirect('home')
 
 
 @api_view(['GET'])
 def getavailablemapminers(request):
+    """
+    End-point to collect all registered Map Miners.
+
+    To register a Map Miner (e.g. Open Street Map),
+    that is, to make it available to clients through
+    this endpoint check the MapMinerManager class.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'GET' request.
+
+    Returns
+    -------
+    JsonResponse:
+      JSONArray with registered map miners.
+      e.g.:
+      [{
+          'id': 'osm',
+          'name': 'OpenStreetMap',
+          'features': [
+              {
+                  'id': 'streets',
+                  'name': 'Streets'
+              }]
+          }]
+    """
     ret = mapMinerManager.getAvailableMapMinersAndQueries()
     return JsonResponse(ret, safe=False)
 
 @api_view(['GET'])
 def getimageproviders(request):
-    write_to_log('getimageproviders')
+    """
+    End-point to collect all registered Image Providers.
+
+    To register an Image Provider (e.g. Google Street View),
+    that is, to make it available to clients through
+    this endpoint check the ImageProviderManager class.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'GET' request.
+
+    Returns
+    -------
+    JsonResponse:
+      JSONArray with registered image providers.
+      e.g.:
+      [{
+          'id': 'gsv',
+          'name': 'Google Street View'
+      }]
+    """
+    #write_to_log('getimageproviders')
     ret = imageProviderManager.getAvailableImageProviders()
     return JsonResponse(ret, safe=False)
 
 @api_view(['GET'])
 def getimagefilters(request):
+    """
+    End-point to collect all registered Image Filters.
+
+    To register an Image Filter (e.g. Greenery),
+    that is, to make it available to clients through
+    this endpoint check the ImageFilterManager class.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An empty HTTP 'GET' request.
+
+    Returns
+    -------
+    JsonResponse:
+      JSONArray with registered image filters.
+      e.g.:
+      [{
+          'id': 'greenery',
+          'name': 'Greenery'
+      }]
+    """
     ret = imageFilterManager.getAvailableImageFilters()
     return JsonResponse(ret, safe=False)
 
 
 @api_view(['POST'])
 def filtergeoimage(request):
+    """
+    End-point to apply some registered filter to
+    a GeoImage sent as part of the request.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with the filter id (str)
+        and a GeoImage (Primitives.GeoImage.GeoImage).
+
+        E.g.:
+
+        {
+            'filterId': 'greenery',
+            'geoImage': {'id':..., 'data':...}
+        }
+
+    Returns
+    -------
+    JsonResponse: Processed GeoImage
+        The dictionary property 'processedDataList' of the
+        returned GeoImage will contain a new entry under with
+        key equal to the 'filterId' passed in the request.
+    """
     jsondata = request.data
     filterId = jsondata["filterId"]
     geoImage = GeoImage.fromJSON(jsondata["geoImage"])
@@ -353,6 +714,34 @@ def filtergeoimage(request):
 
 @api_view(['POST'])
 def getmapminerfeatures(request):
+    """
+    End-point to retrieve geographical features
+    from regions of interest.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with:
+        - regions of interest (GeoJSON)
+        - Map miner Id (str)
+        - Feature Name (str)
+        
+        E.g.:
+
+        {
+            'mapMinerId': 'osm',
+            'featureName': 'streets'
+            'regions': <GeoJSON>
+        }
+
+    Returns
+    -------
+    JsonResponse: GeoJSON
+        The response will be a GeoJSON object
+        with the requested feature collected,
+        from the Map Miner selected, inside
+        the region(s) of interest.
+    """
     jsondata = request.data
     mapMinerId = jsondata["mapMinerId"]
     query = jsondata["featureName"]
@@ -363,7 +752,43 @@ def getmapminerfeatures(request):
 
 @api_view(['POST'])
 def getimagesforfeaturecollection(request):
-    write_to_log('getimagesforfeaturecollection')
+    """
+    End-point to retrieve images for
+    urban features previously collected.
+
+    Notice that in order to collect geolocated
+    images, some locations are required.
+
+    E.g. When collecting images from a street
+    nodes composing the line segments representing
+    the street are used as locations and
+    the direction from one point to the next
+    are used as horizontal angle for the camera.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with:
+        - Image miner name (str)
+        - featureCollection (GeoJSON)
+        
+        E.g.:
+
+        {
+            'imageMinerName': 'gsv',
+            'featureCollection': <GeoJSON>
+        }
+
+    Returns
+    -------
+    JsonResponse: Dict with the keys:
+    - 'featureCollection': <GeoJSON> whose its property 'properties'
+        will contain a new entry called 'geoImages'. The geoImages
+        property will be structured just as the 'features' property
+        of the GeoJSON, but rather than coordinates it'll have
+        GeoImages as its leaves.
+    """
+    #write_to_log('getimagesforfeaturecollection')
     jsondata = request.data
     imageMinerName = jsondata['imageMinerName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
@@ -380,6 +805,41 @@ def getimagesforfeaturecollection(request):
 
 @api_view(['POST'])
 def processimagesfromfeaturecollection(request):
+    """
+    End-point to process images previously collected
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with:
+        - Image Filter Id (str)
+        - featureCollection (GeoJSON)
+            Notice that the featureCollection must have
+            GeoImages at the 'properties' property as
+            explained in the function 
+            'getimagesforfeaturecollection'.
+        
+        
+        E.g.:
+
+        {
+            'imageFilterId': 'gsv',
+            'featureCollection': <GeoJSON(with GeoImages)>
+        }
+
+    Returns
+    -------
+    JsonResponse: Dict with the keys:
+    - 'featureCollection': <GeoJSON> whose GeoImages now
+        will contain a new entry (the filter id)
+        at the property 'processedDataList' containing the
+        result of the processed GeoImage.
+    - regionId: (str)
+        The region Id of the region that contains the featureCollection 
+    - layerId (str)
+        The layer inside the region that contains the featureCollection
+
+    """
     jsondata = request.data
     imageFilterId = jsondata['imageFilterId']
     featureCollection = geojson.loads(jsondata['featureCollection'])
@@ -389,7 +849,7 @@ def processimagesfromfeaturecollection(request):
     ret['layerId'] = jsondata['layerId']
     return JsonResponse(ret, CustomJSONEncoder)
 
-    
+###### OLD TESTING CALLS #################################
 @api_view(['POST'])
 def getstreets(request):
     geojsondata = request.data
@@ -431,14 +891,4 @@ def simple_upload(request):
 
 def hello(request):
     return HttpResponse("Hello world")
-
-def home(request):
-    htmlfile = 'home.html'
-    local_vars = {'sample_key': 'sample_data'}
-    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-
-def backend_diag(request):
-    htmlfile = 'backend_diag.html'
-    local_vars = {'sample_key': 'sample_data'}
-    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
     

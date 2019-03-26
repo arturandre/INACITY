@@ -20,9 +20,9 @@
 import os
 import sys
 import django
-sys.path.insert(0, os.path.abspath('../INACITY_python/django_website'))
-sys.path.insert(0, os.path.abspath('../INACITY_python/django_website/django_website/Managers'))
-sys.path.insert(0, os.path.abspath('../INACITY_python/django_website/django_website'))
+sys.path.insert(0, os.path.abspath('../'))
+#sys.path.insert(0, os.path.abspath('../INACITY_python/django_website/django_website/Managers'))
+#sys.path.insert(0, os.path.abspath('../INACITY_python/django_website/django_website'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'django_website.settings'
 django.setup()
 
