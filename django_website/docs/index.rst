@@ -6,6 +6,8 @@
 Welcome to INACITY's documentation!
 ===================================
 
+These documents contains mainly API's documentation (both front and back ends). If you're looking for a gentle introduction for using INACITY's platform check the `Get Started <http://inacity.org/tutorial>`_ page.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
