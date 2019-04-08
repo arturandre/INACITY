@@ -142,7 +142,7 @@ async function initializeUI() {
 
     /* OpenLayers init */
     //let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
-    let openLayersHandler = new OpenLayersHandler('map');
+    openLayersHandler = new OpenLayersHandler('map');
 
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)

@@ -115,6 +115,9 @@ class OpenLayersHandler {
 
         this._drawInteraction = null;
         this._SelectedDrawTool = null;
+        this._heatmapVector = null;
+
+
         this.onDrawEnd = null;
 
         return instance;
@@ -175,6 +178,28 @@ class OpenLayersHandler {
         this.changeMapProvider(tileProvider.provider);
     }
 
+    get heatmapVector() { return this._heatmapVector; }
+
+    set heatmapVector(source)
+    {
+
+        this._heatmapVector = new ol.layer.Heatmap({
+            source: new ol.source.Vector(
+            {
+            url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
+            format: new ol.format.KML({
+            extractStyles: false
+            })
+            }),
+            blur: 10,
+            radius: 10
+            });
+
+        OpenLayersHandler.notify('heatmapvectorchanged', this.heatmapVector); 
+    }
+
+    
+
     /**
      * Set the map tiles provider for displaying
      * @param {OpenLayersHandler.TileProviders} tileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
@@ -194,6 +219,10 @@ class OpenLayersHandler {
 
 if (!OpenLayersHandler.init) {
     OpenLayersHandler.init = true;
+
+    OpenLayersHandler.registerEventNames([
+        'heatmapvectorchanged',
+    ]);
 
     /**
      * Collection of registered tile providers from OpenLayers
