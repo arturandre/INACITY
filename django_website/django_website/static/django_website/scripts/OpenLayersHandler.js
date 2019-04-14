@@ -183,17 +183,33 @@ class OpenLayersHandler {
     set heatmapVector(source)
     {
 
-        this._heatmapVector = new ol.layer.Heatmap({
-            source: new ol.source.Vector(
-            {
-            url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
-            format: new ol.format.KML({
-            extractStyles: false
-            })
-            }),
-            blur: 10,
-            radius: 10
-            });
+        // this._heatmapVector = new ol.layer.Heatmap({
+        //     source: new ol.source.Vector(
+        //     {
+        //     url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
+        //     format: new ol.format.KML({
+        //     extractStyles: false
+        //     })
+        //     }),
+        //     blur: 10,
+        //     radius: 10
+        //     });
+        this._heatmapVector = new OpenLayers.Layer.Vector.HeatMap("HeatMap", {
+            rendererOptions: {
+                // a radius of 20px looks good at this zoom-level
+                pointSize: 20 ,
+            }
+        });
+
+        // create a few random points
+        var points = [];
+        for (var i = 0; i < 200 ; i++) {
+            var point = randomPoint();
+            var pointFeature = new OpenLayers.Feature.Vector(point);
+            pointFeature.weight =  (1+Math.ceil(Math.random()*9));
+            points.push(pointFeature);
+        }
+        vectorLayer.addFeatures(points);
 
         OpenLayersHandler.notify('heatmapvectorchanged', this.heatmapVector); 
     }
