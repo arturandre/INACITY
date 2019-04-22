@@ -37,7 +37,7 @@ let instance = null;
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
 class OpenLayersHandler {
-    constructor(HTMLDIVtarget, defaultTileProvider) {
+    constructor(HTMLDIVtarget) {
         if (!HTMLDIVtarget) {
             throw new Error('Map container div not informed! HTMLDIVtarget: ' + HTMLDIVtarget);
         }
@@ -119,6 +119,8 @@ class OpenLayersHandler {
 
 
         this.onDrawEnd = null;
+        
+        GeoImageManager.on('geoimagescollectionchange', this._updateHeatmapLayer)
 
         return instance;
     }
@@ -176,6 +178,18 @@ class OpenLayersHandler {
     set SelectedMapProvider(tileProvider) {
         this._SelectedMapProvider = tileProvider;
         this.changeMapProvider(tileProvider.provider);
+    }
+
+    /**
+     * This couples with the GeoImageManager component
+     */
+    _updateHeatmapLayer()
+    {
+        for (let i = 0; i < GeoImage validImages)
+        {
+            let geoImage = geoImageCollection[idx];
+
+        }
     }
 
     get heatmapVector() { return this._heatmapVector; }

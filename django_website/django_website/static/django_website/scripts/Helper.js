@@ -8,66 +8,6 @@
         return !!object && !(object instanceof Array);
     }
 
-/**
- * Given an DAG (Tree graph) root count how many leafs are GeoImages objects
- * @param {Graph} root - Represents the roots node from a tree (e.g. FeatureCollection)
- */
-    function countValidImages(root) {
-        if (isLeaf(root)) {
-            //return isValidJsonObject(root) ? 1 : 0;
-            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
-        }
-        let n = 0;
-        let count = 0;
-        while (root[n]) {
-            count += countValidImages(root[n]);
-            n += 1;
-        }
-        return count;
-    }
-
-    /**
-     * Given an DAG (Tree graph) or a GeoImage checks if it has some processed collection
-     * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
-     * @param {String} filterName - Image processing filter name (e.g. greenery)
-     */
-    function isFiltered(root, filterName)
-    {
-        while (!isLeaf(root))
-        {
-            root = root[0];
-        }
-        if (GeoImage.isGeoImageCompliant(root))
-        {
-            root = GeoImage.fromObject(root);
-            return root.processedDataList && (filterName in root.processedDataList);
-        }
-        throw "Root should be an tree-like structure or a GeoImage";
-    }
-
-/**
- * Given an DAG (Tree graph) root count how many leafs are GeoImages objects and remove leafs that aren't GeoImages
- * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
- */
-    function removeInvalidImages(root) {
-        if (isLeaf(root)) {
-            return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
-        }
-        let n = 0;
-        let count = 0;
-        let oldCount = 0;
-        while (root[n]) {
-            count += removeInvalidImages(root[n]);
-            if (count === oldCount) {
-                root.splice(n, 1);
-                n -= 1;
-            }
-            oldCount = count;
-            n += 1;
-        }
-        return count;
-    }
-
     /**
      * Traverses the GeoImages graph and select the leaf in the "index" position.
      * If "index" is greater than the number of leafs (geoImages) then it returns the number of leafs
