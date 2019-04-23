@@ -61,7 +61,7 @@ class GeoImageManager extends Subject {
         this.updateDisplayingLayers();
         this._currentLayer = geoImageManagerSession._currentLayer;
         this._currentIndex = geoImageManagerSession._currentIndex;
-        this._validImages = geoImageManagerSession._validImages;
+        //this._validImages = geoImageManagerSession._validImages;
         this._imageFilterId = geoImageManagerSession._imageFilterId;
         if (geoImageManagerSession.geoImageCollection)
         {
@@ -104,7 +104,7 @@ class GeoImageManager extends Subject {
         this.geoImagesCollection = new GeoImageCollection();
         this._currentLayer = -1;
         this._currentIndex = -1;
-        this._validImages = -1;
+        //this._validImages = -1;
 
         if (this._autoPlayIntervalID) {
             clearInterval(this._autoPlayIntervalID);
@@ -194,7 +194,7 @@ class GeoImageManager extends Subject {
             // console.trace();
             // return false; 
         }
-        if (fromStart || (this._lastCurrentIndex === this._validImages-1) && (this._currentIndex === 0)) {
+        if (fromStart || (this._lastCurrentIndex === this._geoImagesCollection.validImages-1) && (this._currentIndex === 0)) {
             this._currentIndex = -1;
             this._currentLayer = (this._currentLayer + 1) % this._displayingLayers.length;
             this.geoImagesCollection = this._displayingLayers[this._currentLayer].featureCollection;
@@ -222,7 +222,7 @@ class GeoImageManager extends Subject {
      * @param {Bool} silentChange - If true then it won't trigger an event
      */
     displayGeoImageAtIndex(index, silentChange) {
-        if (index > this._validImages) {
+        if (index > this.geoImagesCollection.validImages) {
             throw new Error(`Index (${index}) out of valid range [0-${this.validImages}].`);
             //return false;
         }
@@ -258,7 +258,7 @@ class GeoImageManager extends Subject {
 
     _getNextGeoImage() {
         this._currentIndex += 1;
-        this._currentIndex %= this._validImages;
+        this._currentIndex %= this.geoImagesCollection.validImages;
         let geoImage = this._findNextValidImage(this._currentIndex);
 
         //No more valid images, try from the beggining
@@ -288,7 +288,7 @@ class GeoImageManager extends Subject {
             return geoImage;
         } catch (error) {
             //Try to find a valid image
-            while (startingIndex < this._validImages) {
+            while (startingIndex < this.geoImagesCollection.validImages) {
                 startingIndex++;
                 try {
                     geoImage = this.geoImagesCollection.getGeoImageAtIndex(startingIndex);
