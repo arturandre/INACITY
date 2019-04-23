@@ -19,7 +19,7 @@ class GeoImageManager extends Subject {
         this._displayingLayers = [];
 
         //this._currentGeoImagesCollection = [];
-        this._geoImagesCollection = GeoImageCollection();
+        this._geoImagesCollection = new GeoImageCollection();
         this._currentLayer = -1;
         this._currentIndex = -1;
         
@@ -49,7 +49,7 @@ class GeoImageManager extends Subject {
             _currentIndex: this._currentIndex,
             //_validImages: this._validImages,
             _imageFilterId: this._imageFilterId,
-            geoImageCollection: this.getoImageCollection.saveToJSON()
+            geoImageCollection: this.geoImageCollection.saveToJSON()
         };
 
         
@@ -101,7 +101,7 @@ class GeoImageManager extends Subject {
 
     _clearPresentation() {
         this._displayingLayers = [];
-        this.geoImagesCollection = GeoImageCollection();
+        this.geoImagesCollection = new GeoImageCollection();
         this._currentLayer = -1;
         this._currentIndex = -1;
         this._validImages = -1;

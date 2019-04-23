@@ -357,7 +357,7 @@ class FeatureRegions {
 * @param {Object.mapFeature} - Default map feature selection (e.g. Streets)
 */
 class UIModel extends Subject {
-    constructor(regionsDivId, openLayersHandler) {
+    constructor(regionsDivId, openLayersHandler, geoImageManager) {
         super();
         this.setTarget(regionsDivId);
 
@@ -387,6 +387,7 @@ class UIModel extends Subject {
         this._imageFilters = [];
         this._mapMinersAndFeatures = [];
         this._openLayersHandler = openLayersHandler;
+        //this._geoImageManager = geoImageManager;
         this._currentSessionName = "";
 
         /*OpenLayers Event Handlers*/
@@ -757,7 +758,7 @@ class UIModel extends Subject {
                 //featuresByLayerId: featuresByLayerId,
                 regions: regions,
                 openLayersFeatures: openLayersFeatures,
-                geoImageManager: geoImageManager.saveToJSON()
+                //geoImageManager: this._geoImageManager.saveToJSON()
             };
             if (sessionName) session.sessionName = sessionName;
             return session;
@@ -800,7 +801,7 @@ class UIModel extends Subject {
                     sessionRegion.name,
                     sessionRegion.id);
                 region.loadFromJSON(session.regions[regionId]);
-                geoImageManager.loadFromJSON(session.geoImageManager);
+                //this._geoImageManager.loadFromJSON(session.geoImageManager);
                 //this.regions[regionId] = Region.createFromJSON(session.regions[regionId]);
             }
         } finally {

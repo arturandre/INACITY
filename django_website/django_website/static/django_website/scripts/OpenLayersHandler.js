@@ -36,8 +36,9 @@ let instance = null;
 * @param {OpenLayersHandler.TileProviders} defaultTileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
-class OpenLayersHandler {
+class OpenLayersHandler extends Subject {
     constructor(HTMLDIVtarget) {
+        super();
         if (!HTMLDIVtarget) {
             throw new Error('Map container div not informed! HTMLDIVtarget: ' + HTMLDIVtarget);
         }
@@ -183,11 +184,11 @@ class OpenLayersHandler {
     /**
      * This couples with the GeoImageManager component
      */
-    _updateHeatmapLayer()
+    _updateHeatmapLayer(geoImageCollection)
     {
-        for (let i = 0; i < GeoImage validImages)
+        for (let i = 0; i < geoImageCollection.validImages; i++)
         {
-            let geoImage = geoImageCollection[idx];
+            let geoImage = geoImageCollection.getGeoImageAtIndex(i);
 
         }
     }
