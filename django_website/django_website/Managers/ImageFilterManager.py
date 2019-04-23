@@ -22,7 +22,7 @@ class ImageFilterManager(object):
         pass
 
     def getAvailableImageFilters(self):
-        return {filterId: {'name': self._ImageFilters[filterId].filterName, 'id': filterId} for filterId in self._ImageFilters}
+        return [{'name': self._ImageFilters[filterId].filterName, 'id': filterId} for filterId in self._ImageFilters]   
 
     def processImageFromFeatureCollection(self, filterId, featureCollection: FeatureCollection) -> FeatureCollection:
         if filterId in self._ImageFilters:

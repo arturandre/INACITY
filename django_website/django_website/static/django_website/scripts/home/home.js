@@ -156,6 +156,8 @@ async function initializeUI() {
         viewmode: UIView.ViewModes.ImageMode
     };
 
+    
+
     await uiModel.initialize();
     uiModel.setDefaults(uiModelDefaults);
     geoImageManager = new GeoImageManager(uiModel, {defaultImageUrl: "https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"});
@@ -163,10 +165,6 @@ async function initializeUI() {
     let uiViewDefaults = {
         shape: OpenLayersHandler.DrawTools.Box,
         tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
-        imageProvider: "gsvProvider", //Retrieved from server
-        imageFilter: "greenery",      //Retrieved from server
-        mapMiner: "osm",              //Retrieved from server
-        mapFeature: "Streets",        //Retrieved from server
         viewmode: UIView.ViewModes.ImageMode
     };
 
@@ -180,13 +178,14 @@ async function initializeUI() {
     uiController.initialize();
     uiView.initialize();
     uiView.setDefaults(uiViewDefaults);
-
     openLayersHandler.setDefaults({
         center: { lat: -23.5595116, lon: -46.731304 }, //IME USP
         zoom_level: 16,
         tileProvider: OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES,
         drawTool: OpenLayersHandler.DrawTools.Box
     });
+
+    
     uiModel.loadSession();
 }
 

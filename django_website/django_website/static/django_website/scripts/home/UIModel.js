@@ -12,8 +12,8 @@
  * Layer keeps track of vector features (e.g. Points, Lines, Polygons, ...)
  * related with some Map Miner (e.g OSM) and Geographic Feature Type (e.g. Street)
  * @param {LayerId} layerId - Represents an Id object for a Layer
- * @param {string} layerId.MapMinerId - The MapMiner used to collect the features from this layer
- * @param {string} layerId.FeatureName - Feature's name as reported by the backend
+ * @param {Label} layerId.MapMiner - The MapMiner used to collect the features from this layer
+ * @param {Label} layerId.Feature - Feature's name as reported by the backend
  * @param {bool} active - Indicates if this layers is currently active (e.g. drawed over the map)
  */
 class Layer extends Subject {
@@ -21,8 +21,8 @@ class Layer extends Subject {
     constructor(layerId, active) {
         super();
 
-        if (!(layerId.MapMinerId && layerId.FeatureName)) {
-            throw new Error("Invalid layerId, it should have 'MapMinerId' and 'FeatureName' fields.");
+        if (!(layerId.MapMiner && layerId.Feature)) {
+            throw new Error("Invalid layerId, it should have 'MapMiner' and 'Feature' fields.");
         }
 
         this._layerId = layerId;
@@ -71,8 +71,8 @@ class Layer extends Subject {
 
     /** 
      * @param {LayerId} layerId - The LayerId object representing the MapMinerId and FeatureName displayed in this layer
-     * @property {string} layerId.MapMinerId - The MapMiner used to collect the features from this layer
-     * @property {string} layerId.FeatureName - Feature's name as reported by the backend
+     * @property {Label} layerId.MapMiner - The MapMiner used to collect the features from this layer
+     * @property {Label} layerId.Feature - Feature's name as reported by the backend
      */
     get layerId() { return this._layerId; }
 
@@ -120,41 +120,42 @@ class Layer extends Subject {
 }
 
 class LayerId {
-    constructor(mapMinerId, featureName) {
-        this.MapMinerId = mapMinerId;
-        this.FeatureName = featureName;
+    constructor(mapMiner, feature) {
+        this.MapMiner = mapMiner;
+        this.Feature = feature;
     }
 
     toString() {
-        return this.MapMinerId + " - " + this.FeatureName;
+        return this.MapMiner.name + " - " + this.Feature.name;
     }
 
     saveToJSON() {
         let layerIdJSON = {
-            MapMinerId: this.MapMinerId,
-            FeatureName: this.FeatureName
+            MapMiner: this.MapMiner,
+            Feature: this.Feature
         };
         return layerIdJSON;
     }
 
     static createFromJSON(layerIdJSON) {
-        return (new LayerId(layerIdJSON.MapMinerId, layerIdJSON.FeatureName));
+
+        return (new LayerId(layerIdJSON.MapMiner, layerIdJSON.Feature));
     }
 
     loadFromJSON(layerIdJSON) {
-        this.MapMinerId = layerIdJSON.MapMinerId;
-        this.FeatureName = layerIdJSON.FeatureName;
+        this.MapMiner = layerIdJSON.MapMiner;
+        this.Feature = layerIdJSON.Feature;
     }
 }
 
 /**
  * Initializes a LayerId Object
- * @param {string} mapMinerId - MapMiner's Id as reported by the backend
- * @param {string} featureName - Feature's name as reported by the backend
+ * @param {Label} mapMiner - MapMiner's Id as reported by the backend
+ * @param {Label} feature - Feature's name as reported by the backend
  * @returns {LayerId} The object to represent a layer's id
  */
-Layer.createLayerId = function (mapMinerId, featureName) {
-    return new LayerId(mapMinerId, featureName);
+Layer.createLayerId = function (mapMiner, feature) {
+    return new LayerId(mapMiner, feature);
 }
 
 /** Triggered when a new set of features is assined to the [featureCollection]{@link module:UIModel~Layer#featureCollection} member.
@@ -244,7 +245,7 @@ class Region extends Subject {
             return newLayer;
         }
         else {
-            throw Error(`layerId.MapMinerId: '${layerId.MapMinerId}' with FeatureName: '${layerId.FeatureName}' already present in layers list of this region (${this.name})!`);
+            throw Error(`layerId.MapMiner.id: '${layerId.MapMiner.id}' with Feature.id: '${layerId.Feature.id}' already present in layers list of this region (${this.name})!`);
         }
     }
 
@@ -282,10 +283,10 @@ class Region extends Subject {
         return activeLayers;
     }
 
-    getLayerById(id) {
+    getLayerById(_layerId) {
         for (let layerIdx in this._layers) {
             const layerId = this._layers[layerIdx].layerId;
-            if (layerId.MapMinerId === id.MapMinerId && layerId.FeatureName === id.FeatureName) {
+            if (layerId.MapMiner.id === _layerId.MapMiner.id && layerId.Feature.id === _layerId.Feature.id) {
                 return this._layers[layerIdx];
             }
         }
@@ -398,21 +399,20 @@ class UIModel extends Subject {
     {
         if (defaults) {
             if (defaults.mapMiner) {
-                this.SelectedMapMiner = defaults.mapMiner;
-            }
-            if (defaults.mapFeature) {
-                this.SelectedMapFeature = defaults.mapFeature;
+                this.SelectedMapMiner = this.mapMinersAndFeatures.find(p => p.id === defaults.mapMiner);
+                if (defaults.mapFeature) {
+                    this.SelectedMapFeature = this.SelectedMapMiner.features.find(p => p.id === defaults.mapFeature);
+                }
             }
             if (defaults.imageProvider) {
-                this.SelectedImageProvider = defaults.imageProvider;
+                this.SelectedImageProvider = this.imageProviders.find(p => p.id === defaults.imageProvider);
             }
             if (defaults.imageFilter) {
-                this.SelectedImageFilter = defaults.imageFilter;
+                this.SelectedImageFilter = this.imageFilters.find(p => p.id === defaults.imageFilter);
             }
             if (defaults.viewmode) {
                 this.SelectedViewMode = defaults.viewmode;
             }
-
         }
     }
 
@@ -481,7 +481,7 @@ class UIModel extends Subject {
      * Collects images' providers and filters and maps' miners and features.
      * @returns {Promise} - All the providers as registered at server's side
      */
-    initialize() {
+    async initialize() {
         let getServerDataPromises = Promise.all([this.getImageProviders(), this.getMapMinersAndFeatures(), this.getImageFilters()]);
 
         return getServerDataPromises;
@@ -685,7 +685,7 @@ class UIModel extends Subject {
                         method: 'POST',
                         processData: false,
                         data: JSON.stringify({
-                            'imageFilterId': this.SelectedImageFilter,
+                            'imageFilterId': this.SelectedImageFilter.id,
                             'featureCollection': JSON.stringify(layer.featureCollection),
                             'regionId': region.id,
                             'layerId': layer.layerId.toString()
@@ -703,7 +703,7 @@ class UIModel extends Subject {
                                 alert(gettext("The request was too big to be processed. Try a smaller region."));
                             }
                             else {
-                                throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                                throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                             }
                         },
                         complete: function (jqXHR, textStatus) {
@@ -825,8 +825,8 @@ class UIModel extends Subject {
                 {
                     method: 'POST',
                     data: JSON.stringify({
-                        "mapMinerId": this.SelectedMapMiner,
-                        "featureName": this.SelectedMapFeature,
+                        "mapMinerId": this.SelectedMapMiner.id,
+                        "featureName": this.SelectedMapFeature.id,
                         "regions": JSON.stringify(geoJsonFeatures),
                     }),
                     contentType: "application/json; charset=utf-8",
@@ -835,7 +835,7 @@ class UIModel extends Subject {
                         return data;
                     }.bind(region),
                     error: function (jqXHR, textStatus, errorThrown) {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                         //reject(errorThrown);
                     },
                 });
@@ -994,20 +994,20 @@ class UIModel extends Subject {
      * image providers
      * @returns {Promise} resolve with an ImageProvider[] object array (with ImageProviderIds as keys) and rejects with the errorThrown string.
      */
-    getImageProviders() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getimageproviders/",
+    async getImageProviders() {
+        return await $.ajax("/getimageproviders/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._imageProviders = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**
@@ -1022,20 +1022,21 @@ class UIModel extends Subject {
      * map miners and its respective features
      * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
      */
-    getMapMinersAndFeatures() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getavailablemapminers/",
+    async getMapMinersAndFeatures() {
+            return await $.ajax("/getavailablemapminers/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._mapMinersAndFeatures = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) 
+                    {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**
@@ -1049,20 +1050,20 @@ class UIModel extends Subject {
      * image filters
      * @returns {Promise} resolve with an ImageFilter[] object array (with ImageFilters' Ids as keys) and rejects with the errorThrown string.
      */
-    getImageFilters() {
-        return new Promise(function (resolve, reject) {
-            $.ajax("/getimagefilters/",
+    async getImageFilters() {
+        return await $.ajax("/getimagefilters/",
                 {
                     cache: false,
                     method: "GET",
+                    context: this,
                     success: function (data, textStatus, jqXHR) {
                         this._imageFilters = data;
-                        resolve();
-                    }.bind(this),
-                    error: function (jqXHR, textStatus, errorThrown) { reject(errorThrown); },
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                    },
                     dataType: "json"
                 });
-        }.bind(this));
     }
 
     /**

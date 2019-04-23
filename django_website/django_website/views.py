@@ -143,8 +143,10 @@ def sign_gsv_url(request):
     input_url=jsonData['gsv_unsigned_url']
     secret = settings_secret.GSV_SIGNING_SECRET
 
-    if not input_url or not secret:
+    if not input_url:
         raise Exception("input_url and secret are required")
+    if not secret:
+        return HttpResponse(input_url)
 
     url = urlparse(input_url)
 
@@ -325,18 +327,18 @@ def logout(request):
 @api_view(['GET'])
 def getavailablemapminers(request):
     ret = mapMinerManager.getAvailableMapMinersAndQueries()
-    return JsonResponse(ret)
+    return JsonResponse(ret, safe=False)
 
 @api_view(['GET'])
 def getimageproviders(request):
     write_to_log('getimageproviders')
     ret = imageProviderManager.getAvailableImageProviders()
-    return JsonResponse(ret)
+    return JsonResponse(ret, safe=False)
 
 @api_view(['GET'])
 def getimagefilters(request):
     ret = imageFilterManager.getAvailableImageFilters()
-    return JsonResponse(ret)
+    return JsonResponse(ret, safe=False)
 
 
 @api_view(['POST'])
