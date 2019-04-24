@@ -242,6 +242,7 @@ class OpenLayersHandler extends Subject {
             //currentZoom = this.map.getZoom();
             instance.map.getLayers().clear();
             instance.map.addLayer(tileProvider);
+            instance.map.addLayer(instance._heatmapVector);
             instance.map.setView(currentView);
             instance.map.renderSync();
         }
