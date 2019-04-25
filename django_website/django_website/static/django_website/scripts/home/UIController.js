@@ -40,7 +40,7 @@
 
         Layer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
 
-        GeoImageManager.on('geoimagescollectionchange', this.onGeoImagesCollectionChange.bind(this));
+        GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
 
     }
@@ -130,7 +130,7 @@
         this.uiView.updateGeoImgSlider();
     }
 
-    onGeoImagesCollectionChange() {
+    onGeoImageCollectionChange() {
         this.uiView.updateGeoImgSlider();
         this.uiModel.saveSession();
     }

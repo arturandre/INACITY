@@ -10,7 +10,7 @@ class DrawTool {
             this.geometryFunction = geoFunction;
         }
         else {
-            throw Error(gettext("Invalid DrawToolName")+`: ${DrawToolName}`);
+            throw Error(gettext("Invalid DrawToolName") + `: ${DrawToolName}`);
         }
     }
 }
@@ -116,12 +116,15 @@ class OpenLayersHandler extends Subject {
 
         this._drawInteraction = null;
         this._SelectedDrawTool = null;
-        this._heatmapVector = null;
+
+        this._heatmapVectorLayer = new ol.layer.Heatmap({
+            radius: 20,
+        });
 
 
         this.onDrawEnd = null;
-        
-        GeoImageManager.on('geoimagescollectionchange', this._updateHeatmapLayer)
+
+        GeoImageManager.on('geoimagecollectionchange', this._updateHeatmapLayer.bind(this));
 
         return instance;
     }
@@ -134,12 +137,10 @@ class OpenLayersHandler extends Subject {
             if (defaults.zoom_level) {
                 this.view.setZoom(defaults.zoom_level);
             }
-            if (defaults.tileProvider)
-            {
+            if (defaults.tileProvider) {
                 this.SelectedMapProvider = defaults.tileProvider;
             }
-            if (defaults.drawTool)
-            {
+            if (defaults.drawTool) {
                 this.SelectedDrawTool = defaults.drawTool;
             }
         }
@@ -184,52 +185,66 @@ class OpenLayersHandler extends Subject {
     /**
      * This couples with the GeoImageManager component
      */
-    _updateHeatmapLayer(geoImageCollection)
-    {
-        for (let i = 0; i < geoImageCollection.validImages; i++)
-        {
+    _updateHeatmapLayer(geoimagecollectionchangeEvent) {
+        let geoImageCollection = geoimagecollectionchangeEvent.geoImageCollection;
+        let filterId = geoimagecollectionchangeEvent.filterId;
+        let newHeatmapVectorSource = new ol.source.Vector({ wrapX: false });
+
+        for (let i = 0; i < geoImageCollection.validImages; i++) {
             let geoImage = geoImageCollection.getGeoImageAtIndex(i);
 
-        }
-    }
-
-    get heatmapVector() { return this._heatmapVector; }
-
-    set heatmapVector(source)
-    {
-
-        // this._heatmapVector = new ol.layer.Heatmap({
-        //     source: new ol.source.Vector(
-        //     {
-        //     url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
-        //     format: new ol.format.KML({
-        //     extractStyles: false
-        //     })
-        //     }),
-        //     blur: 10,
-        //     radius: 10
-        //     });
-        this._heatmapVector = new OpenLayers.Layer.Vector.HeatMap("HeatMap", {
-            rendererOptions: {
-                // a radius of 20px looks good at this zoom-level
-                pointSize: 20 ,
+            if (geoImage.processedDataList && geoImage.processedDataList[filterId]) {
+                if (!isNaN(geoImage.processedDataList[filterId].density)) {
+                    let feature = new ol.Feature({
+                        geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])),
+                        weight: geoImage.processedDataList[filterId].density
+                    });
+                    newHeatmapVectorSource.addFeature(feature);
+                }
             }
-        });
-
-        // create a few random points
-        var points = [];
-        for (var i = 0; i < 200 ; i++) {
-            var point = randomPoint();
-            var pointFeature = new OpenLayers.Feature.Vector(point);
-            pointFeature.weight =  (1+Math.ceil(Math.random()*9));
-            points.push(pointFeature);
         }
-        vectorLayer.addFeatures(points);
+        this.heatmapVectorLayer.setSource(newHeatmapVectorSource);
 
-        OpenLayersHandler.notify('heatmapvectorchanged', this.heatmapVector); 
+        OpenLayersHandler.notify('heatmapvectorlayerchanged', this.heatmapVectorLayer);
     }
 
-    
+    get heatmapVectorLayer() { return this._heatmapVectorLayer; }
+
+    // set heatmapVectorLayer(source)
+    // {
+
+    //     // this._heatmapVectorLayer = new ol.layer.Heatmap({
+    //     //     source: new ol.source.Vector(
+    //     //     {
+    //     //     url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
+    //     //     format: new ol.format.KML({
+    //     //     extractStyles: false
+    //     //     })
+    //     //     }),
+    //     //     blur: 10,
+    //     //     radius: 10
+    //     //     });
+    //     // this._heatmapVectorLayer = new OpenLayers.Layer.Vector.HeatMap("HeatMap", {
+    //     //     rendererOptions: {
+    //     //         // a radius of 20px looks good at this zoom-level
+    //     //         pointSize: 20 ,
+    //     //     }
+    //     // });
+
+    //     // // create a few random points
+    //     // var points = [];
+    //     // for (var i = 0; i < 200 ; i++) {
+    //     //     var point = randomPoint();
+    //     //     var pointFeature = new OpenLayers.Feature.Vector(point);
+    //     //     pointFeature.weight =  (1+Math.ceil(Math.random()*9));
+    //     //     points.push(pointFeature);
+    //     // }
+    //     // vectorLayer.addFeatures(points);
+
+    //     // OpenLayersHandler.notify('heatmapvectorlayerchanged', this.heatmapVectorLayer); 
+    // }
+
+
 
     /**
      * Set the map tiles provider for displaying
@@ -242,7 +257,7 @@ class OpenLayersHandler extends Subject {
             //currentZoom = this.map.getZoom();
             instance.map.getLayers().clear();
             instance.map.addLayer(tileProvider);
-            instance.map.addLayer(instance._heatmapVector);
+            instance.map.addLayer(instance._heatmapVectorLayer);
             instance.map.setView(currentView);
             instance.map.renderSync();
         }
@@ -253,7 +268,7 @@ if (!OpenLayersHandler.init) {
     OpenLayersHandler.init = true;
 
     OpenLayersHandler.registerEventNames([
-        'heatmapvectorchanged',
+        'heatmapvectorlayerchanged',
     ]);
 
     /**

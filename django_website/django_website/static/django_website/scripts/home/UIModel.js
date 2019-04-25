@@ -663,7 +663,7 @@ class UIModel extends Subject {
                     || !layer.featureCollection.features
                     || !layer.featureCollection.features[0].properties.geoImages
                     //isFiltered() is defined at Helper.js
-                    || isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) {
+                    || GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) {
                     let skippedLayer =
                     {
                         regionName: region.name,
