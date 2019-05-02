@@ -109,7 +109,8 @@ class Layer extends Subject {
         // Restore state
         this._featureCollection.drawed = activeState;
 
-        if (this.featureCollection.features["0"].properties.geoImages) {
+        if (getPropPath(this, ['featureCollection', 'features', "0",
+            'properties', 'geoImages'])) {
             this.geoImagesLoaded = true;
         }
 
@@ -226,8 +227,10 @@ class Region extends Subject {
             let layerSession = regionSession.layers[layerKey];
             let layerId = LayerId.createFromJSON(layerSession.layerId);
             let layer = this.createLayer(layerId);
-            layer.loadFromJSON(layerSession);
-
+            let test_featureCollection = getPropPath(layerSession, ['featureCollection', 'features']);
+            if (test_featureCollection && test_featureCollection.length > 0) {
+                layer.loadFromJSON(layerSession);
+            }
             //this.layers[layerKey] = Layer.createFromJSON(regionSession.layers[layerKey]);
         }
     }
@@ -396,8 +399,7 @@ class UIModel extends Subject {
         this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this);
     }
 
-    setDefaults(defaults)
-    {
+    setDefaults(defaults) {
         if (defaults) {
             if (defaults.mapMiner) {
                 this.SelectedMapMiner = this.mapMinersAndFeatures.find(p => p.id === defaults.mapMiner);
@@ -929,13 +931,13 @@ class UIModel extends Subject {
                     data: JSON.stringify({ sessionId: sessionId }),
                     success: function (data, textStatus, jqXHR) {
                         //Success message
-                        try {
-                            if (data) {
-                                this.loadFromJSON(data);
-                            }
-                        } catch (error) {
-                            throw new Error(`error: ${error}`);
+                        // try {
+                        if (data) {
+                            this.loadFromJSON(data);
                         }
+                        // } catch (error) {
+                        //     throw new Error(`error: ${error}`);
+                        // }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
@@ -997,18 +999,18 @@ class UIModel extends Subject {
      */
     async getImageProviders() {
         return await $.ajax("/getimageproviders/",
-                {
-                    cache: false,
-                    method: "GET",
-                    context: this,
-                    success: function (data, textStatus, jqXHR) {
-                        this._imageProviders = data;
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
-                    },
-                    dataType: "json"
-                });
+            {
+                cache: false,
+                method: "GET",
+                context: this,
+                success: function (data, textStatus, jqXHR) {
+                    this._imageProviders = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                },
+                dataType: "json"
+            });
     }
 
     /**
@@ -1024,20 +1026,19 @@ class UIModel extends Subject {
      * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
      */
     async getMapMinersAndFeatures() {
-            return await $.ajax("/getavailablemapminers/",
-                {
-                    cache: false,
-                    method: "GET",
-                    context: this,
-                    success: function (data, textStatus, jqXHR) {
-                        this._mapMinersAndFeatures = data;
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) 
-                    {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
-                    },
-                    dataType: "json"
-                });
+        return await $.ajax("/getavailablemapminers/",
+            {
+                cache: false,
+                method: "GET",
+                context: this,
+                success: function (data, textStatus, jqXHR) {
+                    this._mapMinersAndFeatures = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                },
+                dataType: "json"
+            });
     }
 
     /**
@@ -1053,18 +1054,18 @@ class UIModel extends Subject {
      */
     async getImageFilters() {
         return await $.ajax("/getimagefilters/",
-                {
-                    cache: false,
-                    method: "GET",
-                    context: this,
-                    success: function (data, textStatus, jqXHR) {
-                        this._imageFilters = data;
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
-                    },
-                    dataType: "json"
-                });
+            {
+                cache: false,
+                method: "GET",
+                context: this,
+                success: function (data, textStatus, jqXHR) {
+                    this._imageFilters = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                },
+                dataType: "json"
+            });
     }
 
     /**
@@ -1110,7 +1111,7 @@ class UIModel extends Subject {
             //If layer already exists in this region it means that no further request is needed
             if (layer && layer.featureCollection) continue;
 
-            layer = region.createLayer(layerId);
+
             //numCalls = numCalls + 1;
             noSelectedRegions = false;
 
@@ -1132,6 +1133,10 @@ class UIModel extends Subject {
                 }
             };
             let data = await this.getMapMinerFeatures(region, geoJsonFeatures);
+            //TODO: If layer already exists ask user if he/she wants to update the layer
+            if (!region.getLayerById(layerId)) {
+                layer = region.createLayer(layerId);
+            }
             layer.featureCollection = data;
             //numCalls = numCalls - 1;
         }

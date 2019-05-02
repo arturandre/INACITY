@@ -352,6 +352,9 @@ class UIView {
     drawLayer(layer, forceRedraw) {
         if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollection = layer.featureCollection;
+
+        if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
+
         let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
         for (let featureIdx in featureCollection.features) {
@@ -383,6 +386,8 @@ class UIView {
     removeLayer(layer) {
         if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollection = layer.featureCollection;
+
+        if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
         for (let featureIdx in featureCollection.features) {
             let feature = featureCollection.features[featureIdx];

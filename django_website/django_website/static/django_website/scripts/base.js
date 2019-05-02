@@ -1,4 +1,16 @@
-﻿// This snippet is provided in Django official documentation
+﻿//ref: https://medium.com/javascript-inside/safely-accessing-deeply-nested-values-in-javascript-99bf72a0855a
+
+/**
+ * 
+ * @param {Object} obj - The object whose properties will be fetch.
+ * @param {Array<string>} path - An array defining the properties path
+ */
+function getPropPath(obj, path)
+{
+    path.reduce((prevVal, curVal) => (prevVal && obj[curVal]) ? obj[curVal] : null, obj);
+}
+
+// This snippet is provided in Django official documentation
     function getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie !== '') {

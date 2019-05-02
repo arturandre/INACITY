@@ -62,13 +62,15 @@ class MapMiner(ABC):
         """Execute a registered query"""
         if not type(regions) is FeatureCollection: regions = FeatureCollection(regions)
         if not type(regions['features']) is list: regions['features'] = [regions['features']]
-        
+        print(cls._availableQueries)
+        print(regions)
+        print(cls._availableQueries[queryName](cls._preFormatInput(regions)))
         return cls._availableQueries[queryName](cls._preFormatInput(regions))
 
     @classmethod
     def _reproject(cls, geosobject):
         trans = CoordTransform(cls._basecrs, MapMiner._destcrs)
-        return geosobject.transform(trans);
+        return geosobject.transform(trans)
 
 
     def _preFormatInput(GeoJsonInput: FeatureCollection):
