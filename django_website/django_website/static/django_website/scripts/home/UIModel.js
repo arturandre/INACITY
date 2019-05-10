@@ -603,8 +603,10 @@ class UIModel extends Subject {
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
                 //@todo: Warn user about the skipped layers
                 //@todo: Revise this
-                getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages'])
-                if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) {
+                //getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages'])
+                //if (!layer.featureCollection || !layer.featureCollection.features || layer.featureCollection.features[0].properties.geoImages) {
+                let properties = getPropPath(layer, ['featureCollection', 'features', 0, 'properties']);
+                if (!properties || properties.geoImages) {
                     console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
                     continue;
                 }
