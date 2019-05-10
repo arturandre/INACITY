@@ -21,17 +21,7 @@ services:
     environment:
       - POSTGRES_PASS=1234
       - POSTGRES_USER=postgres
-    #user: dockeruser
     working_dir: /var/www/html/
-    #APACHE WEB SERVER
-#        sh -c "cd /var/www/html/
-#        && chmod +x /var/www/html/install_script.sh 
-#        && bash /var/www/html/install_script.sh
-#        && chmod +x /var/www/html/wait-for-postgres.sh
-#        && bash /var/www/html/wait-for-postgres.sh db
-#        && python3 manage.py migrate
-#        && apache2ctl -D FOREGROUND
-#        && tail -f /dev/null"
 
     command: >
         sh -c "cd /var/www/html/
