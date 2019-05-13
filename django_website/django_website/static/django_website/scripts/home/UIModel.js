@@ -1112,7 +1112,8 @@ class UIModel extends Subject {
             let region = activeRegions[regionIdx];
             let layer = region.getLayerById(layerId);
             //If layer already exists in this region it means that no further request is needed
-            if (layer && layer.featureCollection) continue;
+            
+            if (getPropPath(layer, ['featureCollection', 'features', '0'])) continue;
 
 
             //numCalls = numCalls + 1;

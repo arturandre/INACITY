@@ -64,8 +64,9 @@ class MapMiner(ABC):
         if not type(regions['features']) is list: regions['features'] = [regions['features']]
         print(cls._availableQueries)
         print(regions)
-        print(cls._availableQueries[queryName](cls._preFormatInput(regions)))
-        return cls._availableQueries[queryName](cls._preFormatInput(regions))
+        results = cls._availableQueries[queryName](cls._preFormatInput(regions))
+        print(results)
+        return results
 
     @classmethod
     def _reproject(cls, geosobject):

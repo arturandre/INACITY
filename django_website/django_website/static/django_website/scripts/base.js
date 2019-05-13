@@ -7,7 +7,9 @@
  */
 function getPropPath(obj, path)
 {
-    path.reduce((prevVal, curVal) => (prevVal && obj[curVal]) ? obj[curVal] : null, obj);
+    if (!obj) return null;
+    if (!path || path.length === 0) return obj;
+    return path.reduce((prevVal, curVal) => (prevVal && prevVal[curVal]) ? prevVal[curVal] : null, obj);
 }
 
 // This snippet is provided in Django official documentation

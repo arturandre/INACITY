@@ -164,7 +164,7 @@ class OSMMiner(MapMiner):
             while True:
                 statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
                 ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
-                if ovpStatus.availableSlots > 0: break;
+                if ovpStatus.availableSlots > 0: break
                 timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
                 time.sleep(timeToWait)
 

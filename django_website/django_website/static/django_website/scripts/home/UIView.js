@@ -153,6 +153,11 @@ class UIView {
         return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
     }
 
+    confirmLayerUpdate(regionName, layerName)
+    {
+        return window.confirm(gettext("Would you like to update the layer")+" '" +layerName+"' from region '"+regionName+"'?");
+    }
+
     
 
     changeViewMode(viewmode)
