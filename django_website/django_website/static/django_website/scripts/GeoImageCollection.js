@@ -51,7 +51,7 @@ class GeoImageCollection {
             root = GeoImage.fromObject(root);
             return root.processedDataList && (filterName in root.processedDataList);
         }
-        throw "Root should be an tree-like structure or a GeoImage";
+        throw "Root should be an tree-like structure whose leaves are GeoImage";
     }
 
     /**

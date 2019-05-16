@@ -241,14 +241,15 @@ class Region extends Subject {
     * @fires [addlayer]{@link module:UIModel~Region#addlayer}
     */
     createLayer(layerId) {
-        if (!this.getLayerById(layerId)) {
+        if (!getPropPath(this, ["layers", layerId.toString()])) {
+            //if (!this.getLayerById(layerId)) {
             let newLayer = new Layer(layerId, this.active);
             this._layers[layerId.toString()] = newLayer;
             Region.notify('addlayer', newLayer);
             return newLayer;
         }
         else {
-            throw Error(`layerId.MapMiner.id: '${layerId.MapMiner.id}' with Feature.id: '${layerId.Feature.id}' already present in layers list of this region (${this.name})!`);
+            throw Error(`layerId: '${layerId.toString()}' already present in layers list of this region (${this.name})!`);
         }
     }
 
@@ -286,15 +287,16 @@ class Region extends Subject {
         return activeLayers;
     }
 
-    getLayerById(_layerId) {
-        for (let layerIdx in this._layers) {
-            const layerId = this._layers[layerIdx].layerId;
-            if (layerId.MapMiner.id === _layerId.MapMiner.id && layerId.Feature.id === _layerId.Feature.id) {
-                return this._layers[layerIdx];
-            }
-        }
-        return null;
-    }
+    // getLayerById(_layerId) {
+    //     for (let layerIdx in this._layers) {
+    //         const layerId = this._layers[layerIdx].layerId;
+    //         if (layerId.MapMiner.id === _layerId.MapMiner.id
+    //             && layerId.Feature.id === _layerId.Feature.id) {
+    //             return this._layers[layerIdx];
+    //         }
+    //     }
+    //     return null;
+    // }
 
     get active() { return this._active; }
 
@@ -546,28 +548,48 @@ class UIModel extends Subject {
     //     }
     // }
 
+    /**
+     * This function queries the SelectedMapMiner for the 
+     * SelectedMapFeature and creates a new layer
+     * for the region parameter containing the fetched data.
+     * 
+     * @param {Region} region - The region of interest where the query for the
+     *                          SelectedMapFeature should be done given the SelectedMapMiner
+     */
     async _collectLayersForEmptyRegions(region) {
-        //#return new Promise(function (resolve) {
         let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
-        //if (Object.keys(region.layers).length === 0) {
-        //When used as an index layerId will be cast to String (e.g. layerId - featureName)
-        if (!(layerId in region.layers) || !region.layers[layerId].featureCollection) {
-            await this.executeQuery(layerId)//.then(function () {
-            this.saveSession();
-            return;// resolve();
-            //}.bind(this));
+
+        /* 
+        * layerId when casted to String becomes "MapMiner - MapFeature"
+        * (e.g. OpenStreetMap - Streets)
+        */
+       let layer = getPropPath(region, ['layers', layerId.toString()]);
+        if (!layer)
+        {
+            layer = region.createLayer(layerId);
         }
-        else {
-            //Otherwise simply collect the image's from the feature selected
+        if (!layer.featureCollection) {
+            await this.executeQuery(layerId);
             this.saveSession();
-            return;// resolve();
+            return;
         }
+        // else {
+        //     //Otherwise simply collect the image's from the feature selected
+        //     this.saveSession();
+        //     return;// resolve();
+        // }
         //}.bind(this));
     }
 
+    /**
+     * Collect the images (given an Image Provider)
+     * for a set of geographic features
+     */
     async getImages() {
-        //return new Promise(function (resolve, reject) {
         let numCalls = 0;
+
+        //If nothing has changed than a call to save session is not needed.
+        let triggerSaveSession = false;
 
         let activeRegions = this.getActiveRegions();
         if (activeRegions.length === 0) {
@@ -581,20 +603,8 @@ class UIModel extends Subject {
               Case the user simply select a region and then try to get the images
               by default the Streets from OSM will be used as features
             */
-            await this._collectLayersForEmptyRegions(region);//.then(() => resolve());
-            // if (Object.keys(region.layers).length === 0) {
-            //     this.executeQuery(this.mapMiner, this.mapFeature).then(function() 
-            //     {
-            //         this.saveSession();
-            //         resolve();
-            //     }).bind(this);
-            // }
-            // else {
-            //     //Otherwise simply collect the image's from the feature selected
-            //     this.saveSession();
-            //     return resolve();
-            // }
-            //}.bind(this))).then(async () => {
+            await this._collectLayersForEmptyRegions(region);
+
             let activeLayers = region.getActiveLayers();
 
             for (let layerIdx in activeLayers) {
@@ -615,12 +625,13 @@ class UIModel extends Subject {
                 await GSVService.setPanoramaForFeatureCollection(layer.featureCollection);
                 layer.geoImagesLoaded = true;
                 numCalls -= 1;
-                if (numCalls === 0) {
-                    this.saveSession();
-                    //return resolve();
-                }
+                triggerSaveSession = true;
+                // if (numCalls === 0) {
+                //     this.saveSession();
+                //     //return resolve();
+                // }
             }
-            if (numCalls === 0) {
+            if (numCalls === 0 && triggerSaveSession) {
                 this.saveSession();
                 //return resolve();
             }
@@ -664,11 +675,9 @@ class UIModel extends Subject {
                 let layer = activeLayers[layerIdx];
 
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                if (!layer.featureCollection
-                    || !layer.featureCollection.features
-                    || !layer.featureCollection.features[0].properties.geoImages
-                    //isFiltered() is defined at Helper.js
-                    || GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) {
+                let geoImagesTree = getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages']);
+                if (!geoImagesTree
+                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter)) {
                     let skippedLayer =
                     {
                         regionName: region.name,
@@ -820,9 +829,10 @@ class UIModel extends Subject {
      * 
      * @param {Region} region - Region object that will have features collected for
      * @param {GeoJson} geoJsonFeatures - GeoJson object that specifies the boundaries of the region
+     * @param {LayerId} layerId - Defines which GIS and which feature should be collected
      * @returns {Promise} - Data will be a GeoJson
      */
-    async getMapMinerFeatures(region, geoJsonFeatures) {
+    async getMapMinerFeatures(region, geoJsonFeatures, layerId) {
         //return new Promise(function (resolve) {
         //let that = this; /* window */
         return await $.ajax
@@ -831,8 +841,8 @@ class UIModel extends Subject {
                 {
                     method: 'POST',
                     data: JSON.stringify({
-                        "mapMinerId": this.SelectedMapMiner.id,
-                        "featureName": this.SelectedMapFeature.id,
+                        "mapMinerId": layerId.MapMiner.id,
+                        "featureName": layerId.Feature.id,
                         "regions": JSON.stringify(geoJsonFeatures),
                     }),
                     contentType: "application/json; charset=utf-8",
@@ -1088,21 +1098,36 @@ class UIModel extends Subject {
     }
 
     /**
-     * Function used to collect map features, from the server,
-     * based on [UIView.SelectedMapMiner]{@link module:"UIView.js"~UIView.SelectedMapMiner}
-     * and [UIView.SelectedMapFeature]{@link module:"UIView.js"~UIView.SelectedMapFeature}
+     * This function is a helper to call [UIModel._executeQuery(layerId)]{@link module:"UIModel.js"~UIModel._executeQuery}
+     * in which the parameter layerId will be created based on the selected 
+     * [UIModel.SelectedMapMiner]{@link module:"UIModel.js"~UIModel.SelectedMapMiner}
+     * and [UIModel.SelectedMapFeature]{@link module:"UIModel.js"~UIModel.SelectedMapFeature}
+     * @param {LayerId} [_layerId=null] - The kind of layer that should be queried
+     *                            (e.g. "OpenStreetMap - Streets")
      * @returns {Promise} - Empty
      */
+    async executeQuery(layerId = null) {
+        if (layerId) return await this._executeQuery(layerId);
 
-    async executeQuery() {
-        let layerId = Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature);
-        return await this._executeQuery(layerId);
+        if (this.SelectedMapMiner === null) {
+            throw gettext("Please, select a Map Miner to continue.");
+        }
+        if (this.SelectedMapFeature === null) {
+            throw gettext("Please, select a Feature to continue.");
+        }
+        
+        return await 
+        this._executeQuery(
+            Layer.createLayerId(this.SelectedMapMiner, this.SelectedMapFeature));
     }
-
+    
+    /**
+     * Function used to collect map features, from the server (django backend)
+     * @param {LayerId} layerId - The kind of layer that should be queried
+     *                            (e.g. "OpenStreetMap - Streets")
+     */
     async _executeQuery(layerId) {
-        //return new Promise(function (resolve, reject) {
         let noSelectedRegions = true;
-        //let numCalls = 0;
 
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         let activeRegions = this.getActiveRegions();
@@ -1110,23 +1135,16 @@ class UIModel extends Subject {
         for (let regionIdx in activeRegions) {
 
             let region = activeRegions[regionIdx];
-            let layer = region.getLayerById(layerId);
-            //If layer already exists in this region it means that no further request is needed
-            
+            let layer = getPropPath(region, ["layers", layerId.toString()]);//region.getLayerById(layerId);
+
+            //If layer already exists and 
+            //have features in this region it then 
+            //no further request is needed
             if (getPropPath(layer, ['featureCollection', 'features', '0'])) continue;
 
-
-            //numCalls = numCalls + 1;
             noSelectedRegions = false;
 
-            if (this.SelectedMapMiner === null) {
-                //return reject(gettext("Please, select a Map Miner to continue."));
-                throw gettext("Please, select a Map Miner to continue.");
-            }
-            if (this.SelectedMapFeature === null) {
-                //return reject(gettext("Please, select a Feature to continue."));
-                throw gettext("Please, select a Feature to continue.");
-            }
+            
 
             let geoJsonFeatures = olGeoJson.writeFeaturesObject([this._openLayersHandler.globalVectorSource.getFeatureById(region.id)]);
 
@@ -1136,13 +1154,12 @@ class UIModel extends Subject {
                     "name": "EPSG:4326"
                 }
             };
-            let data = await this.getMapMinerFeatures(region, geoJsonFeatures);
+            let data = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
             //TODO: If layer already exists ask user if he/she wants to update the layer
-            if (!region.getLayerById(layerId)) {
-                layer = region.createLayer(layerId);
-            }
+            // if (!region.getLayerById(layerId)) {
+            //     layer = region.createLayer(layerId);
+            // }
             layer.featureCollection = data;
-            //numCalls = numCalls - 1;
         }
 
         if (noSelectedRegions) {

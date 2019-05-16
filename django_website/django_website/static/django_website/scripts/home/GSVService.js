@@ -69,7 +69,8 @@ class GSVService {
     }
 
     //Pre-order tree traversal
-    static async cloneTree(root, notLeafFunction, LeafFunction, parent) {
+    //static async cloneTree(root, notLeafFunction, LeafFunction, parent) {
+    static async cloneTree(root, notLeafFunction, LeafFunction) {
         if (!root) return;
         let newRoot = [];
         let index = 0;
@@ -78,10 +79,13 @@ class GSVService {
             if (notLeafFunction) {
                 newRoot = notLeafFunction(root);
             }
-            let nextNode = root[index++];
+            let nextNode = root[index];
             do {
-                newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction, root));
-                nextNode = root[index++];
+                //newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction, root));
+                newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction));
+                index += 1;
+                nextNode = root[index];
+                
             }
             while (nextNode);
         }

@@ -12,7 +12,9 @@ from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, Fea
 from .ImageFilter import ImageFilter
 from .commonFunctions import mt_li_espectral, overlay_mask
 from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
+from django_website.LogGenerator import write_to_log
 from django.utils.translation import gettext as _
+
 
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
@@ -59,7 +61,12 @@ class GreeneryFilter(ImageFilter):
             elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
                 for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
                     for coordinateIndex in range(len(lineString)):
-                        geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        #geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        try:
+                            geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        except Exception as exception:
+                            raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
+
                         try:
                             geoImage = GeoImage.fromJSON(geoImage)
                         except JSONDecodeError:

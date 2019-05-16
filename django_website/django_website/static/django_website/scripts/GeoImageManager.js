@@ -70,6 +70,14 @@ class GeoImageManager extends Subject {
 
 
     /**
+     * Return the valid images for the current Image Collection
+     */
+    get validImages() {
+        return getPropPath(this, ['geoImageCollection', 'validImages']);
+    }
+
+
+    /**
      * Which image is currently being displayed. Ranges from 0 to [_validImages]{@link module:GeoImageManager~_validImages}.
      */
     get currentIndex() { return this._currentIndex; }
