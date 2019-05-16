@@ -187,17 +187,17 @@ class OpenLayersHandler extends Subject {
      */
     _updateHeatmapLayer(geoimagecollectionchangeEvent) {
         let geoImageCollection = geoimagecollectionchangeEvent.geoImageCollection;
-        let filterId = geoimagecollectionchangeEvent.filterId;
+        let imageFilterId = geoimagecollectionchangeEvent.imageFilterId;
         let newHeatmapVectorSource = new ol.source.Vector({ wrapX: false });
 
         for (let i = 0; i < geoImageCollection.validImages; i++) {
             let geoImage = geoImageCollection.getGeoImageAtIndex(i);
 
-            if (geoImage.processedDataList && geoImage.processedDataList[filterId]) {
-                if (!isNaN(geoImage.processedDataList[filterId].density)) {
+            if (geoImage.processedDataList && geoImage.processedDataList[imageFilterId]) {
+                if (!isNaN(geoImage.processedDataList[imageFilterId].density)) {
                     let feature = new ol.Feature({
                         geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])),
-                        weight: geoImage.processedDataList[filterId].density
+                        weight: geoImage.processedDataList[imageFilterId].density
                     });
                     newHeatmapVectorSource.addFeature(feature);
                 }
