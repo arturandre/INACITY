@@ -36,6 +36,8 @@ class GreeneryFilter(ImageFilter):
             mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
             geoImage.setProcessedData(cls.filterId, 'ndarray', mask, density=density)
             featureLeaf[index] = geoImage
+        except HTTPError:
+            write_to_log(f"Http error - Have the quota been achieved?")
         except Exception as e:
             write_to_log(f"Unexpected error: {sys.exc_info()[0]}")
             write_to_log(f"Error message: {e.args}")
