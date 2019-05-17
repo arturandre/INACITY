@@ -186,7 +186,7 @@ class GeoImageManager extends Subject {
     //set currentgeoImageCollection(newFeatureCollection) {
     set geoImageCollection(newFeatureCollection) {
         this.geoImageCollection.loadGeoImagesFromFeatureCollection(newFeatureCollection);
-        GeoImageManager.notify('geoimagecollectionchange', { geoImageCollection: this.geoImageCollection, filterId: this.filterId });
+        GeoImageManager.notify('geoimagecollectionchange', { geoImageCollection: this.geoImageCollection, imageFilterId: this.imageFilterId });
     }
 
     /**
