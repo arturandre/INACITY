@@ -783,6 +783,9 @@ class UIModel extends Subject {
 
     clear() {
         this._openLayersHandler.globalVectorSource.clear();
+        this._regions = {};
+        this._featuresByLayerId = {};
+        this._currentSessionName = "";
         this.updateRegionsDiv();
     }
 
@@ -797,6 +800,7 @@ class UIModel extends Subject {
             if (typeof session === "string") session = JSON.parse(session);
 
             this._openLayersHandler.globalVectorSource.clear();
+            this._featuresByLayerId = {};
             for (let regionId in session.regions) {
                 //  let geoJsonFeatures = olGeoJson.readFeatures(
                 //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
@@ -1174,6 +1178,8 @@ class UIModel extends Subject {
     * @returns {FeatureRegions[]} A list of feature regions grouped by layer's ids
     */
     get featuresByLayerId() { return this._featuresByLayerId; }
+
+    set featuresByLayerId(v) { throw "The featuresByLayerId property is private."; }
 
     /**
      * Check into the "featuresByLayerId" dictionary if these particular 

@@ -14,7 +14,7 @@ from .commonFunctions import mt_li_espectral, overlay_mask
 from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
 from django_website.LogGenerator import write_to_log
 from django.utils.translation import gettext as _
-
+import sys
 
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
@@ -29,12 +29,16 @@ class GreeneryFilter(ImageFilter):
 
     @classmethod
     def _setOutput(cls, geoImage, featureLeaf, index):
-        ndarrayImage = img_as_float(imageio.imread(geoImage.data))
-        mask = mt_li_espectral(ndarrayImage)
-        density = np.count_nonzero(mask)/mask.size
-        mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
-        geoImage.setProcessedData(cls.filterId, 'ndarray', mask, density=density)
-        featureLeaf[index] = geoImage
+        try:
+            ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+            mask = mt_li_espectral(ndarrayImage)
+            density = np.count_nonzero(mask)/mask.size
+            mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
+            geoImage.setProcessedData(cls.filterId, 'ndarray', mask, density=density)
+            featureLeaf[index] = geoImage
+        except Exception as e:
+            write_to_log(f"Unexpected error: {sys.exc_info()[0]}")
+            write_to_log(f'Offending url: {geoImage.data[:300]}')
         #print(json.dumps(geoImage.processedDataList, cls=CustomJSONEncoder))
 
     @classmethod

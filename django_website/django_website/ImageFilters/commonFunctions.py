@@ -172,7 +172,7 @@ def mt_li_espectral(rgb_img, vec=None):
     
     h,s,v = decompose(hsv)
     
-    k = -1;
+    k = -1
     
     h  = (h >= vec[k + 1]) & (h <= (vec[k + 1]+vec[k + 2]))
     s  = (s >= vec[k + 3]) & (s <= (vec[k + 3]+vec[k + 4]))
@@ -193,7 +193,7 @@ def mt_li_espectral(rgb_img, vec=None):
     return r & g & b & h & s & v & nr & ng & nb
 
 def overlay_mask(rgb_img, bw_mask):
-    rgb_img[..., 0] = rgb_img[..., 0]*((~bw_mask+1)/2)
-    rgb_img[..., 1] = rgb_img[..., 1]*((bw_mask+1)/2)
-    rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+1)/2)
+    rgb_img[..., 0] = rgb_img[..., 0]*((~bw_mask+1)*.5)
+    rgb_img[..., 1] = rgb_img[..., 1]*((bw_mask+1)*.9)
+    rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+1)*1.0)
     return rgb_img
