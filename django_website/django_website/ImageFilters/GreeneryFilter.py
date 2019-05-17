@@ -38,6 +38,7 @@ class GreeneryFilter(ImageFilter):
             featureLeaf[index] = geoImage
         except Exception as e:
             write_to_log(f"Unexpected error: {sys.exc_info()[0]}")
+            write_to_log(f"Error message: {e.args}")
             write_to_log(f'Offending url: {geoImage.data[:300]}')
         #print(json.dumps(geoImage.processedDataList, cls=CustomJSONEncoder))
 
