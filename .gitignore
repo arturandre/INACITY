@@ -1,3 +1,6 @@
+#Spyder files
+.spyproject/
+
 #docs (sphinx) build files
 django_website/docs/_build/
 
