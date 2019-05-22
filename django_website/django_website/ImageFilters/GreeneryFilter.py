@@ -1,3 +1,5 @@
+from urllib.error import HTTPError
+
 import imageio
 import scipy
 import numpy as np
