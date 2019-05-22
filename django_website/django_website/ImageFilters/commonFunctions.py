@@ -1,5 +1,5 @@
 import numpy as np
-from skimage import color
+from skimage import color, exposure
 
 ONE_THIRD = 1.0/3.0
 ONE_SIXTH = 1.0/6.0
@@ -193,7 +193,11 @@ def mt_li_espectral(rgb_img, vec=None):
     return r & g & b & h & s & v & nr & ng & nb
 
 def overlay_mask(rgb_img, bw_mask):
-    rgb_img[..., 0] = rgb_img[..., 0]*((~bw_mask+1)*.5)
-    rgb_img[..., 1] = rgb_img[..., 1]*((bw_mask+1)*.9)
-    rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+1)*1.0)
+    coef = 1
+    p2, p98 = np.percentile(rgb_img, (0, 70))
+    rgb_img[..., 0] = rgb_img[..., 0]*((0-bw_mask+coef)/(1+coef))
+    rgb_img[..., 1] = rgb_img[..., 1]*((bw_mask+coef)/(1+coef))
+    #rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+coef)/(1+coef))
+    rgb_img[..., 2] = rgb_img[..., 2]*((1-bw_mask+coef)/(1+coef))
+    rgb_img = exposure.rescale_intensity(rgb_img, in_range=(p2, p98))
     return rgb_img

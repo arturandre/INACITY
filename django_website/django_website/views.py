@@ -803,6 +803,7 @@ def getimagesforfeaturecollection(request):
     ret['layerId'] = jsondata['layerId']
     return JsonResponse(ret)
 
+
 @api_view(['POST'])
 def processimagesfromfeaturecollection(request):
     """
