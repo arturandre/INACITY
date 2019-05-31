@@ -20,16 +20,16 @@ msgstr ""
 
 #: .\ImageFilters\GreeneryFilter.py:21
 msgid "Greenery"
-msgstr ""
+msgstr "Vegetación"
 
 #: .\ImageFilters\GreeneryFilter.py:52 .\ImageFilters\GreeneryFilter.py:66
 #: .\ImageFilters\GreeneryFilter.py:79 .\ImageFilters\GreeneryFilter.py:92
 msgid "Error while parsing panorama: "
-msgstr ""
+msgstr "Error al analizar el panorama:"
 
 #: .\Managers\ImageFilterManager.py:31
 msgid "filterId not found!"
-msgstr ""
+msgstr "filterID no encontrado!"
 
 #: .\templates\about.html:11 .\templates\base.html:35
 msgid "About"
@@ -83,7 +83,7 @@ msgstr ""
 
 #: .\templates\backend_diag.html:15
 msgid "Backend diagram"
-msgstr ""
+msgstr "Diagrama del servidor"
 
 #: .\templates\base.html:33 .\templates\home.html:33
 msgid "Home"
@@ -95,7 +95,7 @@ msgstr "Tutorial"
 
 #: .\templates\base.html:36
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #: .\templates\base.html:62
 msgid "Sponsors &amp; Associated Projects:"
@@ -122,8 +122,8 @@ msgid ""
 "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São "
 "Paulo Research Foundation (FAPESP)."
 msgstr ""
-"El proyeto INACITY es apoyado pela FAPESP, proceso nº 2018/10767-0, Fundação "
-"de Amparo à Pesquisa do Estado de São Paulo (FAPESP)."
+"El proyecto INACITY es apoyado pela FAPESP, proceso nº 2018/10767-0, Fundación "
+"de Amparo a la Investigación del Estado de São Paulo (FAPESP)."
 
 #: .\templates\base.html:104
 msgid ""
@@ -147,11 +147,11 @@ msgstr ""
 
 #: .\templates\home.html:56
 msgid "New session"
-msgstr ""
+msgstr "Nueva sesión"
 
 #: .\templates\home.html:57
 msgid "Save session"
-msgstr ""
+msgstr "Salvar sesión"
 
 #: .\templates\home.html:70
 msgid "Map Miner"
@@ -197,7 +197,7 @@ msgstr "Obtener imágenes"
 
 #: .\templates\home.html:137
 msgid "Created regions"
-msgstr "Crear región"
+msgstr "Regiones creadas"
 
 #: .\templates\home.html:139
 msgid "None"
@@ -211,39 +211,39 @@ msgstr "Mantenga pulsada la tecla Shift para ampliar"
 #: .\templates\registration\login.html:23
 #: .\templates\registration\profile.html:20
 msgid "Login"
-msgstr ""
+msgstr "Iniciar sesión"
 
 #: .\templates\registration\profile.html:29
 msgid "Hi"
-msgstr ""
+msgstr "Hola"
 
 #: .\templates\registration\profile.html:30
 msgid "Here you can reload a previously saved work session."
-msgstr ""
+msgstr "Aquí puedes recargar una sesión de trabajo previamente salvada."
 
 #: .\templates\registration\profile.html:35
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: .\templates\registration\profile.html:36
 msgid "Actions"
-msgstr ""
+msgstr "Acciones"
 
 #: .\templates\registration\profile.html:52
 msgid "Load"
-msgstr ""
+msgstr "Cargar"
 
 #: .\templates\registration\profile.html:53
 msgid "Rename"
-msgstr ""
+msgstr "Renombrar"
 
 #: .\templates\registration\profile.html:54
 msgid "Delete"
-msgstr ""
+msgstr "Suprimir"
 
 #: .\templates\registration\register.html:11
 msgid "Register"
-msgstr ""
+msgstr "Registrar"
 
 #: .\templates\tutorial.html:23
 msgid "Contents"
@@ -341,12 +341,12 @@ msgstr "Dodecágono"
 
 #: .\views.py:248
 msgid "This session does not belong to the connected user."
-msgstr ""
+msgstr "Esta sesión no pertenece al usuario conectado."
 
 #: .\views.py:306
 msgid "This session could not be found. Try saving it first."
-msgstr ""
+msgstr "No se pudo encontrar esta sesión. Intenta salvala primero."
 
 #: .\views.py:309
 msgid "User needs to be logged to rename a session."
-msgstr ""
+msgstr "El usuario necesita estar conectado para renombrar una sesión"

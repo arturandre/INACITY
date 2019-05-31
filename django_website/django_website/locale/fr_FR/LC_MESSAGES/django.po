@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Vinícius Quintas Massimino <viniqmvor@gmail.com>, 2019.
 #
 #, fuzzy
 msgid ""
@@ -10,25 +10,25 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-03-20 14:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: Vinícius Quintas Massimino <viniqmvor@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: Français\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: .\ImageFilters\GreeneryFilter.py:21
 msgid "Greenery"
-msgstr ""
+msgstr "Végétation"
 
 #: .\ImageFilters\GreeneryFilter.py:52 .\ImageFilters\GreeneryFilter.py:66
 #: .\ImageFilters\GreeneryFilter.py:79 .\ImageFilters\GreeneryFilter.py:92
 msgid "Error while parsing panorama: "
-msgstr ""
+msgstr "Erreur lors de l'analyse du panorama"
 
 #: .\Managers\ImageFilterManager.py:31
 msgid "filterId not found!"
-msgstr "filterId n'a pas trouvé!"
+msgstr "le filterId n'était pas trouvé!"
 
 #: .\templates\about.html:11 .\templates\base.html:35
 msgid "About"
@@ -41,8 +41,8 @@ msgid ""
 "Geographical Information Systems (GISes), digital maps and Computer Vision "
 "techniques."
 msgstr ""
-"L'INACITY est une platform crée pour obtenir et analyser des images urbaines "
-"qui intègre Interface de Programmation Applicative, des moteurs de recherche "
+"L'INACITY est une platforme créée pour obtenir et analyser des images urbaines "
+"qui intègre l'Interface de Programmation Applicative, des moteurs de recherche "
 "d'image, des Systèmes d'Information Géographique (SIG), des cartes "
 "numériques et des techniques de la vision par ordinateur."
 
@@ -53,9 +53,9 @@ msgid ""
 "USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto "
 "Hirata Jr.</a>"
 msgstr ""
-"C'était créée lord de program du master d'<a href='http://vision.ime.usp.br/"
-"~arturao/'>Artur André Oliveira</a> dans <a href='https://www.ime.usp."
-"br/'>IME-USP</a> et conseillé par <a href='https://www.ime.usp.br/"
+"Elle était créée lors du program de master d'<a href='http://vision.ime.usp.br/"
+"~arturao/'>Artur André Oliveira</a> au <a href='https://www.ime.usp."
+"br/'>IME-USP</a> et sous la direction de <a href='https://www.ime.usp.br/"
 "hirata'>Roberto Hirata Jr.</a>"
 
 #: .\templates\about.html:22
@@ -67,8 +67,8 @@ msgid ""
 "the filter's parameters and to compare their performance."
 msgstr ""
 "Vous pouvez télécharger la  <a href='http://vision.ime.usp.br/~arturao/"
-"INACITYDissertation.pdf'>thèse de maîtrise (en portugais)</a> avec plus de "
-"détails à propos des filtres de la verdure dans des images, et aussi le <a "
+"INACITYDissertation.pdf'>dissertation de maîtrise (en portugais)</a> avec plus de "
+"détails à propos des filtres de la végétation dans des images, et aussi le <a "
 "href='https://github.com/arturandre/INACITY_groundtruth'>vérité terrain</a> "
 "utilisée pour estimer les paramètres des filtres et pour l’évaluation de "
 "performances des résultats."
@@ -83,43 +83,47 @@ msgstr ""
 
 #: .\templates\backend_diag.html:15
 msgid "Backend diagram"
-msgstr ""
+msgstr "Serveur interne "
 
 #: .\templates\base.html:33 .\templates\home.html:33
 msgid "Home"
-msgstr ""
+msgstr "Accueil"
 
 #: .\templates\base.html:34 .\templates\tutorial.html:15
 msgid "Get started"
-msgstr ""
+msgstr "Tutoriel"
 
 #: .\templates\base.html:36
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #: .\templates\base.html:62
 msgid "Sponsors &amp; Associated Projects:"
-msgstr ""
+msgstr "Sponsors &amp; Projets associés:"
 
 #: .\templates\base.html:82
 msgid "Previous"
-msgstr ""
+msgstr "Précédente"
 
 #: .\templates\base.html:86
 msgid "Next"
-msgstr ""
+msgstr "Suivante"
 
 #: .\templates\base.html:102
 msgid ""
 "We acknowledge Microsoft for a sponsorship through the Microsoft Azure "
 "Sponsorship and Google for their Streetview API."
 msgstr ""
+"Nous remercions Microsoft pour le soutien via Microsoft Azure "
+"Sponsorship et Google pour leur Streetview API"
 
 #: .\templates\base.html:103
 msgid ""
 "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São "
 "Paulo Research Foundation (FAPESP)."
 msgstr ""
+"Le projet INACITY est parrainé par la FAPESP, subvention # 2018/10767-0, Fondation "
+"pour le soutien à la recherche de l'État de São Paulo (FAPESP)."
 
 #: .\templates\base.html:104
 msgid ""
@@ -127,6 +131,9 @@ msgid ""
 "material are the sole responsibility of the author(s) and do not necessarily "
 "reflect FAPESP opinion."
 msgstr ""
+"Les opinions, hypothèses, conclusions ou recommandations contenues dans ce " 
+"matériel sont la responsabilité exclusive de l’auteur et ne reflètent pas nécessairement "
+"l’opinion de la FAPESP."
 
 #: .\templates\home.html:39
 msgid ""
@@ -134,124 +141,127 @@ msgid ""
 "58.0.3029.110 (64-bit). If you're having troubles while using some other "
 "browser try that."
 msgstr ""
+"La plate-forme a été développée et testée avec le navigateur Google Chrome version "
+"58.0.3029.110 (64-bit). Si vous rencontrez des problèmes lors de l'utilisation d'autres "
+"navigateurs, veuillez essayer de changer pour le navigateur en question."
 
 #: .\templates\home.html:56
 msgid "New session"
-msgstr ""
+msgstr "Nouvelle session"
 
 #: .\templates\home.html:57
 msgid "Save session"
-msgstr ""
+msgstr "Sauver la session"
 
 #: .\templates\home.html:70
 msgid "Map Miner"
-msgstr ""
+msgstr "Mineur de cartes"
 
 #: .\templates\home.html:78
 msgid "Feature"
-msgstr ""
+msgstr "Caractéristique"
 
 #: .\templates\home.html:84
 msgid "Clear selections"
-msgstr ""
+msgstr "Effacer les sélections"
 
 #: .\templates\home.html:87
 msgid "Execute Query"
-msgstr ""
+msgstr "Exécuter la demande"
 
 #: .\templates\home.html:95
 msgid "Map provider"
-msgstr ""
+msgstr "Fournisseur de carte"
 
 #: .\templates\home.html:103
 msgid "Shape type"
-msgstr ""
+msgstr "Type de forme"
 
 #: .\templates\home.html:108
 msgid "Cancel draw"
-msgstr ""
+msgstr "Annuler le dessin"
 
 #: .\templates\home.html:115
 msgid "Image provider"
-msgstr ""
+msgstr "Fournisseur d'image"
 
 #: .\templates\home.html:124
 msgid "Image filter"
-msgstr ""
+msgstr "Filtre d'image"
 
 #: .\templates\home.html:130
 msgid "Get Images"
-msgstr ""
+msgstr "Obtenir des images"
 
 #: .\templates\home.html:137
 msgid "Created regions"
-msgstr ""
+msgstr "Régions créées"
 
 #: .\templates\home.html:139
 msgid "None"
-msgstr ""
+msgstr "Aucune"
 
 #: .\templates\home.html:143
 msgid "Hold shift to zoom"
-msgstr ""
+msgstr "Maintenez la touche Shift pour zoomer"
 
 #: .\templates\registration\login.html:11
 #: .\templates\registration\login.html:23
 #: .\templates\registration\profile.html:20
 msgid "Login"
-msgstr ""
+msgstr "S'identifier"
 
 #: .\templates\registration\profile.html:29
 msgid "Hi"
-msgstr ""
+msgstr "Bonjour"
 
 #: .\templates\registration\profile.html:30
 msgid "Here you can reload a previously saved work session."
-msgstr ""
+msgstr "Ici vous pouvez recharger une session de travail précédemment sauvegardée."
 
 #: .\templates\registration\profile.html:35
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #: .\templates\registration\profile.html:36
 msgid "Actions"
-msgstr ""
+msgstr "Actions"
 
 #: .\templates\registration\profile.html:52
 msgid "Load"
-msgstr ""
+msgstr "Charger"
 
 #: .\templates\registration\profile.html:53
 msgid "Rename"
-msgstr ""
+msgstr "Renommer"
 
 #: .\templates\registration\profile.html:54
 msgid "Delete"
-msgstr ""
+msgstr "Effacer"
 
 #: .\templates\registration\register.html:11
 msgid "Register"
-msgstr ""
+msgstr "Enregistrer"
 
 #: .\templates\tutorial.html:23
 msgid "Contents"
-msgstr ""
+msgstr "Table des matières"
 
 #: .\templates\tutorial.html:25 .\templates\tutorial.html:30
 msgid "Sample video"
-msgstr ""
+msgstr "Exemple de vidéo"
 
 #: .\templates\tutorial.html:26 .\templates\tutorial.html:37
 msgid "Fishing expedition"
-msgstr ""
+msgstr "Expédition exploratoire"
 
 #: .\templates\tutorial.html:27 .\templates\tutorial.html:66
 msgid "Shapes"
-msgstr ""
+msgstr "Formes"
 
 #: .\templates\tutorial.html:33
 msgid "Sorry, your browser doesn't support embedded videos."
-msgstr ""
+msgstr "Désolé, votre navigateur ne supporte pas l'exécution de cette vidéo."
 
 #: .\templates\tutorial.html:40
 msgid ""
