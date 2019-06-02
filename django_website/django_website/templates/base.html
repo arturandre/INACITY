@@ -17,9 +17,15 @@
 
     <script type="text/javascript" src="{% static 'django_website/scripts/base.js' %}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    <!--scripts block-->
+    {% endblock %}
 
-    <title>{% block title %}{% endblock %}</title>
+    <title>
+    {% block title %}
+    <!--title block-->
+    {% endblock %}
+    </title>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

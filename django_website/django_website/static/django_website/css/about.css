@@ -1,0 +1,30 @@
+.profile-card-div {
+    height: 100px;
+    width: 100%;
+    border-color:#4cff00;
+    border-style:dashed;
+    border-width:1px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.profile-card-div > span {
+    min-width: 160px;
+    flex: 1 1 auto;
+}
+
+.profile-card-div > p {
+    min-width: 260px;
+    flex: 1 1 auto;
+}
+
+.profile-card-div > img {
+    height: 88px;
+    width: 70px;
+    flex-shrink: 1;
+    border-color:#000000;
+    border-style:dashed;
+    border-width:2px;
+}

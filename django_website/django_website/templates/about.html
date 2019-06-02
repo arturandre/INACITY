@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block scripts %}
 {% load staticfiles %}
-{% endblock %}
+
 
 {% load i18n %}
 
 {% get_current_language as LANGUAGE_CODE %}
 
+<link rel="stylesheet" href="{% static 'django_website/css/about.css' %}" />
+{% endblock %}
 
 {% block title %}{{WebsiteName}} | {% trans "About" %}{% endblock %}
 
@@ -22,6 +24,34 @@
 <p>{% trans "You can download the <a href='http://vision.ime.usp.br/~arturao/INACITYDissertation.pdf'>master's thesis (in portuguese)</a> with deeper analyses about the greenery image filters and also the <a href='https://github.com/arturandre/INACITY_groundtruth'>groundtruth</a> used to estimate the filter's parameters and to compare their performance." %}</p>
 
 <p>{% trans "The project source code can be found at <a href='https://github.com/arturandre/INACITY_python'>INACITY's Github repository</a>." %}</p>
+
+<h1>{% trans "Acknowledgements" %}</h1>
+
+<p>{% trans "We'd like to thanks people that helped in multiple ways to achieve some of the INACITY crucial features:" %}</p>
+
+<div class="profile-card-div">
+<img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+<span></span>
+<p>Vinicius Q. Massimino</br></p>
+<span></span>
+{% trans "For their contributions translating INACITY's webpage to both the spanish and french languages and annotating part of the images that compose the INACITY's greenery dataset." %}
+</div>
+
+<div class="profile-card-div">
+<img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+<span></span>
+<p>Artur Fernando A. M. Oliveira</br> (Nando)</p>
+<span></span>
+{% trans "For their contributions to fixing INACITY's bugs, helping with the documentation, creating the first prototypes of the administration panel and also annotating part of the images that compose the INACITY's greenery dataset." %}
+</div>
+
+<!--<div class="profile-card-div">
+<img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+<span></span>
+<p>Gabriel M. Araújo</br></p>
+<span></span>
+{% trans "For their contributions to the documentation and by helping in the deployment in apple OS systems." %}
+</div> -->
 
 
 {% endblock %}
