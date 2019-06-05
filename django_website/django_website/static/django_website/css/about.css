@@ -21,8 +21,8 @@
 }
 
 .profile-card-div > img {
-    height: 88px;
     width: 70px;
+    height: 88px;
     flex-shrink: 1;
     border-color:#000000;
     border-style:dashed;
