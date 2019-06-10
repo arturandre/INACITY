@@ -1140,6 +1140,10 @@ class UIModel extends Subject {
 
             let region = activeRegions[regionIdx];
             let layer = getPropPath(region, ["layers", layerId.toString()]);//region.getLayerById(layerId);
+            if (!layer)
+            {
+                layer = region.createLayer(layerId);
+            }
 
             //If layer already exists and 
             //have features in this region it then 
