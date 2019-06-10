@@ -7,11 +7,11 @@ from django_website.models import GeoSampa_BusStops
 
 
 class GeoSampaMiner(MapMiner):
-    mapMinerName = "GeoSampa"
+    mapMinerName = "Geo Sampa"
     mapMinerId = "geosampa"
 
 
-    """Miner for the GeoSampa's database"""
+    """Miner for the Geo Sampa's database"""
     _basecrs = SpatialReference(29183)
     _crs = {
         "type": "name",
@@ -43,7 +43,7 @@ class GeoSampaMiner(MapMiner):
     def _initialize(cls):
         pass
 
-    _availableQueries = {"BusStops": _getBusStops}
+    _availableQueries = {"Bus Stops": _getBusStops}
 
 
 
