@@ -1132,12 +1132,13 @@ class UIModel extends Subject {
      */
     async _executeQuery(layerId) {
         let noSelectedRegions = true;
+        let noNewFeatures = true;
 
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         let activeRegions = this.getActiveRegions();
 
         for (let regionIdx in activeRegions) {
-
+            noSelectedRegions = false;
             let region = activeRegions[regionIdx];
             let layer = getPropPath(region, ["layers", layerId.toString()]);//region.getLayerById(layerId);
             if (!layer)
@@ -1149,8 +1150,7 @@ class UIModel extends Subject {
             //have features in this region it then 
             //no further request is needed
             if (getPropPath(layer, ['featureCollection', 'features', '0'])) continue;
-
-            noSelectedRegions = false;
+            noNewFeatures = false;
 
             
 
@@ -1168,10 +1168,21 @@ class UIModel extends Subject {
             //     layer = region.createLayer(layerId);
             // }
             layer.featureCollection = data;
+            if (layer.featureCollection.features.length === 0)
+            {
+                alert(gettext(`No ${layerId.Feature} were found inside the region ${region.name} using the GIS ${layerId.MapMiner}.`));
+            }
+            else 
+            {
+                alert(gettext(`There is ${layer.featureCollection.features.length} ${layerId.Feature.name} found for the region: ${region.name}.`));
+            }
         }
 
         if (noSelectedRegions) {
-            throw gettext("No region selected. Please, select or activate a region before making the request.");
+            alert(gettext("No region selected. Please, select or activate a region before making the request."));
+        }
+        if (noNewFeatures) {
+            alert(gettext("No new features inserted, displaying already found data."));
         }
     }
 
