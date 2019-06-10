@@ -1132,12 +1132,13 @@ class UIModel extends Subject {
      */
     async _executeQuery(layerId) {
         let noSelectedRegions = true;
+        let noNewFeatures = true;
 
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         let activeRegions = this.getActiveRegions();
 
         for (let regionIdx in activeRegions) {
-
+            noSelectedRegions = false;
             let region = activeRegions[regionIdx];
             let layer = getPropPath(region, ["layers", layerId.toString()]);//region.getLayerById(layerId);
             if (!layer)
@@ -1149,8 +1150,7 @@ class UIModel extends Subject {
             //have features in this region it then 
             //no further request is needed
             if (getPropPath(layer, ['featureCollection', 'features', '0'])) continue;
-
-            noSelectedRegions = false;
+            noNewFeatures = false;
 
             
 
@@ -1179,7 +1179,10 @@ class UIModel extends Subject {
         }
 
         if (noSelectedRegions) {
-            throw gettext("No region selected. Please, select or activate a region before making the request.");
+            alert(gettext("No region selected. Please, select or activate a region before making the request."));
+        }
+        if (noNewFeatures) {
+            alert(gettext("No new features inserted, displaying already found data."));
         }
     }
 
