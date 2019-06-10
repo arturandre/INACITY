@@ -1,4 +1,20 @@
-class GeoImage
+/**
+ * Responsible for displaying GeoImages from features
+ * @module GeoImage
+ */
+
+/**
+ * Responsible for displaying GeoImages
+ * @param {string} id - The id of the image element (from DOM) that will be used to display the collected GeoImages.
+ * @param {Location} location - Location of the GeoImage
+ * @param {string} location.description - Decription about this location (i.e. address)
+ * @param {float} location.lat - Latitude in the projection adopted (i.e. )
+ * @param {float} location.lon - Decription about this location (i.e. address)
+ * @param {string} location.lon - Decription about this location (i.e. address)
+ * 
+ * @param {Object} [options] - Optional settings
+ * @param {int} [options.autoPlayTimeInterval=2000] - Interval for autoplay (default 2 seconds)
+ */class GeoImage
 {
     constructor() {
         this.id = null;

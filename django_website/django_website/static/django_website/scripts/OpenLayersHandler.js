@@ -123,10 +123,24 @@ class OpenLayersHandler extends Subject {
 
 
         this.onDrawEnd = null;
+        this._imagePinPoint = null;
 
         GeoImageManager.on('geoimagecollectionchange', this._updateHeatmapLayer.bind(this));
+        GeoImageManager.on('imagechange', this._updateImagePinPoint.bind(this));
 
         return instance;
+    }
+
+    _updateImagePinPoint(geoImage)
+    {
+        if (!this._imagePinPoint)
+        {
+            this._imagePinPoint = new ol.Feature({
+                geometry: new ol.geom.Point(
+                  ol.proj.fromLonLat([-74.006,40.7127])
+                ),
+              });
+        }
     }
 
     setDefaults(defaults) {
