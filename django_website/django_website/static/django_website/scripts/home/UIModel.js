@@ -1168,6 +1168,10 @@ class UIModel extends Subject {
             //     layer = region.createLayer(layerId);
             // }
             layer.featureCollection = data;
+            if (layer.featureCollection.features.length === 0)
+            {
+                alert(gettext(`No features were found for the region: ${region.name}.`));
+            }
         }
 
         if (noSelectedRegions) {
