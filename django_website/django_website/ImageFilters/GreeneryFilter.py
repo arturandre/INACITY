@@ -16,14 +16,14 @@ from .ImageFilter import ImageFilter
 from .commonFunctions import mt_li_espectral, overlay_mask
 from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
 from django_website.LogGenerator import write_to_log
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, gettext_lazy
 import sys
 
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
     
 
-    filterName = _("Greenery")
+    filterName = gettext_lazy("Greenery")
     filterId = "greenery"
 
     @classmethod
