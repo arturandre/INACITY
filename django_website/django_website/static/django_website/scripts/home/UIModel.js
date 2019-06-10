@@ -1170,7 +1170,11 @@ class UIModel extends Subject {
             layer.featureCollection = data;
             if (layer.featureCollection.features.length === 0)
             {
-                alert(gettext(`No features were found for the region: ${region.name}.`));
+                alert(gettext(`No ${layerId.Feature} were found inside the region ${region.name} using the GIS ${layerId.MapMiner}.`));
+            }
+            else 
+            {
+                alert(gettext(`There is ${layer.featureCollection.features.length} ${layerId.Feature} found for the region: ${region.name}.`));
             }
         }
 
