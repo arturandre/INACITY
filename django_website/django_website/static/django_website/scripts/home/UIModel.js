@@ -1174,7 +1174,7 @@ class UIModel extends Subject {
             }
             else 
             {
-                alert(gettext(`There is ${layer.featureCollection.features.length} ${layerId.Feature} found for the region: ${region.name}.`));
+                alert(gettext(`There is ${layer.featureCollection.features.length} ${layerId.Feature.name} found for the region: ${region.name}.`));
             }
         }
 
