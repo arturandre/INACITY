@@ -6,14 +6,19 @@
 /**
  * Responsible for displaying GeoImages
  * @param {string} id - The id of the image element (from DOM) that will be used to display the collected GeoImages.
- * @param {Location} location - Location of the GeoImage
+ * @param {LatLng} location - Location of the GeoImage
  * @param {string} location.description - Decription about this location (i.e. address)
+ * @param {string} location.shortDescription - Short decription about this location (i.e. address)
  * @param {float} location.lat - Latitude in the projection adopted (i.e. )
  * @param {float} location.lon - Decription about this location (i.e. address)
- * @param {string} location.lon - Decription about this location (i.e. address)
+ * @param {string} location.pano - Decription about this location (i.e. address)
  * 
- * @param {Object} [options] - Optional settings
- * @param {int} [options.autoPlayTimeInterval=2000] - Interval for autoplay (default 2 seconds)
+ * @param {float} heading - Horizontal angle of the camera
+ * @param {float} pitch - Vertical angle of the camera
+ * @param {Object} metadata - Depends on the provider, but may include timestamp for example
+ * @param {string} data - May contain either a base64 string with an image, or an url for an image
+ * @param {string} dataType - Defines if the data field is a base64 or an "URL"
+ * @param {Array} processedDataList - Contains ProcessedImages
  */class GeoImage
 {
     constructor() {

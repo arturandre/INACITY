@@ -196,6 +196,10 @@ class UIView {
     }
 
     updateGeoImgSlider() {
+        if (this.uiModel.imgSliderMoving)
+        {
+            return;
+        }
         let numGeoImages = this.geoImageManager.validImages;
 
         if (numGeoImages > 0) {

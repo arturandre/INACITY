@@ -124,6 +124,7 @@ class OpenLayersHandler extends Subject {
 
         this.onDrawEnd = null;
         this._imagePinPoint = null;
+        this._imagePinPointArrow = null;
 
         GeoImageManager.on('geoimagecollectionchange', this._updateHeatmapLayer.bind(this));
         GeoImageManager.on('imagechange', this._updateImagePinPoint.bind(this));
@@ -133,14 +134,69 @@ class OpenLayersHandler extends Subject {
 
     _updateImagePinPoint(geoImage)
     {
-        if (!this._imagePinPoint)
+        if (this._imagePinPoint)
         {
-            this._imagePinPoint = new ol.Feature({
-                geometry: new ol.geom.Point(
-                  ol.proj.fromLonLat([-74.006,40.7127])
-                ),
-              });
+            this.globalVectorSource.removeFeature(this._imagePinPoint);
+            
         }
+        if (this._imagePinPointArrow)
+        {
+            this.globalVectorSource.removeFeature(this._imagePinPointArrow);
+        }
+
+        
+        this._imagePinPoint = new ol.Feature({
+            geometry: new ol.geom.Point(
+                ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat])
+            )
+        });
+        this._imagePinPoint.setStyle(new ol.style.Style({
+            image: new ol.style.Icon(({
+                crossOrigin: 'anonymous',
+                src: '/static/django_website/images/yelloweyedmarker.png',
+                anchor: [0.5, 1]
+            }))
+        }));
+
+        //1 meter in x positive direction?
+        let rightPointingArrow = new ol.geom.Point([0,50]);
+        //rightPointingArrow.scale(1, 1);
+        let rotation = (Math.PI*geoImage.heading)/180;
+        rightPointingArrow.rotate(-rotation, [0,0])
+        let pCoords = ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat]);
+        rightPointingArrow.translate(pCoords[0], pCoords[1]);
+
+        this._imagePinPointArrow = new ol.Feature({
+            geometry: new ol.geom.LineString(
+                [
+                    ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat]),
+                    rightPointingArrow.getCoordinates()
+                ]
+            )
+        });
+
+        this._imagePinPointArrow.setStyle([
+            new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: '#ffcc33',
+                    width: 3
+                }),
+            }),
+            new ol.style.Style({
+                geometry: new ol.geom.Point(rightPointingArrow.getCoordinates()),
+                image: new ol.style.Icon({
+                    src: '/static/django_website/images/arrow.png',
+                    anchor: [0.75, 0.5],
+                    rotateWithView: true,
+                    rotation: (-Math.PI/2)+rotation
+                })
+            
+            })
+        ]);
+
+        this.globalVectorSource.addFeature(this._imagePinPoint);
+        this.globalVectorSource.addFeature(this._imagePinPointArrow);
+        
     }
 
     setDefaults(defaults) {

@@ -52,8 +52,11 @@
      */
     onImageSliderInput(event) {
         let slider = event.target;
-        geoImageManager.displayGeoImageAtIndex(parseInt(slider.value), true);
+        //geoImageManager.displayGeoImageAtIndex(parseInt(slider.value), true);
+        this.uiModel.imgSliderMoving = true;
+        geoImageManager.displayGeoImageAtIndex(parseInt(slider.value));
         geoImageManager.autoPlayGeoImages(GeoImageManager.PlayCommands.Pause);
+        this.uiModel.imgSliderMoving = false;
     }
 
     onDrawEnd(eventKey) {

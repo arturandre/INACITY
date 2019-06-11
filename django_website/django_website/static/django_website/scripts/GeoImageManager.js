@@ -230,16 +230,18 @@ class GeoImageManager extends Subject {
     /**
      * Display an image from a GeoImage tree. That is, a tree where leafs are GeoImage objects 
      * @param {int} index - An integer value representing some geoImage between 0 and _validImages
-     * @param {Bool} silentChange - If true then it won't trigger an event
-     */
-    displayGeoImageAtIndex(index, silentChange) {
+    */
+//     * @param {Bool} silentChange - If true then it won't trigger an event
+//    displayGeoImageAtIndex(index, silentChange) {
+    displayGeoImageAtIndex(index) {
         if (index > this.geoImageCollection.validImages) {
             throw new Error(`Index (${index}) out of valid range [0-${this.validImages}].`);
             //return false;
         }
         let geoImage = this.geoImageCollection.getGeoImageAtIndex(index);
         this.displayGeoImage(geoImage);
-        if (!silentChange) GeoImageManager.notify('imagechange', geoImage);
+        //if (!silentChange) GeoImageManager.notify('imagechange', geoImage);
+        GeoImageManager.notify('imagechange', geoImage);
         return true;
 
     }

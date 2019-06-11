@@ -26,10 +26,10 @@ class Subject {
     }
 
     /**
-    * Listens for an event named "eventName"
+    * Listens for an event named "eventName".
+    * Used for subscription.
     * @param {string} eventName - The event name
     * @param {function} listener - The listener function
-    * @param {object} opt_this - The object to use as this in listener
     */
     static on(eventName, listener)
     {
@@ -45,6 +45,11 @@ class Subject {
         this._observers[eventName].push({listener: listener});
     }
 
+    /**
+     * 
+     * @param {string} eventName - Registered event identified by name
+     * @param {Any} data - Parameters used for subscribers
+     */
     static notify(eventName, data) {
         for (let listenerIdx in this._observers[eventName])
         {

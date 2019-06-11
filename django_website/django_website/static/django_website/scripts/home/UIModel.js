@@ -362,11 +362,13 @@ class FeatureRegions {
 * @param {Object.mapFeature} - Default map feature selection (e.g. Streets)
 */
 class UIModel extends Subject {
-    constructor(regionsDivId, openLayersHandler, geoImageManager) {
+    constructor(regionsDivId, openLayersHandler) {
         super();
         this.setTarget(regionsDivId);
 
         this._loading = false;
+        //Used to avoid loops while change image displayed index by the slider at home template
+        this.imgSliderMoving = false;
 
         //#region View state variables
 
