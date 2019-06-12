@@ -156,7 +156,12 @@
     }
 
     onClickAddressBarBtn() {
-        
+        /**
+        Implement a call to uiModel
+        and at the uiModel implement an ajax request as
+        described at the "Examples" in:
+        https://nominatim.org/release-docs/develop/api/Search/
+         */
     }
 
     onClickClearSelectionsBtn() {
