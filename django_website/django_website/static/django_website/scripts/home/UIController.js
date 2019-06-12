@@ -11,6 +11,7 @@
         this.uiView.onClickExecuteQueryBtn = this.onClickExecuteQueryBtn.bind(this);
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
         this.uiView.onClickClearSelectionsBtn = this.onClickClearSelectionsBtn.bind(this);
+        this.uiView.onClickAddressBarBtn = this.onClickAddressBarBtn.bind(this);
         this.uiView.onClickExecuteImageFilterBtn = this.onClickExecuteImageFilterBtn.bind(this);
 
         this.uiView.onClickSaveSessionBtn = this.onClickSaveSessionBtn.bind(this);
@@ -152,6 +153,10 @@
 
     onClickRegionListItem() {
         this.uiView.updateLayersHintList();
+    }
+
+    onClickAddressBarBtn() {
+        
     }
 
     onClickClearSelectionsBtn() {

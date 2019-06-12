@@ -33,6 +33,7 @@ class UIView {
         this.onClickChangeMapFeatureBtn = null;
 
         this.onClickCancelDrawingBtn = null;
+        this.onClickAddressBarBtn = null;
         this.onClickChangeImageFilter = null;
         
 
@@ -62,6 +63,7 @@ class UIView {
         this.jqbtnMapProvider = $(`#btnMapProvider`);
 
         this.jqbtnCancelDrawing = $(`#btnCancelDrawing`);
+        this.jqbtnAddressBar = $(`#btnAddressBar`);
 
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
         
@@ -93,6 +95,8 @@ class UIView {
         this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
         
         this.jqbtnCancelDrawing.on("click", this.onClickCancelDrawingBtn);
+        this.jqbtnAddressBar.on("click", this.onClickAddressBarBtn);
+        
 
         this.jqimgSlider.on("input", this.onImageSliderInput);
 

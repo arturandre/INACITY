@@ -1,4 +1,14 @@
-﻿#btnImageFilter {
+﻿#divAddressBar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#divAddressBar > * {
+    margin-right: 5px;
+}
+
+#btnImageFilter {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
 }
