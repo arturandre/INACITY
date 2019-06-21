@@ -62,7 +62,10 @@ class GSVService {
             /*Leaf function*/ async function (node) {
                 return await GSVService.getPanoramaByLocation(node).then(
                     async (streetViewPanoramaData) => await streetViewPanoramaData.toGeoImage(),
-                    (err) => err
+                    function(err) {
+                        console.error(err);
+                        return "Error";
+                    }
                 );
             });
         console.log("Tree cloned");
@@ -75,9 +78,9 @@ class GSVService {
         let newRoot = [];
         let index = 0;
         //Not leaf
-        if (root[0][0]) {
+        if (root[0][0] !== undefined) {
             if (notLeafFunction) {
-                newRoot = notLeafFunction(root);
+                newRoot = await notLeafFunction(root);
             }
             let nextNode = root[index];
             do {
@@ -92,7 +95,13 @@ class GSVService {
         //Leaf
         else {
             if (LeafFunction) {
-                newRoot = LeafFunction(root);
+                try {
+                    newRoot = await LeafFunction(root);
+                } catch (error) {
+                    newRoot = "Error";
+                    console.error(error);
+                }
+                
             }
         }
         return newRoot;
