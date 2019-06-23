@@ -89,12 +89,12 @@ function defaultAjaxErrorHandler(locationName, textStatus, errorThrown) {
 
 
 $(document).ready(function () {
-    $('body').on('wheel', function (event) {
-        if (event.shiftKey)
-        {
-            event.preventDefault();
-        }
-    });
+    // $('body').on('wheel', function (event) {
+    //     if (event.shiftKey)
+    //     {
+    //         event.preventDefault();
+    //     }
+    // });
     $.each($("#divNavBar").children(), function (i, v) {
         let urlpath = v.href.replace(/^.*\/\/[^\/]+/, '');
         if (urlpath === window.location.pathname) {
