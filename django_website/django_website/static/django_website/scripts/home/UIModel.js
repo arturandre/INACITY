@@ -805,6 +805,7 @@ class UIModel extends Subject {
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
+            this._currentSessionName = session.sessionName;
             for (let regionId in session.regions) {
                 //  let geoJsonFeatures = olGeoJson.readFeatures(
                 //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
