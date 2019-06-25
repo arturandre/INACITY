@@ -785,6 +785,8 @@ class UIModel extends Subject {
 
     clear() {
         this._openLayersHandler.globalVectorSource.clear();
+        this._imagePinPoint = null;
+        this._imagePinPointArrow = null;
         this._regions = {};
         this._featuresByLayerId = {};
         this._currentSessionName = "";
