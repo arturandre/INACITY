@@ -470,15 +470,15 @@ def savesession(request):
     if uiModelJSON is None:
         return HttpResponse('No content to be saved!', status = 400)
     sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.session.get('sessionId'))
-    print(request.session.get('sessionId'))
-    print(f'sessionName: {sessionName}')
+    write_to_log(f"request.session: {request.session.get('sessionId')}")
+    write_to_log(f'sessionName: {str(sessionName)}')
     if request.user.is_authenticated:
         sessionId = request.session.get('sessionId')
-        print(uiModelJSON.get('sessionName'))
-        print(sessionId)
+        write_to_log('uiModelJSON-sessionName:' + str(uiModelJSON.get('sessionName')))
+        write_to_log(f'sessionId:{sessionId}')
         if sessionId is None:
             session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
-            session.save()
+            session.save()  
         else:
             try:
                 session = Session.objects.get(id = sessionId)
