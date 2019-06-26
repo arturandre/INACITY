@@ -77,3 +77,15 @@
 .inacity-brand-logo {
     height: 51px;
 }
+
+/* MOBILE CSS */
+@media only screen and (max-width: 700px) {
+    #divLanguage {
+      order: 5;
+    }
+    #divLogin {
+      order: 4;
+      margin-left: auto;
+      margin-right: 45px;
+    }
+  }
