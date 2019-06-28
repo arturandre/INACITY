@@ -679,7 +679,7 @@ class UIModel extends Subject {
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
                 let geoImagesTree = getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages']);
                 if (!geoImagesTree
-                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter)) {
+                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id)) {
                     let skippedLayer =
                     {
                         regionName: region.name,
@@ -689,7 +689,7 @@ class UIModel extends Subject {
                     if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
                     if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
                     if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
-                    if (isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
+                    if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
 
                     skippedLayers.push(skippedLayer);
                     continue;
