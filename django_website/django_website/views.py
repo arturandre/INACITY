@@ -538,7 +538,7 @@ def renamesession(request):
         sessionId = jsonData['sessionId']
         sessionNewName = jsonData['newName']
         try:
-            session = Session.objects.get(id=int(sessionId))
+            session = Session.objects.get(id=sessionId)
             if not isUserSession(request.user, session):
                 return forbiddenUserSessionHttpResponse()
             session.sessionName = sessionNewName
