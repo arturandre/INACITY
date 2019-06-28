@@ -344,7 +344,8 @@ def getlastsessionid(request):
     HttpResponse with the last sessionId created or -1
     """
     sessionId = request.session.get('sessionId')
-    sessionId = sessionId if sessionId is not None else -1
+    write_to_log(f"session_key: {request.session.session_key}")
+    sessionId = sessionId if sessionId is not None else request.session.session_key
     return HttpResponse(sessionId, status=200)
 
 # If user is connected then return the session with id = 'currentSessionId' (only if it belongs to the current user)

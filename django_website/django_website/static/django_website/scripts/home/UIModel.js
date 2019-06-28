@@ -805,7 +805,7 @@ class UIModel extends Subject {
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
-            this._currentSessionName = session.sessionName;
+            this._currentSessionName = session.sessionName ? session.sessionName : this._currentSessionName;
             for (let regionId in session.regions) {
                 //  let geoJsonFeatures = olGeoJson.readFeatures(
                 //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
@@ -971,6 +971,7 @@ class UIModel extends Subject {
 
 
         if (sessionId) {
+            this._currentSessionName = sessionId;
             loadSessionWithId(sessionId);
         }
         else {
@@ -983,7 +984,8 @@ class UIModel extends Subject {
                     success: function (sessionId, textStatus, jqXHR) {
                         //Success message
                         try {
-                            if (sessionId >= 0) {
+                            if (sessionId) {
+                                this._currentSessionName = sessionId;
                                 loadSessionWithId(sessionId);
                             }
                             else {
