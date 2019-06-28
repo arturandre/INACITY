@@ -1333,7 +1333,7 @@ class UIModel extends Subject {
             return newRegion;
         }
         else {
-            throw Error(`id: '${id}' ` + gettext("already present in regions list!"));
+            throw Error(`regionId: '${regionId}' ` + gettext("already present in regions list!"));
         }
     }
 

@@ -29,7 +29,13 @@ class UIProfileController{
     
         this.uiProfileModel.renameSession(sessionId, newSessionName);
     }
-    onClickDeleteSessionBtn(){
-
+    onClickDeleteSessionBtn(evt){
+        let btn = $(evt.target);
+        let sessionId = btn.attr('data-session-id');
+        let sessionName = $(`#td${sessionId}`)[0].innerText;
+        if (this.uiProfileView.confirmSessionDeletion(sessionName))
+        {
+            this.uiProfileModel.deleteSession(sessionId);
+        }
     }
 }

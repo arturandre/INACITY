@@ -324,7 +324,8 @@ def newsession(request):
     -------
     HttpResponse with the new sessionId
     """
-    request.session['sessionId'] = str(uuid4())
+    #request.session['sessionId'] = str(uuid4())
+    request.session.create()
     if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
     #print(f"request.session['sessionId']: {request.session['sessionId']}")
     return HttpResponse(request.session.get('sessionId'), status=200)
@@ -573,6 +574,55 @@ def clearsession(request):
     del request.session['uiModelJSON']
     return HttpResponse(status=204)
 
+#Delete's an user session (WARNING)
+@api_view(['POST'])
+def deletesession(request):
+    """
+    End-point to delete a previously saved user session.
+
+    This function removes the user session from the application
+    level database (django_website_session table).
+
+    With the session all the information collected (i.e regions)
+    are removed as well.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with a JSON object
+        containing the sessionId of the session 
+        to be deleted.
+
+        E.g.:
+        {
+            "sessionId": "4594-..."
+        }
+
+        
+
+    Returns
+    -------
+    HttpResponse:
+    - 204 if the session is removed successfully
+    - 403 Forbidden if the user has not signed in.
+    - 404 if the sessionId does not exists in the database
+    """
+    if request.user.is_authenticated:
+        jsonData = request.data
+        sessionId = jsonData['sessionId']
+        try:
+            session = Session.objects.get(id=sessionId)
+            if not isUserSession(request.user, session):
+                return forbiddenUserSessionHttpResponse()
+            if request.session.request.session.session_key == session.id:
+                request.session.create()
+            session.delete()
+        except Session.DoesNotExist:
+            HttpResponse(gettext("This session could not be found."), status=404)
+        pass
+    else:
+        HttpResponse(gettext("User needs to be logged to delete a session."),  status=403)
+    return HttpResponse(status=204)
 
 def logout(request):
     """
