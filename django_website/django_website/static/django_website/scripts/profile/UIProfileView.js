@@ -31,7 +31,7 @@ class UIProfileView{
 
     confirmSessionDeletion(currentSessionName="")
     {
-        return window.prompt(gettext("WARNING: You really want to delete permanently the session:"), currentSessionName, "?");
+        return window.confirm(gettext("WARNING: You really want to delete permanently the session:"), currentSessionName, "?");
     }
 
 

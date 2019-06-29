@@ -898,6 +898,7 @@ class UIModel extends Subject {
                 success: function (data, textStatus, jqXHR) {
                     //Success message
                     //data -> sessionId
+                    if (!this._currentSessionName) this._currentSessionName = data;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
@@ -1291,7 +1292,11 @@ class UIModel extends Subject {
 
         let idNumber = getNewId();
         let regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
-
+        while (regionId in this._regions) {
+            console.warn(`regionId: '${regionId}' ` + gettext("already present in regions list!"));
+            idNumber = getNewId();
+            regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
+        }
         feature.setId(regionId);
         feature.setProperties({ 'type': 'region' });
         let style = active ? 'selectedRegionStyle' : 'transparentStyle';
@@ -1302,39 +1307,36 @@ class UIModel extends Subject {
 
         name = name || `Region ${idNumber}`;
         //active default is false
-        if (!(regionId in this._regions)) {
-            let newRegion = new Region(regionId, name, active);
-            newRegion.boundaries = olGeoJson.writeFeature(feature);
-            this._regions[regionId] = newRegion;
+        
+        let newRegion = new Region(regionId, name, active);
+        newRegion.boundaries = olGeoJson.writeFeature(feature);
+        this._regions[regionId] = newRegion;
 
-            Region.on('activechange', function (region) {
-                let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
-                let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
-                feature.setProperties({ 'style': style });
-                feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
-                if (region.active) {
-                    for (let layerIdx in region.layers) {
-                        let layer = region.layers[layerIdx];
-                        //drawLayer@home.js
-                        uiView.drawLayer(layer);
-                    }
+        Region.on('activechange', function (region) {
+            let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
+            let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
+            feature.setProperties({ 'style': style });
+            feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
+            if (region.active) {
+                for (let layerIdx in region.layers) {
+                    let layer = region.layers[layerIdx];
+                    //drawLayer@home.js
+                    uiView.drawLayer(layer);
                 }
-                else {
-                    for (let layerIdx in region.layers) {
-                        let layer = region.layers[layerIdx];
-                        //removeLayer@home.js
-                        uiView.removeLayer(layer);
-                    }
+            }
+            else {
+                for (let layerIdx in region.layers) {
+                    let layer = region.layers[layerIdx];
+                    //removeLayer@home.js
+                    uiView.removeLayer(layer);
                 }
-            }.bind(this, newRegion));
+            }
+        }.bind(this, newRegion));
 
-            this.updateRegionsDiv();
-            UIModel.notify('regioncreated', newRegion);
-            return newRegion;
-        }
-        else {
-            throw Error(`regionId: '${regionId}' ` + gettext("already present in regions list!"));
-        }
+        this.updateRegionsDiv();
+        UIModel.notify('regioncreated', newRegion);
+        return newRegion;
+        
     }
 
     removeRegion(id) {
