@@ -155,13 +155,27 @@
         this.uiView.updateLayersHintList();
     }
 
-    onClickAddressBarBtn() {
+    async onClickAddressBarBtn() {
         /**
         Implement a call to uiModel
         and at the uiModel implement an ajax request as
         described at the "Examples" in:
         https://nominatim.org/release-docs/develop/api/Search/
          */
+        let address = this.uiView.jqtxtAddressBar.val();
+        let addressResults = await this.uiModel.searchAddress(address);
+        if (addressResults.length > 0)
+        {
+            let closestToMapCenterAddress = this.openLayersHandler.getClosestAddress(addressResults);
+            this.openLayersHandler.centerMap([
+                parseFloat(closestToMapCenterAddress.lon),
+                parseFloat(closestToMapCenterAddress.lat)
+            ]);
+        }
+        else
+        {
+            alert(gettext("Unfortunately the requested address could not be found."));
+        }
     }
 
     onClickClearSelectionsBtn() {

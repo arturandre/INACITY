@@ -132,6 +132,23 @@ class OpenLayersHandler extends Subject {
         return instance;
     }
 
+    getClosestAddress(addresses, lonLatRef)
+    {
+        let center = lonLatRef ? lonLatRef : openLayersHandler.map.getView().getCenter()
+        let dists = [];
+        for (let i = 0; i < addresses.length; i++)
+        {
+            let lonlat = [parseFloat(addresses[i].lon), parseFloat(addresses[i].lat)];
+            dists.push((new ol.geom.LineString([ol.proj.fromLonLat(lonlat),center]).getLength()));
+        }
+        return addresses[dists.indexOf(Math.min(...dists))];
+    }
+
+    centerMap(lonLat)
+    {
+        this.view.setCenter(ol.proj.fromLonLat(lonLat));
+    }
+
     _updateImagePinPoint(geoImage)
     {
         if (this._imagePinPoint)

@@ -95,8 +95,9 @@ class UIView {
         this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
         
         this.jqbtnCancelDrawing.on("click", this.onClickCancelDrawingBtn);
-        this.jqbtnAddressBar.on("click", this.onClickAddressBarBtn);
         
+        this.jqbtnAddressBar.on("click", this.onClickAddressBarBtn);
+        this.jqtxtAddressBar = $("#txtAddressBar");
 
         this.jqimgSlider.on("input", this.onImageSliderInput);
 

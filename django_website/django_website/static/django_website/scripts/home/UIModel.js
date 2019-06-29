@@ -584,6 +584,53 @@ class UIModel extends Subject {
     }
 
     /**
+     * Ref: https://nominatim.org/release-docs/develop/api/Search/
+     * @param {String} address 
+     */
+    async searchAddress(address)
+    {
+        let simpleAddress = address.split(' ').join('/');
+        let result = await $.ajax
+            (
+                "https://nominatim.openstreetmap.org/search/"+simpleAddress+"?format=json",
+                {
+                    method: 'GET',
+                    context: this,
+                    success: function (data, textStatus, jqXHR) {
+                        return data;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                    },
+                });
+        if (result.length > 0)
+        {
+            return result;
+        }
+        else
+        {
+            return await $.ajax
+            (
+                "https://nominatim.openstreetmap.org/search",
+                {
+                    method: 'GET',
+                    data:
+                    {
+                        "q": address,
+                        "format": "json",
+                    },
+                    context: this,
+                    success: function (data, textStatus, jqXHR) {
+                        return data;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                    },
+                });
+        }
+    }
+
+    /**
      * Collect the images (given an Image Provider)
      * for a set of geographic features
      */
@@ -864,7 +911,6 @@ class UIModel extends Subject {
                         //reject(errorThrown);
                     },
                 });
-        //});
     }
 
     /**
