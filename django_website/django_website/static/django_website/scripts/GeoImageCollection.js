@@ -43,13 +43,13 @@ class GeoImageCollection {
      * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
      * @param {String} filterName - Image processing filter name (e.g. greenery)
      */
-    static isFiltered(root, filterName) {
+    static isFiltered(root, filterId) {
         while (!isLeaf(root)) {
             root = root[0];
         }
         if (GeoImage.isGeoImageCompliant(root)) {
             root = GeoImage.fromObject(root);
-            return root.processedDataList && (filterName in root.processedDataList);
+            return root.processedDataList && (filterId in root.processedDataList);
         }
         throw "Root should be an tree-like structure whose leaves are GeoImage";
     }

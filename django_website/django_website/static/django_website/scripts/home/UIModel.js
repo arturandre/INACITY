@@ -679,7 +679,7 @@ class UIModel extends Subject {
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
                 let geoImagesTree = getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages']);
                 if (!geoImagesTree
-                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter)) {
+                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id)) {
                     let skippedLayer =
                     {
                         regionName: region.name,
@@ -689,7 +689,7 @@ class UIModel extends Subject {
                     if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
                     if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
                     if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
-                    if (isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
+                    if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
 
                     skippedLayers.push(skippedLayer);
                     continue;
@@ -805,7 +805,7 @@ class UIModel extends Subject {
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
-            this._currentSessionName = session.sessionName;
+            this._currentSessionName = session.sessionName ? session.sessionName : this._currentSessionName;
             for (let regionId in session.regions) {
                 //  let geoJsonFeatures = olGeoJson.readFeatures(
                 //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
@@ -898,6 +898,7 @@ class UIModel extends Subject {
                 success: function (data, textStatus, jqXHR) {
                     //Success message
                     //data -> sessionId
+                    if (!this._currentSessionName) this._currentSessionName = data;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
@@ -971,6 +972,7 @@ class UIModel extends Subject {
 
 
         if (sessionId) {
+            this._currentSessionName = sessionId;
             loadSessionWithId(sessionId);
         }
         else {
@@ -983,7 +985,8 @@ class UIModel extends Subject {
                     success: function (sessionId, textStatus, jqXHR) {
                         //Success message
                         try {
-                            if (sessionId >= 0) {
+                            if (sessionId) {
+                                this._currentSessionName = sessionId;
                                 loadSessionWithId(sessionId);
                             }
                             else {
@@ -1289,7 +1292,11 @@ class UIModel extends Subject {
 
         let idNumber = getNewId();
         let regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
-
+        while (regionId in this._regions) {
+            console.warn(`regionId: '${regionId}' ` + gettext("already present in regions list!"));
+            idNumber = getNewId();
+            regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
+        }
         feature.setId(regionId);
         feature.setProperties({ 'type': 'region' });
         let style = active ? 'selectedRegionStyle' : 'transparentStyle';
@@ -1300,39 +1307,36 @@ class UIModel extends Subject {
 
         name = name || `Region ${idNumber}`;
         //active default is false
-        if (!(regionId in this._regions)) {
-            let newRegion = new Region(regionId, name, active);
-            newRegion.boundaries = olGeoJson.writeFeature(feature);
-            this._regions[regionId] = newRegion;
+        
+        let newRegion = new Region(regionId, name, active);
+        newRegion.boundaries = olGeoJson.writeFeature(feature);
+        this._regions[regionId] = newRegion;
 
-            Region.on('activechange', function (region) {
-                let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
-                let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
-                feature.setProperties({ 'style': style });
-                feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
-                if (region.active) {
-                    for (let layerIdx in region.layers) {
-                        let layer = region.layers[layerIdx];
-                        //drawLayer@home.js
-                        uiView.drawLayer(layer);
-                    }
+        Region.on('activechange', function (region) {
+            let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
+            let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
+            feature.setProperties({ 'style': style });
+            feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
+            if (region.active) {
+                for (let layerIdx in region.layers) {
+                    let layer = region.layers[layerIdx];
+                    //drawLayer@home.js
+                    uiView.drawLayer(layer);
                 }
-                else {
-                    for (let layerIdx in region.layers) {
-                        let layer = region.layers[layerIdx];
-                        //removeLayer@home.js
-                        uiView.removeLayer(layer);
-                    }
+            }
+            else {
+                for (let layerIdx in region.layers) {
+                    let layer = region.layers[layerIdx];
+                    //removeLayer@home.js
+                    uiView.removeLayer(layer);
                 }
-            }.bind(this, newRegion));
+            }
+        }.bind(this, newRegion));
 
-            this.updateRegionsDiv();
-            UIModel.notify('regioncreated', newRegion);
-            return newRegion;
-        }
-        else {
-            throw Error(`id: '${id}' ` + gettext("already present in regions list!"));
-        }
+        this.updateRegionsDiv();
+        UIModel.notify('regioncreated', newRegion);
+        return newRegion;
+        
     }
 
     removeRegion(id) {

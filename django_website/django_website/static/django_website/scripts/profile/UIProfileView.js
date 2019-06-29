@@ -29,5 +29,10 @@ class UIProfileView{
         return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
     }
 
+    confirmSessionDeletion(currentSessionName="")
+    {
+        return window.confirm(gettext("WARNING: You really want to delete permanently the session:"), currentSessionName, "?");
+    }
+
 
 }
