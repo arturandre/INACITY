@@ -18,7 +18,7 @@ You can get a signing key for Google Street View services [here](https://develop
 
 
 1. (**optional**) Edit docker-compose.yml setting up exposed/published ports and/or database name/credentials. Notice that if database settings  are changed then it'll be necessary to make reflect those changes at the file ./INACITY_python/**django_website**/**django_website**/settings.py as well (look for the variable *DATABASES*).
-2. Go to the folder ./INACITY_python/django_website
+2. Go to the folder ./INACITY/django_website
 3. Run 'docker-compose up'
 
 By default INACITY will be running at [localhost:80](http://localhost:80) and postgreSQL will be exposed at port 25432 to the host machine.
