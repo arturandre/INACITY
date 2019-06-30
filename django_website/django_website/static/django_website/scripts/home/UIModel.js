@@ -32,16 +32,30 @@ class Layer extends Subject
         this._featureCollection = null;
         this._active = !!active;
         this._geoImagesLoaded = false;
+        this.hasOlFeatures = false;
     }
 
     saveToJSON()
     {
         let layerSession = {
             layerId: this._layerId.saveToJSON(),
-            featureCollection: this.featureCollection,
             active: this.active,
             geoImagesLoaded: this.geoImagesLoaded
         };
+        if (this.featureCollection)
+        {
+            layerSession.featureCollection = {};
+            for (var key in this.featureCollection)
+            {
+                if (key !== 'features')
+                {
+                    layerSession.featureCollection[key] = this.featureCollection[key];
+                }
+            }
+            layerSession.featureCollection.features =
+                this.featureCollection.features;
+            layerSession.featureCollection.hasOlFeatures = false;
+        }
         return layerSession;
     }
 
@@ -84,7 +98,26 @@ class Layer extends Subject
      */
     get layerId() { return this._layerId; }
 
-    get featureCollection() { return this._featureCollection; }
+    get featureCollectionOL() { return this._featureCollection; }
+    get featureCollection()
+    {
+        if (!this._featureCollection) return null;
+        let ret = {};
+        for (let key in this._featureCollection)
+        {
+            if (key !== 'features')
+            {
+                ret[key] = this._featureCollection[key];
+            }
+        }
+        if (getPropPath(this,['_featureCollection','features']))
+        {
+            ret['features'] = GeoJSONHelper.writeFeatures(this._featureCollection.features);
+            
+        }
+        ret.hasOlFeatures = false;
+        return ret;
+    }
 
     /**
      * The active property controls wheter the features should or not be rendered 
@@ -113,12 +146,19 @@ class Layer extends Subject
         let triggered = (this._featureCollection !== newFeatureCollection);
 
         // Keep state
-        let activeState = this._featureCollection ? this._featureCollection.drawed : undefined;
+        newFeatureCollection.drawed = getPropPath(this, ['_featureCollection', 'drawed']);
+        if (!newFeatureCollection.hasOlFeatures)
+        {
+            let olGeoJson = new ol.format.GeoJSON({ featureProjection: newFeatureCollection.crs.properties.name });
+            newFeatureCollection.features = olGeoJson.readFeatures(newFeatureCollection);
+            newFeatureCollection.hasOlFeatures = true;
+        }
+        //let activeState = this._featureCollection ? this._featureCollection.drawed : undefined;
 
         this._featureCollection = newFeatureCollection;
 
         // Restore state
-        this._featureCollection.drawed = activeState;
+        //this._featureCollection.drawed = activeState;
 
         if (getPropPath(this, ['featureCollection', 'features', "0",
             'properties', 'geoImages']))
@@ -207,7 +247,7 @@ if (!Layer.init)
 */
 class Region extends Subject
 {
-    constructor(id, name, active)
+    constructor(id, name, active, boundaries)
     {
         super();
 
@@ -219,7 +259,18 @@ class Region extends Subject
         this._layers = {};
 
         this._active = active;
+
+
+        this._boundaries = boundaries;
+        this._boundaries.setStyle(
+            this._active ?
+                OpenLayersHandler.Styles.selectedRegionStyle
+                : OpenLayersHandler.Styles.transparentStyle
+        );
+        this._boundaries.setId(this._id);
     }
+
+    get boundaries() { return this._boundaries; }
 
     saveToJSON()
     {
@@ -232,7 +283,7 @@ class Region extends Subject
             id: this.id,
             name: this.name,
             active: this._active,
-            boundaries: this.boundaries,
+            boundaries: GeoJSONHelper.olGeoJson.writeFeature(this._boundaries),
             layers: layersJSON
         };
         return regionSession;
@@ -408,7 +459,7 @@ class FeatureRegions
 */
 class UIModel extends Subject
 {
-    constructor(regionsDivId, openLayersHandler, sessionManager)
+    constructor(regionsDivId, openLayersHandler)
     {
         super();
         this.setTarget(regionsDivId);
@@ -442,9 +493,7 @@ class UIModel extends Subject
         this._mapMinersAndFeatures = [];
 
         this._openLayersHandler = openLayersHandler;
-        this._sessionManager = sessionManager;
         //this._geoImageManager = geoImageManager;
-        this._currentSessionName = "";
 
         /*OpenLayers Event Handlers*/
         this._openLayersHandler.globalVectorSource.on('addfeature', this.updateRegionsList, this);
@@ -544,11 +593,6 @@ class UIModel extends Subject
         return getServerDataPromises;
     }
 
-    get currentSessionName()
-    {
-        return this._currentSessionName;
-    }
-
     get imageProviders() { return this._imageProviders; }
     get imageFilters() { return this._imageFilters; }
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
@@ -641,8 +685,7 @@ class UIModel extends Subject
     {
         let numCalls = 0;
 
-        //If nothing has changed than a call to save session is not needed.
-        let triggerSaveSession = false;
+        let triggerGeoImages = false;
 
         let activeRegions = this.getActiveRegions();
         if (activeRegions.length === 0)
@@ -679,14 +722,17 @@ class UIModel extends Subject
                 }
 
                 numCalls += 1;
-                await GSVService.setPanoramaForFeatureCollection(layer.featureCollection);
+                //layer.featureCollection always returns a copy
+                let fc = layer.featureCollection;
+                await GSVService.setPanoramaForFeatureCollection(fc);
+                layer.featureCollection = fc;
                 layer.geoImagesLoaded = true;
                 numCalls -= 1;
-                triggerSaveSession = true;
+                triggerGeoImages = true;
             }
-            if (numCalls === 0 && triggerSaveSession)
+            if (numCalls === 0 && triggerGeoImages)
             {
-                await this._sessionManager.saveSession();
+                UIModel.notify('getimages');
                 //return resolve();
             }
             //});
@@ -815,34 +861,22 @@ class UIModel extends Subject
     }
 
     /**
-     * Serialize user session
+     * Serialize uiModel to be saved
+     * as part of the userSession
      * @todo Create a function out of UIModel to aggregate all components' data 
      */
-    saveToJSON(sessionName)
+    saveToJSON()
     {
         try
         {
-
-            //const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
-            //let featuresByLayerId = null; /* Features data for tracking */
             let regions = {}; /* Regions data for tracking */
-            //let openLayersFeatures = {}; /*OpenLayers features for drawing*/
-            //featuresByLayerId = this.featuresByLayerId;
-
             for (let regionId in this.regions)
             {
-                //     let olFeature = this._openLayersHandler.globalVectorSource.getFeatureById(regionId);
-                //     let geoJsonFeatures = olGeoJson.writeFeaturesObject([olFeature]);
-                //     openLayersFeatures[regionId] = geoJsonFeatures;
                 regions[regionId] = this.regions[regionId].saveToJSON();
             }
             let uiModelSession = {
                 regions: regions,
-                //openLayersFeatures: openLayersFeatures,
-                //geoImageManager: this._geoImageManager.saveToJSON()
             };
-            //if (sessionName) session.sessionName = sessionName;
             return uiModelSession;
         } catch (error)
         {
@@ -852,9 +886,6 @@ class UIModel extends Subject
 
     clear()
     {
-        this._openLayersHandler.globalVectorSource.clear();
-        this._imagePinPoint = null;
-        this._imagePinPointArrow = null;
         this._regions = {};
         this._featuresByLayerId = {};
         this._currentSessionName = "";
@@ -875,24 +906,25 @@ class UIModel extends Subject
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
-            this._currentSessionName = uiModelSession.sessionName ? uiModelSession.sessionName : this._currentSessionName;
+            //this._currentSessionName = uiModelSession.sessionName ? uiModelSession.sessionName : this._currentSessionName;
             for (let regionId in uiModelSession.regions)
             {
                 //  let geoJsonFeatures = olGeoJson.readFeatures(
                 //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
-                let geoJsonFeatures = olGeoJson.readFeatures(uiModelSession.openLayersFeatures[regionId]);
-                for (const feature in geoJsonFeatures)
-                {
-                    let style = geoJsonFeatures[feature].getProperties().style;
-                    if (style)
-                    {
-                        geoJsonFeatures[feature].setStyle(OpenLayersHandler.Styles[style]);
-                    }
-                }
-                this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
+                // let geoJsonFeatures = olGeoJson.readFeatures(uiModelSession.openLayersFeatures[regionId]);
+                // for (const feature in geoJsonFeatures)
+                // {
+                //     let style = geoJsonFeatures[feature].getProperties().style;
+                //     if (style)
+                //     {
+                //         geoJsonFeatures[feature].setStyle(OpenLayersHandler.Styles[style]);
+                //     }
+                // }
+                // this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
                 let sessionRegion = uiModelSession.regions[regionId];
                 let region = this.createRegion(
-                    olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
+                    //olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
+                    GeoJSONHelper.olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
                     sessionRegion.active,
                     sessionRegion.name,
                     sessionRegion.id);
@@ -1250,14 +1282,11 @@ class UIModel extends Subject
         element.toggleClass("active");
         let region = event.data;
         region.toggleActive();
-        //this.saveSession();
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(feature, active, name = null, pre_regionid = null)
+    createRegion(boundaries, active, name = null, pre_regionid = null)
     {
-        const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
-
         let idNumber = getNewId();
         let regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
         while (regionId in this._regions)
@@ -1266,46 +1295,13 @@ class UIModel extends Subject
             idNumber = getNewId();
             regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
         }
-        feature.setId(regionId);
-        feature.setProperties({ 'type': 'region' });
-        let style = active ? 'selectedRegionStyle' : 'transparentStyle';
-        feature.setProperties({ 'style': style });
-        //createRegion is called in response to drawend event, so setProperties won't generate another event
-        //setStyle always fires an change event that can't be silenced! 
-        feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
 
         name = name || `Region ${idNumber}`;
         //active default is false
 
-        let newRegion = new Region(regionId, name, active);
-        newRegion.boundaries = olGeoJson.writeFeature(feature);
-        this._regions[regionId] = newRegion;
+        let newRegion = new Region(regionId, name, active, boundaries);
 
-        Region.on('activechange', function (region)
-        {
-            let feature = this._openLayersHandler.globalVectorSource.getFeatureById(region.id);
-            let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
-            feature.setProperties({ 'style': style });
-            feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
-            if (region.active)
-            {
-                for (let layerIdx in region.layers)
-                {
-                    let layer = region.layers[layerIdx];
-                    //drawLayer@home.js
-                    uiView.drawLayer(layer);
-                }
-            }
-            else
-            {
-                for (let layerIdx in region.layers)
-                {
-                    let layer = region.layers[layerIdx];
-                    //removeLayer@home.js
-                    uiView.removeLayer(layer);
-                }
-            }
-        }.bind(this, newRegion));
+        this._regions[regionId] = newRegion;
 
         this.updateRegionsDiv();
         UIModel.notify('regioncreated', newRegion);
@@ -1317,9 +1313,10 @@ class UIModel extends Subject
     {
         if ((id in this._regions))
         {
+            let detetedRegion = this._regions[id];
             if (delete this._regions[id])
             {
-                UIModel.notify('regiondeleted');
+                UIModel.notify('regiondeleted', detetedRegion);
                 return true;
             }
         }
@@ -1390,7 +1387,10 @@ class UIModel extends Subject
                     If the different parts of the same multilinearstring feature appears in different layers
                     then they are joined together
                     */
-                    mergeInPlaceMultilineStringFeatures(featureRegionsIndex[feature.id].feature, feature);
+                    GeoJSONHelper.mergeInPlaceMultilineStringFeatures(
+                        featureRegionsIndex[feature.id].feature,
+                        feature
+                    );
                     triggerFeaturesMerged = true;
                     if (featureRegionsIndex[feature.id].regions.indexOf(region.id) === -1)
                     {
@@ -1398,9 +1398,13 @@ class UIModel extends Subject
                          * After a merge it's necessary to update other regions that also contains
                          * the merged feature
                          */
-                        for (let regionIdxAux in featureRegionsIndex[feature.id].regions)
+                        for (let regionIdxAux in featureRegionsIndex[
+                            feature.id
+                        ].regions)
                         {
-                            let auxRegion = this.regions[featureRegionsIndex[feature.id].regions[regionIdxAux]];
+                            let auxRegion = this.regions[featureRegionsIndex[
+                                feature.id
+                            ].regions[regionIdxAux]];
                             auxRegion.layers[layerIdStr].featureCollection.features[featureIdx] = feature;
                         }
                         featureRegionsIndex[feature.id].regions.push(region.id);
@@ -1412,109 +1416,8 @@ class UIModel extends Subject
                 UIModel.notify('featuresmerged', layer);
             }
         }
-        //this.saveSession();
     }
 }
-
-/** @todo: Transfer GeoJson functions them to a more appropriate place*/
-//#region GeoJson functions
-/**
- * @todo Transfer the 'GeoJson functions region' to a more appropriate place
- */
-
-/**
- * Auxiliar function to compare Longitude and Latitude coordinate arrays
- * @todo Transfer it to a more appropriate place
- * @param {float[]} lonLat1 - Array with 2 values
- * @param {float[]} lonLat2 - Array with 2 values
- * @returns {Boolean} - True if both coordinates have the same values
- */
-function compareCoordinates(lonLat1, lonLat2)
-{
-    return ((lonLat1[0] === lonLat2[0]) && (lonLat1[1] === lonLat2[1]));
-}
-
-/**
- * Used for merging (in-place) the same feature present in different layers (e.g. A long street with different parts belonging to different layers)
- * @todo Transfer it to a more appropriate place
- * @param {Feature} feature1 - A MultiLineString Feature (e.g. a street)
- * @param {Feature} feature2 - A MultiLineString Feature (e.g. a street)
- */
-function mergeInPlaceMultilineStringFeatures(feature1, feature2)
-{
-    let allLineStrings = [];
-    for (let i = 0; i < feature1.geometry.coordinates.length; i++)
-        allLineStrings.push(feature1.geometry.coordinates[i]);
-    for (let i = 0; i < feature2.geometry.coordinates.length; i++)
-        allLineStrings.push(feature2.geometry.coordinates[i]);
-    let merged = true;
-    while (merged)
-    {
-        merged = false;
-        for (let i = allLineStrings.length - 1; i > 0; i--)
-        {
-            for (let j = i - 1; j >= 0; j--)
-            {
-                //First check if the strings are equal
-                if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0])
-                    &&
-                    compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1],
-                        allLineStrings[j][allLineStrings[j].length - 1])) //heads-heads and tails-tails
-                {
-                    merged = true;
-                    break;
-                }
-                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][0]))
-                { //heads-heads
-                    //Remove repeated element from the second list
-                    allLineStrings[j].splice(0, 1);
-                    allLineStrings[j] = allLineStrings[i].reverse().concat(allLineStrings[j]);
-                    merged = true;
-                    break;
-                }
-                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1],
-                    allLineStrings[j][allLineStrings[j].length - 1]))
-                { //tails-tails
-                    //Remove repeated element from the second list
-                    allLineStrings[j].splice(allLineStrings[j].length - 1, 1);
-                    allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i].reverse());
-                    merged = true;
-                    break;
-                }
-                else if (compareCoordinates(allLineStrings[i][allLineStrings[i].length - 1], allLineStrings[j][0]))
-                { //tails-heads
-                    //Remove repeated element from the second list
-                    allLineStrings[j].splice(0, 1);
-                    allLineStrings[j] = allLineStrings[i].concat(allLineStrings[j]);
-                    merged = true;
-                    break;
-                }
-                else if (compareCoordinates(allLineStrings[i][0], allLineStrings[j][allLineStrings[j].length - 1]))
-                { //heads-tails
-                    //Remove repeated element from the second list
-                    allLineStrings[j].splice(allLineStrings[j].length - 1, 1);
-                    allLineStrings[j] = allLineStrings[j].concat(allLineStrings[i]);
-                    merged = true;
-                    break;
-                }
-            }
-            if (merged)
-            {
-                //debugging only
-                //print("deleted: ", nodesSegList[i])
-                //print("merged: ", nodesSegList[j])
-                allLineStrings.splice(i, 1);
-                break;
-            }
-        }
-        //if (!merged) {
-        //    break;
-        //}
-    }
-    feature1.geometry.coordinates = feature2.geometry.coordinates = allLineStrings;
-}
-
-//#endregion GeoJson functions 
 
 /**
 * Triggered by a mouse click event in the user interface
@@ -1540,5 +1443,6 @@ if (!UIModel.init)
         'featuresmerged',
         'regioncreated',
         'regiondeleted',
+        'getimages',
     ]);
 }

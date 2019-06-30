@@ -1,9 +1,10 @@
 ﻿class UIController {
-    constructor(uiModel, uiView, geoImageManager, openLayersHandler) {
+    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager) {
         this.uiModel = uiModel;
         this.uiView = uiView;
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
+        this.sessionManager = sessionManager;
     }
 
     initialize() {
@@ -60,12 +61,15 @@
         this.uiModel.imgSliderMoving = false;
     }
 
-    onDrawEnd(eventKey) {
+    onDrawEnd(eventKey)
+    {
+        this.openLayersHandler.drawing = true;
         this.uiModel.createRegion(eventKey.feature, true);
 
         //Cancel drawing
         this.uiView.updateShapeToolView(null);
         this.openLayersHandler.SelectedDrawTool = null;
+        this.openLayersHandler.drawing = false;
     }
 
     onClickChangeShapeBtn(event) {
@@ -136,7 +140,7 @@
 
     onGeoImageCollectionChange() {
         this.uiView.updateGeoImgSlider();
-        this.uiModel.saveSession();
+        this.sessionManager.saveSession();
     }
 
     onFeatureCollectionChange(layer) {
@@ -188,11 +192,11 @@
     async onClickSaveSessionBtn() {
         let currentSessionName = this.uiModel.currentSessionName;
         let sessionName = this.uiView.askSessionName(currentSessionName);
-        await this.uiModel.saveSession(sessionName);
+        await this.sessionManager.saveSession(sessionName);
     }
 
     async onClickNewSessionBtn() {
-        await this.uiModel.newSession();
+        await this.sessionManager.newSession();
     }
 
     async onClickExecuteQueryBtn() {

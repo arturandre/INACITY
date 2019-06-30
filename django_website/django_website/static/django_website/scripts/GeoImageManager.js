@@ -64,7 +64,7 @@ class GeoImageManager extends Subject {
         //this._validImages = geoImageManagerSession._validImages;
         this._imageFilterId = geoImageManagerSession.imageFilterId;
         if (geoImageManagerSession.geoImageCollection) {
-            this.geoImageCollection.loadFromJSON(geoImageCollection);
+            this.geoImageCollection.loadFromJSON(geoImageManagerSession.geoImageCollection);
         }
     }
 
@@ -107,6 +107,11 @@ class GeoImageManager extends Subject {
         this._currentIndex = 0;
 
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
+    }
+
+    clear()
+    {
+        this._clearPresentation();
     }
 
 

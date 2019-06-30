@@ -15,9 +15,10 @@
  * @param {MapMiner[]} _mapMinersAndFeatures - The collection of Map Miners and its respective features as reported by the backend
  */
 class UIView {
-    constructor(uiModel, geoImageManager) {
+    constructor(uiModel, geoImageManager, openLayersHandler) {
         this.uiModel = uiModel;
         this.geoImageManager = geoImageManager;
+        this.openLayersHandler = openLayersHandler;
 
         this.onClickExecuteQueryBtn = null;
         this.onClickExecuteImageFilterBtn = null;
@@ -119,6 +120,29 @@ class UIView {
             $.map(this.uiModel.mapMinersAndFeatures, function(v, k) { return v.features; }),
             this.onClickChangeMapFeatureBtn
         );
+
+        Region.on('activechange'  , this._updateActiveRegion.bind(this));
+        UIModel.on('regioncreated', this._updateActiveRegion.bind(this));
+    }
+
+    _updateActiveRegion(region)
+    {
+        if (region.active)
+        {
+            for (let layerIdx in region.layers)
+            {
+                let layer = region.layers[layerIdx];
+                this.drawLayer(layer);
+            }
+        }
+        else
+        {
+            for (let layerIdx in region.layers)
+            {
+                let layer = region.layers[layerIdx];
+                this.removeLayer(layer);
+            }
+        }
     }
 
     setDefaults(defaults) {
@@ -365,23 +389,28 @@ class UIView {
 
     drawLayer(layer, forceRedraw) {
         if (!layer) { console.warn(gettext("Undefined layer!")); return; }
+        let featureCollectionOL = layer.featureCollectionOL;
         let featureCollection = layer.featureCollection;
 
         if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
-        let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
+        //let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
         for (let featureIdx in featureCollection.features) {
+            let featureOL = featureCollectionOL.features[featureIdx];
             let feature = featureCollection.features[featureIdx];
 
             if (!this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
 
             if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed) {
-                if (forceRedraw) {
-                    let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                    this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                    olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                    this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
+                if (forceRedraw)
+                {
+                    featureOL.changed();
+                    //let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                    //olFeature.changed();
+                    //this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+                    //olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                    //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                     this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
                 }
                 else {
@@ -389,11 +418,11 @@ class UIView {
                 }
             }
             else {
-                let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
+                //let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
+                //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
+                this.openLayersHandler.globalVectorSource.addFeature(featureOL);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
             }
-
         }
     }
 
@@ -411,8 +440,9 @@ class UIView {
             */
             if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
             else {
-                let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+                // let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                // this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+                this.openLayersHandler.globalVectorSource.removeFeature(feature);
                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
             }
         }
