@@ -9,15 +9,15 @@ We make available a docker-compose.yml file that can be used to instantiate a do
 ## Pre-requirements:
 
 - A working [docker](https://www.docker.com/) instalation.
-- Share ./INACITY_python/django_website folder with docker's user (assuming one is available) or at least making the folder writable to docker containers.
-- Create a copy of the file ./INACITY_python/**django_website**/**django_website**/settings_secret_template.py (**Notice that you should access the inner 'django_website' folder inside the outer 'django_website'**) at the same folder with the name *settings_secret.py* and fill the fields as requested.
+- Share ./INACITY/django_website folder with docker's user (assuming one is available) or at least making the folder writable to docker containers.
+- Create a copy of the file ./INACITY/**django_website**/**django_website**/settings_secret_template.py (**Notice that you should access the inner 'django_website' folder inside the outer 'django_website'**) at the same folder with the name *settings_secret.py* and fill the fields as requested.
 
 You can get a signing key for Google Street View services [here](https://developers.google.com/maps/documentation/streetview/get-api-key).
 
 ## Steps to create and run the containers
 
 
-1. (**optional**) Edit docker-compose.yml setting up exposed/published ports and/or database name/credentials. Notice that if database settings  are changed then it'll be necessary to make reflect those changes at the file ./INACITY_python/**django_website**/**django_website**/settings.py as well (look for the variable *DATABASES*).
+1. (**optional**) Edit docker-compose.yml setting up exposed/published ports and/or database name/credentials. Notice that if database settings  are changed then it'll be necessary to make reflect those changes at the file ./INACITY/**django_website**/**django_website**/settings.py as well (look for the variable *DATABASES*).
 2. Go to the folder ./INACITY/django_website
 3. Run 'docker-compose up'
 
