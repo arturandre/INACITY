@@ -464,7 +464,7 @@ class UIModel extends Subject
         super();
         this.setTarget(regionsDivId);
 
-        this._loading = false;
+        
         //Used to avoid loops while change image displayed index by the slider at home template
         this.imgSliderMoving = false;
 
@@ -899,38 +899,19 @@ class UIModel extends Subject
     {
         try
         {
-            this._loading = true;
-
-            const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
             if (typeof session === "string") session = JSON.parse(session);
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
-            //this._currentSessionName = uiModelSession.sessionName ? uiModelSession.sessionName : this._currentSessionName;
             for (let regionId in uiModelSession.regions)
             {
-                //  let geoJsonFeatures = olGeoJson.readFeatures(
-                //      session.openLayersFeatures[regionId],{featureProjection: featureCollection.crs.properties.name});
-                // let geoJsonFeatures = olGeoJson.readFeatures(uiModelSession.openLayersFeatures[regionId]);
-                // for (const feature in geoJsonFeatures)
-                // {
-                //     let style = geoJsonFeatures[feature].getProperties().style;
-                //     if (style)
-                //     {
-                //         geoJsonFeatures[feature].setStyle(OpenLayersHandler.Styles[style]);
-                //     }
-                // }
-                // this._openLayersHandler.globalVectorSource.addFeatures(geoJsonFeatures);
                 let sessionRegion = uiModelSession.regions[regionId];
                 let region = this.createRegion(
-                    //olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
                     GeoJSONHelper.olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
                     sessionRegion.active,
                     sessionRegion.name,
                     sessionRegion.id);
                 region.loadFromJSON(uiModelSession.regions[regionId]);
-                //this._geoImageManager.loadFromJSON(uiModelSession.geoImageManager);
-                //this.regions[regionId] = Region.createFromJSON(uiModelSession.regions[regionId]);
             }
             if (uiModelSession.geoImageManager)
             {
@@ -938,7 +919,7 @@ class UIModel extends Subject
             }
         } finally
         {
-            this._loading = false;
+            
         }
 
 

@@ -345,17 +345,16 @@ def deletesession(request):
     """
     if request.user.is_authenticated:
         jsonData = request.data
-        sessionId = jsonData['sessionId']
+        sessionId = jsonData.get('sessionId')
         try:
             session = Session.objects.get(id=sessionId)
             if not isUserSession(request.user, session):
                 return forbiddenUserSessionHttpResponse()
-            write_to_log(f"request.session {request.session}")
             write_to_log(f"request.session['sessionId']: {request.session.get('sessionId')}")
             write_to_log(f"session.id: {session.id}")
-            if request.session['sessionId'] == str(session.id):
+            if request.session.get('sessionId') == str(session.id):
                 del request.session['sessionId']
-                del request.session['uiModelJSON']
+                del request.session['sessionData']
             session.delete()
         except Session.DoesNotExist:
             HttpResponse(gettext("This session could not be found."), status=404)
