@@ -205,12 +205,12 @@ def loadsession(request):
         try:
             sessionId = request.data.get('sessionId')
             if sessionId is None:
-                uiModelJSON = request.session.get('uiModelJSON')
-                if uiModelJSON:
-                    return JsonResponse(uiModelJSON)
-                    write_to_log("loadsession: uiModelJSON loaded!")
+                sessionData = request.session.get('sessionData')
+                if sessionData:
+                    return JsonResponse(sessionData)
+                    write_to_log("loadsession: sessionData loaded!")
                 else:
-                    write_to_log("loadsession: no uiModelJSON")
+                    write_to_log("loadsession: no sessionData")
                     return HttpResponse(status=200)
             session = Session.objects.get(id = sessionId)
             if not isUserSession(request.user, session):
@@ -222,7 +222,7 @@ def loadsession(request):
             request.session['sessionId'] = sessionId
             
             request.session['sessionData'] = ast.literal_eval(session.uimodelJSON)
-            #print(request.session['uiModelJSON'])
+            #print(request.session['sessionData'])
             return JsonResponse(ast.literal_eval(session.uimodelJSON))
         except Session.DoesNotExist:
             sessionData = request.session.get('sessionData')
