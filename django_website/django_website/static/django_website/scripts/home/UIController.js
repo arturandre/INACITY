@@ -140,7 +140,7 @@
 
     onGeoImageCollectionChange() {
         this.uiView.updateGeoImgSlider();
-        this.sessionManager.saveSession();
+        //this.sessionManager.saveSession();
     }
 
     onFeatureCollectionChange(layer) {

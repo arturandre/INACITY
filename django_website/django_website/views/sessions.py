@@ -217,9 +217,10 @@ def loadsession(request):
                 if request.session.get('sessionId') is not None:
                     del request.session['sessionId']
                 return forbiddenUserSessionHttpResponse()
-            write_to_log(f"loadsession request.session['sessionId']: {request.session['sessionId']}")
+            write_to_log(f"loadsession request.session['sessionId']: {request.session.get('sessionId')}")
             write_to_log(f"loadsession sessionId: {sessionId}")
             request.session['sessionId'] = sessionId
+            write_to_log(f"{session.uimodelJSON}")
             
             request.session['sessionData'] = ast.literal_eval(session.uimodelJSON)
             #print(request.session['sessionData'])
