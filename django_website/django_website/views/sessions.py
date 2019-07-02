@@ -207,7 +207,7 @@ def loadsession(request):
             if sessionId is None:
                 sessionData = request.session.get('sessionData')
                 if sessionData:
-                    return JsonResponse(sessionData)
+                    return JsonResponse(sessionData, safe=False)
                     write_to_log("loadsession: sessionData loaded!")
                 else:
                     write_to_log("loadsession: no sessionData")
@@ -222,13 +222,15 @@ def loadsession(request):
             request.session['sessionId'] = sessionId
             write_to_log(f"{session.uimodelJSON}")
             
-            request.session['sessionData'] = ast.literal_eval(session.uimodelJSON)
+            #request.session['sessionData'] = ast.literal_eval(session.uimodelJSON)
+            request.session['sessionData'] = session.uimodelJSON
             #print(request.session['sessionData'])
-            return JsonResponse(ast.literal_eval(session.uimodelJSON))
+            #return JsonResponse(ast.literal_eval(session.uimodelJSON))
+            return JsonResponse(session.uimodelJSON, safe=False)
         except Session.DoesNotExist:
             sessionData = request.session.get('sessionData')
             if sessionData:
-                return JsonResponse(sessionData)
+                return JsonResponse(sessionData,safe=False)
             else:
                 return HttpResponse(status=200)
         pass
