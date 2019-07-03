@@ -116,6 +116,8 @@ class OpenLayersHandler extends Subject {
 
         this._drawInteraction = null;
         this._SelectedDrawTool = null;
+        //Is true during the event onDrawEnd
+        this.drawing = false;
 
         this._heatmapVectorLayer = new ol.layer.Heatmap({
             radius: 20,
@@ -128,8 +130,39 @@ class OpenLayersHandler extends Subject {
 
         GeoImageManager.on('geoimagecollectionchange', this._updateHeatmapLayer.bind(this));
         GeoImageManager.on('imagechange', this._updateImagePinPoint.bind(this));
+        Region.on('activechange', this._updateActiveStyles.bind(this));
+        UIModel.on('regioncreated', this._regionCreated.bind(this));
+        UIModel.on('regiondeleted', this._regionDeleted.bind(this));
 
         return instance;
+    }
+
+    _regionCreated(region)
+    {
+        if (this.drawing) return;
+        if (this.globalVectorSource.getFeatureById(region.boundaries.getId())) return;
+        this.globalVectorSource.addFeature(region.boundaries);
+    }
+
+    _regionDeleted(region)
+    {
+        if (!this.globalVectorSource.getFeatureById(region.boundaries.getId())) return;
+        this.globalVectorSource.removeFeature(region.boundaries);
+    }
+
+    _updateActiveStyles(region)
+    {
+        let feature = this.globalVectorSource.getFeatureById(region.id);
+        let style = region.active ? 'selectedRegionStyle' : 'transparentStyle';
+        feature.setProperties({ 'style': style });
+        feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
+    }
+
+    clear()
+    {
+        this._openLayersHandler.globalVectorSource.clear();
+        this._imagePinPoint = null;
+        this._imagePinPointArrow = null;
     }
 
     getClosestAddress(addresses, lonLatRef)
@@ -147,6 +180,18 @@ class OpenLayersHandler extends Subject {
     centerMap(lonLat)
     {
         this.view.setCenter(ol.proj.fromLonLat(lonLat));
+    }
+
+    createRegionBoundaries(regionId, active, boundaries)
+    {
+        //const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
+        //olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
+        //newRegion.boundaries = olGeoJson.writeFeature(feature);
+        feature.setId(regionId);
+        feature.setProperties({ 'type': 'region' });
+        let style = active ? 'selectedRegionStyle' : 'transparentStyle';
+        feature.setProperties({ 'style': style });
+        feature.setStyle(OpenLayersHandler.Styles[feature.getProperties().style]);
     }
 
     _updateImagePinPoint(geoImage)
@@ -296,42 +341,6 @@ class OpenLayersHandler extends Subject {
     }
 
     get heatmapVectorLayer() { return this._heatmapVectorLayer; }
-
-    // set heatmapVectorLayer(source)
-    // {
-
-    //     // this._heatmapVectorLayer = new ol.layer.Heatmap({
-    //     //     source: new ol.source.Vector(
-    //     //     {
-    //     //     url: 'https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml',
-    //     //     format: new ol.format.KML({
-    //     //     extractStyles: false
-    //     //     })
-    //     //     }),
-    //     //     blur: 10,
-    //     //     radius: 10
-    //     //     });
-    //     // this._heatmapVectorLayer = new OpenLayers.Layer.Vector.HeatMap("HeatMap", {
-    //     //     rendererOptions: {
-    //     //         // a radius of 20px looks good at this zoom-level
-    //     //         pointSize: 20 ,
-    //     //     }
-    //     // });
-
-    //     // // create a few random points
-    //     // var points = [];
-    //     // for (var i = 0; i < 200 ; i++) {
-    //     //     var point = randomPoint();
-    //     //     var pointFeature = new OpenLayers.Feature.Vector(point);
-    //     //     pointFeature.weight =  (1+Math.ceil(Math.random()*9));
-    //     //     points.push(pointFeature);
-    //     // }
-    //     // vectorLayer.addFeatures(points);
-
-    //     // OpenLayersHandler.notify('heatmapvectorlayerchanged', this.heatmapVectorLayer); 
-    // }
-
-
 
     /**
      * Set the map tiles provider for displaying

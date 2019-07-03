@@ -32,6 +32,7 @@ var openLayersHandler = null;
 * @see {@link module:UIModel~UIModel}
 */
 var uiModel = null;
+var sessionManager = null;
 
 /**
 * List of available map miners as informed by the server (e.g. {osm: {features: ..., name: OpenStreetMap}})
@@ -170,10 +171,18 @@ async function initializeUI() {
 
     uiView = new UIView(
         uiModel,
-        geoImageManager);
+        geoImageManager,
+        openLayersHandler);
+    
+    sessionManager = new SessionManager(
+        {
+            uiModelJSON : uiModel,
+            geoImageManagerJSON : geoImageManager
+        }
+    );
+    sessionManager.loadSession();
 
-
-    uiController = new UIController(uiModel, uiView, geoImageManager, openLayersHandler);
+    uiController = new UIController(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager);
 
     uiController.initialize();
     uiView.initialize();
@@ -186,7 +195,6 @@ async function initializeUI() {
     });
 
     
-    uiModel.loadSession();
 }
 
 

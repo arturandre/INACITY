@@ -20,7 +20,7 @@ class GeoImageCollection {
     loadGeoImagesFromFeatureCollection(newFeatureCollection)
     {
         this._currentGeoImagesCollection = [];
-        if (newFeatureCollection && newFeatureCollection.features && newFeatureCollection.features.length > 0) {
+        if (getPropPath(newFeatureCollection, ['features', 'length']) > 0) {
             for (let featureIndex in newFeatureCollection.features) {
                 let feature = newFeatureCollection.features[featureIndex];
                 let geoImages = feature.properties.geoImages;

@@ -49,8 +49,6 @@ class GreeneryFilter(ImageFilter):
             
             write_to_log(f'Offending url: {geoImage.data[:300]}')
             
-        #print(json.dumps(geoImage.processedDataList, cls=CustomJSONEncoder))
-
     @classmethod
     def processImageFromFeatureCollection(cls, featureCollection: FeatureCollection) -> FeatureCollection:
         """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
@@ -62,62 +60,46 @@ class GreeneryFilter(ImageFilter):
                     for lineIndex, lineString in enumerate(polygon):
                         for coordinateIndex in range(len(lineString)):
                             geoImage = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
+                            if not isinstance(geoImage, dict): continue
                             try:
                                 geoImage = GeoImage.fromJSON(geoImage)
                             except JSONDecodeError:
                                 print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                             cls._setOutput(geoImage, feature['properties']['geoImages'][polygonIndex][lineIndex], coordinateIndex)
-                            #ndarrayImage = img_as_float(imageio.imread(geoImage.data))
-                            #mask = mt_li_espectral(ndarrayImage)
-                            #mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
-                            #geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
-                            #feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] = geoImage
             elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
                 for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
                     for coordinateIndex in range(len(lineString)):
-                        #geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
                         try:
                             geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                            if not isinstance(geoImage, dict): continue
                         except Exception as exception:
                             raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
 
                         try:
                             geoImage = GeoImage.fromJSON(geoImage)
                         except JSONDecodeError:
-                            print(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                            write_to_log(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                        except Exception:
+                            raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
                         cls._setOutput(geoImage, feature['properties']['geoImages'][lineIndex], coordinateIndex)
-                        #ndarrayImage = img_as_float(imageio.imread(geoImage.data))
-                        #mask = mt_li_espectral(ndarrayImage)
-                        #mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
-                        #geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
-                        #feature['properties']['geoImages'][lineIndex][coordinateIndex] = geoImage.__dict__
             elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
                 for coordinateIndex in range(len(feature['geometry']['coordinates'])):
                     geoImage = feature['properties']['geoImages'][coordinateIndex]
+                    if not isinstance(geoImage, dict): continue
                     try:
                         geoImage = GeoImage.fromJSON(geoImage)
                     except JSONDecodeError:
                         print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                     cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
-                    #ndarrayImage = img_as_float(imageio.imread(geoImage.data))
-                    #mask = mt_li_espectral(ndarrayImage)
-                    #mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
-                    #geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
-                    #feature['properties']['geoImages'][coordinateIndex] = geoImage
             elif feature['geometry']['type'] == 'Point':
                 coordinateIndex = 0
                 geoImage = feature['properties']['geoImages'][coordinateIndex]
+                if not isinstance(geoImage, dict): continue
                 try:
                     geoImage = GeoImage.fromJSON(geoImage)
                 except JSONDecodeError:
                     print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                 cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
-                #ndarrayImage = img_as_float(imageio.imread(geoImage.data))
-                #mask = mt_li_espectral(ndarrayImage)
-                #mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
-                ##geoImage.processedData[GreeneryFilter.filterId] = mask
-                #geoImage.setProcessedData(cls.filterId, 'ndarray', mask)
-                #feature['properties']['geoImages'][coordinateIndex] = geoImage
         return featureCollection
 
 

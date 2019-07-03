@@ -132,25 +132,24 @@ def savesession(request):
     HttpResponse sessionId if it's present, 204 if not and
     400 (bad request) if no uiModelJSON is sent in payload.
     """
-    uiModelJSON = request.data.get('uiModelJSON')
     
-    if uiModelJSON is None:
+    if request.data is None:
         return HttpResponse('No content to be saved!', status = 400)
-    sessionName = (uiModelJSON.get('sessionName') or request.session.get('sessionName') or request.session.get('sessionId'))
+    sessionName = (request.data.get('sessionName') or request.session.get('sessionName') or request.session.get('sessionId'))
     write_to_log(f"request.session[sessionId]: {request.session.get('sessionId')}")
     write_to_log(f'sessionName: {str(sessionName)}')
     if request.user.is_authenticated:
         sessionId = request.session.get('sessionId')
-        write_to_log('uiModelJSON-sessionName:' + str(uiModelJSON.get('sessionName')))
+        write_to_log('uiModelJSON-sessionName:' + str(request.data.get('sessionName')))
         write_to_log(f'sessionId:{sessionId}')
         if sessionId is None:
             if sessionName is None:
-                session = Session.objects.create(user = request.user, sessionName = '', uimodelJSON = request.data.get('uiModelJSON'))
+                session = Session.objects.create(user = request.user, sessionName = '', uimodelJSON = json.dumps(request.data))
                 session.save()
                 session.sessionName = session.id
                 session.save()
             else:
-                session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
+                session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = json.dumps(request.data))
                 session.save()
 
         else:
@@ -162,16 +161,19 @@ def savesession(request):
                     return forbiddenUserSessionHttpResponse()
                 if (sessionName is not None) and (len(sessionName) > 0):
                     session.sessionName = sessionName
-                session.uimodelJSON = request.data['uiModelJSON']
+                session.uimodelJSON = json.dumps(request.data)
                 session.save()
             except Session.DoesNotExist:
-                session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = request.data.get('uiModelJSON'))
+                session = Session.objects.create(user = request.user, sessionName = sessionName, uimodelJSON = json.dumps(request.data))
                 session.save()
         write_to_log("savesession")
         write_to_log(f"request.session['sessionId']: {request.session.get('sessionId')}")
         request.session['sessionId'] = session.id
         write_to_log(f"request.session['sessionId']: {request.session.get('sessionId')}")
-    request.session['uiModelJSON'] = request.data['uiModelJSON']
+    else:
+        if request.session.get('sessionId') is None:
+            request.session['sessionId'] = str(uuid4())
+    request.session['sessionData'] = request.data
     if request.session.get('sessionId') is not None:
         return HttpResponse(request.session['sessionId'],status=200)
     else:
@@ -203,36 +205,39 @@ def loadsession(request):
         try:
             sessionId = request.data.get('sessionId')
             if sessionId is None:
-                uiModelJSON = request.session.get('uiModelJSON')
-                if uiModelJSON:
-                    return JsonResponse(uiModelJSON)
-                    write_to_log("loadsession: uiModelJSON loaded!")
+                sessionData = request.session.get('sessionData')
+                if sessionData:
+                    return JsonResponse(sessionData, safe=False)
+                    write_to_log("loadsession: sessionData loaded!")
                 else:
-                    write_to_log("loadsession: no uiModelJSON")
+                    write_to_log("loadsession: no sessionData")
                     return HttpResponse(status=200)
             session = Session.objects.get(id = sessionId)
             if not isUserSession(request.user, session):
                 if request.session.get('sessionId') is not None:
                     del request.session['sessionId']
                 return forbiddenUserSessionHttpResponse()
-            write_to_log(f"loadsession request.session['sessionId']: {request.session['sessionId']}")
+            write_to_log(f"loadsession request.session['sessionId']: {request.session.get('sessionId')}")
             write_to_log(f"loadsession sessionId: {sessionId}")
             request.session['sessionId'] = sessionId
+            write_to_log(f"{session.uimodelJSON}")
             
-            request.session['uiModelJSON'] = ast.literal_eval(session.uimodelJSON)
-            #print(request.session['uiModelJSON'])
-            return JsonResponse(ast.literal_eval(session.uimodelJSON))
+            #request.session['sessionData'] = ast.literal_eval(session.uimodelJSON)
+            request.session['sessionData'] = session.uimodelJSON
+            #print(request.session['sessionData'])
+            #return JsonResponse(ast.literal_eval(session.uimodelJSON))
+            return JsonResponse(session.uimodelJSON, safe=False)
         except Session.DoesNotExist:
-            uiModelJSON = request.session.get('uiModelJSON')
-            if uiModelJSON:
-                return JsonResponse(uiModelJSON)
+            sessionData = request.session.get('sessionData')
+            if sessionData:
+                return JsonResponse(sessionData,safe=False)
             else:
                 return HttpResponse(status=200)
         pass
     else:
-        uiModelJSON = request.session.get('uiModelJSON')
-        if uiModelJSON:
-            return JsonResponse(uiModelJSON)
+        sessionData = request.session.get('sessionData')
+        if sessionData:
+            return JsonResponse(sessionData)
         else:
             return HttpResponse(status=200)
 
@@ -343,17 +348,16 @@ def deletesession(request):
     """
     if request.user.is_authenticated:
         jsonData = request.data
-        sessionId = jsonData['sessionId']
+        sessionId = jsonData.get('sessionId')
         try:
             session = Session.objects.get(id=sessionId)
             if not isUserSession(request.user, session):
                 return forbiddenUserSessionHttpResponse()
-            write_to_log(f"request.session {request.session}")
             write_to_log(f"request.session['sessionId']: {request.session.get('sessionId')}")
             write_to_log(f"session.id: {session.id}")
-            if request.session['sessionId'] == str(session.id):
+            if request.session.get('sessionId') == str(session.id):
                 del request.session['sessionId']
-                del request.session['uiModelJSON']
+                del request.session['sessionData']
             session.delete()
         except Session.DoesNotExist:
             HttpResponse(gettext("This session could not be found."), status=404)

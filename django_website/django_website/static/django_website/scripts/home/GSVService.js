@@ -1,10 +1,12 @@
-class GSVService {
+class GSVService
+{
     /**
      * Auxiliar function to print errors caught.
      * @param {Error} err - {message: ..., stack: ...}
      * @param {string} locationDescription - String to indicate where the exception was caught
      */
-    defaultError(err, locationDescription) {
+    defaultError(err, locationDescription)
+    {
         console.error(`Error caught at ${locationDescription}.`);
         console.error(err);
         throw err;
@@ -18,18 +20,23 @@ class GSVService {
      * @param {float} lonLatCoordinate.lat - Latitude in degrees
      * @returns {Promise} - StreetViewPanoramaData
      */
-    static getPanoramaByLocation(lonLatCoordinate) {
-        return new Promise(function (resolve, reject) {
+    static getPanoramaByLocation(lonLatCoordinate)
+    {
+        return new Promise(function (resolve, reject)
+        {
             let lon = lonLatCoordinate[0];
             let lat = lonLatCoordinate[1];
             let latlng = new google.maps.LatLng(lat, lon);
-            GSVService.streetViewService.getPanoramaByLocation(latlng, GSVService.maxRadius, function (data, status) {
+            GSVService.streetViewService.getPanoramaByLocation(latlng, GSVService.maxRadius, function (data, status)
+            {
                 //resolve({ data: data, status: status });
-                if (status === "OK") {
+                if (status === "OK")
+                {
                     let parsedData = StreetViewPanoramaData.fromStreetViewServiceData(data);
                     resolve(parsedData);
                 }
-                else {
+                else
+                {
                     reject(status);
                 }
 
@@ -50,19 +57,23 @@ class GSVService {
      * @returns {null} The input feature is changed in place receiving a new property (geoImages).
      */
 
-    static async setPanoramaForFeatureCollection(featureCollection) {
+    static async setPanoramaForFeatureCollection(featureCollection)
+    {
         const promises = featureCollection.features.map(GSVService.setPanoramaForFeature);
         await Promise.all(promises);
     }
 
     //Works in-place
-    static async setPanoramaForFeature(feature) {
+    static async setPanoramaForFeature(feature)
+    {
         feature.properties.geoImages = await GSVService.cloneTree(feature.geometry.coordinates,
             /*Not leaf function*/ undefined,
-            /*Leaf function*/ async function (node) {
+            /*Leaf function*/ async function (node)
+            {
                 return await GSVService.getPanoramaByLocation(node).then(
                     async (streetViewPanoramaData) => await streetViewPanoramaData.toGeoImage(),
-                    function(err) {
+                    function (err)
+                    {
                         console.error(err);
                         return "Error";
                     }
@@ -73,41 +84,50 @@ class GSVService {
 
     //Pre-order tree traversal
     //static async cloneTree(root, notLeafFunction, LeafFunction, parent) {
-    static async cloneTree(root, notLeafFunction, LeafFunction) {
+    static async cloneTree(root, notLeafFunction, LeafFunction)
+    {
         if (!root) return;
         let newRoot = [];
         let index = 0;
         //Not leaf
-        if (root[0][0] !== undefined) {
-            if (notLeafFunction) {
+        if (root[0][0] !== undefined)
+        {
+            if (notLeafFunction)
+            {
                 newRoot = await notLeafFunction(root);
             }
             let nextNode = root[index];
-            do {
+            do
+            {
                 //newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction, root));
                 newRoot.push(await GSVService.cloneTree(nextNode, notLeafFunction, LeafFunction));
                 index += 1;
                 nextNode = root[index];
-                
+
             }
             while (nextNode);
         }
         //Leaf
-        else {
-            if (LeafFunction) {
-                try {
+        else
+        {
+            if (LeafFunction)
+            {
+                try
+                {
                     newRoot = await LeafFunction(root);
-                } catch (error) {
+                } catch (error)
+                {
                     newRoot = "Error";
                     console.error(error);
                 }
-                
+
             }
         }
         return newRoot;
     }
 
-    static async imageURLBuilderForGeoImage(geoImage, size, key) {
+    static async imageURLBuilderForGeoImage(geoImage, size, key)
+    {
         let _size = size || [640, 640];
         let _key = key || GSVService.defaultKey;
         let gsv_unsigned_url = GSVService.imageURLBuilder(
@@ -116,13 +136,13 @@ class GSVService {
             geoImage.heading,
             geoImage.pitch,
             _key);
-        
+
         if (!GSVService.SignURLs)
         {
             return gsv_unsigned_url;
         }
 
-        
+
         return await $.ajax("/sign_gsv_url/",
             {
                 method: "POST",
@@ -132,25 +152,30 @@ class GSVService {
                 }),
                 contentType: "application/json; charset=utf-8",
                 dataType: 'text',
-                success: function (data, textStatus, XHR) {
+                success: function (data, textStatus, XHR)
+                {
                     return data;
                 },
-                error: function (jqXHR, textStatus, errorThrown) {
+                error: function (jqXHR, textStatus, errorThrown)
+                {
                     defaultAjaxErrorHandler('imageURLBuilderForGeoImage', textStatus, errorThrown);
                 }
             });
     }
 
-    static imageURLBuilder(size, panoid, heading, pitch, key) {
+    static imageURLBuilder(size, panoid, heading, pitch, key)
+    {
         return `${GSVService.baseurl}${GSVService.queryStringBuilderPanorama(size, panoid, heading, pitch, key)}`;
     }
 
-    static queryStringBuilderPanorama(size, panoid, heading, pitch, key) {
+    static queryStringBuilderPanorama(size, panoid, heading, pitch, key)
+    {
         return `?size=${size[0]}x${size[1]}&pano=${panoid}&heading=${heading}&pitch=${pitch}&key=${key}`;
     }
 }
 
-if (!GSVService.init) {
+if (!GSVService.init)
+{
     GSVService.init = true;
     GSVService.defaultKey = 'AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc';
     GSVService.baseurl = "https://maps.googleapis.com/maps/api/streetview";

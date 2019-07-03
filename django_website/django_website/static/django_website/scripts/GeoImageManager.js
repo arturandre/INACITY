@@ -45,10 +45,10 @@ class GeoImageManager extends Subject {
     saveToJSON() {
         let ret =
         {
-            _currentLayer: this._currentLayer,
-            _currentIndex: this._currentIndex,
+            currentLayer: this._currentLayer,
+            currentIndex: this._currentIndex,
             //_validImages: this._validImages,
-            _imageFilterId: this._imageFilterId,
+            imageFilterId: this._imageFilterId,
             geoImageCollection: this.geoImageCollection.saveToJSON()
         };
 
@@ -59,12 +59,12 @@ class GeoImageManager extends Subject {
 
     loadFromJSON(geoImageManagerSession) {
         this.updateDisplayingLayers();
-        this._currentLayer = geoImageManagerSession._currentLayer;
-        this._currentIndex = geoImageManagerSession._currentIndex;
+        this._currentLayer = geoImageManagerSession.currentLayer;
+        this._currentIndex = geoImageManagerSession.currentIndex;
         //this._validImages = geoImageManagerSession._validImages;
-        this._imageFilterId = geoImageManagerSession._imageFilterId;
+        this._imageFilterId = geoImageManagerSession.imageFilterId;
         if (geoImageManagerSession.geoImageCollection) {
-            this.geoImageCollection.loadFromJSON(geoImageCollection);
+            this.geoImageCollection.loadFromJSON(geoImageManagerSession.geoImageCollection);
         }
     }
 
@@ -107,6 +107,11 @@ class GeoImageManager extends Subject {
         this._currentIndex = 0;
 
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
+    }
+
+    clear()
+    {
+        this._clearPresentation();
     }
 
 
