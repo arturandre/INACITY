@@ -145,6 +145,7 @@ class SessionManager
 
     clear()
     {
+        this._currentSessionName = null;
         for (let key in this._sessionObjects)
         {
             this._sessionObjects[key].clear();
