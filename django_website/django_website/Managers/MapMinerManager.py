@@ -1,7 +1,7 @@
 from geojson import Polygon, FeatureCollection
 from typing import List
 
-from django_website.Primitives import *
+#from django_website.Primitives import *
 from django_website.MapMiners import *
 
 class MapMinerManager(object):

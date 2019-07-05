@@ -60,7 +60,21 @@ from django.core.files.storage import FileSystemStorage
 
 ##############GLOBALS####################
 def __merge_two_dicts(x: dict, y: dict):
-    """Given two dicts, merge them into a new dict as a shallow copy."""
+    """
+    Given two dicts, merge them into a new dict as a shallow copy.
+    Notice that the dicts to be merged can't share any key.
+
+    Parameters
+    ----------
+    x : dict
+        A simple dict object
+    y : dict
+        A simple dict object
+
+    Returns
+    -------
+    dict object with keys from both initial dict objects
+    """
     z = x.copy()
     z.update(y)
     return z
@@ -298,7 +312,6 @@ def register(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            #@TODO: Redirect to user sessions page
             return redirect('home')
     else:
         form = UserCreationForm()
@@ -351,7 +364,7 @@ def getavailablemapminers(request):
           'features': [
               {
                   'id': 'streets',
-                  'name': 'Streets'
+                  'name': 'Streets',
               }]
           }]
     """
@@ -543,7 +556,11 @@ def getimagesforfeaturecollection(request):
 @api_view(['POST'])
 def processimagesfromfeaturecollection(request):
     """
-    End-point to process images previously collected
+    End-point to process images previously collected.
+    Notice that the regionId and layerId passed
+    in the request and then returned are used
+    as a syncronizing mechanism allowing
+    async calls from the front-end.
 
     Parameters
     ----------
@@ -556,7 +573,6 @@ def processimagesfromfeaturecollection(request):
             explained in the function 
             'getimagesforfeaturecollection'.
         
-        
         E.g.:
 
         {
@@ -567,10 +583,16 @@ def processimagesfromfeaturecollection(request):
     Returns
     -------
     JsonResponse: Dict with the keys:
-    - 'featureCollection': <GeoJSON> whose GeoImages now
-        will contain a new entry (the filter id)
-        at the property 'processedDataList' containing the
-        result of the processed GeoImage.
+    - 'featureCollection': A <GeoJSON> in which the
+    properties field of each feature will contain a
+    geoImage collection (structured just like the
+    feature coordinates array) and each geoImage
+    will contain a new entry named as the filterId
+    under the property called 'processedDataList'.
+    
+    GeoImages now will contain a new entry (the
+    filter id) at the property 'processedDataList'
+    containing the result of the processed GeoImage.
     - regionId: (str)
         The region Id of the region that contains the featureCollection 
     - layerId (str)
@@ -587,45 +609,45 @@ def processimagesfromfeaturecollection(request):
     return JsonResponse(ret, CustomJSONEncoder)
 
 ###### OLD TESTING CALLS #################################
-@api_view(['POST'])
-def getstreets(request):
-    geojsondata = request.data
-    geojsonObject = geojson.loads(geojsondata['geojsondata'])
+# @api_view(['POST'])
+# def getstreets(request):
+#     geojsondata = request.data
+#     geojsonObject = geojson.loads(geojsondata['geojsondata'])
 
-    streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', geojsonObject)
+#     streetsGeoJson = mapMinerManager.requestQueryToMapMiner('OSMMiner', 'Streets', geojsonObject)
         
-    return JsonResponse(geojson.dumps(streetsGeoJson), safe=False)
+#     return JsonResponse(geojson.dumps(streetsGeoJson), safe=False)
 
-@api_view(['GET', 'POST'])
-def integrationTest(request):
-    write_to_log('integrationTest')
-    htmlfile = 'integrationTest.html'
-    local_vars = {'sample_key': 'sample_data'}
-    if request.method == 'GET':
-        return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-    elif request.method == 'POST':
-        jsondata = request.data
-        location = jsondata['location']
-        imageProviderManager = ImageProviderManager()
-        cLoc = location
-        d = imageProviderManager.ImageMiners['Google Street View'].getImageFromLocation(cLoc)
+# @api_view(['GET', 'POST'])
+# def integrationTest(request):
+#     write_to_log('integrationTest')
+#     htmlfile = 'integrationTest.html'
+#     local_vars = {'sample_key': 'sample_data'}
+#     if request.method == 'GET':
+#         return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+#     elif request.method == 'POST':
+#         jsondata = request.data
+#         location = jsondata['location']
+#         imageProviderManager = ImageProviderManager()
+#         cLoc = location
+#         d = imageProviderManager.ImageMiners['Google Street View'].getImageFromLocation(cLoc)
 
-        imageFilterManager = ImageFilterManager()
-        e = imageFilterManager.ImageFilters['Greenery'].processImage(d)
-        png = e.getPNG()
-        return HttpResponse(png, content_type='image/png')
+#         imageFilterManager = ImageFilterManager()
+#         e = imageFilterManager.ImageFilters['Greenery'].processImage(d)
+#         png = e.getPNG()
+#         return HttpResponse(png, content_type='image/png')
 
-def simple_upload(request):
-    local_vars = {}
-    htmlfile = 'simple_upload.html'
-    if request.method == 'POST' and 'myfile' in request.FILES:
-        myfile = request.FILES['myfile']
-        fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
-        uploaded_file_url = fs.url(filename)
-        local_vars = {'uploaded_file_url': uploaded_file_url}
-    return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+# def simple_upload(request):
+#     local_vars = {}
+#     htmlfile = 'simple_upload.html'
+#     if request.method == 'POST' and 'myfile' in request.FILES:
+#         myfile = request.FILES['myfile']
+#         fs = FileSystemStorage()
+#         filename = fs.save(myfile.name, myfile)
+#         uploaded_file_url = fs.url(filename)
+#         local_vars = {'uploaded_file_url': uploaded_file_url}
+#     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
-def hello(request):
-    return HttpResponse("Hello world")
+# def hello(request):
+#     return HttpResponse("Hello world")
     

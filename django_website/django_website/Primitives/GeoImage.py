@@ -15,10 +15,31 @@ import base64
 from skimage import img_as_float, img_as_ubyte
 
 class SimpleDTO(object):
+    """Base class used to convert objects
+    to JSON notation facilitating the
+    communication between front
+    and back ends.
+
+    """
     def __init__(self):
         pass
 
     def toJSON(self, compact=True):
+        """
+        Rewrites the instance as a JSON object
+
+        Parameters
+        ----------
+        compact=True : boolean
+            If true line-breaks and whitespaces
+            will not be included.
+        
+
+        Returns
+        -------
+            str representation of the object
+
+        """
         ret = None
         if compact:
             ret = json.dumps(self, default=lambda o: o.__dict__, 
@@ -30,10 +51,44 @@ class SimpleDTO(object):
         return ret
 
 class CustomJSONEncoder(JSONEncoder):
+    """
+    Convenience class used to return JSON
+    responses in the views.
+
+    """
     def default(self, o):
         return o.__dict__
 
 class ProcessedImageData():
+    """
+    Represents the result object derived from 
+    some subclass of :py:class:`django_website.MapMiners.MapMiner.MapMiner`.
+
+    fields:
+        - id=None : str
+            Representation of the geoImage used
+            to referentiate it at the backend.
+        - imageData=None : str
+            A base64 encoded sting or an url
+            to the actual image. Depends on
+            the property imageDataType.
+        - imageDataType=None : str
+            data:image/jpeg;base64 if the imageData is base64 encoded
+            URL if the imageData is a url to the actual image.
+        - filterId=None: str
+            The identification (filterId property) of the
+            :py:class:`django_website.ImageFilters.ImageFilter.ImageFilter`
+            subclass used to generate this ProcessedImageData.
+        - density=-1 : float
+            This property can be used as a quantitative metric
+            about the processed image (e.g. ammount of greenery
+            in the processed image).
+        - isPresent=None : boolean
+            This property can be used as a flag indicating
+            the presence of some feature found in the 
+            processed image.
+
+    """
     def __init__(self):
         self.id = None
         self.imageData = None
@@ -43,7 +98,10 @@ class ProcessedImageData():
         self.isPresent = None
 
 class GeoImage():
-    """Object responsible for keeping image and panorama's data"""
+    """
+    Object responsible for keeping image and panorama's data
+
+    """
     def __init__(self):
         self.id = None
         self.data = None
@@ -107,7 +165,8 @@ class GeoImage():
         return base64.b64encode(buff.getvalue()).decode("utf-8")
 
     def setProcessedData(self, filterId: str, type, imageData=None, density=-1, isPresent=None):
-        """Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict
+        """
+        Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict
         
         :param filterId: Identifies the ProcessedData object
         :type filterId: str
@@ -119,6 +178,7 @@ class GeoImage():
         :param density: float (range: [0, 1]), optional
         :param isPresent: Defines if a feature exists in the image (eg. Poles), defaults to None
         :param isPresent: bool, optional
+
         """
 
         pImageData = ProcessedImageData()

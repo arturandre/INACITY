@@ -52,7 +52,7 @@ urlpatterns = [
     re_path(r'^about/?$', about, name='about'),
     re_path(r'^tutorial/?$', tutorial, name='tutorial'),
     re_path(r'^docs/?$', docs, name='docs'),
-    re_path(r'^backend_diag/?$', backend_diag, name='backend_diag'),
+    # re_path(r'^backend_diag/?$', backend_diag, name='backend_diag'),
 
     # Docs
     #re_path(r'^docs/?$', include_docs_urls(title="INACITY's API")),
@@ -86,13 +86,13 @@ urlpatterns = [
     re_path(r'^processimagesfromfeaturecollection/?$', processimagesfromfeaturecollection, name='processimagesfromfeaturecollection'),
 
     # Testing 
-    re_path(r'^integrationtest/?$', integrationTest, name='integrationtest'),
+    # re_path(r'^integrationtest/?$', integrationTest, name='integrationtest'),
 
 
 
     ######## TESTING ######## 
-    re_path(r'^simple_upload/?$', simple_upload),
-    re_path(r'^media/.*$', simple_upload),
+    # re_path(r'^simple_upload/?$', simple_upload),
+    # re_path(r'^media/.*$', simple_upload),
     ######## TESTING ######## 
 
 #    re_path(r'^home/worker.js', (TemplateView.as_view(

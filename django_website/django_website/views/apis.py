@@ -33,6 +33,10 @@ from django.conf import settings
 
 # @TODO: Make the translation call accept POST, store it's session and then translate the page keeping user data unchanged (forms/session)
 def lang(request, lang_code):
+    """
+    End-point to translate the page.
+    Ref: https://docs.djangoproject.com/en/2.1/topics/i18n/
+    """
     user_language = lang_code
     translation.activate(user_language)
     request.session[translation.LANGUAGE_SESSION_KEY] = user_language

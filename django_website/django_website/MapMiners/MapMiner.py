@@ -7,10 +7,43 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform
 
 
 class MapMiner(ABC):
-    """Abstract class representing a Map Miner adapter to collect data from some GIS (Geographic Information System)."""
+    """
+    Abstract class representing a Map Miner
+    adapter to collect data from some GIS
+    (Geographic Information System).
+    """
     _destcrs = SpatialReference(3857) # OpenLayers defauls srid
     _subclasses = []
     def __init_subclass__(cls, **kwargs):
+        """
+        This subclass initializer will be responsible for
+        registering all the subclasses from MapMiner.
+        Besides simple checks are done here in order
+        to assure the presence of expected
+        properties such as:
+
+        'mapMinerName' : str
+            Used to display the MapMiner in the front-end.
+        'mapMinerId' : str
+            Used as identifier of the mapMiner in the
+            back-end by the MapMinerManager.
+        '_availableQueries' : dict[str, callback]
+            Used to map which kinds of queries the mapMiner
+            supports, for example the OSMMiner
+            has _availableQueries = {'Streets': _getStreets})
+        '_destcrs' : SpatialReference(3857)
+
+        Parameters
+        ----------
+        x : dict
+            A simple dict object
+        y : dict
+            A simple dict object
+
+        Returns
+        -------
+        dict object with keys from both initial dict objects
+        """
         super().__init_subclass__(**kwargs)
         cls._subclasses.append(cls)
         notImplementedFields = []

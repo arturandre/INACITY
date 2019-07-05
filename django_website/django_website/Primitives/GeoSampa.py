@@ -1,16 +1,23 @@
 from django.contrib.gis.db import models
 
 class GeoSampa_BusStops(models.Model):
-    """Model class for GeoSampa Bus Stops Shapefile
-
-    Shapefile: SAD69-96_SHP_pontoonibus_point.shp
-
-    URL: http://spatialreference.org/ref/epsg/sad69-utm-zone-23s/
-
+    """
+    Model class for GeoSampa Bus Stops Shapefile
+    Source shapefile: SAD69-96_SHP_pontoonibus_point.shp
+    Ref. URL: http://spatialreference.org/ref/epsg/sad69-utm-zone-23s/
     ProjectionId: EPSG:29183
 
     fields:
-    - address: string indicating 
+        - address : str
+            The address of the bus stop
+        - description : str
+            Same as address, but eventually
+            contains aditional details
+        - name : str
+            The bus stop name, a reference
+            that can be used to search for the
+            bus stop at the system of SPTrans.
+
     """
 
     address = models.CharField(max_length=150)
@@ -22,7 +29,13 @@ class GeoSampa_BusStops(models.Model):
 
     
     def __str__(self):
-        """Returns the string representation of the model."""
+        """
+        Overrides the default string
+        representation of the model
+        which in this case will be
+        its name 'GeoSampa'.
+
+        """
         return self.name
 
 
