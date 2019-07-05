@@ -59,7 +59,7 @@ from django.core.files.storage import FileSystemStorage
 ########### TESTING ##################
 
 ##############GLOBALS####################
-def __merge_two_dicts(x, y):
+def __merge_two_dicts(x: dict, y: dict):
     """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
@@ -72,6 +72,21 @@ mapMinerManager = MapMinerManager()
 userManager = UserManager() 
 ##############GLOBALS####################
 
+
+def docs(request):
+    """
+    End-point for the documentation page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+
+    Returns
+    -------
+    none
+    """
+    return redirect('static/django_website/docs/index.html')
 
 
 def home(request):
