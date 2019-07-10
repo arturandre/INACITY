@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.ImageProviders package &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="django-website-imageproviders-package">
+<h1>django_website.ImageProviders package<a class="headerlink" href="#django-website-imageproviders-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-django_website.ImageProviders.GoogleStreetViewProvider">
+<span id="django-website-imageproviders-googlestreetviewprovider-module"></span><h2>django_website.ImageProviders.GoogleStreetViewProvider module<a class="headerlink" href="#module-django_website.ImageProviders.GoogleStreetViewProvider" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.ImageProviders.GoogleStreetViewProvider.</code><code class="sig-name descname">GoogleStreetViewProvider</code><a class="reference internal" href="../_modules/django_website/ImageProviders/GoogleStreetViewProvider.html#GoogleStreetViewProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#django_website.ImageProviders.ImageProvider.ImageProvider" title="django_website.ImageProviders.ImageProvider.ImageProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">django_website.ImageProviders.ImageProvider.ImageProvider</span></code></a></p>
+<p>Google Street View wrapper (DEPRECATED)
+GSV is now managed by javascript (home/GSVService.js)</p>
+<dl class="method">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.createGeoImageFromStreetViewPanoramaData">
+<code class="sig-name descname">createGeoImageFromStreetViewPanoramaData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/ImageProviders/GoogleStreetViewProvider.html#GoogleStreetViewProvider.createGeoImageFromStreetViewPanoramaData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.createGeoImageFromStreetViewPanoramaData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.getImageForFeatureCollection">
+<code class="sig-name descname">getImageForFeatureCollection</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; geojson.feature.FeatureCollection<a class="reference internal" href="../_modules/django_website/ImageProviders/GoogleStreetViewProvider.html#GoogleStreetViewProvider.getImageForFeatureCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.getImageForFeatureCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage’s</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.imageProviderId">
+<code class="sig-name descname">imageProviderId</code><em class="property"> = 'gsvProvider'</em><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.imageProviderId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.imageProviderName">
+<code class="sig-name descname">imageProviderName</code><em class="property"> = 'Google Street View'</em><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.GoogleStreetViewProvider.imageProviderName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="django_website.ImageProviders.GoogleStreetViewProvider.Size">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.ImageProviders.GoogleStreetViewProvider.</code><code class="sig-name descname">Size</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">height</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/ImageProviders/GoogleStreetViewProvider.html#Size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.GoogleStreetViewProvider.Size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.ImageProviders.ImageProvider">
+<span id="django-website-imageproviders-imageprovider-module"></span><h2>django_website.ImageProviders.ImageProvider module<a class="headerlink" href="#module-django_website.ImageProviders.ImageProvider" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.ImageProviders.ImageProvider.ImageProvider">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.ImageProviders.ImageProvider.</code><code class="sig-name descname">ImageProvider</code><a class="reference internal" href="../_modules/django_website/ImageProviders/ImageProvider.html#ImageProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.ImageProvider.ImageProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>abstract class describing the common interface to all Image Providers classes</p>
+<dl class="method">
+<dt id="django_website.ImageProviders.ImageProvider.ImageProvider.getImageForFeatureCollection">
+<em class="property">abstract </em><code class="sig-name descname">getImageForFeatureCollection</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[django_website.Primitives.GeoImage.GeoImage]<a class="reference internal" href="../_modules/django_website/ImageProviders/ImageProvider.html#ImageProvider.getImageForFeatureCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.ImageProviders.ImageProvider.ImageProvider.getImageForFeatureCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>An image provider coupled with a GIS must be able to get images by coordinates</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django_website.ImageProviders.ImageProvider.ImageProvider.imageProviderId">
+<code class="sig-name descname">imageProviderId</code><em class="property"> = None</em><a class="headerlink" href="#django_website.ImageProviders.ImageProvider.ImageProvider.imageProviderId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="django_website.ImageProviders.ImageProvider.ImageProvider.imageProviderName">
+<code class="sig-name descname">imageProviderName</code><em class="property"> = None</em><a class="headerlink" href="#django_website.ImageProviders.ImageProvider.ImageProvider.imageProviderName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.ImageProviders">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-django_website.ImageProviders" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/django_website.ImageProviders.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

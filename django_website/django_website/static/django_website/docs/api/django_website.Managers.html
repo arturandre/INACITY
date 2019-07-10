@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.Managers package &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="django-website-managers-package">
+<h1>django_website.Managers package<a class="headerlink" href="#django-website-managers-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-django_website.Managers.ImageFilterManager">
+<span id="django-website-managers-imagefiltermanager-module"></span><h2>django_website.Managers.ImageFilterManager module<a class="headerlink" href="#module-django_website.Managers.ImageFilterManager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.Managers.ImageFilterManager.ImageFilterManager">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.Managers.ImageFilterManager.</code><code class="sig-name descname">ImageFilterManager</code><a class="reference internal" href="../_modules/django_website/Managers/ImageFilterManager.html#ImageFilterManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageFilterManager.ImageFilterManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>ImageFilterManager: Responsible for keeping track of registered
+image filters and for encapsulating responses from requests delegated
+to them.</p>
+<dl class="method">
+<dt id="django_website.Managers.ImageFilterManager.ImageFilterManager.getAvailableImageFilters">
+<code class="sig-name descname">getAvailableImageFilters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/ImageFilterManager.html#ImageFilterManager.getAvailableImageFilters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageFilterManager.ImageFilterManager.getAvailableImageFilters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.ImageFilterManager.ImageFilterManager.processImageFromFeatureCollection">
+<code class="sig-name descname">processImageFromFeatureCollection</code><span class="sig-paren">(</span><em class="sig-param">filterId</em>, <em class="sig-param">featureCollection: geojson.feature.FeatureCollection</em><span class="sig-paren">)</span> &#x2192; geojson.feature.FeatureCollection<a class="reference internal" href="../_modules/django_website/Managers/ImageFilterManager.html#ImageFilterManager.processImageFromFeatureCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageFilterManager.ImageFilterManager.processImageFromFeatureCollection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.ImageFilterManager.ImageFilterManager.registerFilter">
+<code class="sig-name descname">registerFilter</code><span class="sig-paren">(</span><em class="sig-param">filter: django_website.ImageFilters.ImageFilter.ImageFilter</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/ImageFilterManager.html#ImageFilterManager.registerFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageFilterManager.ImageFilterManager.registerFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used during initialization to make some implemented
+image filter available to clients (e.g. front-end).</p>
+<dl class="simple">
+<dt>filter<span class="classifier">ImageFilter</span></dt><dd><p>The ImageFilter object, it should be a specialization
+of the class ImageFilter (e.g. GreeneryFilter)</p>
+</dd>
+</dl>
+<p>none</p>
+<dl class="simple">
+<dt>KeyError</dt><dd><p>when a key error</p>
+</dd>
+<dt>OtherError</dt><dd><p>when an other error</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.Managers.ImageProviderManager">
+<span id="django-website-managers-imageprovidermanager-module"></span><h2>django_website.Managers.ImageProviderManager module<a class="headerlink" href="#module-django_website.Managers.ImageProviderManager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.Managers.ImageProviderManager.ImageProviderManager">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.Managers.ImageProviderManager.</code><code class="sig-name descname">ImageProviderManager</code><a class="reference internal" href="../_modules/django_website/Managers/ImageProviderManager.html#ImageProviderManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageProviderManager.ImageProviderManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Mediator class instantiated as a singleton responsible for managing all the image platforms adaptors implemented</p>
+<dl class="method">
+<dt id="django_website.Managers.ImageProviderManager.ImageProviderManager.ImageProviders">
+<em class="property">property </em><code class="sig-name descname">ImageProviders</code><a class="headerlink" href="#django_website.Managers.ImageProviderManager.ImageProviderManager.ImageProviders" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.ImageProviderManager.ImageProviderManager.getAvailableImageProviders">
+<code class="sig-name descname">getAvailableImageProviders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/ImageProviderManager.html#ImageProviderManager.getAvailableImageProviders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageProviderManager.ImageProviderManager.getAvailableImageProviders" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.ImageProviderManager.ImageProviderManager.getImageForFeatureCollection">
+<code class="sig-name descname">getImageForFeatureCollection</code><span class="sig-paren">(</span><em class="sig-param">imageProviderId</em>, <em class="sig-param">featureCollection: geojson.feature.FeatureCollection</em><span class="sig-paren">)</span> &#x2192; List[django_website.Primitives.GeoImage.GeoImage]<a class="reference internal" href="../_modules/django_website/Managers/ImageProviderManager.html#ImageProviderManager.getImageForFeatureCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageProviderManager.ImageProviderManager.getImageForFeatureCollection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.ImageProviderManager.ImageProviderManager.registerImageProvider">
+<code class="sig-name descname">registerImageProvider</code><span class="sig-paren">(</span><em class="sig-param">provider: django_website.ImageProviders.ImageProvider.ImageProvider</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/ImageProviderManager.html#ImageProviderManager.registerImageProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.ImageProviderManager.ImageProviderManager.registerImageProvider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.Managers.MapMinerManager">
+<span id="django-website-managers-mapminermanager-module"></span><h2>django_website.Managers.MapMinerManager module<a class="headerlink" href="#module-django_website.Managers.MapMinerManager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.Managers.MapMinerManager.MapMinerManager">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.Managers.MapMinerManager.</code><code class="sig-name descname">MapMinerManager</code><a class="reference internal" href="../_modules/django_website/Managers/MapMinerManager.html#MapMinerManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.MapMinerManager.MapMinerManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="django_website.Managers.MapMinerManager.MapMinerManager.getAvailableMapMinersAndQueries">
+<code class="sig-name descname">getAvailableMapMinersAndQueries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/MapMinerManager.html#MapMinerManager.getAvailableMapMinersAndQueries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.MapMinerManager.MapMinerManager.getAvailableMapMinersAndQueries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.MapMinerManager.MapMinerManager.registerMapMiner">
+<code class="sig-name descname">registerMapMiner</code><span class="sig-paren">(</span><em class="sig-param">mapMiner: django_website.MapMiners.MapMiner.MapMiner</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/MapMinerManager.html#MapMinerManager.registerMapMiner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.MapMinerManager.MapMinerManager.registerMapMiner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="django_website.Managers.MapMinerManager.MapMinerManager.requestQueryToMapMiner">
+<code class="sig-name descname">requestQueryToMapMiner</code><span class="sig-paren">(</span><em class="sig-param">mapMinerId: str</em>, <em class="sig-param">query: str</em>, <em class="sig-param">region: geojson.feature.FeatureCollection</em><span class="sig-paren">)</span> &#x2192; List[geojson.feature.FeatureCollection]<a class="reference internal" href="../_modules/django_website/Managers/MapMinerManager.html#MapMinerManager.requestQueryToMapMiner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.MapMinerManager.MapMinerManager.requestQueryToMapMiner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delegate the requested query call to the selected MapMiner</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.Managers.UserManager">
+<span id="django-website-managers-usermanager-module"></span><h2>django_website.Managers.UserManager module<a class="headerlink" href="#module-django_website.Managers.UserManager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django_website.Managers.UserManager.UserManager">
+<em class="property">class </em><code class="sig-prename descclassname">django_website.Managers.UserManager.</code><code class="sig-name descname">UserManager</code><a class="reference internal" href="../_modules/django_website/Managers/UserManager.html#UserManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.UserManager.UserManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="django_website.Managers.UserManager.UserManager.createUser">
+<code class="sig-name descname">createUser</code><span class="sig-paren">(</span><em class="sig-param">userData</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Managers/UserManager.html#UserManager.createUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Managers.UserManager.UserManager.createUser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-django_website.Managers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-django_website.Managers" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/django_website.Managers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django.contrib.gis.db.models.proxy &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../../../" src="../../../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django.contrib.gis.db.models.proxy</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The SpatialProxy object allows for lazy-geometries and lazy-rasters. The proxy</span>
+<span class="sd">uses Python descriptors for instantiating and setting Geometry or Raster</span>
+<span class="sd">objects corresponding to geographic model fields.</span>
+
+<span class="sd">Thanks to Robert Coup for providing this functionality (see #4322).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">django.db.models.query_utils</span> <span class="k">import</span> <span class="n">DeferredAttribute</span>
+
+
+<span class="k">class</span> <span class="nc">SpatialProxy</span><span class="p">(</span><span class="n">DeferredAttribute</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">klass</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize on the given Geometry or Raster class (not an instance)</span>
+<span class="sd">        and the corresponding field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_klass</span> <span class="o">=</span> <span class="n">klass</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">attname</span><span class="p">,</span> <span class="n">klass</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the geometry or raster, initializing it using the</span>
+<span class="sd">        corresponding class specified during initialization and the value of</span>
+<span class="sd">        the field. Currently, GEOS or OGR geometries as well as GDALRasters are</span>
+<span class="sd">        supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">instance</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+            <span class="c"># Accessed on a class, not an instance</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="c"># Getting the value of the field.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">geo_value</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="n">attname</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">geo_value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geo_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_klass</span><span class="p">):</span>
+            <span class="n">geo_obj</span> <span class="o">=</span> <span class="n">geo_value</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">geo_value</span> <span class="ow">is</span> <span class="k">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">geo_value</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">):</span>
+            <span class="n">geo_obj</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Otherwise, a geometry or raster object is built using the field&#39;s</span>
+            <span class="c"># contents, and the model&#39;s corresponding attribute is set.</span>
+            <span class="n">geo_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_klass</span><span class="p">(</span><span class="n">geo_value</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="n">attname</span><span class="p">,</span> <span class="n">geo_obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">geo_obj</span>
+
+    <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the proxied geometry or raster with the corresponding class</span>
+<span class="sd">        specified during initialization.</span>
+
+<span class="sd">        To set geometries, use values of None, HEXEWKB, or WKT.</span>
+<span class="sd">        To set rasters, use JSON or dict values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># The geographic type of the field.</span>
+        <span class="n">gtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="n">geom_type</span>
+
+        <span class="k">if</span> <span class="n">gtype</span> <span class="o">==</span> <span class="s">&#39;RASTER&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">value</span> <span class="ow">is</span> <span class="k">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_klass</span><span class="p">))):</span>
+            <span class="c"># For raster fields, assure input is None or a string, dict, or</span>
+            <span class="c"># raster instance.</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_klass</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">geom_type</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">gtype</span> <span class="ow">or</span> <span class="n">gtype</span> <span class="o">==</span> <span class="s">&#39;GEOMETRY&#39;</span><span class="p">):</span>
+            <span class="c"># The geometry type must match that of the field -- unless the</span>
+            <span class="c"># general GeometryField is used.</span>
+            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">srid</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+                <span class="c"># Assigning the field SRID if the geometry has no SRID.</span>
+                <span class="n">value</span><span class="o">.</span><span class="n">srid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="n">srid</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="k">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">)):</span>
+            <span class="c"># Set geometries with None, WKT, HEX, or WKB</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Cannot set %s SpatialProxy (%s) with value of type: %s&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">gtype</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+
+        <span class="c"># Setting the objects dictionary with the value, and returning.</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="n">attname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

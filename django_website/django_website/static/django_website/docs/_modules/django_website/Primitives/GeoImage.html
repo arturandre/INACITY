@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.Primitives.GeoImage &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.Primitives.GeoImage</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">imageio</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="k">import</span> <span class="n">JSONEncoder</span>
+<span class="kn">import</span> <span class="nn">geojson</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">img_as_float</span><span class="p">,</span> <span class="n">img_as_ubyte</span>
+
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">img_as_float</span><span class="p">,</span> <span class="n">img_as_ubyte</span>
+
+<div class="viewcode-block" id="SimpleDTO"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.SimpleDTO">[docs]</a><span class="k">class</span> <span class="nc">SimpleDTO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class used to convert objects</span>
+<span class="sd">    to JSON notation facilitating the</span>
+<span class="sd">    communication between front</span>
+<span class="sd">    and back ends.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="SimpleDTO.toJSON"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.SimpleDTO.toJSON">[docs]</a>    <span class="k">def</span> <span class="nf">toJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compact</span><span class="o">=</span><span class="k">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rewrites the instance as a JSON object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        compact=True : boolean</span>
+<span class="sd">            If true line-breaks and whitespaces</span>
+<span class="sd">            will not be included.</span>
+<span class="sd">        </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            str representation of the object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="k">if</span> <span class="n">compact</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> 
+                <span class="n">sort_keys</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> 
+                <span class="n">sort_keys</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+
+<div class="viewcode-block" id="CustomJSONEncoder"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.CustomJSONEncoder">[docs]</a><span class="k">class</span> <span class="nc">CustomJSONEncoder</span><span class="p">(</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience class used to return JSON</span>
+<span class="sd">    responses in the views.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CustomJSONEncoder.default"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.CustomJSONEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">o</span><span class="o">.</span><span class="n">__dict__</span></div></div>
+
+<div class="viewcode-block" id="ProcessedImageData"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.ProcessedImageData">[docs]</a><span class="k">class</span> <span class="nc">ProcessedImageData</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the result object derived from </span>
+<span class="sd">    some subclass of :py:class:`django_website.MapMiners.MapMiner.MapMiner`.</span>
+
+<span class="sd">    fields:</span>
+<span class="sd">        - id=None : str</span>
+<span class="sd">            Representation of the geoImage used</span>
+<span class="sd">            to referentiate it at the backend.</span>
+<span class="sd">        - imageData=None : str</span>
+<span class="sd">            A base64 encoded sting or an url</span>
+<span class="sd">            to the actual image. Depends on</span>
+<span class="sd">            the property imageDataType.</span>
+<span class="sd">        - imageDataType=None : str</span>
+<span class="sd">            data:image/jpeg;base64 if the imageData is base64 encoded</span>
+<span class="sd">            URL if the imageData is a url to the actual image.</span>
+<span class="sd">        - filterId=None: str</span>
+<span class="sd">            The identification (filterId property) of the</span>
+<span class="sd">            :py:class:`django_website.ImageFilters.ImageFilter.ImageFilter`</span>
+<span class="sd">            subclass used to generate this ProcessedImageData.</span>
+<span class="sd">        - density=-1 : float</span>
+<span class="sd">            This property can be used as a quantitative metric</span>
+<span class="sd">            about the processed image (e.g. ammount of greenery</span>
+<span class="sd">            in the processed image).</span>
+<span class="sd">        - isPresent=None : boolean</span>
+<span class="sd">            This property can be used as a flag indicating</span>
+<span class="sd">            the presence of some feature found in the </span>
+<span class="sd">            processed image.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imageData</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imageDataType</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filterId</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isPresent</span> <span class="o">=</span> <span class="k">None</span></div>
+
+<div class="viewcode-block" id="GeoImage"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage">[docs]</a><span class="k">class</span> <span class="nc">GeoImage</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object responsible for keeping image and panorama&#39;s data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataType</span> <span class="o">=</span> <span class="k">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">Point</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heading</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#Json Structured dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processedDataList</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#Dictionary containing ProcessedData objects as values and filterId&#39;s as keys</span>
+
+<div class="viewcode-block" id="GeoImage.fromJSON"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.fromJSON">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">fromJSON</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">jsonData</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">geoImage</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">)</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">dataType</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dataType&#39;</span><span class="p">)</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;location&#39;</span><span class="p">,</span> <span class="n">geojson</span><span class="o">.</span><span class="n">Point</span><span class="p">())</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">heading</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;heading&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pitch&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">geoImage</span><span class="o">.</span><span class="n">processedDataList</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;processedDataList&#39;</span><span class="p">,</span> <span class="p">{})</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="c">#if geoImage.dataType == &#39;URL&#39;:</span>
+        <span class="c">#    geoImage.setDataFromImage(imageio.imread(geoImage.data))</span>
+        <span class="k">return</span> <span class="n">geoImage</span></div>
+
+    <span class="c">#def setDataFromImage(self, data: imageio.core.util.Image):</span>
+    <span class="c">#    self.data = data</span>
+    <span class="c">#    self.dataType = &#39;ndarray&#39;</span>
+    <span class="c">#    if data.dtype == &#39;uint8&#39;:</span>
+    <span class="c">#        self.data = img_as_float(self.data)</span>
+    <span class="c">#    self.size = {&#39;width&#39;: 0, &#39;height&#39;: 0, &#39;channels&#39;: 0}</span>
+    <span class="c">#    #self.size[&#39;channels&#39;] = data.ndim</span>
+    <span class="c">#    #self.size[&#39;width&#39;], self.size[&#39;height&#39;], *_ = data.shape</span>
+    <span class="c">#    self.size[&#39;width&#39;], self.size[&#39;height&#39;], self.size[&#39;channels&#39;] = data.shape</span>
+
+    <span class="c">#def setDataFromBase64(self, data: str):</span>
+    <span class="c">#    image = np.array(Image.open(BytesIO(base64.b64decode(data))))</span>
+    <span class="c">#    self.data = data</span>
+    <span class="c">#    self.dataType = &#39;ndarray&#39;</span>
+    <span class="c">#    if data.dtype == &#39;uint8&#39;:</span>
+    <span class="c">#        self.data = img_as_float(self.data)</span>
+    <span class="c">#    self.size = {&#39;width&#39;: 0, &#39;height&#39;: 0, &#39;channels&#39;: 0}</span>
+    <span class="c">#    self.size[&#39;width&#39;], self.size[&#39;height&#39;], self.size[&#39;channels&#39;] = data.shape</span>
+
+    <span class="c">#def setDataToBase64(self):</span>
+    <span class="c">#    &quot;&quot;&quot;Converts the &#39;data&#39; property from &#39;ndarray&#39; to a jpeg image encoded in a base64 string&quot;&quot;&quot;</span>
+    <span class="c">#    if self.dataType == &#39;ndarray&#39;:</span>
+    <span class="c">#        self.data = Image.fromarray(img_as_ubyte(self.data))</span>
+    <span class="c">#    elif self.dataType == &#39;data:image/jpeg;base64&#39;:</span>
+    <span class="c">#        return</span>
+    <span class="c">#    #buff = BytesIO()</span>
+    <span class="c">##    #self.data.save(buff, format=&quot;JPEG&quot;)</span>
+     <span class="c">#   #base64_image_string  = base64.b64encode(buff.getvalue()).decode(&quot;utf-8&quot;)</span>
+     <span class="c">#   #self.data = base64_image_string</span>
+     <span class="c">#   self.data = GeoImage.imageToBase64JPEG(self.data)</span>
+     <span class="c">#   self.dataType = &#39;data:image/jpeg;base64&#39;</span>
+    
+<div class="viewcode-block" id="GeoImage.imageToBase64JPEG"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG">[docs]</a>    <span class="k">def</span> <span class="nf">imageToBase64JPEG</span><span class="p">(</span><span class="n">inputImage</span> <span class="p">:</span> <span class="n">Image</span><span class="p">):</span>
+        <span class="n">buff</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">inputImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s">&quot;JPEG&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buff</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeoImage.setProcessedData"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.setProcessedData">[docs]</a>    <span class="k">def</span> <span class="nf">setProcessedData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filterId</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">imageData</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">density</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">isPresent</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict</span>
+<span class="sd">        </span>
+<span class="sd">        :param filterId: Identifies the ProcessedData object</span>
+<span class="sd">        :type filterId: str</span>
+<span class="sd">        :param type: Defines the image format (&#39;ndarray&#39; or None)</span>
+<span class="sd">        :type type: str</span>
+<span class="sd">        :param imageData: Image&#39;s pixel data, defaults to None</span>
+<span class="sd">        :param imageData: Numpy.ndarray, optional</span>
+<span class="sd">        :param density: Defines how much of a feature is present in an image (eg. greenery), defaults to -1</span>
+<span class="sd">        :param density: float (range: [0, 1]), optional</span>
+<span class="sd">        :param isPresent: Defines if a feature exists in the image (eg. Poles), defaults to None</span>
+<span class="sd">        :param isPresent: bool, optional</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">pImageData</span> <span class="o">=</span> <span class="n">ProcessedImageData</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s">&#39;ndarray&#39;</span><span class="p">:</span>
+            <span class="n">imageData</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">img_as_ubyte</span><span class="p">(</span><span class="n">imageData</span><span class="p">))</span>
+            <span class="n">imageData</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="o">.</span><span class="n">imageToBase64JPEG</span><span class="p">(</span><span class="n">imageData</span><span class="p">)</span>
+            <span class="n">pImageData</span><span class="o">.</span><span class="n">imageData</span> <span class="o">=</span> <span class="n">f</span><span class="s">&#39;data:image/jpeg;base64,{imageData}&#39;</span>
+        <span class="n">pImageData</span><span class="o">.</span><span class="n">filterId</span> <span class="o">=</span> <span class="n">filterId</span>
+        <span class="n">pImageData</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="n">density</span>
+        <span class="n">pImageData</span><span class="o">.</span><span class="n">isPresent</span> <span class="o">=</span> <span class="n">isPresent</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">processedDataList</span><span class="p">[</span><span class="n">filterId</span><span class="p">]</span> <span class="o">=</span> <span class="n">pImageData</span></div></div>
+        
+
+    <span class="c"># def getPNG(self):</span>
+    <span class="c">#     &quot;&quot;&quot;Converts the image to a PNG file&quot;&quot;&quot;</span>
+    <span class="c">#     outdata = self.data.copy()</span>
+    <span class="c">#     if outdata.dtype != &#39;uint8&#39;: </span>
+    <span class="c">#         outdata = np.uint8(outdata*255)</span>
+    <span class="c">#     return imageio.imwrite(imageio.RETURN_BYTES, outdata, format=&#39;PNG-PIL&#39;)</span>
+        
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

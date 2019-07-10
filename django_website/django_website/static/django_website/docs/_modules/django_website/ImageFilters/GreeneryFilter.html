@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.ImageFilters.GreeneryFilter &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.ImageFilters.GreeneryFilter</h1><div class="highlight"><pre>
+
+<span class="kn">from</span> <span class="nn">urllib.error</span> <span class="k">import</span> <span class="n">HTTPError</span>
+
+<span class="kn">import</span> <span class="nn">imageio</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">color</span><span class="p">,</span> <span class="n">img_as_float</span><span class="p">,</span> <span class="n">img_as_ubyte</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">misc</span><span class="p">,</span> <span class="n">ndimage</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="k">import</span> <span class="n">JSONDecodeError</span>
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="k">import</span> <span class="n">Point</span><span class="p">,</span> <span class="n">MultiPoint</span><span class="p">,</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">MultiLineString</span><span class="p">,</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">FeatureCollection</span>
+
+<span class="kn">from</span> <span class="nn">.ImageFilter</span> <span class="k">import</span> <span class="n">ImageFilter</span>
+<span class="kn">from</span> <span class="nn">.commonFunctions</span> <span class="k">import</span> <span class="n">mt_li_espectral</span><span class="p">,</span> <span class="n">overlay_mask</span>
+<span class="kn">from</span> <span class="nn">django_website.Primitives.GeoImage</span> <span class="k">import</span> <span class="n">GeoImage</span><span class="p">,</span> <span class="n">CustomJSONEncoder</span>
+<span class="kn">from</span> <span class="nn">django_website.LogGenerator</span> <span class="k">import</span> <span class="n">write_to_log</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">gettext</span> <span class="k">as</span> <span class="n">_</span><span class="p">,</span> <span class="n">gettext_lazy</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="GreeneryFilter"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.GreeneryFilter.GreeneryFilter">[docs]</a><span class="k">class</span> <span class="nc">GreeneryFilter</span><span class="p">(</span><span class="n">ImageFilter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Image filter for greenery objects in images&quot;&quot;&quot;</span>
+    
+
+    <span class="n">filterName</span> <span class="o">=</span> <span class="n">gettext_lazy</span><span class="p">(</span><span class="s">&quot;Greenery&quot;</span><span class="p">)</span>
+    <span class="n">filterId</span> <span class="o">=</span> <span class="s">&quot;greenery&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_setOutput</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">geoImage</span><span class="p">,</span> <span class="n">featureLeaf</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ndarrayImage</span> <span class="o">=</span> <span class="n">img_as_float</span><span class="p">(</span><span class="n">imageio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">geoImage</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mt_li_espectral</span><span class="p">(</span><span class="n">ndarrayImage</span><span class="p">)</span>
+            <span class="n">density</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">/</span><span class="n">mask</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">img_as_ubyte</span><span class="p">(</span><span class="n">overlay_mask</span><span class="p">(</span><span class="n">ndarrayImage</span><span class="p">,</span> <span class="n">mask</span><span class="p">))</span>
+            <span class="n">geoImage</span><span class="o">.</span><span class="n">setProcessedData</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">filterId</span><span class="p">,</span> <span class="s">&#39;ndarray&#39;</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="n">density</span><span class="p">)</span>
+            <span class="n">featureLeaf</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">geoImage</span>
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="n">write_to_log</span><span class="p">(</span><span class="n">f</span><span class="s">&quot;Http error - Have the quota been achieved?&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">write_to_log</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;Image bytes: {ndarrayImage[:100]}&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">write_to_log</span><span class="p">(</span><span class="n">f</span><span class="s">&quot;Unexpected error: {sys.exc_info()[0]}&quot;</span><span class="p">)</span>
+            <span class="n">write_to_log</span><span class="p">(</span><span class="n">f</span><span class="s">&quot;Error message: {e.args}&quot;</span><span class="p">)</span>
+            
+            <span class="n">write_to_log</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;Offending url: {geoImage.data[:300]}&#39;</span><span class="p">)</span>
+            
+<div class="viewcode-block" id="GreeneryFilter.processImageFromFeatureCollection"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.GreeneryFilter.GreeneryFilter.processImageFromFeatureCollection">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">processImageFromFeatureCollection</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">featureCollection</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FeatureCollection</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage&#39;s&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">featureCollection</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;MultiPolygon&#39;</span><span class="p">:</span>
+                <span class="c">#Number of Polygons</span>
+                <span class="k">for</span> <span class="n">polygonIndex</span><span class="p">,</span> <span class="n">polygon</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;coordinates&#39;</span><span class="p">]):</span>
+                    <span class="k">for</span> <span class="n">lineIndex</span><span class="p">,</span> <span class="n">lineString</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">polygon</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">coordinateIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lineString</span><span class="p">)):</span>
+                            <span class="n">geoImage</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">polygonIndex</span><span class="p">][</span><span class="n">lineIndex</span><span class="p">][</span><span class="n">coordinateIndex</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span> <span class="k">continue</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">geoImage</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="o">.</span><span class="n">fromJSON</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Error while parsing panorama: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)[:</span><span class="mi">100</span><span class="p">])</span>
+                            <span class="n">cls</span><span class="o">.</span><span class="n">_setOutput</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">polygonIndex</span><span class="p">][</span><span class="n">lineIndex</span><span class="p">],</span> <span class="n">coordinateIndex</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;MultiLineString&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;Polygon&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">lineIndex</span><span class="p">,</span> <span class="n">lineString</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;coordinates&#39;</span><span class="p">]):</span>
+                    <span class="k">for</span> <span class="n">coordinateIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lineString</span><span class="p">)):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">geoImage</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">lineIndex</span><span class="p">][</span><span class="n">coordinateIndex</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span> <span class="k">continue</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}&#39;</span><span class="p">)</span>
+
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">geoImage</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="o">.</span><span class="n">fromJSON</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
+                            <span class="n">write_to_log</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Error while parsing panorama: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)[:</span><span class="mi">100</span><span class="p">])</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}&#39;</span><span class="p">)</span>
+                        <span class="n">cls</span><span class="o">.</span><span class="n">_setOutput</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">lineIndex</span><span class="p">],</span> <span class="n">coordinateIndex</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LineString&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;MultiPoint&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">coordinateIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;coordinates&#39;</span><span class="p">])):</span>
+                    <span class="n">geoImage</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">coordinateIndex</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span> <span class="k">continue</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">geoImage</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="o">.</span><span class="n">fromJSON</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Error while parsing panorama: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)[:</span><span class="mi">100</span><span class="p">])</span>
+                    <span class="n">cls</span><span class="o">.</span><span class="n">_setOutput</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">],</span> <span class="n">coordinateIndex</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;Point&#39;</span><span class="p">:</span>
+                <span class="n">coordinateIndex</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">geoImage</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">][</span><span class="n">coordinateIndex</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">geoImage</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="o">.</span><span class="n">fromJSON</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Error while parsing panorama: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">geoImage</span><span class="p">)[:</span><span class="mi">100</span><span class="p">])</span>
+                <span class="n">cls</span><span class="o">.</span><span class="n">_setOutput</span><span class="p">(</span><span class="n">geoImage</span><span class="p">,</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;properties&#39;</span><span class="p">][</span><span class="s">&#39;geoImages&#39;</span><span class="p">],</span> <span class="n">coordinateIndex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">featureCollection</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_processImageMock</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">GeoImage</span><span class="p">:</span>
+        <span class="n">imageMock</span> <span class="o">=</span> <span class="n">GeoImage</span><span class="p">(</span><span class="n">imageio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">&#39;django_website/Testing/gsvimagetestmock.png&#39;</span><span class="p">))</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mt_li_espectral</span><span class="p">(</span><span class="n">imageMock</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">imageMock</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">0</span>
+        <span class="n">imageMock</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">0</span>
+        <span class="n">imageMock</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">0</span>
+        <span class="n">retimg</span> <span class="o">=</span> <span class="n">imageMock</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="n">retimg</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.Primitives.OSMPrimitives &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.Primitives.OSMPrimitives</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">decimal</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">groupby</span>
+<span class="kn">from</span> <span class="nn">dateutil.parser</span> <span class="k">import</span> <span class="n">parse</span>
+
+<span class="k">def</span> <span class="nf">_ElementJsonToOSMObject</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses an OpenStreetMap object into an :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;node&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">OSMNode</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;lon&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;way&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">OSMWay</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;nodes&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;relation&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">OSMRelation</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">_JsonMemberListToOSMRelationMember</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;members&#39;</span><span class="p">]),</span> <span class="n">jsonDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;OSM Element type (%s) not implemented!&quot;</span> <span class="o">%</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">_JsonMemberListToOSMRelationMember</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jsonMemberList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses an OSMRelationMember dict into an OSMRelationMember object&quot;&quot;&quot;</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">jsonMemberList</span><span class="p">:</span>
+        <span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OSMRelationMember</span><span class="p">(</span><span class="n">member</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">member</span><span class="p">[</span><span class="s">&#39;ref&#39;</span><span class="p">],</span> <span class="n">member</span><span class="p">[</span><span class="s">&#39;role&#39;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">members</span>
+
+
+<div class="viewcode-block" id="OSMObject"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMObject">[docs]</a><span class="k">class</span> <span class="nc">OSMObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for other OSM objects:</span>
+<span class="sd">        Attribute Name: default value</span>
+<span class="sd">        version: 0</span>
+<span class="sd">        visible: True</span>
+<span class="sd">        timestamp: None</span>
+<span class="sd">        changeset: 0</span>
+<span class="sd">        user: &#39;&#39; #user&#39;s name</span>
+<span class="sd">        uid: 0 #user&#39;s id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">_optDefAttributes</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;version&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;visible&quot;</span><span class="p">:</span> <span class="k">True</span><span class="p">,</span> <span class="s">&quot;timestamp&quot;</span><span class="p">:</span> <span class="k">None</span><span class="p">,</span> <span class="s">&quot;changeset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;uid&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+    <span class="c">##  &#39;tags&#39; attribute is set as an empty dictionary so that it&#39;s possible to try </span>
+    <span class="c">##  to look up for a &#39;name&#39; tag even when an (faulty) object doesn&#39;t have any tags</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span>
+        <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">OSMObject</span><span class="o">.</span><span class="n">_optDefAttributes</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kw&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="n">OSMObject</span><span class="o">.</span><span class="n">_optDefAttributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kw&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OSMNode"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMNode">[docs]</a><span class="k">class</span> <span class="nc">OSMNode</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class used as an OpenStreetMap Node object wrapper&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lat</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lat</span> <span class="o">=</span> <span class="n">lat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lon</span> <span class="o">=</span> <span class="n">lon</span></div>
+
+<div class="viewcode-block" id="OSMWay"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMWay">[docs]</a><span class="k">class</span> <span class="nc">OSMWay</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class used as an OpenStreetMap Way object wrapper&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span>  <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span></div>
+
+<div class="viewcode-block" id="OSMRelation"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMRelation">[docs]</a><span class="k">class</span> <span class="nc">OSMRelation</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A OpenStreetMap relation represents &#39;belongs to&#39; relations (i.e. :class:`OSMNode`s belonging to the same :class:`OSMWay`)&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">members</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OSMObject</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">members</span> <span class="o">=</span> <span class="n">members</span></div>
+
+<div class="viewcode-block" id="OSM3S"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSM3S">[docs]</a><span class="k">class</span> <span class="nc">OSM3S</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Timestamp and copyright info&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp_osm_base</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span> <span class="n">copyright</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">timestamp_osm_base</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_osm_base</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">timestamp_osm_base</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copyright</span> <span class="o">=</span> <span class="n">copyright</span>
+
+<div class="viewcode-block" id="OSM3S.JsonToOSM3S"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSM3S.JsonToOSM3S">[docs]</a>    <span class="k">def</span> <span class="nf">JsonToOSM3S</span><span class="p">(</span><span class="n">jsonString</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parses an string to an OSM3S object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">DictToOSM3S</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jsonString</span><span class="p">));</span></div>
+
+<div class="viewcode-block" id="OSM3S.DictToOSM3S"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSM3S.DictToOSM3S">[docs]</a>    <span class="k">def</span> <span class="nf">DictToOSM3S</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parses an dict object into an OSM3S object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">OSM3S</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;timestamp_osm_base&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;copyright&#39;</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="OSMRelationMember"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMRelationMember">[docs]</a><span class="k">class</span> <span class="nc">OSMRelationMember</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;An element that &#39;belogs&#39; to another (i.e. An :class:`OSMNode` that belongs to an :class:`OSMWay`)&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref</span> <span class="o">=</span> <span class="n">ref</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">role</span></div>
+
+<div class="viewcode-block" id="OSMResult"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMResult">[docs]</a><span class="k">class</span> <span class="nc">OSMResult</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Represents a query result to an OpenStreetMap server&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">generator</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">osm3s</span><span class="p">:</span> <span class="n">OSM3S</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generator</span> <span class="o">=</span> <span class="n">generator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">osm3s</span> <span class="o">=</span> <span class="n">osm3s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Nodes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ways</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Relations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">osmObject</span> <span class="o">=</span> <span class="n">_ElementJsonToOSMObject</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">osmObject</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OSMNode</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nodes</span><span class="p">[</span><span class="n">osmObject</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">osmObject</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">osmObject</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OSMWay</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Ways</span><span class="p">[</span><span class="n">osmObject</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">osmObject</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">osmObject</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OSMRelation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Relations</span><span class="p">[</span><span class="n">osmObject</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">osmObject</span>
+
+<div class="viewcode-block" id="OSMResult.fromJsonString"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMResult.fromJsonString">[docs]</a>    <span class="k">def</span> <span class="nf">fromJsonString</span><span class="p">(</span><span class="n">jsonString</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parses a json string into a OSMResult object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">OSMResult</span><span class="o">.</span><span class="n">fromJsonDict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jsonString</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OSMResult.fromJsonDict"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMResult.fromJsonDict">[docs]</a>    <span class="k">def</span> <span class="nf">fromJsonDict</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parses a dict into a OSMResult&quot;&quot;&quot;</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;version&#39;</span><span class="p">]</span>
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;generator&#39;</span><span class="p">]</span>
+        <span class="n">osm3sDict</span> <span class="o">=</span> <span class="n">OSM3S</span><span class="o">.</span><span class="n">DictToOSM3S</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;osm3s&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">OSMResult</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">osm3sDict</span><span class="p">,</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;elements&#39;</span><span class="p">])</span></div></div>
+        
+
+            
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

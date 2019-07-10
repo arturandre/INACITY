@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.ImageFilters.commonFunctions &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.ImageFilters.commonFunctions</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">color</span><span class="p">,</span> <span class="n">exposure</span>
+
+<span class="n">ONE_THIRD</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">3.0</span>
+<span class="n">ONE_SIXTH</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">6.0</span>
+<span class="n">TWO_THIRD</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">/</span><span class="mf">3.0</span>
+
+<div class="viewcode-block" id="decompose"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.decompose">[docs]</a><span class="k">def</span> <span class="nf">decompose</span><span class="p">(</span><span class="n">mat3channels</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="compose"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.compose">[docs]</a><span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="n">ch1</span><span class="p">,</span> <span class="n">ch2</span><span class="p">,</span> <span class="n">ch3</span><span class="p">):</span>
+    <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span> <span class="o">=</span> <span class="n">ch1</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">mat3channels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ch1</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ch1</span>
+    <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ch2</span>
+    <span class="n">mat3channels</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ch3</span>
+    <span class="k">return</span> <span class="n">mat3channels</span></div>
+
+
+<div class="viewcode-block" id="normalize2_rgb"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.normalize2_rgb">[docs]</a><span class="k">def</span> <span class="nf">normalize2_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+    <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    
+    <span class="n">sumrgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">r</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">g</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">nzerosumrgb</span> <span class="o">=</span> <span class="n">sumrgb</span> <span class="o">!=</span> <span class="mi">0</span>
+    
+    <span class="n">nr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">ng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">nb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    
+    <span class="n">nr</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    <span class="n">ng</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    <span class="n">nb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">compose</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span> <span class="n">ng</span><span class="p">,</span> <span class="n">nb</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="normalize_rgb"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.normalize_rgb">[docs]</a><span class="k">def</span> <span class="nf">normalize_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+    <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    
+    <span class="n">sumrgb</span> <span class="o">=</span> <span class="n">r</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">b</span>
+    <span class="n">nzerosumrgb</span> <span class="o">=</span> <span class="n">sumrgb</span> <span class="o">!=</span> <span class="mi">0</span>
+    
+    <span class="n">nr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">ng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">nb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    
+    <span class="n">nr</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    <span class="n">ng</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    <span class="n">nb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span><span class="o">/</span><span class="n">sumrgb</span><span class="p">[</span><span class="n">nzerosumrgb</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">compose</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span> <span class="n">ng</span><span class="p">,</span> <span class="n">nb</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="rgb_to_hls"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.rgb_to_hls">[docs]</a><span class="k">def</span> <span class="nf">rgb_to_hls</span><span class="p">(</span><span class="n">rgb</span><span class="p">):</span>
+    <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    <span class="c">#r = rgb[...,0]</span>
+    <span class="c">#g = rgb[...,1]</span>
+    <span class="c">#b = rgb[...,2]</span>
+    
+    <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">high</span><span class="o">-</span><span class="n">low</span>
+    <span class="n">hlsum</span> <span class="o">=</span> <span class="n">high</span><span class="o">+</span><span class="n">low</span>
+    
+    <span class="n">zerodelta</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">==</span> <span class="mi">0</span>
+    
+    <span class="n">max_r</span> <span class="o">=</span> <span class="n">high</span> <span class="o">==</span> <span class="n">r</span>
+    <span class="n">max_g</span> <span class="o">=</span> <span class="n">high</span> <span class="o">==</span> <span class="n">g</span>
+    <span class="n">max_b</span> <span class="o">=</span> <span class="n">high</span> <span class="o">==</span> <span class="n">b</span>
+    
+    <span class="n">L</span> <span class="o">=</span> <span class="p">(</span><span class="n">hlsum</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">lowl</span> <span class="o">=</span> <span class="n">L</span> <span class="o">&lt;=</span> <span class="mf">0.5</span>
+    <span class="n">highl</span> <span class="o">=</span> <span class="o">~</span><span class="n">lowl</span>
+    
+    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">high</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">high</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">high</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">gc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">high</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">bc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">high</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    
+    <span class="n">s</span><span class="p">[</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">s</span><span class="p">[</span><span class="n">lowl</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta</span><span class="p">[</span><span class="n">lowl</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span><span class="o">/</span><span class="n">hlsum</span><span class="p">[</span><span class="n">lowl</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span>
+    <span class="n">s</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">-</span><span class="n">delta</span><span class="p">[</span><span class="n">highl</span><span class="p">])</span>
+    
+    <span class="n">rc</span><span class="p">[</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">gc</span><span class="p">[</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bc</span><span class="p">[</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">rc</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">])</span> <span class="o">/</span> <span class="n">delta</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span>
+    <span class="n">gc</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span><span class="o">-</span><span class="n">g</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">])</span> <span class="o">/</span> <span class="n">delta</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span>
+    <span class="n">bc</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span><span class="o">-</span><span class="n">b</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">])</span> <span class="o">/</span> <span class="n">delta</span><span class="p">[</span><span class="o">~</span><span class="n">zerodelta</span><span class="p">]</span>
+    
+    <span class="n">h</span><span class="p">[</span><span class="n">zerodelta</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">h</span><span class="p">[</span><span class="n">max_r</span><span class="p">]</span> <span class="o">=</span> <span class="n">bc</span><span class="p">[</span><span class="n">max_r</span><span class="p">]</span><span class="o">-</span><span class="n">gc</span><span class="p">[</span><span class="n">max_r</span><span class="p">]</span>
+    <span class="n">h</span><span class="p">[</span><span class="n">max_g</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">+</span><span class="n">rc</span><span class="p">[</span><span class="n">max_g</span><span class="p">]</span><span class="o">-</span><span class="n">bc</span><span class="p">[</span><span class="n">max_g</span><span class="p">]</span>
+    <span class="n">h</span><span class="p">[</span><span class="n">max_b</span><span class="p">]</span> <span class="o">=</span> <span class="mf">4.0</span><span class="o">+</span><span class="n">gc</span><span class="p">[</span><span class="n">max_b</span><span class="p">]</span><span class="o">-</span><span class="n">rc</span><span class="p">[</span><span class="n">max_b</span><span class="p">]</span>
+    
+    <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">h</span><span class="o">/</span><span class="mf">6.0</span><span class="p">)</span> <span class="o">%</span> <span class="mf">1.0</span>
+    
+    <span class="c">#hls = np.zeros(rgb.shape, &#39;float&#39;)</span>
+    <span class="c">#hls[..., 0] = h</span>
+    <span class="c">#hls[..., 1] = L</span>
+    <span class="c">#hls[..., 2] = s</span>
+    <span class="n">hls</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    
+    
+    <span class="k">return</span> <span class="n">hls</span></div>
+
+<div class="viewcode-block" id="hls_to_rgb"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.hls_to_rgb">[docs]</a><span class="k">def</span> <span class="nf">hls_to_rgb</span><span class="p">(</span><span class="n">hls</span><span class="p">):</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hls</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">hls</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">hls</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">m2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">m1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    
+    <span class="n">zerosaturation</span> <span class="o">=</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">lowl</span> <span class="o">=</span> <span class="n">L</span> <span class="o">&lt;=</span> <span class="mf">0.5</span>
+    <span class="n">highl</span> <span class="o">=</span> <span class="o">~</span><span class="n">lowl</span>
+    
+    
+    <span class="n">m2</span><span class="p">[</span><span class="n">lowl</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">lowl</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="n">s</span><span class="p">[</span><span class="n">lowl</span><span class="p">])</span>
+    <span class="n">m2</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span> <span class="o">=</span>  <span class="n">L</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span><span class="o">+</span><span class="n">s</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span><span class="o">-</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">highl</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">highl</span><span class="p">])</span>
+    
+    <span class="n">m1</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">L</span> <span class="o">-</span> <span class="n">m2</span>
+    
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_v</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">h</span><span class="o">+</span><span class="n">ONE_THIRD</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">_v</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">_v</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">h</span><span class="o">-</span><span class="n">ONE_THIRD</span><span class="p">)</span>
+    
+    <span class="n">r</span><span class="p">[</span><span class="n">zerosaturation</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">zerosaturation</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">zerosaturation</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">zerosaturation</span><span class="p">]</span>
+    
+    
+    <span class="n">rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">hls</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+    <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span>
+    <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+    
+    <span class="k">return</span> <span class="n">rgb</span></div>
+
+<span class="k">def</span> <span class="nf">_v</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">hue</span><span class="p">):</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">hue</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">hue</span> <span class="o">=</span> <span class="n">hue</span> <span class="o">%</span> <span class="mf">1.0</span>
+    
+    <span class="n">lowonesixty</span> <span class="o">=</span> <span class="n">hue</span> <span class="o">&lt;</span> <span class="n">ONE_SIXTH</span>
+    <span class="n">lowhalf</span> <span class="o">=</span> <span class="n">hue</span> <span class="o">&lt;</span> <span class="mf">0.5</span>
+    <span class="n">lowtwothird</span> <span class="o">=</span> <span class="n">hue</span> <span class="o">&lt;</span> <span class="n">TWO_THIRD</span>
+
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">m1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">ret</span><span class="p">[</span><span class="n">lowtwothird</span><span class="p">]</span> <span class="o">=</span> <span class="n">m1</span><span class="p">[</span><span class="n">lowtwothird</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">m2</span><span class="p">[</span><span class="n">lowtwothird</span><span class="p">]</span><span class="o">-</span><span class="n">m1</span><span class="p">[</span><span class="n">lowtwothird</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">TWO_THIRD</span><span class="o">-</span><span class="n">hue</span><span class="p">[</span><span class="n">lowtwothird</span><span class="p">])</span><span class="o">*</span><span class="mf">6.0</span>
+    <span class="n">ret</span><span class="p">[</span><span class="n">lowhalf</span><span class="p">]</span> <span class="o">=</span> <span class="n">m2</span><span class="p">[</span><span class="n">lowhalf</span><span class="p">]</span>
+    <span class="n">ret</span><span class="p">[</span><span class="n">lowonesixty</span><span class="p">]</span> <span class="o">=</span> <span class="n">m1</span><span class="p">[</span><span class="n">lowonesixty</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">m2</span><span class="p">[</span><span class="n">lowonesixty</span><span class="p">]</span><span class="o">-</span><span class="n">m1</span><span class="p">[</span><span class="n">lowonesixty</span><span class="p">])</span><span class="o">*</span><span class="n">hue</span><span class="p">[</span><span class="n">lowonesixty</span><span class="p">]</span><span class="o">*</span><span class="mf">6.0</span>
+    
+    <span class="k">return</span> <span class="n">ret</span>
+
+<div class="viewcode-block" id="mt_li_espectral"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.mt_li_espectral">[docs]</a><span class="k">def</span> <span class="nf">mt_li_espectral</span><span class="p">(</span><span class="n">rgb_img</span><span class="p">,</span> <span class="n">vec</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+    <span class="c"># Estimated vec using groundtruth and scipy.optimize.fmin(mt_li_espectral_gt):</span>
+    <span class="k">if</span> <span class="n">vec</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.74338887e-02</span><span class="p">,</span><span class="mf">3.07998404e-01</span><span class="p">,</span><span class="mf">2.33813449e-02</span><span class="p">,</span><span class="mf">1.01736022e+00</span><span class="p">,</span><span class="o">-</span><span class="mf">5.85913070e-04</span><span class="p">,</span>
+                <span class="mf">7.16921436e-01</span><span class="p">,</span><span class="mf">2.05789315e-02</span><span class="p">,</span><span class="mf">1.05391177e+00</span><span class="p">,</span><span class="mf">6.37990951e-02</span><span class="p">,</span><span class="mf">6.51417819e-01</span><span class="p">,</span>
+                <span class="o">-</span><span class="mf">3.37627294e-06</span><span class="p">,</span><span class="mf">4.70837722e-01</span><span class="p">,</span><span class="mf">2.66144311e-01</span><span class="p">,</span><span class="mf">2.84518650e-01</span><span class="p">,</span><span class="mf">3.80010333e-01</span><span class="p">,</span><span class="mf">5.74782186e-01</span><span class="p">,</span>
+                <span class="o">-</span><span class="mf">4.39486595e-04</span><span class="p">,</span><span class="mf">3.52373078e-01</span><span class="p">])</span>
+    
+    
+    
+    <span class="n">rgb</span> <span class="o">=</span> <span class="n">rgb_img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">hsv</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">rgb2hsv</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    <span class="n">nrgb</span> <span class="o">=</span> <span class="n">normalize_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    
+    <span class="n">h</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">hsv</span><span class="p">)</span>
+    
+    <span class="n">k</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="n">h</span>  <span class="o">=</span> <span class="p">(</span><span class="n">h</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">h</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]))</span>
+    <span class="n">s</span>  <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">4</span><span class="p">]))</span>
+    <span class="n">v</span>  <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">5</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">6</span><span class="p">]))</span>
+    
+    <span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    
+    <span class="n">r</span>  <span class="o">=</span> <span class="p">(</span><span class="n">r</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">7</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">7</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">8</span><span class="p">]))</span>
+    <span class="n">g</span>  <span class="o">=</span> <span class="p">(</span><span class="n">g</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">9</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">9</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">10</span><span class="p">]))</span>
+    <span class="n">b</span>  <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">11</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">11</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">12</span><span class="p">]))</span>
+    
+    <span class="n">nr</span><span class="p">,</span><span class="n">ng</span><span class="p">,</span><span class="n">nb</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">nrgb</span><span class="p">)</span>
+    
+    <span class="n">nr</span>  <span class="o">=</span> <span class="p">(</span><span class="n">nr</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">13</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">nr</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">13</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">14</span><span class="p">]))</span>
+    <span class="n">ng</span>  <span class="o">=</span> <span class="p">(</span><span class="n">ng</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">15</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ng</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">15</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">16</span><span class="p">]))</span>
+    <span class="n">nb</span>  <span class="o">=</span> <span class="p">(</span><span class="n">nb</span> <span class="o">&gt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">17</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">nb</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">17</span><span class="p">]</span><span class="o">+</span><span class="n">vec</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">18</span><span class="p">]))</span>
+    
+    <span class="k">return</span> <span class="n">r</span> <span class="o">&amp;</span> <span class="n">g</span> <span class="o">&amp;</span> <span class="n">b</span> <span class="o">&amp;</span> <span class="n">h</span> <span class="o">&amp;</span> <span class="n">s</span> <span class="o">&amp;</span> <span class="n">v</span> <span class="o">&amp;</span> <span class="n">nr</span> <span class="o">&amp;</span> <span class="n">ng</span> <span class="o">&amp;</span> <span class="n">nb</span></div>
+
+<div class="viewcode-block" id="overlay_mask"><a class="viewcode-back" href="../../../api/django_website.ImageFilters.html#django_website.ImageFilters.commonFunctions.overlay_mask">[docs]</a><span class="k">def</span> <span class="nf">overlay_mask</span><span class="p">(</span><span class="n">rgb_img</span><span class="p">,</span> <span class="n">bw_mask</span><span class="p">):</span>
+    <span class="n">coef</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">p2</span><span class="p">,</span> <span class="n">p98</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">rgb_img</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">70</span><span class="p">))</span>
+    <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">((</span><span class="mi">0</span><span class="o">-</span><span class="n">bw_mask</span><span class="o">+</span><span class="n">coef</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">coef</span><span class="p">))</span>
+    <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">((</span><span class="n">bw_mask</span><span class="o">+</span><span class="n">coef</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">coef</span><span class="p">))</span>
+    <span class="c">#rgb_img[..., 2] = rgb_img[..., 2]*((~bw_mask+coef)/(1+coef))</span>
+    <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">bw_mask</span><span class="o">+</span><span class="n">coef</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">coef</span><span class="p">))</span>
+    <span class="n">rgb_img</span> <span class="o">=</span> <span class="n">exposure</span><span class="o">.</span><span class="n">rescale_intensity</span><span class="p">(</span><span class="n">rgb_img</span><span class="p">,</span> <span class="n">in_range</span><span class="o">=</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">p98</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">rgb_img</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

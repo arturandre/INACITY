@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.Managers.ImageFilterManager &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.Managers.ImageFilterManager</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="k">import</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">FeatureCollection</span>
+<span class="kn">from</span> <span class="nn">django_website.ImageFilters.ImageFilter</span> <span class="k">import</span> <span class="n">ImageFilter</span>
+<span class="kn">from</span> <span class="nn">django_website.Primitives.GeoImage</span> <span class="k">import</span> <span class="n">GeoImage</span>
+
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="k">import</span> <span class="n">gettext</span>
+
+<div class="viewcode-block" id="ImageFilterManager"><a class="viewcode-back" href="../../../api/django_website.Managers.html#django_website.Managers.ImageFilterManager.ImageFilterManager">[docs]</a><span class="k">class</span> <span class="nc">ImageFilterManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ImageFilterManager: Responsible for keeping track of registered</span>
+<span class="sd">    image filters and for encapsulating responses from requests delegated</span>
+<span class="sd">    to them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__instance__</span> <span class="o">=</span> <span class="k">None</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">filterClass</span> <span class="ow">in</span> <span class="n">ImageFilter</span><span class="o">.</span><span class="n">_subclasses</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">registerFilter</span><span class="p">(</span><span class="n">filterClass</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ImageFilterManager</span><span class="o">.</span><span class="n">__instance__</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+            <span class="n">ImageFilterManager</span><span class="o">.</span><span class="n">__instance__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ImageFilterManager</span><span class="o">.</span><span class="n">__instance__</span>
+
+<div class="viewcode-block" id="ImageFilterManager.registerFilter"><a class="viewcode-back" href="../../../api/django_website.Managers.html#django_website.Managers.ImageFilterManager.ImageFilterManager.registerFilter">[docs]</a>    <span class="k">def</span> <span class="nf">registerFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="n">ImageFilter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used during initialization to make some implemented</span>
+<span class="sd">        image filter available to clients (e.g. front-end).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filter : ImageFilter</span>
+<span class="sd">            The ImageFilter object, it should be a specialization</span>
+<span class="sd">            of the class ImageFilter (e.g. GreeneryFilter)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        none</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            when a key error</span>
+<span class="sd">        OtherError</span>
+<span class="sd">            when an other error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">filter</span><span class="o">.</span><span class="n">filterId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">[</span><span class="nb">filter</span><span class="o">.</span><span class="n">filterId</span><span class="p">]</span> <span class="o">=</span> <span class="nb">filter</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ImageFilterManager.getAvailableImageFilters"><a class="viewcode-back" href="../../../api/django_website.Managers.html#django_website.Managers.ImageFilterManager.ImageFilterManager.getAvailableImageFilters">[docs]</a>    <span class="k">def</span> <span class="nf">getAvailableImageFilters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">[</span><span class="n">filterId</span><span class="p">]</span><span class="o">.</span><span class="n">filterName</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">filterId</span><span class="p">}</span> <span class="k">for</span> <span class="n">filterId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">]</span>   </div>
+
+<div class="viewcode-block" id="ImageFilterManager.processImageFromFeatureCollection"><a class="viewcode-back" href="../../../api/django_website.Managers.html#django_website.Managers.ImageFilterManager.ImageFilterManager.processImageFromFeatureCollection">[docs]</a>    <span class="k">def</span> <span class="nf">processImageFromFeatureCollection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filterId</span><span class="p">,</span> <span class="n">featureCollection</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FeatureCollection</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">filterId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ImageFilters</span><span class="p">[</span><span class="n">filterId</span><span class="p">]</span><span class="o">.</span><span class="n">processImageFromFeatureCollection</span><span class="p">(</span><span class="n">featureCollection</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gettext</span><span class="p">(</span><span class="s">&quot;filterId not found!&quot;</span><span class="p">)</span>
+        <span class="k">pass</span></div></div>
+
+
+    
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

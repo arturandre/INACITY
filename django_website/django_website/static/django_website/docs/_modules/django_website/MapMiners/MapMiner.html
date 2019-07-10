@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.MapMiners.MapMiner &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.MapMiners.MapMiner</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">django_website.Primitives.GeoImage</span> <span class="k">import</span> <span class="n">GeoImage</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">django.contrib.gis.geos</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="k">import</span> <span class="n">FeatureCollection</span>
+<span class="kn">from</span> <span class="nn">django.contrib.gis.gdal</span> <span class="k">import</span> <span class="n">SpatialReference</span><span class="p">,</span> <span class="n">CoordTransform</span>
+
+
+<div class="viewcode-block" id="MapMiner"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.MapMiner.MapMiner">[docs]</a><span class="k">class</span> <span class="nc">MapMiner</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class representing a Map Miner</span>
+<span class="sd">    adapter to collect data from some GIS</span>
+<span class="sd">    (Geographic Information System).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_destcrs</span> <span class="o">=</span> <span class="n">SpatialReference</span><span class="p">(</span><span class="mi">3857</span><span class="p">)</span> <span class="c"># OpenLayers defauls srid</span>
+    <span class="n">_subclasses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This subclass initializer will be responsible for</span>
+<span class="sd">        registering all the subclasses from MapMiner.</span>
+<span class="sd">        Besides simple checks are done here in order</span>
+<span class="sd">        to assure the presence of expected</span>
+<span class="sd">        properties such as:</span>
+
+<span class="sd">        &#39;mapMinerName&#39; : str</span>
+<span class="sd">            Used to display the MapMiner in the front-end.</span>
+<span class="sd">        &#39;mapMinerId&#39; : str</span>
+<span class="sd">            Used as identifier of the mapMiner in the</span>
+<span class="sd">            back-end by the MapMinerManager.</span>
+<span class="sd">        &#39;_availableQueries&#39; : dict[str, callback]</span>
+<span class="sd">            Used to map which kinds of queries the mapMiner</span>
+<span class="sd">            supports, for example the OSMMiner</span>
+<span class="sd">            has _availableQueries = {&#39;Streets&#39;: _getStreets})</span>
+<span class="sd">        &#39;_destcrs&#39; : SpatialReference(3857)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : dict</span>
+<span class="sd">            A simple dict object</span>
+<span class="sd">        y : dict</span>
+<span class="sd">            A simple dict object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict object with keys from both initial dict objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">_subclasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="n">notImplementedFields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">checkFields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">mapMinerName</span><span class="p">,</span> <span class="s">&#39;mapMinerName&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">mapMinerId</span><span class="p">,</span> <span class="s">&#39;mapMinerId&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_availableQueries</span><span class="p">,</span> <span class="s">&#39;_availableQueries&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_destcrs</span><span class="p">,</span> <span class="s">&#39;_destcrs&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">checkFields</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">checkFields</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
+                    <span class="n">notImplementedFields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checkFields</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+                <span class="n">notImplementedFields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checkFields</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">notImplementedFields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notImplementedFields</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;%s not defined in subclass: %s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+    
+        <span class="n">cls</span><span class="o">.</span><span class="n">_initialize</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="k">pass</span>
+    
+    <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;mapMinerName&quot;</span><span class="p">,</span> <span class="s">&quot;mapMinerId&quot;</span><span class="p">,</span> <span class="s">&quot;getAmenities&quot;</span><span class="p">]</span>
+
+    <span class="sd">&quot;&quot;&quot;This property represents the filter&#39;s name that&#39;ll be displayed in the UI&quot;&quot;&quot;</span>
+    <span class="n">mapMinerName</span> <span class="o">=</span> <span class="k">None</span>
+
+    <span class="sd">&quot;&quot;&quot;This property represents id used to catalog all available filters&quot;&quot;&quot;</span>
+    <span class="n">mapMinerId</span> <span class="o">=</span> <span class="k">None</span>
+
+    <span class="sd">&quot;&quot;&quot;This property represents the possible queries the user can make to a specific MapMiner&quot;&quot;&quot;</span>
+    <span class="n">_availableQueries</span> <span class="o">=</span> <span class="k">None</span>    
+
+    <span class="sd">&quot;&quot;&quot;This property represents the source GIS srid&quot;&quot;&quot;</span>
+    <span class="n">_basecrs</span> <span class="o">=</span> <span class="k">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="MapMiner.getAvailableQueries"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.MapMiner.MapMiner.getAvailableQueries">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getAvailableQueries</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Registry of available queries to any clients (i.e. frontend)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">query</span> <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_availableQueries</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="MapMiner.doQuery"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.MapMiner.MapMiner.doQuery">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">doQuery</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">queryName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">regions</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute a registered query&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span> <span class="ow">is</span> <span class="n">FeatureCollection</span><span class="p">:</span> <span class="n">regions</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">regions</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span> <span class="n">regions</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_availableQueries</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_availableQueries</span><span class="p">[</span><span class="n">queryName</span><span class="p">](</span><span class="n">cls</span><span class="o">.</span><span class="n">_preFormatInput</span><span class="p">(</span><span class="n">regions</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_reproject</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">geosobject</span><span class="p">):</span>
+        <span class="n">trans</span> <span class="o">=</span> <span class="n">CoordTransform</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_basecrs</span><span class="p">,</span> <span class="n">MapMiner</span><span class="o">.</span><span class="n">_destcrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">geosobject</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_preFormatInput</span><span class="p">(</span><span class="n">GeoJsonInput</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">GeoJsonInput</span></div>
+
+
+
+
+    
+
+    
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

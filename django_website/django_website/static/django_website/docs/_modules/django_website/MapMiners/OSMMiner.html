@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>django_website.MapMiners.OSMMiner &#8212; INACITY 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for django_website.MapMiners.OSMMiner</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">geojson</span> <span class="k">import</span> <span class="n">Point</span><span class="p">,</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">MultiLineString</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">Feature</span><span class="p">,</span> <span class="n">FeatureCollection</span>
+<span class="kn">from</span> <span class="nn">django.contrib.gis.gdal</span> <span class="k">import</span> <span class="n">SpatialReference</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">django_website.Primitives.OSMPrimitives</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.MapMiner</span> <span class="k">import</span> <span class="n">MapMiner</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">dateutil.parser</span> <span class="k">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Lock</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">django_website.geofunctions</span> <span class="k">import</span> <span class="n">flip_geojson_coordinates</span>
+
+
+<div class="viewcode-block" id="OSMMiner"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.OSMMiner.OSMMiner">[docs]</a><span class="k">class</span> <span class="nc">OSMMiner</span><span class="p">(</span><span class="n">MapMiner</span><span class="p">):</span>
+    <span class="n">mapMinerName</span> <span class="o">=</span> <span class="s">&quot;OpenStreetMap&quot;</span>
+    <span class="n">mapMinerId</span> <span class="o">=</span> <span class="s">&quot;osm&quot;</span>
+
+    <span class="sd">&quot;&quot;&quot;OpenStreetMaps miner constructed using the Overpass API&quot;&quot;&quot;</span>
+    <span class="c">#EPSG:3857</span>
+    <span class="c">#Since OpenLayers and OSMMiner use the same SRID no convertion is needed</span>
+    <span class="n">_basecrs</span> <span class="o">=</span> <span class="n">SpatialReference</span><span class="p">(</span><span class="mi">3857</span><span class="p">)</span>
+
+    <span class="c"># _OSMServerURL defines where should the OSMMiner collect GIS Data</span>
+    <span class="c"># Options are:</span>
+    <span class="c"># OverpassAPI.DE -&gt; Public OSM API (with limits of request&#39;s size/rate)</span>
+    <span class="c"># inacity.org -&gt; INACITY&#39;s private mirror of OSM</span>
+    <span class="n">_OSMServerURL</span> <span class="o">=</span> <span class="s">&#39;inacity.org&#39;</span>
+
+    <span class="n">inacityorg</span> <span class="o">=</span> <span class="s">&#39;inacity.org&#39;</span>
+    <span class="n">overpassapi</span> <span class="o">=</span> <span class="s">&#39;OverpassAPI.DE&#39;</span>
+    <span class="k">if</span> <span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">inacityorg</span><span class="p">:</span>
+        <span class="n">_overpassBaseUrl</span> <span class="o">=</span> <span class="s">&quot;http://ssh.inacity.org/api/interpreter?data=&quot;</span>
+    <span class="k">elif</span> <span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">overpassapi</span><span class="p">:</span>
+        <span class="n">_overpassBaseUrl</span> <span class="o">=</span> <span class="s">&quot;http://overpass-api.de/api/interpreter?data=&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Invalid _OSMServerURL (&#39;</span><span class="o">+</span><span class="n">_OSMServerURL</span><span class="o">+</span><span class="s">&#39;)!&#39;</span><span class="p">)</span>
+
+    <span class="n">_overspassApiStatusUrl</span> <span class="o">=</span> <span class="s">&#39;http://overpass-api.de/api/status&#39;</span>
+
+
+    <span class="n">_outFormat</span> <span class="o">=</span> <span class="s">&quot;[out:json]&quot;</span>
+    <span class="n">_timeout</span> <span class="o">=</span> <span class="s">&quot;[timeout:60]&quot;</span>
+    <span class="n">_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+    
+    <span class="n">_destcrs</span> <span class="o">=</span> <span class="n">SpatialReference</span><span class="p">(</span><span class="mi">3857</span><span class="p">)</span>
+    <span class="n">_crs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;EPSG:3857&quot;</span>
+    <span class="p">}</span>
+    <span class="p">}</span>
+
+
+
+ 
+<div class="viewcode-block" id="OSMMiner.OverpassRunningQuery"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.OSMMiner.OSMMiner.OverpassRunningQuery">[docs]</a>    <span class="k">class</span> <span class="nc">OverpassRunningQuery</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Dedicated class to wrap Overpass status running queries data, if any is available&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spaceLimit</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeLimit</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#i.e. 2018-05-08T21:30:02Z</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="OSMMiner.OverpassAPIStatus"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.OSMMiner.OSMMiner.OverpassAPIStatus">[docs]</a>    <span class="k">class</span> <span class="nc">OverpassAPIStatus</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Dedicated class to wrap Overpass status data&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connectId</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentTime</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rateLimit</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitingTime</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">availableAfter</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">availableSlots</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runningQueries</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="OSMMiner.OverpassAPIStatus.fromText"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.OSMMiner.OSMMiner.OverpassAPIStatus.fromText">[docs]</a>        <span class="nd">@staticmethod</span>
+        <span class="k">def</span> <span class="nf">fromText</span><span class="p">(</span><span class="n">textMessage</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Creates an OverpassAPIStatus object from the text description obtained at overpass/api/status&quot;&quot;&quot;</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">OverpassAPIStatus</span><span class="p">()</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">textMessage</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">r&#39;\n&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span> <span class="k">return</span> <span class="n">ret</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;Connected as: (\d+)$&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">ret</span><span class="o">.</span><span class="n">connectId</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;Current time: (.+?)$&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">ret</span><span class="o">.</span><span class="n">currentTime</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;Rate limit: (\d+)$&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">ret</span><span class="o">.</span><span class="n">rateLimit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">startAtLine</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">for</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">startAtLine</span><span class="p">:]):</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;^(\d+) slots available now.&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">availableSlots</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="k">continue</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;Slot available after: (.+?), in (\d+?) seconds.&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">availableAfter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parse</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">waitingTime</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s">r&#39;Currently running queries (pid, space limit, time limit, start time):&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">subline</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">lineno</span><span class="o">+</span><span class="n">startAtLine</span><span class="o">+</span><span class="mi">1</span><span class="p">:]:</span>
+                        <span class="n">fields</span> <span class="o">=</span> <span class="n">subline</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span> <span class="k">continue</span>
+                        <span class="n">ovpq</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">OverpassRunningQuery</span><span class="p">()</span>
+                        <span class="n">ovpq</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">ovpq</span><span class="o">.</span><span class="n">spaceLimit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">ovpq</span><span class="o">.</span><span class="n">timeLimit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="n">ovpq</span><span class="o">.</span><span class="n">startTime</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                        <span class="n">ret</span><span class="o">.</span><span class="n">runningQueries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ovpq</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">return</span> <span class="n">ret</span></div>
+        <span class="k">pass</span></div>
+
+    <span class="n">_overpassBaseUrl</span> <span class="o">=</span> <span class="s">&quot;http://overpass-api.de/api/interpreter?data=&quot;</span>
+    <span class="c">#_overpassBaseUrl = &quot;http://inacity.eastus.cloudapp.azure.com/api/interpreter?data=&quot;</span>
+    <span class="n">_overspassApiStatusUrl</span> <span class="o">=</span> <span class="s">&#39;http://overpass-api.de/api/status&#39;</span>
+    <span class="n">_outFormat</span> <span class="o">=</span> <span class="s">&quot;[out:json]&quot;</span>
+    <span class="n">_timeout</span> <span class="o">=</span> <span class="s">&quot;[timeout:60]&quot;</span>
+    <span class="n">_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+    
+    <span class="n">_destcrs</span> <span class="o">=</span> <span class="n">SpatialReference</span><span class="p">(</span><span class="mi">3857</span><span class="p">)</span>
+    <span class="n">_crs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;EPSG:3857&quot;</span>
+    <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;This is a static class and should not be instantiated.&quot;</span><span class="p">)</span>
+        <span class="c">#pass</span>
+
+    <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">__name__</span><span class="p">]</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&quot;OSMMiner&quot;</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span>
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_setRateLimit</span><span class="p">()</span>
+        <span class="k">pass</span>
+
+    <span class="n">_getStreets</span> <span class="o">=</span> <span class="k">None</span>    
+    
+
+    <span class="n">_rateLimit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">_currentQueries</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">def</span> <span class="nf">_setRateLimit</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">inacityorg</span><span class="p">:</span>
+            <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">=</span> <span class="mi">99999999</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">overpassapi</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;Check how many queries can be executed concurrently according to OverpassAPI Status&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">statusMessage</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_overspassApiStatusUrl</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="n">ovpStatus</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">OverpassAPIStatus</span><span class="o">.</span><span class="n">fromText</span><span class="p">(</span><span class="n">statusMessage</span><span class="p">)</span>
+                <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span><span class="p">,</span> <span class="n">ovpStatus</span><span class="o">.</span><span class="n">rateLimit</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t set the rateLimit value!&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_waitForAvailableSlots</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Collect status from OverpassAPI, available slots and current queries&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">inacityorg</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">overpassapi</span><span class="p">:</span>
+            <span class="k">while</span> <span class="k">True</span><span class="p">:</span>
+                <span class="n">statusMessage</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_overspassApiStatusUrl</span><span class="p">)</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="n">ovpStatus</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">OverpassAPIStatus</span><span class="o">.</span><span class="n">fromText</span><span class="p">(</span><span class="n">statusMessage</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ovpStatus</span><span class="o">.</span><span class="n">availableSlots</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">timeToWait</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ovpStatus</span><span class="o">.</span><span class="n">waitingTime</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ovpStatus</span><span class="o">.</span><span class="n">waitingTime</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">3</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timeToWait</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_preFormatInput</span><span class="p">(</span><span class="n">GeoJsonInput</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
+        <span class="n">flip_geojson_coordinates</span><span class="p">(</span><span class="n">GeoJsonInput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">GeoJsonInput</span>
+
+    <span class="k">def</span> <span class="nf">_getStreets</span><span class="p">(</span><span class="n">regions</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultiLineString</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Collect a set of Ways (from OSM) and convert them to a MultiLineString&quot;&quot;&quot;</span>
+
+        <span class="n">overpassQueryUrl</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_createCollectStreetsQuery</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s">&quot;Rate limit %d, current queries: %d </span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span><span class="p">,</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_currentQueries</span><span class="p">))</span>
+        <span class="k">while</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_currentQueries</span> <span class="o">&gt;=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_waitForAvailableSlots</span><span class="p">()</span>
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_currentQueries</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c">##DEBUG</span>
+        <span class="c">#print(&quot;added query: %d\n&quot; % OSMMiner._currentQueries)</span>
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="n">jsonString</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">overpassQueryUrl</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+        <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_currentQueries</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="c">##DEBUG</span>
+        <span class="c">#print(&quot;removed query: %d\n&quot; % OSMMiner._currentQueries)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#TODO: Treat cases in which the OSM server fails</span>
+            <span class="n">osmResult</span> <span class="o">=</span> <span class="n">OSMResult</span><span class="o">.</span><span class="n">fromJsonString</span><span class="p">(</span><span class="n">jsonString</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s">&quot;Error while parsing overpass message. Message sample: %s&quot;</span> <span class="o">%</span> <span class="n">jsonString</span><span class="p">[:</span><span class="mi">100</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&quot;Invalid jsonString&quot;</span><span class="p">)</span>
+        <span class="n">streetSegments</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c"># Data needs to be sorted before being grouped, otherwise</span>
+        <span class="c"># the same group may appear multiple times</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">osmResult</span><span class="o">.</span><span class="n">Ways</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">))</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">groupby</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">streetName</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">nodesList</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">group</span><span class="p">]</span>
+            <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_mergeWays</span><span class="p">(</span><span class="n">nodesList</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">streetName</span> <span class="ow">in</span> <span class="n">streetSegments</span><span class="p">:</span>
+                <span class="n">streetSegments</span><span class="p">[</span><span class="n">streetName</span><span class="p">]</span> <span class="o">=</span> <span class="n">streetSegments</span><span class="p">[</span><span class="n">streetName</span><span class="p">]</span> <span class="o">+</span> <span class="n">nodesList</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">streetSegments</span><span class="p">[</span><span class="n">streetName</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodesList</span>
+        <span class="n">featuresList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">streetName</span> <span class="ow">in</span> <span class="n">streetSegments</span><span class="p">:</span>
+            <span class="n">featuresList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">Feature</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">streetName</span><span class="p">,</span> 
+                    <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span><span class="n">streetName</span><span class="p">},</span> 
+                    <span class="n">geometry</span><span class="o">=</span><span class="n">MultiLineString</span><span class="p">([</span><span class="n">LineString</span><span class="p">([</span>
+                    <span class="n">Point</span><span class="p">([</span><span class="n">osmResult</span><span class="o">.</span><span class="n">Nodes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> 
+                    <span class="n">osmResult</span><span class="o">.</span><span class="n">Nodes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">lat</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span> 
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streetSegments</span><span class="p">[</span><span class="n">streetName</span><span class="p">]]))</span>
+            <span class="p">)</span>
+           
+        <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">featuresList</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_crs</span><span class="p">)</span>
+        <span class="c">#return StreetsDTOList</span>
+
+    <span class="k">def</span> <span class="nf">_createCollectStreetsQuery</span><span class="p">(</span><span class="n">regions</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface&quot;&quot;&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_overpassBaseUrl</span> <span class="o">+</span> <span class="s">&quot;%s%s;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_outFormat</span><span class="p">,</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_timeout</span><span class="p">)</span>
+        <span class="n">outresult</span> <span class="o">=</span> <span class="s">&#39;(.allfiltered;&gt;;);out;&#39;</span>
+        <span class="n">middle</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">numRegion</span> <span class="o">=</span> <span class="mi">0</span>
+            
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]:</span>
+            <span class="n">geom</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s">&#39;geometry&#39;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">geom</span> <span class="ow">is</span> <span class="n">Polygon</span><span class="p">)</span>
+            <span class="c">#numRegion += 1</span>
+            <span class="c">#stringRegion = str(r.coords).replace(&quot;(&quot;, &quot;&quot;).replace(&quot;)&quot;, &quot;&quot;).replace(&quot;,&quot;, &quot;&quot;)</span>
+            <span class="n">stringRegion</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;coordinates&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">middle</span> <span class="o">+=</span> <span class="s">&#39;(way[&quot;highway&quot;~&quot;.*&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;);way[&quot;surface&quot;=&quot;asphalt&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;);)-&gt;.all;(way[&quot;fixme&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;)-&gt;.a;way[&quot;highway&quot;=&quot;footway&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;)-&gt;.a;way[&quot;highway&quot;=&quot;service&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;)-&gt;.a;way[&quot;highway&quot;=&quot;steps&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;)-&gt;.a;way[&quot;name&quot;!~&quot;.*&quot;](poly:&quot;&#39;</span> <span class="o">+</span> <span class="n">stringRegion</span> <span class="o">+</span> <span class="s">&#39;&quot;)-&gt;.a;)-&gt;.remove;(.all; - .remove;)-&gt;.allfiltered;&#39;</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">header</span><span class="o">+</span><span class="n">middle</span><span class="o">+</span><span class="n">outresult</span>
+        <span class="k">return</span>  <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">_mergeWays</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collapse a list of lists of nodes from ways into a single nodes list (if endpoint nodes, from different lists in the same way, are the same)&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="k">True</span><span class="p">:</span>
+            <span class="n">merged</span> <span class="o">=</span> <span class="k">False</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">))):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span> <span class="c">#heads-heads</span>
+                    <span class="c">#Remove repeated element from the second list</span>
+                    <span class="k">del</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">])],</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">])]</span>
+                    <span class="n">merged</span> <span class="o">=</span> <span class="k">True</span>
+                    <span class="k">break</span>
+                  <span class="k">elif</span> <span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span> <span class="c">#tails-tails</span>
+                    <span class="c">#Remove repeated element from the second list</span>
+                    <span class="k">del</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">])])]</span>
+                    <span class="n">merged</span> <span class="o">=</span> <span class="k">True</span>
+                    <span class="k">break</span>
+                  <span class="k">elif</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span> <span class="c">#tails-heads</span>
+                    <span class="c">#Remove repeated element from the second list</span>
+                    <span class="k">del</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">])]</span>
+                    <span class="n">merged</span> <span class="o">=</span> <span class="k">True</span>
+                    <span class="k">break</span>
+                  <span class="k">elif</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="c">#heads-tails</span>
+                    <span class="c">#Remove repeated element from the second list</span>
+                    <span class="k">del</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                    <span class="n">merged</span> <span class="o">=</span> <span class="k">True</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="n">merged</span><span class="p">:</span>
+                    <span class="c">#debugging only</span>
+                    <span class="c">#print(&quot;deleted: &quot;, nodesSegList[i])</span>
+                    <span class="c">#print(&quot;merged: &quot;, nodesSegList[j])</span>
+                    <span class="k">del</span> <span class="n">nodesSegList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">merged</span><span class="p">:</span> <span class="k">break</span>
+        <span class="k">return</span> <span class="n">nodesSegList</span>
+    
+    <span class="n">_availableQueries</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Streets&#39;</span><span class="p">:</span> <span class="n">_getStreets</span><span class="p">}</span></div>
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Oliveira, Artur A./ Hirata, Roberto Jr..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
