@@ -1,5 +1,17 @@
-﻿class UIController {
-    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager) {
+﻿class UIController
+{
+    /**
+     * Following the MVC architectural pattern this class represents
+     * the controller and works together the UIModel and the UIView
+     * in the scope of the "home" section.
+     * @param {UIModel} uiModel 
+     * @param {UIView} uiView 
+     * @param {GeoImageManager} geoImageManager 
+     * @param {OpenLayerHandler} openLayersHandler 
+     * @param {SessionManager} sessionManager 
+     */
+    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager)
+    {
         this.uiModel = uiModel;
         this.uiView = uiView;
         this.geoImageManager = geoImageManager;
@@ -7,7 +19,8 @@
         this.sessionManager = sessionManager;
     }
 
-    initialize() {
+    initialize()
+    {
 
         this.uiView.onClickExecuteQueryBtn = this.onClickExecuteQueryBtn.bind(this);
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
@@ -52,7 +65,8 @@
      * when the user changes the imgSlider value (position).
      * @param {int} value - The current position of the imgSlider as informed by itself
      */
-    onImageSliderInput(event) {
+    onImageSliderInput(event)
+    {
         let slider = event.target;
         //geoImageManager.displayGeoImageAtIndex(parseInt(slider.value), true);
         this.uiModel.imgSliderMoving = true;
@@ -72,14 +86,16 @@
         this.openLayersHandler.drawing = false;
     }
 
-    onClickChangeShapeBtn(event) {
+    onClickChangeShapeBtn(event)
+    {
         let drawTool = event.data;
 
         this.uiView.updateShapeToolView(drawTool);
         this.openLayersHandler.SelectedDrawTool = drawTool;
     }
 
-    onClickChangeViewMode(event) {
+    onClickChangeViewMode(event)
+    {
         let viewmode = event.data;
 
         this.uiView.changeViewMode(viewmode);
@@ -91,28 +107,32 @@
     * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
     * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
     */
-    onClickChangeMapProviderBtn(event) {
+    onClickChangeMapProviderBtn(event)
+    {
         let tileProvider = event.data;
 
         this.uiView.updateMapProviderView(tileProvider);
         this.openLayersHandler.SelectedMapProvider = tileProvider;
     }
 
-    onClickChangeImageProvider(event) {
+    onClickChangeImageProvider(event)
+    {
         let imageProvider = event.data;
 
         this.uiView.updateImageProviderView(imageProvider);
         this.uiModel.SelectedImageProvider = imageProvider;
     }
 
-    onClickChangeMapMinerBtn(event) {
+    onClickChangeMapMinerBtn(event)
+    {
         let mapMiner = event.data;
 
         this.uiView.updateMapMinerView(mapMiner);
         this.uiModel.SelectedMapMiner = mapMiner;
     }
 
-    onClickChangeMapFeatureBtn(event) {
+    onClickChangeMapFeatureBtn(event)
+    {
         let mapFeature = event.data;
 
         this.uiView.updateFeatureView(mapFeature);
@@ -121,7 +141,8 @@
 
 
 
-    onClickChangeImageFilter(event) {
+    onClickChangeImageFilter(event)
+    {
         let imageFilter = event.data;
 
         this.uiView.updateImageFilterView(imageFilter);
@@ -129,37 +150,45 @@
     }
 
     //cancelDrawing() {
-    onClickCancelDrawingBtn(event) {
+    onClickCancelDrawingBtn(event)
+    {
         this.uiView.updateShapeToolView(null);
         this.openLayersHandler.SelectedDrawTool = null;
     }
 
-    onImageChange() {
+    onImageChange()
+    {
         this.uiView.updateGeoImgSlider();
     }
 
-    onGeoImageCollectionChange() {
+    onGeoImageCollectionChange()
+    {
         this.uiView.updateGeoImgSlider();
         //this.sessionManager.saveSession();
     }
 
-    onFeatureCollectionChange(layer) {
+    onFeatureCollectionChange(layer)
+    {
         this.uiView.updateLayersHintList();
-        if (layer) {
+        if (layer)
+        {
             this.uiModel.updateFeatureIndex(layer.layerId.toString()); //Model commands should be before View commands
             this.uiView.drawLayer(layer, true);
         }
     }
 
-    onFeaturesMerged(layer) {
+    onFeaturesMerged(layer)
+    {
         this.uiView.drawLayer(layer, true);
     }
 
-    onClickRegionListItem() {
+    onClickRegionListItem()
+    {
         this.uiView.updateLayersHintList();
     }
 
-    async onClickAddressBarBtn() {
+    async onClickAddressBarBtn()
+    {
         /**
         Implement a call to uiModel
         and at the uiModel implement an ajax request as
@@ -182,24 +211,38 @@
         }
     }
 
-    onClickClearSelectionsBtn() {
+    onClickClearSelectionsBtn()
+    {
         this.uiModel.SelectedMapMiner = null;
         this.uiModel.SelectedMapFeature = null;
 
         this.uiView.clearSelections();
     }
 
-    async onClickSaveSessionBtn() {
+    async onClickSaveSessionBtn()
+    {
         let currentSessionName = this.uiModel.currentSessionName;
         let sessionName = this.uiView.askSessionName(currentSessionName);
         await this.sessionManager.saveSession(sessionName);
     }
 
-    async onClickNewSessionBtn() {
-        await this.sessionManager.newSession();
+    async onClickNewSessionBtn()
+    {
+        try
+        {
+            if (await this.sessionManager.newSession())
+            {
+                this.uiView.displayMessage(gettext("New blank session created!"));
+            }
+        } catch (error)
+        {
+            this.uiView.displayMessage(error, "Error");
+        }
+
     }
 
-    async onClickExecuteQueryBtn() {
+    async onClickExecuteQueryBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteQuery);
         try
         {
@@ -212,7 +255,8 @@
         }
     }
 
-    async onClickExecuteImageFilterBtn() {
+    async onClickExecuteImageFilterBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
 
         let filterId = this.uiModel.SelectedImageFilter.id;
@@ -228,14 +272,17 @@
         }
     }
 
-    async onClickGetImagesBtn() {
+    async onClickGetImagesBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
-        try {
+        try
+        {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
             //Set the geoImageManager to display this collection
             this.geoImageManager.updateDisplayingLayers();
         }
-        finally {
+        finally
+        {
             this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages)
         }
     }

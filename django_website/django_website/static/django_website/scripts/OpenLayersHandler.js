@@ -3,28 +3,53 @@
 * @module OpenLayersHandler
 */
 
-class DrawTool {
-    constructor(DrawToolName, geoFunction) {
-        if (DrawTool.isNameValid(DrawToolName)) {
-            this.name = DrawToolName;
+class DrawTool
+{
+    constructor(DrawToolId, geoFunction)
+    {
+        let tool = DrawTool.getToolById(DrawToolId);
+        if (tool)
+        {
+            this.id = tool.id;
+            this.name = tool.name;
             this.geometryFunction = geoFunction;
         }
-        else {
+        else
+        {
             throw Error(gettext("Invalid DrawToolName") + `: ${DrawToolName}`);
         }
     }
 }
 
-if (!DrawTool.init) {
+if (!DrawTool.init)
+{
     DrawTool.init = true;
-    DrawTool.validNames =
+    DrawTool.validTools =
         [
-            gettext('Box'),
-            gettext('Square'),
-            gettext('Dodecagon')
+            {
+                id: 'Box',
+                name: `<i class="fal fa-vector-square"></i> ${gettext('Box')}`
+            },
+            {
+                id: 'Square',
+                name: `<i class="fal fa-diamond"></i> ${gettext('Square')}`
+            },
+            {
+                id: 'Dodecagon',
+                name: `<i class="fal fa-octagon"></i> ${gettext('Dodecagon')}`
+            }
         ];
-    DrawTool.isNameValid = function (name) {
-        return (DrawTool.validNames.indexOf(name) >= 0);
+    DrawTool.isIdValid = function (id)
+    {
+        return (DrawTool.validTools.findIndex(tool => tool.id === id) >= 0);
+        //return (DrawTool.validTools.indexOf(name) >= 0);
+    }
+    DrawTool.getToolById = function (id)
+    {
+        if (DrawTool.isIdValid(id))
+            return DrawTool.validTools[DrawTool.validTools.findIndex(tool => tool.id === id)];
+        else
+            return null;
     }
 }
 
@@ -36,17 +61,23 @@ let instance = null;
 * @param {OpenLayersHandler.TileProviders} defaultTileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
 * for OpenStreetMap's tiles, 'google_roadmap_tiles' for Google Maps tiles.
 */
-class OpenLayersHandler extends Subject {
-    constructor(HTMLDIVtarget) {
+class OpenLayersHandler extends Subject
+{
+    constructor(HTMLDIVtarget)
+    {
         super();
-        if (!HTMLDIVtarget) {
+        if (!HTMLDIVtarget)
+        {
             throw new Error('Map container div not informed! HTMLDIVtarget: ' + HTMLDIVtarget);
         }
-        if (!instance) {
+        if (!instance)
+        {
             instance = this;
         }
-        else {
-            if (instance.map.getTarget()) {
+        else
+        {
+            if (instance.map.getTarget())
+            {
                 instance.map.setTarget(HTMLDIVtarget);
             }
             return instance;
@@ -77,14 +108,18 @@ class OpenLayersHandler extends Subject {
         var mouseWheelInt = new ol.interaction.MouseWheelZoom();
         this.map.addInteraction(mouseWheelInt);
 
-        this.map.on('wheel', function (evt) {
+        this.map.on('wheel', function (evt)
+        {
             let shiftKeyOnly = ol.events.condition.shiftKeyOnly(evt);
             mouseWheelInt.setActive(shiftKeyOnly);
-            if (!shiftKeyOnly) {
+            if (!shiftKeyOnly)
+            {
                 $('#mapOverlay').fadeTo(0, 0);
                 $('#mapOverlay').show();
-                $('#mapOverlay').fadeTo(600, 1, function () {
-                    $('#mapOverlay').fadeTo(2000, 0, function () {
+                $('#mapOverlay').fadeTo(600, 1, function ()
+                {
+                    $('#mapOverlay').fadeTo(2000, 0, function ()
+                    {
                         $('#mapOverlay').hide();
                     });
                 });
@@ -172,7 +207,7 @@ class OpenLayersHandler extends Subject {
         for (let i = 0; i < addresses.length; i++)
         {
             let lonlat = [parseFloat(addresses[i].lon), parseFloat(addresses[i].lat)];
-            dists.push((new ol.geom.LineString([ol.proj.fromLonLat(lonlat),center]).getLength()));
+            dists.push((new ol.geom.LineString([ol.proj.fromLonLat(lonlat), center]).getLength()));
         }
         return addresses[dists.indexOf(Math.min(...dists))];
     }
@@ -199,17 +234,17 @@ class OpenLayersHandler extends Subject {
         if (this._imagePinPoint)
         {
             this.globalVectorSource.removeFeature(this._imagePinPoint);
-            
+
         }
         if (this._imagePinPointArrow)
         {
             this.globalVectorSource.removeFeature(this._imagePinPointArrow);
         }
 
-        
+
         this._imagePinPoint = new ol.Feature({
             geometry: new ol.geom.Point(
-                ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat])
+                ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])
             )
         });
         this._imagePinPoint.setStyle(new ol.style.Style({
@@ -221,17 +256,17 @@ class OpenLayersHandler extends Subject {
         }));
 
         //1 meter in x positive direction?
-        let rightPointingArrow = new ol.geom.Point([0,50]);
+        let rightPointingArrow = new ol.geom.Point([0, 50]);
         //rightPointingArrow.scale(1, 1);
-        let rotation = (Math.PI*geoImage.heading)/180;
-        rightPointingArrow.rotate(-rotation, [0,0])
-        let pCoords = ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat]);
+        let rotation = (Math.PI * geoImage.heading) / 180;
+        rightPointingArrow.rotate(-rotation, [0, 0])
+        let pCoords = ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]);
         rightPointingArrow.translate(pCoords[0], pCoords[1]);
 
         this._imagePinPointArrow = new ol.Feature({
             geometry: new ol.geom.LineString(
                 [
-                    ol.proj.fromLonLat([geoImage.location.lon,geoImage.location.lat]),
+                    ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]),
                     rightPointingArrow.getCoordinates()
                 ]
             )
@@ -250,48 +285,58 @@ class OpenLayersHandler extends Subject {
                     src: '/static/django_website/images/arrow.png',
                     anchor: [0.75, 0.5],
                     rotateWithView: true,
-                    rotation: (-Math.PI/2)+rotation
+                    rotation: (-Math.PI / 2) + rotation
                 })
-            
+
             })
         ]);
 
         this.globalVectorSource.addFeature(this._imagePinPoint);
         this.globalVectorSource.addFeature(this._imagePinPointArrow);
-        
+
     }
 
-    setDefaults(defaults) {
-        if (defaults) {
-            if (defaults.center) {
+    setDefaults(defaults)
+    {
+        if (defaults)
+        {
+            if (defaults.center)
+            {
                 this.view.setCenter(ol.proj.fromLonLat([defaults.center.lon, defaults.center.lat]));
             }
-            if (defaults.zoom_level) {
+            if (defaults.zoom_level)
+            {
                 this.view.setZoom(defaults.zoom_level);
             }
-            if (defaults.tileProvider) {
+            if (defaults.tileProvider)
+            {
                 this.SelectedMapProvider = defaults.tileProvider;
             }
-            if (defaults.drawTool) {
+            if (defaults.drawTool)
+            {
                 this.SelectedDrawTool = defaults.drawTool;
             }
         }
     }
 
     get SelectedDrawTool() { return this._SelectedDrawTool; }
-    set SelectedDrawTool(drawTool) {
+    set SelectedDrawTool(drawTool)
+    {
 
-        if (!drawTool) {
+        if (!drawTool)
+        {
             if (this._SelectedDrawTool) this.map.removeInteraction(this._drawInteraction);
             this._SelectedDrawTool = drawTool;
             return;
         }
 
-        if (!DrawTool.isNameValid(drawTool.name)) {
+        if (!DrawTool.isIdValid(drawTool.id))
+        {
             throw Error(gettext("Invalid DrawTool."));
         }
 
-        if (drawTool && this._SelectedDrawTool) {
+        if (drawTool && this._SelectedDrawTool)
+        {
             this.map.removeInteraction(this._drawInteraction);
         }
 
@@ -309,7 +354,8 @@ class OpenLayersHandler extends Subject {
     }
 
     get SelectedMapProvider() { return this._SelectedMapProvider; }
-    set SelectedMapProvider(tileProvider) {
+    set SelectedMapProvider(tileProvider)
+    {
         this._SelectedMapProvider = tileProvider;
         this.changeMapProvider(tileProvider.provider);
     }
@@ -317,16 +363,20 @@ class OpenLayersHandler extends Subject {
     /**
      * This couples with the GeoImageManager component
      */
-    _updateHeatmapLayer(geoimagecollectionchangeEvent) {
+    _updateHeatmapLayer(geoimagecollectionchangeEvent)
+    {
         let geoImageCollection = geoimagecollectionchangeEvent.geoImageCollection;
         let imageFilterId = geoimagecollectionchangeEvent.imageFilterId;
         let newHeatmapVectorSource = new ol.source.Vector({ wrapX: false });
 
-        for (let i = 0; i < geoImageCollection.validImages; i++) {
+        for (let i = 0; i < geoImageCollection.validImages; i++)
+        {
             let geoImage = geoImageCollection.getGeoImageAtIndex(i);
 
-            if (geoImage.processedDataList && geoImage.processedDataList[imageFilterId]) {
-                if (!isNaN(geoImage.processedDataList[imageFilterId].density)) {
+            if (geoImage.processedDataList && geoImage.processedDataList[imageFilterId])
+            {
+                if (!isNaN(geoImage.processedDataList[imageFilterId].density))
+                {
                     let feature = new ol.Feature({
                         geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])),
                         weight: geoImage.processedDataList[imageFilterId].density
@@ -346,8 +396,10 @@ class OpenLayersHandler extends Subject {
      * Set the map tiles provider for displaying
      * @param {OpenLayersHandler.TileProviders} tileProvider - The tile provider as registered at :js:attr:`TileProviders` class member.
      */
-    changeMapProvider(tileProvider) {
-        if (instance.map) {
+    changeMapProvider(tileProvider)
+    {
+        if (instance.map)
+        {
             let currentView = instance.map.getView();
             //currentCenter = this.map.getCenter();
             //currentZoom = this.map.getZoom();
@@ -360,7 +412,8 @@ class OpenLayersHandler extends Subject {
     }
 }
 
-if (!OpenLayersHandler.init) {
+if (!OpenLayersHandler.init)
+{
     OpenLayersHandler.init = true;
 
     OpenLayersHandler.registerEventNames([
@@ -382,10 +435,12 @@ if (!OpenLayersHandler.init) {
      */
     OpenLayersHandler.DrawTools =
         {
-            Box: new DrawTool(gettext('Box'), ol.interaction.Draw.createBox()),
-            Square: new DrawTool(gettext('Square'), ol.interaction.Draw.createRegularPolygon(4)),
-            Dodecagon: new DrawTool(gettext('Dodecagon'), function (coordinates, geometry) {
-                if (!geometry) {
+            Box: new DrawTool('Box', ol.interaction.Draw.createBox()),
+            Square: new DrawTool('Square', ol.interaction.Draw.createRegularPolygon(4)),
+            Dodecagon: new DrawTool('Dodecagon', function (coordinates, geometry)
+            {
+                if (!geometry)
+                {
                     geometry = new ol.geom.Polygon(null);
                 }
                 var center = coordinates[0];
@@ -396,7 +451,8 @@ if (!OpenLayersHandler.init) {
                 var rotation = Math.atan2(dy, dx);
                 var newCoordinates = [];
                 var numPoints = 12;
-                for (var i = 0; i < numPoints; ++i) {
+                for (var i = 0; i < numPoints; ++i)
+                {
                     var angle = rotation + i * 2 * Math.PI / numPoints;
                     var offsetX = radius * Math.cos(angle);
                     var offsetY = radius * Math.sin(angle);

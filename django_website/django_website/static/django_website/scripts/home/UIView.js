@@ -204,8 +204,8 @@ class UIView {
                 console.error(gettext("Unknown mode selected!"));
                 break;
         }
-        let viewModeLabel = $(`#changeModeDiv > label:contains('${viewmode.name}')`);
-        let viewModeBtn = $(`#changeModeDiv > label:contains('${viewmode.name}') > input`);
+        let viewModeLabel = $(`#changeModeDiv > label[id = '${viewmode.id}']`);
+        let viewModeBtn = $(`#changeModeDiv > label[id = '${viewmode.id}'] > input`);
         if (!viewModeBtn.prop('checked')) {
             viewModeLabel.button('toggle');
             viewModeLabel.removeClass('focus');
@@ -328,7 +328,9 @@ class UIView {
     {
         if (drawTool === null)
         {
-            this.setLabelSelectionBtn(this.jqbtnShapeSelector, gettext("Shape"), true);
+            this.setLabelSelectionBtn(this.jqbtnShapeSelector,
+                `<i class="fal fa-shapes"></i> ${gettext("Shape")}`,
+                true);
             this.jqbtnCancelDrawing.addClass("hidden");
             return;
         }
@@ -341,6 +343,26 @@ class UIView {
     // get SelectedMapMiner() { return this._SelectedMapMiner; }
     // get SelectedMapFeature() { return this._SelectedMapFeature; }
     
+    /**
+     * Display messages to the user.
+     * @param {String} message - The message to be displayed
+     * @param {String=Alert} type - The type of the message, can be: Error|Alert
+     */
+    displayMessage(message, type='Alert')
+    {
+        switch (type)
+        {
+            case 'Alert':
+                alert(message);
+                break;
+            case 'Error':
+                alert(message);
+                break;
+            default:
+                throw Error(`Unknow message type: ${type}`);
+                break;
+        }
+    }
     
 
     /**
@@ -539,21 +561,24 @@ class UIView {
         for (let optionIdx in optionsDict)
         {
             let option = optionsDict[optionIdx];
-            const optionBtn = this.createToggleRadioButton(groupName, option.name, option, clickHandler);
+            const optionBtn = this.createToggleRadioButton(groupName, option.id, option.name, option, clickHandler);
             jqContainerDiv.append(optionBtn);
         }
         return jqContainerDiv;
     }
 
-    createToggleRadioButton(groupName, label, optValue, clickHandler) {
-        let buttonLabel = $(document.createElement('label'));
+    createToggleRadioButton(groupName, id, label, optValue, clickHandler) {
         let buttonInput = $('<input type="radio">');
-        buttonLabel.addClass('btn btn-success');
         buttonInput.attr('name', groupName);
         buttonInput.attr('autocomplete', 'off');
-        buttonLabel.html(label);
         buttonInput.change(optValue, clickHandler);
+
+        let buttonLabel = $(document.createElement('label'));
+        buttonLabel.addClass('btn btn-success');
+        buttonLabel.html(label);
+        buttonLabel.attr('id', id);
         buttonLabel.append(buttonInput);
+
         return buttonLabel;
     }
 
@@ -716,8 +741,20 @@ if (!UIView.init) {
 
     UIView.ViewModes =
     {
-        ImageMode: { name: gettext("Image Mode"), viewmode: "Image" },
-        MapMode: { name: gettext("Map Mode"), viewmode: "Map" },
+        ImageMode: {
+            id: "Image Mode",
+            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
+            viewmode: "Image"
+            // name: gettext("Image Mode"),
+            // viewmode: "Image"
+        },
+        MapMode: {
+            id: "Map Mode",
+            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
+            viewmode: "Map"
+            // name: gettext("Map Mode"),
+            // viewmode: "Map"
+        },
     };
 }
 

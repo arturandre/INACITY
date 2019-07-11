@@ -100,23 +100,24 @@ class SessionManager
 
     async newSession()
     {
-        return await $.ajax('newsession/',
+        await $.ajax('newsession/',
             {
                 method: 'POST',
                 processData: false,
                 data: undefined,
-                context: this,
-                success: function (data, textStatus, jqXHR)
+                context: this
+            })
+            .done(() =>
                 {
                     //Success message
-                    this.clear();
-                },
-                error: function (jqXHR, textStatus, errorThrown)
+                    this._clear();
+            })
+            .fail((jqXHR, textStatus, errorThrown) =>
                 {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
-                },
-                complete: function (jqXHR, textStatus) { }
-            });
+                }
+        );
+        return true;
     }
 
     clearSession()
@@ -132,7 +133,7 @@ class SessionManager
                 success: function (data, textStatus, jqXHR)
                 {
                     //Success message
-                    this.clear();
+                    this._clear();
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
@@ -143,7 +144,7 @@ class SessionManager
 
     }
 
-    clear()
+    _clear()
     {
         this._currentSessionName = null;
         for (let key in this._sessionObjects)
@@ -163,7 +164,7 @@ class SessionManager
             this._loading = true;
             let session = await this.getServerSession(sessionId);
             if (!session) return;
-            
+
             if (typeof (session) === "string")
             {
                 session = JSON.parse(session);
