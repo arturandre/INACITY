@@ -5,10 +5,11 @@
  * @module SessionManager
  */
 
-class SessionManager
+class SessionManager extends Subject
 {
     constructor(sessionObjects)
     {
+        super();
         this._sessionObjects = sessionObjects;
         this._loading = false;
         // this._uiModel = uiModel;
@@ -52,20 +53,8 @@ class SessionManager
         sessionName = sessionName ? sessionName :
             this.currentSessionName ? this.currentSessionName :
                 undefined;
-        // if (!sessionName)
-        // {
-        //     throw new Error(gettext("SessionName should not be null!"));
-        // }
-        this._currentSessionName = sessionName;
 
-        //let openLayersFeatures = {}; /*OpenLayers features for drawing*/
-        //for (let regionId in this.regions)
-        //{
-        //let olFeature = this._openLayersHandler.globalVectorSource.getFeatureById(regionId);
-        //let geoJsonFeatures = olGeoJson.writeFeaturesObject([olFeature]);
-        //openLayersFeatures[regionId] = geoJsonFeatures;
-        //regions[regionId] = this.regions[regionId].saveToJSON();
-        //}
+        this._currentSessionName = sessionName;
 
         let session = {};
         session.sessionName = sessionName;
@@ -73,29 +62,29 @@ class SessionManager
         {
             session[key] = this._sessionObjects[key].saveToJSON();
         }
-        // session.uiModelJSON = this._uiModel.saveToJSON(sessionName);
-        // session.geoImageManagerJSON = this._geoImageManager.saveToJSON();
 
-
-        return await $.ajax('/savesession/',
+        await $.ajax('/savesession/',
             {
                 method: 'POST',
                 processData: false,
                 data: JSON.stringify(session),
                 contentType: "application/json; charset=utf-8",
                 context: this,
-                dataType: 'text',
-                success: function (userSessionId, textStatus, jqXHR)
-                {
-                    //Success message
-                    //data -> sessionId
-                    if (!this._currentSessionName) this._currentSessionName = userSessionId;
-                },
-                error: function (jqXHR, textStatus, errorThrown)
-                {
-                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
-                }
+                dataType: 'text'
+            })
+            .done((userSessionId, textStatus, jqXHR) =>
+            {
+                //Success message
+                //data -> sessionId
+                if (!this._currentSessionName) this._currentSessionName = userSessionId;
+                SessionManager.notify('sessionsaved', true);
+            })
+            .fail((jqXHR, textStatus, errorThrown) =>
+            {
+                throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
             });
+                
+            
     }
 
     async newSession()
@@ -163,7 +152,7 @@ class SessionManager
         {
             this._loading = true;
             let session = await this.getServerSession(sessionId);
-            if (!session) return;
+            if (!session);
 
             if (typeof (session) === "string")
             {
@@ -171,10 +160,15 @@ class SessionManager
             }
 
             if (session.sessionName) this._currentSessionName = session.sessionName;
-            for (let key in this._sessionObjects)
+            for (let key in session)
             {
-                this._sessionObjects[key].loadFromJSON(session[key]);
+                if (session[key] instanceof Object)
+                {
+                    this._sessionObjects[key].loadFromJSON(session[key]);
+                }
+                
             }
+            SessionManager.notify('sessionloaded', true);
         }
         finally
         {
@@ -252,4 +246,24 @@ class SessionManager
             }
         }
     }
+}
+
+/**
+* Triggered when a non-empty session is loaded from the backend.
+* @event module:SessionManager~SessionManager.sessionloaded
+* @type {boolean} - True if a non-empty session was loaded. False otherwise.
+*/
+
+/**
+* Triggered when a successful call to savesession is completed
+* @event module:SessionManager~SessionManager.sessionsaved
+*/
+
+if (!SessionManager.init)
+{
+    SessionManager.init = true;
+    SessionManager.registerEventNames([
+        'sessionloaded',
+        'sessionsaved'
+    ]);
 }

@@ -123,6 +123,30 @@ class UIView {
 
         Region.on('activechange'  , this._updateActiveRegion.bind(this));
         UIModel.on('regioncreated', this._updateActiveRegion.bind(this));
+        SessionManager.on('sessionloaded', this._updateNewSessionButtons.bind(this));
+        SessionManager.on('sessionsaved' , this._updateNewSessionButtons.bind(this));
+        SessionManager.on('sessionsaved' , this._updateSaveSessionButtons.bind(this));
+    }
+
+    _updateSaveSessionButtons(sessionchanged)
+    {
+        if (sessionchanged)
+        {
+            let currentDate = new Date();
+            this.jqbtnSaveSession.attr('data-original-title', gettext("Last save was ") + currentDate.getHours() + ":" + currentDate.getMinutes());
+        }
+    }
+
+    _updateNewSessionButtons(sessionchanged)
+    {
+        if (sessionchanged)
+        {
+            this.jqbtnNewSession.removeClass('disabled');
+        }
+        else
+        {
+            this.jqbtnNewSession.addClass('disabled');
+        }
     }
 
     _updateActiveRegion(region)
@@ -161,7 +185,7 @@ class UIView {
         }
         if (this.uiModel.SelectedImageProvider) {
             //this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
-            this.updateImageProviderView(this.uiModel.SelectedImageProvider);
+            this.updateImageProviderView();
         }
         if (this.uiModel.SelectedImageFilter)
         {
@@ -307,11 +331,22 @@ class UIView {
         }
     }
 
-    updateImageProviderView(imageProvider)
+    updateImageProviderView()
     {
+        let imageProvider = this.uiModel.SelectedImageProvider;
         this.jqbtnCollectImages.removeClass("hidden");
         this.jqbtnImageFilter.removeClass("hidden");
         this.setLabelSelectionBtn(this.jqbtnImageProvider, imageProvider.name, false);
+        if (this.uiModel.getActiveRegions().length > 0)
+        {
+            this.jqbtnCollectImages.removeClass("disabled");
+            this.jqbtnImageFilter.removeClass("disabled");
+        }
+        else
+        {
+            this.jqbtnCollectImages.addClass("disabled");
+            this.jqbtnImageFilter.addClass("disabled");
+        }
     }
 
     updateMapProviderView(tileProvider)

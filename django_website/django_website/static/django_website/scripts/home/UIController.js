@@ -119,8 +119,8 @@
     {
         let imageProvider = event.data;
 
-        this.uiView.updateImageProviderView(imageProvider);
         this.uiModel.SelectedImageProvider = imageProvider;
+        this.uiView.updateImageProviderView();
     }
 
     onClickChangeMapMinerBtn(event)
@@ -266,6 +266,10 @@
             //Set the geoImageManager to display this collection
             this.geoImageManager.updateDisplayingLayers(filterId);
         }
+        catch (err)
+        {
+            this.uiView.displayMessage(err, "Error");   
+        }
         finally
         {
             this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter)
@@ -280,6 +284,10 @@
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
             //Set the geoImageManager to display this collection
             this.geoImageManager.updateDisplayingLayers();
+        }
+        catch(err)
+        {
+            this.uiView.displayMessage(err.message, "Error");
         }
         finally
         {

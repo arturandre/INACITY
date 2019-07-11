@@ -74,7 +74,7 @@
               </ol>
               <div class="carousel-inner">
                 <div class="carousel-item active">
-                  <img class="d-block" src="{% static 'django_website/images/mslogo.png' %}" alt="Microsoft">
+                  <img class="d-block" src="{% static 'django_website/images/logo_capes.png' %}" alt="CAPES">
                 </div>
                 <div class="carousel-item">
                   <img class="d-block" src="{% static 'django_website/images/interscitylogo.png' %}" alt="InterSCity">
@@ -105,9 +105,10 @@
     {% block footer %}
     <hr>
     <p>2018 - INACITY</p>
-    <p>{% trans "We acknowledge Microsoft for a sponsorship through the Microsoft Azure Sponsorship and Google for their Streetview API." %}</p>
     <p>{% trans "The INACITY project is sponsored by the FAPESP, grant # 2018/10767-0, São Paulo Research Foundation (FAPESP)." %}</p>
     <p>{% trans "The opinions, hypotheses, conclusions or recommendations contained in this material are the sole responsibility of the author(s) and do not necessarily reflect FAPESP opinion." %}</p>
+    <p>{% trans "The INACITY project had sponsorship from Microsoft through the Microsoft Azure Sponsorship during 2017 and 2018." %}
+    <p>{% trans "We acknowledge Google for their Streetview API." %}</p>
     <!--<p>As opiniões, hipóteses e conclusões ou recomendações expressas neste material são de responsabilidade do(s) autor(es) e não necessariamente refletem a visão da FAPESP.</p>-->
 
     {% endblock %}

@@ -177,7 +177,8 @@ async function initializeUI() {
     sessionManager = new SessionManager(
         {
             uiModelJSON : uiModel,
-            geoImageManagerJSON : geoImageManager
+            geoImageManagerJSON: geoImageManager,
+            openLayersHandlerJSON: openLayersHandler
         }
     );
     sessionManager.loadSession();

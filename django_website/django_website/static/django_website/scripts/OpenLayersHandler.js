@@ -172,6 +172,19 @@ class OpenLayersHandler extends Subject
         return instance;
     }
 
+    loadFromJSON(openLayersHandlerJSON)
+    {
+        this.view.setCenter(openLayersHandlerJSON.mapCenter);
+    }
+
+    saveToJSON()
+    {
+        let openLayersHandlerJSON = {
+            mapCenter: this.view.getCenter(),
+        };
+        return openLayersHandlerJSON;
+    }
+
     _regionCreated(region)
     {
         if (this.drawing) return;
@@ -195,7 +208,7 @@ class OpenLayersHandler extends Subject
 
     clear()
     {
-        this._openLayersHandler.globalVectorSource.clear();
+        this.globalVectorSource.clear();
         this._imagePinPoint = null;
         this._imagePinPointArrow = null;
     }

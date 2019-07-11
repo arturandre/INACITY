@@ -691,7 +691,7 @@ class UIModel extends Subject
         if (activeRegions.length === 0)
         {
             //return reject(gettext("Please, select or activate a region to continue."));
-            throw gettext("Please, select or activate a region to continue.");
+            throw new Error(gettext("Please, select or activate a region to continue."));
         }
         for (let regionIdx in activeRegions)
         {
@@ -761,7 +761,7 @@ class UIModel extends Subject
         let activeRegions = this.getActiveRegions();
         if (activeRegions.length === 0)
         {
-            throw gettext("Please, select or activate a region to continue.");
+            throw new Error(gettext("Please, select or activate a region to continue."));
         }
         for (let regionIdx in activeRegions)
         {
