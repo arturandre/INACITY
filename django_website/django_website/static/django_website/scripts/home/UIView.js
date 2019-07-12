@@ -123,9 +123,15 @@ class UIView {
 
         Region.on('activechange'  , this._updateActiveRegion.bind(this));
         UIModel.on('regioncreated', this._updateActiveRegion.bind(this));
+
+        UIModel.on('regioncreated'       , this.updateImageProviderView.bind(this));
+        Region.on('activechange'         , this.updateImageProviderView.bind(this));
+        SessionManager.on('sessionloaded', this.updateImageProviderView.bind(this));
+
         SessionManager.on('sessionloaded', this._updateNewSessionButtons.bind(this));
         SessionManager.on('sessionsaved' , this._updateNewSessionButtons.bind(this));
-        SessionManager.on('sessionsaved' , this._updateSaveSessionButtons.bind(this));
+        SessionManager.on('sessionsaved', this._updateSaveSessionButtons.bind(this));
+        
     }
 
     _updateSaveSessionButtons(sessionchanged)
@@ -336,16 +342,21 @@ class UIView {
         let imageProvider = this.uiModel.SelectedImageProvider;
         this.jqbtnCollectImages.removeClass("hidden");
         this.jqbtnImageFilter.removeClass("hidden");
+        this.jqbtnExecuteImageFilter.removeClass("hidden");
+
         this.setLabelSelectionBtn(this.jqbtnImageProvider, imageProvider.name, false);
         if (this.uiModel.getActiveRegions().length > 0)
         {
             this.jqbtnCollectImages.removeClass("disabled");
             this.jqbtnImageFilter.removeClass("disabled");
+            this.jqbtnExecuteImageFilter.removeClass("disabled");
+            
         }
         else
         {
             this.jqbtnCollectImages.addClass("disabled");
             this.jqbtnImageFilter.addClass("disabled");
+            this.jqbtnExecuteImageFilter.addClass("disabled");
         }
     }
 
