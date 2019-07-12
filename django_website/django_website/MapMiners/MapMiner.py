@@ -75,7 +75,7 @@ class MapMiner(ABC):
             errors = ", ".join(notImplementedFields)
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
     
-        cls._initialize()
+        cls._initialize(cls)
         pass
     
     __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
