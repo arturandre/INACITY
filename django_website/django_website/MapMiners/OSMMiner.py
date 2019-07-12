@@ -185,12 +185,10 @@ class OSMMiner(MapMiner):
                 timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
                 time.sleep(timeToWait)
 
-    @staticmethod
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         flip_geojson_coordinates(GeoJsonInput)
         return GeoJsonInput
 
-    @staticmethod
     def _getStreets(regions: FeatureCollection) -> MultiLineString:
         """Collect a set of Ways (from OSM) and convert them to a MultiLineString"""
 

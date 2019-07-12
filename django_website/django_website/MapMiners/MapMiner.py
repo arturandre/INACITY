@@ -75,7 +75,7 @@ class MapMiner(ABC):
             errors = ", ".join(notImplementedFields)
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
     
-        cls._initialize(cls)
+        cls._initialize()
         pass
     
     __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
@@ -117,8 +117,8 @@ class MapMiner(ABC):
         trans = CoordTransform(cls._basecrs, MapMiner._destcrs)
         return geosobject.transform(trans)
 
-    @staticmethod
-    def _preFormatInput(GeoJsonInput: FeatureCollection):
+    @classmethod
+    def _preFormatInput(cls, GeoJsonInput: FeatureCollection):
         return GeoJsonInput
 
 

@@ -17,6 +17,7 @@ var geoImageManager = null;
 * @see {@link module:OpenLayersHandler~OpenLayersHandler}
 */
 var openLayersHandler = null;
+var streetSelect = null;
 
 
 /**
@@ -144,6 +145,8 @@ async function initializeUI() {
     /* OpenLayers init */
     //let openLayersHandler = new OpenLayersHandler('map', OpenLayersHandler.TileProviders.GOOGLE_HYBRID_TILES.provider);
     openLayersHandler = new OpenLayersHandler('map');
+    streetSelect = new StreetSelect(openLayersHandler);
+
 
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
