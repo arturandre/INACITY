@@ -801,7 +801,7 @@ if (!UIView.init) {
             id: "Image Mode",
             name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
             viewmode: "Image",
-            hint: ""
+            hint: "Collect images for the selected regions"
             // name: gettext("Image Mode"),
             // viewmode: "Image"
         },

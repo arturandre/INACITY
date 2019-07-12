@@ -17,33 +17,64 @@
 {% endblock %}
 
 {% block content %}
-<p>{% trans "INACITY is a platform to collect and analyse urban images, that integrates Application Programming Interfaces (APIs), image retrieval systems, Geographical Information Systems (GISes), digital maps and Computer Vision techniques." %}</p>
+<p>{% trans "INACITY is a platform to collect and analyse urban images, that integrates Application Programming Interfaces (APIs), image retrieval systems, Geographical Information Systems (GISes), digital maps and Computer Vision techniques." %}
+</p>
 
-<p>{% trans "It was created during <a href='http://vision.ime.usp.br/~arturao/'>Artur André Oliveira</a> master's program at <a href='https://www.ime.usp.br/'>IME-USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto Hirata Jr.</a>" %}</p>
+<p>{% trans "It was created during <a href='http://vision.ime.usp.br/~arturao/'>Artur André Oliveira</a> master's program at <a href='https://www.ime.usp.br/'>IME-USP</a> and advised by <a href='https://www.ime.usp.br/hirata'>Roberto Hirata Jr.</a>" %}
+</p>
 
-<p>{% trans "You can download the <a href='http://vision.ime.usp.br/~arturao/INACITYDissertation.pdf'>master's thesis (in portuguese)</a> with deeper analyses about the greenery image filters and also the <a href='https://github.com/arturandre/INACITY_groundtruth'>groundtruth</a> used to estimate the filter's parameters and to compare their performance." %}</p>
+<p>{% trans "You can download the <a href='http://vision.ime.usp.br/~arturao/INACITYDissertation.pdf'>master's thesis (in portuguese)</a> with deeper analyses about the greenery image filters and also the <a href='https://github.com/arturandre/INACITY_groundtruth'>groundtruth</a> used to estimate the filter's parameters and to compare their performance." %}
+</p>
 
-<p>{% trans "The project source code can be found at <a href='https://github.com/arturandre/INACITY_python'>INACITY's Github repository</a>." %}</p>
+<p>{% trans "The project source code can be found at <a href='https://github.com/arturandre/INACITY_python'>INACITY's Github repository</a>." %}
+</p>
 
 <h1>{% trans "Acknowledgements" %}</h1>
 
-<p>{% trans "We would like to thank people that helped in multiple ways to achieve some of the INACITY crucial features:" %}</p>
+<p>{% trans "We would like to thank people that helped in multiple ways to achieve some of the INACITY crucial features:" %}
+</p>
 
 <div class="profile-card-div">
-<img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
-<span></span>
-<p><a href="mailto:viniqmvor@gmail.com">Vinicius Q. Massimino</a></br></p>
-<span></span>
-{% trans "For their contributions translating INACITY's webpage to both the spanish and french languages and annotating part of the images that compose the INACITY's greenery dataset." %}
+    <img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+    <span></span>
+    <p><a href="mailto:viniqmvor@gmail.com">Vinicius Q. Massimino</a></br></p>
+    <span></span>
+    {% trans "For his contributions translating INACITY's webpage to both the spanish and french languages and annotating part of the images that compose the INACITY's greenery dataset." %}
 </div>
 
 <div class="profile-card-div">
-<img src="{% static 'django_website/images/contributors/nando.png' %}"></img>
-<span></span>
-<p>Artur Fernando A. M. Oliveira</br> (Nando)</p>
-<span></span>
-{% trans "For their contributions to fixing INACITY's bugs, helping with the documentation, creating the first prototypes of the administration panel and also annotating part of the images that compose the INACITY's greenery dataset." %}
+    <img src="{% static 'django_website/images/contributors/nando.png' %}"></img>
+    <span></span>
+    <p>Artur Fernando A. M. Oliveira</br> (Nando)</p>
+    <span></span>
+    {% trans "For his contributions to fixing INACITY's bugs, helping with the documentation, creating the first prototypes of the administration panel and also annotating part of the images that compose the INACITY's greenery dataset." %}
 </div>
+
+<div class="profile-card-div">
+    <img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+    <span></span>
+    <p><a href="http://raltcc2013.blogspot.com/">Rodrigo Alves Lima</a></br></p>
+    <span></span>
+    <span>
+        {% trans "For his base work" %} <a href="https://linux.ime.usp.br/~ral/mac499/">API de navegação no Google
+            Street View e análise de imagens da paisagem urbana.</a>
+    </span>
+</div>
+
+<div class="profile-card-div">
+    <img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>
+    <span></span>
+    <p><a href="https://social.stoa.usp.br/wallacealmeida/blog">Wallace Faveron de Almeida</a></br></p>
+    <span></span>
+    <span>
+        {% trans "For his base work" %} <a href="https://linux.ime.usp.br/~ral/mac499/">API de navegação no Google
+            Street View e análise de imagens da paisagem urbana.</a>
+    </span>
+</div>
+
+
+
+
 
 <!--<div class="profile-card-div">
 <img src="{% static 'django_website/images/contributors/nopic.png' %}"></img>

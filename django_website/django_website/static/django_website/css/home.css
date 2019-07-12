@@ -1,4 +1,35 @@
-﻿#divAddressBar {
+﻿
+#btnCancelDrawing
+{
+    align-self: flex-end;
+    justify-self: flex-end;
+}
+
+.controlDiv
+{
+    display: flex;
+    direction: row;
+    justify-content: flex-start;
+}
+
+.labelBtnDiv
+{
+    display: flex;
+    flex-direction: column;
+    margin-right: 1rem;
+}
+
+.labelBtnDiv > .btn
+{
+    margin-top: 0px;
+}
+
+.labelBtnDiv > label
+{
+    margin-bottom: 0px;
+}
+
+#divAddressBar {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -128,6 +159,8 @@
 .btn
 {
     margin:1rem 0;
+    justify-self: self-end;
+    /* align-self: self-end; */
 }
 
 .left-column {
