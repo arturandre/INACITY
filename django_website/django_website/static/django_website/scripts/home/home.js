@@ -127,11 +127,11 @@ function callTest() {
  * JQuery ready function used to initialize variables
  */
 $(document).ready(async function () {
-    /* Bootstrap tooltips initializer*/
-    $('[data-toggle="tooltip"]').tooltip();
-
     await initializeUI();
     setDefaults();
+
+    /* Bootstrap tooltips initializer*/
+    $('[data-toggle="tooltip"]').tooltip();
 });
 
 //#region Initializer functions

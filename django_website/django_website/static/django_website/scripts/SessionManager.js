@@ -152,7 +152,7 @@ class SessionManager extends Subject
         {
             this._loading = true;
             let session = await this.getServerSession(sessionId);
-            if (!session);
+            if (!session) return;
 
             if (typeof (session) === "string")
             {

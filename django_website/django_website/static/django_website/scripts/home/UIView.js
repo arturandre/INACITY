@@ -596,13 +596,13 @@ class UIView {
         for (let optionIdx in optionsDict)
         {
             let option = optionsDict[optionIdx];
-            const optionBtn = this.createToggleRadioButton(groupName, option.id, option.name, option, clickHandler);
+            const optionBtn = this.createToggleRadioButton(groupName, option.id, option.name, option.hint, option, clickHandler);
             jqContainerDiv.append(optionBtn);
         }
         return jqContainerDiv;
     }
 
-    createToggleRadioButton(groupName, id, label, optValue, clickHandler) {
+    createToggleRadioButton(groupName, id, label, hint, optValue, clickHandler) {
         let buttonInput = $('<input type="radio">');
         buttonInput.attr('name', groupName);
         buttonInput.attr('autocomplete', 'off');
@@ -612,6 +612,16 @@ class UIView {
         buttonLabel.addClass('btn btn-success');
         buttonLabel.html(label);
         buttonLabel.attr('id', id);
+
+        if (hint)
+            buttonLabel.attr('data-container', 'body');
+            buttonLabel.attr('data-toggle', 'tooltip');
+            buttonLabel.attr('data-trigger', 'hover');
+            buttonLabel.attr('data-placement', 'right');
+            buttonLabel.attr('data-title', hint);
+
+
+
         buttonLabel.append(buttonInput);
 
         return buttonLabel;
@@ -779,14 +789,16 @@ if (!UIView.init) {
         ImageMode: {
             id: "Image Mode",
             name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
-            viewmode: "Image"
+            viewmode: "Image",
+            hint: ""
             // name: gettext("Image Mode"),
             // viewmode: "Image"
         },
         MapMode: {
             id: "Map Mode",
             name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
-            viewmode: "Map"
+            viewmode: "Map",
+            hint: gettext("Edit or remove selected regions.")
             // name: gettext("Map Mode"),
             // viewmode: "Map"
         },
