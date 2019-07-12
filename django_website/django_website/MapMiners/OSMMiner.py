@@ -14,10 +14,25 @@ from django_website.geofunctions import flip_geojson_coordinates
 
 
 class OSMMiner(MapMiner):
+    """
+    OpenStreetMaps miner constructed using the Overpass API
+
+    class members:
+        Derived from MapMiner:
+            - mapMinerName : 'OpenStreetMap'
+            - mapMinerId : 'osm'
+            - _basecrs : SpatialReference(3857)
+        Internal:
+            -_OSMServerURL = 'inacity.org'
+            
+
+
+    """
+
     mapMinerName = "OpenStreetMap"
     mapMinerId = "osm"
 
-    """OpenStreetMaps miner constructed using the Overpass API"""
+    
     #EPSG:3857
     #Since OpenLayers and OSMMiner use the same SRID no convertion is needed
     _basecrs = SpatialReference(3857)
@@ -143,6 +158,7 @@ class OSMMiner(MapMiner):
     _rateLimit = -1
     _currentQueries = 0
     
+    @staticmethod
     def _setRateLimit():
         if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
             OSMMiner._rateLimit = 99999999
@@ -156,6 +172,7 @@ class OSMMiner(MapMiner):
             if OSMMiner._rateLimit <= 0:
                 raise ValueError("Couldn't set the rateLimit value!")
 
+    @staticmethod
     def _waitForAvailableSlots():
         """Collect status from OverpassAPI, available slots and current queries"""
         if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
@@ -168,10 +185,12 @@ class OSMMiner(MapMiner):
                 timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
                 time.sleep(timeToWait)
 
+    @staticmethod
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         flip_geojson_coordinates(GeoJsonInput)
         return GeoJsonInput
 
+    @staticmethod
     def _getStreets(regions: FeatureCollection) -> MultiLineString:
         """Collect a set of Ways (from OSM) and convert them to a MultiLineString"""
 
@@ -223,6 +242,7 @@ class OSMMiner(MapMiner):
         return FeatureCollection(featuresList, crs=OSMMiner._crs)
         #return StreetsDTOList
 
+    @staticmethod
     def _createCollectStreetsQuery(regions: FeatureCollection):
         """Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface"""
         header = OSMMiner._overpassBaseUrl + "%s%s;" % (OSMMiner._outFormat, OSMMiner._timeout)
@@ -240,8 +260,41 @@ class OSMMiner(MapMiner):
             ret = header+middle+outresult
         return  ret
 
-    def _mergeWays(nodesSegList):
-        """Collapse a list of lists of nodes from ways into a single nodes list (if endpoint nodes, from different lists in the same way, are the same)"""
+    @staticmethod
+    def _mergeWays(nodesSegList: List[OSMNode]):
+        """
+        Collapse a list of lists of nodes from ways into a
+        single nodes list (if endpoint nodes, from
+        different lists in the same way, are the same).
+
+        For example, let nodesSegList = 
+        [
+            [[0,0], [0,1], [0,2], [0,3]], # 1st Line
+            [[0,3], [1,1], [1,2], [1,3]], # 2nd Line
+        ]
+        In this example nodesSegList contains
+        two line strings, each with 4 coordinates.
+        Notice that the last coordinate of the 1st
+        Line ([0,3]) is the same as the first one
+        from the 2nd Line, so both lines can be merged
+        into a single longer line:
+
+        [[0,0], [0,1], [0,2], "[0,3]", [1,1], [1,2], [1,3]]
+
+        Parameters
+        ----------
+        nodesSegList : List[OSMNode]
+            A list of :class:`OSMNode` objects
+            from an :class:`OSMWay` object.
+            Each of this nodes represents a
+            point in a path like a street
+            or avenue.
+        
+        Returns
+        -------
+        The same list after the merging was done.
+
+        """
         while True:
             merged = False
             for i in reversed(range(len(nodesSegList))):

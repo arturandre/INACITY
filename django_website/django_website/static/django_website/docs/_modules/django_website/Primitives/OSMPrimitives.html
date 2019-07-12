@@ -40,7 +40,20 @@
 <span class="kn">from</span> <span class="nn">dateutil.parser</span> <span class="k">import</span> <span class="n">parse</span>
 
 <span class="k">def</span> <span class="nf">_ElementJsonToOSMObject</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parses an OpenStreetMap object into an :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an OpenStreetMap object into an :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    jsonDict : dict</span>
+<span class="sd">        The dict object representing one of the OpenStreetMap objects</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;node&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OSMNode</span><span class="p">(</span><span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;lat&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;lon&#39;</span><span class="p">],</span> <span class="n">jsonDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;way&#39;</span><span class="p">:</span>
@@ -51,7 +64,20 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;OSM Element type (%s) not implemented!&quot;</span> <span class="o">%</span> <span class="n">jsonDict</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">])</span>
 
 <span class="k">def</span> <span class="nf">_JsonMemberListToOSMRelationMember</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jsonMemberList</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parses an OSMRelationMember dict into an OSMRelationMember object&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses an OSMRelationMember dict into an OSMRelationMember object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    jsonMemberList : dict</span>
+<span class="sd">        The dict object representing an :class:`OSMRelationMember`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    An arrays containing each parsed :class:`OSMRelationMember`.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">members</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">jsonMemberList</span><span class="p">:</span>
         <span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OSMRelationMember</span><span class="p">(</span><span class="n">member</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">],</span> <span class="n">member</span><span class="p">[</span><span class="s">&#39;ref&#39;</span><span class="p">],</span> <span class="n">member</span><span class="p">[</span><span class="s">&#39;role&#39;</span><span class="p">]))</span>
@@ -82,20 +108,59 @@
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kw&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">else</span> <span class="n">OSMObject</span><span class="o">.</span><span class="n">_optDefAttributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kw&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="OSMNode"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMNode">[docs]</a><span class="k">class</span> <span class="nc">OSMNode</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class used as an OpenStreetMap Node object wrapper&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class used as an OpenStreetMap Node object wrapper</span>
+
+<span class="sd">    fields:</span>
+<span class="sd">        - lat : Decimal</span>
+<span class="sd">            Represents this OSMNode latitude</span>
+<span class="sd">        - lon : Decimal</span>
+<span class="sd">            Represents this OSMNode longitude</span>
+<span class="sd">        - tags : dict</span>
+<span class="sd">            Each :class:`OSMNode`, :class:`OSMWay` and :class:`OSMRelation` can</span>
+<span class="sd">            contain an arbitratry number of tags, each of which corresponds to</span>
+<span class="sd">            some attribute of that OSM object (e.g. an OSMNode could</span>
+<span class="sd">            have a tag &#39;highway&#39; with the value &#39;traffic_signals&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lat</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lat</span> <span class="o">=</span> <span class="n">lat</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lon</span> <span class="o">=</span> <span class="n">lon</span></div>
 
 <div class="viewcode-block" id="OSMWay"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMWay">[docs]</a><span class="k">class</span> <span class="nc">OSMWay</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class used as an OpenStreetMap Way object wrapper&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class used as an OpenStreetMap Way object wrapper.</span>
+<span class="sd">    In this abstraction an OSMWay is only considered to be a set</span>
+<span class="sd">    of nodes contained in the field nodes.</span>
+
+<span class="sd">    fields:</span>
+<span class="sd">        - nodes : List[int]</span>
+<span class="sd">            The set of nodes contained in this OSMWay. An OSMWay</span>
+<span class="sd">            is used to represent usually linear features such </span>
+<span class="sd">            as avenues and streets.</span>
+<span class="sd">        - tags : dict</span>
+<span class="sd">            See tags in :class:`OSMNode`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span>  <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span></div>
 
 <div class="viewcode-block" id="OSMRelation"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.OSMPrimitives.OSMRelation">[docs]</a><span class="k">class</span> <span class="nc">OSMRelation</span><span class="p">(</span><span class="n">OSMObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A OpenStreetMap relation represents &#39;belongs to&#39; relations (i.e. :class:`OSMNode`s belonging to the same :class:`OSMWay`)&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A OpenStreetMap relation represents &#39;belongs to&#39; relations (i.e. :class:`OSMNode` objects belonging</span>
+<span class="sd">        to the same :class:`OSMWay` or a collection of :class:`OSMWay` objects that belongs to the same</span>
+<span class="sd">        OSMRelation which represets for example the boundaries of some region.)</span>
+
+<span class="sd">        fields:</span>
+<span class="sd">            - id : int</span>
+<span class="sd">                Represents the relation id as informed by OpenStreetMap database</span>
+<span class="sd">            - type : str</span>
+<span class="sd">                It can be anything for example &#39;boundary&#39;.</span>
+<span class="sd">            - members : List[OSMObject]</span>
+<span class="sd">                An OSMRelation can be composed by any number and type of objects</span>
+<span class="sd">                (e.g. an OSMRelation with type &#39;route&#39; can contain different</span>
+<span class="sd">                OSMWays that compose the route of a bus).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">members</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OSMObject</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">members</span> <span class="o">=</span> <span class="n">members</span></div>

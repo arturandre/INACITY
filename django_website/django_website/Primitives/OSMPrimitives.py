@@ -7,7 +7,20 @@ from itertools import groupby
 from dateutil.parser import parse
 
 def _ElementJsonToOSMObject(jsonDict):
-    """Parses an OpenStreetMap object into an :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`."""
+    """
+    Parses an OpenStreetMap object into an :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`.
+
+    Parameters
+    ----------
+
+    jsonDict : dict
+        The dict object representing one of the OpenStreetMap objects
+
+    Returns
+    -------
+    :class:`OSMNode`, :class:`OSMWay` or :class:`OSMRelation`
+    
+    """
     if jsonDict['type'] == 'node':
         return OSMNode(jsonDict['id'], jsonDict['type'], jsonDict['lat'], jsonDict['lon'], jsonDict.get('tags'))
     elif jsonDict['type'] == 'way':
@@ -18,7 +31,20 @@ def _ElementJsonToOSMObject(jsonDict):
             raise Exception("OSM Element type (%s) not implemented!" % jsonDict['type'])
 
 def _JsonMemberListToOSMRelationMember(self, jsonMemberList):
-    """Parses an OSMRelationMember dict into an OSMRelationMember object"""
+    """
+    Parses an OSMRelationMember dict into an OSMRelationMember object.
+
+    Parameters
+    ----------
+
+    jsonMemberList : dict
+        The dict object representing an :class:`OSMRelationMember`.
+
+    Returns
+    -------
+    An arrays containing each parsed :class:`OSMRelationMember`.
+    
+    """
     members = []
     for member in jsonMemberList:
         members.append(OSMRelationMember(member['type'], member['ref'], member['role']))
@@ -49,20 +75,59 @@ class OSMObject(object):
             setattr(self, kw, kwargs.get('kw') if kw in kwargs else OSMObject._optDefAttributes.get('kw'))
 
 class OSMNode(OSMObject):
-    """Class used as an OpenStreetMap Node object wrapper"""
+    """
+    Class used as an OpenStreetMap Node object wrapper
+
+    fields:
+        - lat : Decimal
+            Represents this OSMNode latitude
+        - lon : Decimal
+            Represents this OSMNode longitude
+        - tags : dict
+            Each :class:`OSMNode`, :class:`OSMWay` and :class:`OSMRelation` can
+            contain an arbitratry number of tags, each of which corresponds to
+            some attribute of that OSM object (e.g. an OSMNode could
+            have a tag 'highway' with the value 'traffic_signals').
+    """
     def __init__(self, id: int, type: str, lat: Decimal, lon: Decimal, tags={}):
         super().__init__(id, type, tags)
         self.lat = lat
         self.lon = lon
 
 class OSMWay(OSMObject):
-    """Class used as an OpenStreetMap Way object wrapper"""
+    """
+    Class used as an OpenStreetMap Way object wrapper.
+    In this abstraction an OSMWay is only considered to be a set
+    of nodes contained in the field nodes.
+
+    fields:
+        - nodes : List[int]
+            The set of nodes contained in this OSMWay. An OSMWay
+            is used to represent usually linear features such 
+            as avenues and streets.
+        - tags : dict
+            See tags in :class:`OSMNode`
+    """
     def __init__(self, id: int, type,  nodes: List[int], tags={}):
         super().__init__(id, type, tags)
         self.nodes = nodes
 
 class OSMRelation(OSMObject):
-    """A OpenStreetMap relation represents 'belongs to' relations (i.e. :class:`OSMNode`s belonging to the same :class:`OSMWay`)"""
+    """
+        A OpenStreetMap relation represents 'belongs to' relations (i.e. :class:`OSMNode` objects belonging
+        to the same :class:`OSMWay` or a collection of :class:`OSMWay` objects that belongs to the same
+        OSMRelation which represets for example the boundaries of some region.)
+
+        fields:
+            - id : int
+                Represents the relation id as informed by OpenStreetMap database
+            - type : str
+                It can be anything for example 'boundary'.
+            - members : List[OSMObject]
+                An OSMRelation can be composed by any number and type of objects
+                (e.g. an OSMRelation with type 'route' can contain different
+                OSMWays that compose the route of a bus).
+    """
     def __init__(self, id: int, type, members: List[OSMObject], tags={}):
         super().__init__(id, type, tags)
         self.members = members

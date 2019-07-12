@@ -47,10 +47,25 @@
 
 
 <div class="viewcode-block" id="OSMMiner"><a class="viewcode-back" href="../../../api/django_website.MapMiners.html#django_website.MapMiners.OSMMiner.OSMMiner">[docs]</a><span class="k">class</span> <span class="nc">OSMMiner</span><span class="p">(</span><span class="n">MapMiner</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    OpenStreetMaps miner constructed using the Overpass API</span>
+
+<span class="sd">    class members:</span>
+<span class="sd">        Derived from MapMiner:</span>
+<span class="sd">            - mapMinerName : &#39;OpenStreetMap&#39;</span>
+<span class="sd">            - mapMinerId : &#39;osm&#39;</span>
+<span class="sd">            - _basecrs : SpatialReference(3857)</span>
+<span class="sd">        Internal:</span>
+<span class="sd">            -_OSMServerURL = &#39;inacity.org&#39;</span>
+<span class="sd">            </span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">mapMinerName</span> <span class="o">=</span> <span class="s">&quot;OpenStreetMap&quot;</span>
     <span class="n">mapMinerId</span> <span class="o">=</span> <span class="s">&quot;osm&quot;</span>
 
-    <span class="sd">&quot;&quot;&quot;OpenStreetMaps miner constructed using the Overpass API&quot;&quot;&quot;</span>
+    
     <span class="c">#EPSG:3857</span>
     <span class="c">#Since OpenLayers and OSMMiner use the same SRID no convertion is needed</span>
     <span class="n">_basecrs</span> <span class="o">=</span> <span class="n">SpatialReference</span><span class="p">(</span><span class="mi">3857</span><span class="p">)</span>
@@ -176,6 +191,7 @@
     <span class="n">_rateLimit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">_currentQueries</span> <span class="o">=</span> <span class="mi">0</span>
     
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_setRateLimit</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">inacityorg</span><span class="p">:</span>
             <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">=</span> <span class="mi">99999999</span>
@@ -189,6 +205,7 @@
             <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_rateLimit</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t set the rateLimit value!&quot;</span><span class="p">)</span>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_waitForAvailableSlots</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Collect status from OverpassAPI, available slots and current queries&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_OSMServerURL</span> <span class="o">==</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">inacityorg</span><span class="p">:</span>
@@ -201,10 +218,12 @@
                 <span class="n">timeToWait</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ovpStatus</span><span class="o">.</span><span class="n">waitingTime</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ovpStatus</span><span class="o">.</span><span class="n">waitingTime</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">3</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timeToWait</span><span class="p">)</span>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_preFormatInput</span><span class="p">(</span><span class="n">GeoJsonInput</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
         <span class="n">flip_geojson_coordinates</span><span class="p">(</span><span class="n">GeoJsonInput</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">GeoJsonInput</span>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_getStreets</span><span class="p">(</span><span class="n">regions</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultiLineString</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Collect a set of Ways (from OSM) and convert them to a MultiLineString&quot;&quot;&quot;</span>
 
@@ -256,6 +275,7 @@
         <span class="k">return</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">featuresList</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_crs</span><span class="p">)</span>
         <span class="c">#return StreetsDTOList</span>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_createCollectStreetsQuery</span><span class="p">(</span><span class="n">regions</span><span class="p">:</span> <span class="n">FeatureCollection</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Requests a hardcoded query for the overpass API to collect highways and paths with an asphalt surface&quot;&quot;&quot;</span>
         <span class="n">header</span> <span class="o">=</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_overpassBaseUrl</span> <span class="o">+</span> <span class="s">&quot;%s%s;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">OSMMiner</span><span class="o">.</span><span class="n">_outFormat</span><span class="p">,</span> <span class="n">OSMMiner</span><span class="o">.</span><span class="n">_timeout</span><span class="p">)</span>
@@ -273,8 +293,41 @@
             <span class="n">ret</span> <span class="o">=</span> <span class="n">header</span><span class="o">+</span><span class="n">middle</span><span class="o">+</span><span class="n">outresult</span>
         <span class="k">return</span>  <span class="n">ret</span>
 
-    <span class="k">def</span> <span class="nf">_mergeWays</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Collapse a list of lists of nodes from ways into a single nodes list (if endpoint nodes, from different lists in the same way, are the same)&quot;&quot;&quot;</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_mergeWays</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OSMNode</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Collapse a list of lists of nodes from ways into a</span>
+<span class="sd">        single nodes list (if endpoint nodes, from</span>
+<span class="sd">        different lists in the same way, are the same).</span>
+
+<span class="sd">        For example, let nodesSegList = </span>
+<span class="sd">        [</span>
+<span class="sd">            [[0,0], [0,1], [0,2], [0,3]], # 1st Line</span>
+<span class="sd">            [[0,3], [1,1], [1,2], [1,3]], # 2nd Line</span>
+<span class="sd">        ]</span>
+<span class="sd">        In this example nodesSegList contains</span>
+<span class="sd">        two line strings, each with 4 coordinates.</span>
+<span class="sd">        Notice that the last coordinate of the 1st</span>
+<span class="sd">        Line ([0,3]) is the same as the first one</span>
+<span class="sd">        from the 2nd Line, so both lines can be merged</span>
+<span class="sd">        into a single longer line:</span>
+
+<span class="sd">        [[0,0], [0,1], [0,2], &quot;[0,3]&quot;, [1,1], [1,2], [1,3]]</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nodesSegList : List[OSMNode]</span>
+<span class="sd">            A list of :class:`OSMNode` objects</span>
+<span class="sd">            from an :class:`OSMWay` object.</span>
+<span class="sd">            Each of this nodes represents a</span>
+<span class="sd">            point in a path like a street</span>
+<span class="sd">            or avenue.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The same list after the merging was done.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">while</span> <span class="k">True</span><span class="p">:</span>
             <span class="n">merged</span> <span class="o">=</span> <span class="k">False</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodesSegList</span><span class="p">))):</span>

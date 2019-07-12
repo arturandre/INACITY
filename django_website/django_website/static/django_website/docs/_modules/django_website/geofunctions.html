@@ -35,7 +35,22 @@
 
 <span class="c">#In-place flipping</span>
 <div class="viewcode-block" id="flip_geojson_coordinates"><a class="viewcode-back" href="../../api/django_website.html#django_website.geofunctions.flip_geojson_coordinates">[docs]</a><span class="k">def</span> <span class="nf">flip_geojson_coordinates</span><span class="p">(</span><span class="n">geo</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Flips IN-PLACE coordinates of all geometries defined in a geojson object/dict/list&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Flips IN-PLACE coordinates of all geometries defined in a geojson object/dict/list</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    geo : dict</span>
+<span class="sd">        Any geographical object containing a member called</span>
+<span class="sd">        coordinates to be flipped, that is, its ordering</span>
+<span class="sd">        will be reversed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    none</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geo</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">geo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&quot;coordinates&quot;</span><span class="p">:</span>

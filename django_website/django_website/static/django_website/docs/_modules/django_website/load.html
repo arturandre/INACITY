@@ -31,10 +31,27 @@
           <div class="body" role="main">
             
   <h1>Source code for django_website.load</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file exemplifies the manual insertion of</span>
+<span class="sd">geographical data into INACITY backend&#39;s database.</span>
+
+<span class="sd">The data to be inserted refers to bus stops</span>
+<span class="sd">in the city of São Paulo-Brazil.</span>
+
+<span class="sd">This data comes from the GeoSampa GIS and</span>
+<span class="sd">is contained in a file named:</span>
+<span class="sd">SAD69-96_SHP_pontoonibus_point.shp</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">django.contrib.gis.utils</span> <span class="k">import</span> <span class="n">LayerMapping</span>
 <span class="kn">from</span> <span class="nn">django_website.Primitives.GeoSampa</span> <span class="k">import</span> <span class="n">GeoSampa_BusStops</span>
 
+<span class="c"># The shapefile SAD69-96_SHP_pontoonibus_point.shp</span>
+<span class="c"># contains the fields on the right side,</span>
+<span class="c"># on the leftside are corresponding fields </span>
+<span class="c"># in the Model defined to hold the data in the</span>
+<span class="c"># database, that is the GeoSampa_BusStops model.</span>
 <span class="n">geosampa_busstops_mapping</span> <span class="o">=</span> <span class="p">{</span>
     
     <span class="s">&#39;address&#39;</span> <span class="p">:</span> <span class="s">&#39;pt_enderec&#39;</span><span class="p">,</span>
@@ -47,7 +64,27 @@
     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;GeoDatabases&#39;</span><span class="p">,</span><span class="s">&#39;GeoSampa&#39;</span><span class="p">,</span><span class="s">&#39;Pontos_onibus&#39;</span><span class="p">,</span><span class="s">&#39;SAD69-96_SHP_pontoonibus&#39;</span><span class="p">,</span> <span class="s">&#39;SAD69-96_SHP_pontoonibus_point.shp&#39;</span><span class="p">)</span>
 <span class="p">)</span>
 
+<span class="c"># This function is called during the server&#39;s initialization (by dockerfile and dockercompose)</span>
 <div class="viewcode-block" id="run"><a class="viewcode-back" href="../../api/django_website.html#django_website.load.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="k">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function used to insert into the database</span>
+<span class="sd">    data from the GeoSampa bus stops.</span>
+
+<span class="sd">    Notice that the GeoSampa Bus Stops file has the </span>
+<span class="sd">    EPSG:29183 projection as its Source Reference</span>
+<span class="sd">    System (SRS).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    verbose=True : Boolean</span>
+<span class="sd">        Displays messages related to the progress of the</span>
+<span class="sd">        insertion.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    none</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">lm</span> <span class="o">=</span> <span class="n">LayerMapping</span><span class="p">(</span>
         <span class="n">GeoSampa_BusStops</span><span class="p">,</span> <span class="n">pontoonibus_shp</span><span class="p">,</span> <span class="n">geosampa_busstops_mapping</span><span class="p">,</span>
         <span class="n">source_srs</span><span class="o">=</span><span class="mi">29183</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="k">True</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span>

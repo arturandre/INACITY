@@ -134,6 +134,41 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Object responsible for keeping image and panorama&#39;s data</span>
 
+<span class="sd">    fields: </span>
+<span class="sd">        - id : str</span>
+<span class="sd">            Used to syncronize calls to the image filtering endpoint (see :class:`ImageFilter`).</span>
+<span class="sd">        - data : str</span>
+<span class="sd">            Used to hold either the image from this location, (encoded as a base64 string) or an url to it.</span>
+<span class="sd">        - dataType : str</span>
+<span class="sd">            Used to distinguish when data is a base64 string encoding an image or an url to it.</span>
+<span class="sd">            dataType will be &#39;URL&#39; in the latter case and &#39;data:image/jpeg;base64&#39; otherwise.</span>
+<span class="sd">        - location : &lt;geojson.Point&gt;</span>
+<span class="sd">            Represents the geographical location of this object.</span>
+<span class="sd">            A &lt;geojson.Point&gt; is represented by its &#39;coordinates&#39; property which are in turn</span>
+<span class="sd">            a tuple with exactly 2 or 3 values.</span>
+<span class="sd">        - heading : float</span>
+<span class="sd">            Represents the horizontal angle of the image.</span>
+<span class="sd">            That is the azimuth, of some spherical coordinate system, of the camera</span>
+<span class="sd">            in the moment that the picture was taken.</span>
+<span class="sd">        - pitch : float</span>
+<span class="sd">            Represents the vertical angle of the image,</span>
+<span class="sd">            that is the altitude of a spherical coordinate system, of the camera</span>
+<span class="sd">            in the moment that the picture was taken.</span>
+<span class="sd">        - metadata : dict</span>
+<span class="sd">            Represents data not directly related to the GeoImage but usefull</span>
+<span class="sd">            for relating it to other GeoImages. For example, the metadata</span>
+<span class="sd">            may contain information about other GeoImages in the same</span>
+<span class="sd">            location, or perhaps the timestamp of when the picture</span>
+<span class="sd">            was taken.</span>
+<span class="sd">        - processedDataList : dict[str, :class:`ProcessedImageData`]</span>
+<span class="sd">            Contains the list of ProcessedImageData objects related</span>
+<span class="sd">            to this GeoImage. For example, after being processed</span>
+<span class="sd">            by the :class:`GreeneryFilter` class a GeoImage will</span>
+<span class="sd">            contain as one of its processedDataList members the</span>
+<span class="sd">            &#39;greenery&#39; key to a ProcessedImageData containing</span>
+<span class="sd">            the results of the greenery filter applied over</span>
+<span class="sd">            this GeoImage.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="k">None</span>
@@ -147,6 +182,24 @@
 
 <div class="viewcode-block" id="GeoImage.fromJSON"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.fromJSON">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">fromJSON</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">jsonData</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method used to instantiate a GeoImage</span>
+<span class="sd">        from its JSON representation (encoded as a dict).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        jsonData: dict</span>
+<span class="sd">            The dict representing the GeoImage to be</span>
+<span class="sd">            instantiated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A new instance of :class:`GeoImage`</span>
+
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">geoImage</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
         <span class="n">geoImage</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
         <span class="n">geoImage</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">jsonData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">)</span>
@@ -192,26 +245,44 @@
      <span class="c">#   self.data = GeoImage.imageToBase64JPEG(self.data)</span>
      <span class="c">#   self.dataType = &#39;data:image/jpeg;base64&#39;</span>
     
-<div class="viewcode-block" id="GeoImage.imageToBase64JPEG"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG">[docs]</a>    <span class="k">def</span> <span class="nf">imageToBase64JPEG</span><span class="p">(</span><span class="n">inputImage</span> <span class="p">:</span> <span class="n">Image</span><span class="p">):</span>
+<div class="viewcode-block" id="GeoImage.imageToBase64JPEG"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">imageToBase64JPEG</span><span class="p">(</span><span class="n">inputImage</span><span class="p">:</span> <span class="n">Image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used to encode a PIL Image into a base64 string.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputImage: PIL.Image</span>
+<span class="sd">            The image to be encoded</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A base64 encoded string representing the input image.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">buff</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
         <span class="n">inputImage</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s">&quot;JPEG&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buff</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GeoImage.setProcessedData"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.setProcessedData">[docs]</a>    <span class="k">def</span> <span class="nf">setProcessedData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filterId</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">imageData</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">density</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">isPresent</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GeoImage.setProcessedData"><a class="viewcode-back" href="../../../api/django_website.Primitives.html#django_website.Primitives.GeoImage.GeoImage.setProcessedData">[docs]</a>    <span class="k">def</span> <span class="nf">setProcessedData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filterId</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">imageData</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">density</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">isPresent</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict</span>
 <span class="sd">        </span>
-<span class="sd">        :param filterId: Identifies the ProcessedData object</span>
-<span class="sd">        :type filterId: str</span>
-<span class="sd">        :param type: Defines the image format (&#39;ndarray&#39; or None)</span>
-<span class="sd">        :type type: str</span>
-<span class="sd">        :param imageData: Image&#39;s pixel data, defaults to None</span>
-<span class="sd">        :param imageData: Numpy.ndarray, optional</span>
-<span class="sd">        :param density: Defines how much of a feature is present in an image (eg. greenery), defaults to -1</span>
-<span class="sd">        :param density: float (range: [0, 1]), optional</span>
-<span class="sd">        :param isPresent: Defines if a feature exists in the image (eg. Poles), defaults to None</span>
-<span class="sd">        :param isPresent: bool, optional</span>
-
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filterId : str</span>
+<span class="sd">            Identifies the ProcessedData object with the id</span>
+<span class="sd">            of the :class:`ImageFilter` subclass used.</span>
+<span class="sd">        type:  str</span>
+<span class="sd">            Defines the image format (&#39;ndarray&#39; or None)</span>
+<span class="sd">        imageData=None: Any</span>
+<span class="sd">            Image&#39;s pixel data, defaults to None. But can be</span>
+<span class="sd">            a Numpy.ndarray or a base64 string</span>
+<span class="sd">        density=-1: float</span>
+<span class="sd">            Defines how much of a feature is present in an image (eg. greenery), defaults to -1</span>
+<span class="sd">        isPresent=None: boolean</span>
+<span class="sd">            Defines if a feature exists in the image (eg. Poles), defaults to None</span>
+<span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">pImageData</span> <span class="o">=</span> <span class="n">ProcessedImageData</span><span class="p">()</span>

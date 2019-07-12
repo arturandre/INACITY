@@ -11,6 +11,17 @@ class MapMiner(ABC):
     Abstract class representing a Map Miner
     adapter to collect data from some GIS
     (Geographic Information System).
+
+
+    fields:
+        _destcrs = SpatialReference(3857)
+            Destination Coordinates Reference System used to convert
+            a distinct Source Coordinate System (SRS) to the adopted
+            default (from OpenStreetMap).
+        _subclasses : List[MapMiner]
+            Contains a list of every subclass of MapMiner.
+            Filled dynamically.
+
     """
     _destcrs = SpatialReference(3857) # OpenLayers defauls srid
     _subclasses = []
@@ -106,7 +117,7 @@ class MapMiner(ABC):
         trans = CoordTransform(cls._basecrs, MapMiner._destcrs)
         return geosobject.transform(trans)
 
-
+    @staticmethod
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         return GeoJsonInput
 

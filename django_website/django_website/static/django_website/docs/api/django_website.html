@@ -112,15 +112,40 @@ code. It writes to the local file ‘messages.log’.</p>
 <dt id="django_website.geofunctions.flip_geojson_coordinates">
 <code class="sig-prename descclassname">django_website.geofunctions.</code><code class="sig-name descname">flip_geojson_coordinates</code><span class="sig-paren">(</span><em class="sig-param">geo</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/geofunctions.html#flip_geojson_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.geofunctions.flip_geojson_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flips IN-PLACE coordinates of all geometries defined in a geojson object/dict/list</p>
+<dl class="simple">
+<dt>geo<span class="classifier">dict</span></dt><dd><p>Any geographical object containing a member called
+coordinates to be flipped, that is, its ordering
+will be reversed.</p>
+</dd>
+</dl>
+<p>none</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-django_website.load">
 <span id="django-website-load-module"></span><h2>django_website.load module<a class="headerlink" href="#module-django_website.load" title="Permalink to this headline">¶</a></h2>
+<p>This file exemplifies the manual insertion of
+geographical data into INACITY backend’s database.</p>
+<p>The data to be inserted refers to bus stops
+in the city of São Paulo-Brazil.</p>
+<p>This data comes from the GeoSampa GIS and
+is contained in a file named:
+SAD69-96_SHP_pontoonibus_point.shp</p>
 <dl class="function">
 <dt id="django_website.load.run">
 <code class="sig-prename descclassname">django_website.load.</code><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/load.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.load.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convenience function used to insert into the database
+data from the GeoSampa bus stops.</p>
+<p>Notice that the GeoSampa Bus Stops file has the 
+EPSG:29183 projection as its Source Reference
+System (SRS).</p>
+<dl class="simple">
+<dt>verbose=True<span class="classifier">Boolean</span></dt><dd><p>Displays messages related to the progress of the
+insertion.</p>
+</dd>
+</dl>
+<p>none</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-django_website.models">

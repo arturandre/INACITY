@@ -101,6 +101,41 @@ class GeoImage():
     """
     Object responsible for keeping image and panorama's data
 
+    fields: 
+        - id : str
+            Used to syncronize calls to the image filtering endpoint (see :class:`ImageFilter`).
+        - data : str
+            Used to hold either the image from this location, (encoded as a base64 string) or an url to it.
+        - dataType : str
+            Used to distinguish when data is a base64 string encoding an image or an url to it.
+            dataType will be 'URL' in the latter case and 'data:image/jpeg;base64' otherwise.
+        - location : <geojson.Point>
+            Represents the geographical location of this object.
+            A <geojson.Point> is represented by its 'coordinates' property which are in turn
+            a tuple with exactly 2 or 3 values.
+        - heading : float
+            Represents the horizontal angle of the image.
+            That is the azimuth, of some spherical coordinate system, of the camera
+            in the moment that the picture was taken.
+        - pitch : float
+            Represents the vertical angle of the image,
+            that is the altitude of a spherical coordinate system, of the camera
+            in the moment that the picture was taken.
+        - metadata : dict
+            Represents data not directly related to the GeoImage but usefull
+            for relating it to other GeoImages. For example, the metadata
+            may contain information about other GeoImages in the same
+            location, or perhaps the timestamp of when the picture
+            was taken.
+        - processedDataList : dict[str, :class:`ProcessedImageData`]
+            Contains the list of ProcessedImageData objects related
+            to this GeoImage. For example, after being processed
+            by the :class:`GreeneryFilter` class a GeoImage will
+            contain as one of its processedDataList members the
+            'greenery' key to a ProcessedImageData containing
+            the results of the greenery filter applied over
+            this GeoImage.
+
     """
     def __init__(self):
         self.id = None
@@ -114,6 +149,24 @@ class GeoImage():
 
     @classmethod
     def fromJSON(cls, jsonData: dict):
+        """
+        Helper method used to instantiate a GeoImage
+        from its JSON representation (encoded as a dict).
+
+        Parameters
+        ----------
+
+        jsonData: dict
+            The dict representing the GeoImage to be
+            instantiated.
+
+        Returns
+        -------
+        A new instance of :class:`GeoImage`
+
+
+
+        """
         geoImage = cls()
         geoImage.id = jsonData.get('id')
         geoImage.data = jsonData.get('data')
@@ -159,26 +212,44 @@ class GeoImage():
      #   self.data = GeoImage.imageToBase64JPEG(self.data)
      #   self.dataType = 'data:image/jpeg;base64'
     
-    def imageToBase64JPEG(inputImage : Image):
+    @staticmethod
+    def imageToBase64JPEG(inputImage: Image):
+        """
+        Used to encode a PIL Image into a base64 string.
+
+        Parameters
+        ----------
+        inputImage: PIL.Image
+            The image to be encoded
+
+        Returns
+        -------
+        A base64 encoded string representing the input image.
+
+        """
         buff = BytesIO()
         inputImage.save(buff, format="JPEG")
         return base64.b64encode(buff.getvalue()).decode("utf-8")
 
-    def setProcessedData(self, filterId: str, type, imageData=None, density=-1, isPresent=None):
+    def setProcessedData(self, filterId: str, type: str, imageData=None, density=-1, isPresent=None):
         """
         Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict
         
-        :param filterId: Identifies the ProcessedData object
-        :type filterId: str
-        :param type: Defines the image format ('ndarray' or None)
-        :type type: str
-        :param imageData: Image's pixel data, defaults to None
-        :param imageData: Numpy.ndarray, optional
-        :param density: Defines how much of a feature is present in an image (eg. greenery), defaults to -1
-        :param density: float (range: [0, 1]), optional
-        :param isPresent: Defines if a feature exists in the image (eg. Poles), defaults to None
-        :param isPresent: bool, optional
-
+        Parameters
+        ----------
+        filterId : str
+            Identifies the ProcessedData object with the id
+            of the :class:`ImageFilter` subclass used.
+        type:  str
+            Defines the image format ('ndarray' or None)
+        imageData=None: Any
+            Image's pixel data, defaults to None. But can be
+            a Numpy.ndarray or a base64 string
+        density=-1: float
+            Defines how much of a feature is present in an image (eg. greenery), defaults to -1
+        isPresent=None: boolean
+            Defines if a feature exists in the image (eg. Poles), defaults to None
+            
         """
 
         pImageData = ProcessedImageData()

@@ -2,7 +2,22 @@ import numpy as np
 
 #In-place flipping
 def flip_geojson_coordinates(geo):
-    """Flips IN-PLACE coordinates of all geometries defined in a geojson object/dict/list"""
+    """
+    Flips IN-PLACE coordinates of all geometries defined in a geojson object/dict/list
+
+    Parameters
+    ----------
+
+    geo : dict
+        Any geographical object containing a member called
+        coordinates to be flipped, that is, its ordering
+        will be reversed.
+
+    Returns
+    -------
+    none
+    
+    """
     if isinstance(geo, dict):
         for k, v in geo.items():
             if k == "coordinates":

@@ -64,6 +64,18 @@
 <p>Abstract class representing a Map Miner
 adapter to collect data from some GIS
 (Geographic Information System).</p>
+<dl class="simple">
+<dt>fields:</dt><dd><dl class="simple">
+<dt>_destcrs = SpatialReference(3857)</dt><dd><p>Destination Coordinates Reference System used to convert
+a distinct Source Coordinate System (SRS) to the adopted
+default (from OpenStreetMap).</p>
+</dd>
+<dt>_subclasses<span class="classifier">List[MapMiner]</span></dt><dd><p>Contains a list of every subclass of MapMiner.
+Filled dynamically.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="method">
 <dt id="django_website.MapMiners.MapMiner.MapMiner.doQuery">
 <em class="property">classmethod </em><code class="sig-name descname">doQuery</code><span class="sig-paren">(</span><em class="sig-param">queryName: str</em>, <em class="sig-param">regions: geojson.feature.FeatureCollection</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/MapMiners/MapMiner.html#MapMiner.doQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.MapMiners.MapMiner.MapMiner.doQuery" title="Permalink to this definition">¶</a></dt>
@@ -97,6 +109,20 @@ adapter to collect data from some GIS
 <dt id="django_website.MapMiners.OSMMiner.OSMMiner">
 <em class="property">class </em><code class="sig-prename descclassname">django_website.MapMiners.OSMMiner.</code><code class="sig-name descname">OSMMiner</code><a class="reference internal" href="../_modules/django_website/MapMiners/OSMMiner.html#OSMMiner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.MapMiners.OSMMiner.OSMMiner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#django_website.MapMiners.MapMiner.MapMiner" title="django_website.MapMiners.MapMiner.MapMiner"><code class="xref py py-class docutils literal notranslate"><span class="pre">django_website.MapMiners.MapMiner.MapMiner</span></code></a></p>
+<p>OpenStreetMaps miner constructed using the Overpass API</p>
+<dl class="simple">
+<dt>class members:</dt><dd><dl class="simple">
+<dt>Derived from MapMiner:</dt><dd><ul class="simple">
+<li><p>mapMinerName : ‘OpenStreetMap’</p></li>
+<li><p>mapMinerId : ‘osm’</p></li>
+<li><p>_basecrs : SpatialReference(3857)</p></li>
+</ul>
+</dd>
+<dt>Internal:</dt><dd><p>-_OSMServerURL = ‘inacity.org’</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="class">
 <dt id="django_website.MapMiners.OSMMiner.OSMMiner.OverpassAPIStatus">
 <em class="property">class </em><code class="sig-name descname">OverpassAPIStatus</code><a class="reference internal" href="../_modules/django_website/MapMiners/OSMMiner.html#OSMMiner.OverpassAPIStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.MapMiners.OSMMiner.OSMMiner.OverpassAPIStatus" title="Permalink to this definition">¶</a></dt>
@@ -125,8 +151,7 @@ adapter to collect data from some GIS
 <dl class="attribute">
 <dt id="django_website.MapMiners.OSMMiner.OSMMiner.mapMinerId">
 <code class="sig-name descname">mapMinerId</code><em class="property"> = 'osm'</em><a class="headerlink" href="#django_website.MapMiners.OSMMiner.OSMMiner.mapMinerId" title="Permalink to this definition">¶</a></dt>
-<dd><p>OpenStreetMaps miner constructed using the Overpass API</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="django_website.MapMiners.OSMMiner.OSMMiner.mapMinerName">

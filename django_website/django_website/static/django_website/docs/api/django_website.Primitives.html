@@ -55,32 +55,108 @@ responses in the views.</p>
 <em class="property">class </em><code class="sig-prename descclassname">django_website.Primitives.GeoImage.</code><code class="sig-name descname">GeoImage</code><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Object responsible for keeping image and panorama’s data</p>
+<dl>
+<dt>fields: </dt><dd><ul>
+<li><dl class="simple">
+<dt>id<span class="classifier">str</span></dt><dd><p>Used to syncronize calls to the image filtering endpoint (see <code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFilter</span></code>).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>data<span class="classifier">str</span></dt><dd><p>Used to hold either the image from this location, (encoded as a base64 string) or an url to it.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dataType<span class="classifier">str</span></dt><dd><p>Used to distinguish when data is a base64 string encoding an image or an url to it.
+dataType will be ‘URL’ in the latter case and ‘<a class="reference external" href="data:image/jpeg;base64">data:image/jpeg;base64</a>’ otherwise.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>location<span class="classifier">&lt;geojson.Point&gt;</span></dt><dd><p>Represents the geographical location of this object.
+A &lt;geojson.Point&gt; is represented by its ‘coordinates’ property which are in turn
+a tuple with exactly 2 or 3 values.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>heading<span class="classifier">float</span></dt><dd><p>Represents the horizontal angle of the image.
+That is the azimuth, of some spherical coordinate system, of the camera
+in the moment that the picture was taken.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>pitch<span class="classifier">float</span></dt><dd><p>Represents the vertical angle of the image,
+that is the altitude of a spherical coordinate system, of the camera
+in the moment that the picture was taken.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>metadata<span class="classifier">dict</span></dt><dd><p>Represents data not directly related to the GeoImage but usefull
+for relating it to other GeoImages. For example, the metadata
+may contain information about other GeoImages in the same
+location, or perhaps the timestamp of when the picture
+was taken.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>processedDataList<span class="classifier">dict[str, <a class="reference internal" href="#django_website.Primitives.GeoImage.ProcessedImageData" title="django_website.Primitives.GeoImage.ProcessedImageData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessedImageData</span></code></a>]</span></dt><dd><p>Contains the list of ProcessedImageData objects related
+to this GeoImage. For example, after being processed
+by the <code class="xref py py-class docutils literal notranslate"><span class="pre">GreeneryFilter</span></code> class a GeoImage will
+contain as one of its processedDataList members the
+‘greenery’ key to a ProcessedImageData containing
+the results of the greenery filter applied over
+this GeoImage.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="django_website.Primitives.GeoImage.GeoImage.fromJSON">
 <em class="property">classmethod </em><code class="sig-name descname">fromJSON</code><span class="sig-paren">(</span><em class="sig-param">jsonData: dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage.fromJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage.fromJSON" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Helper method used to instantiate a GeoImage
+from its JSON representation (encoded as a dict).</p>
+<dl class="simple">
+<dt>jsonData: dict</dt><dd><p>The dict representing the GeoImage to be
+instantiated.</p>
+</dd>
+</dl>
+<p>A new instance of <a class="reference internal" href="#django_website.Primitives.GeoImage.GeoImage" title="django_website.Primitives.GeoImage.GeoImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeoImage</span></code></a></p>
+</dd></dl>
 
 <dl class="method">
 <dt id="django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG">
-<code class="sig-name descname">imageToBase64JPEG</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage.imageToBase64JPEG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">static </em><code class="sig-name descname">imageToBase64JPEG</code><span class="sig-paren">(</span><em class="sig-param">inputImage: &lt;module 'PIL.Image' from '/usr/local/lib/python3.6/site-packages/PIL/Image.py'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage.imageToBase64JPEG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage.imageToBase64JPEG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to encode a PIL Image into a base64 string.</p>
+<dl class="simple">
+<dt>inputImage: PIL.Image</dt><dd><p>The image to be encoded</p>
+</dd>
+</dl>
+<p>A base64 encoded string representing the input image.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="django_website.Primitives.GeoImage.GeoImage.setProcessedData">
-<code class="sig-name descname">setProcessedData</code><span class="sig-paren">(</span><em class="sig-param">filterId: str</em>, <em class="sig-param">type</em>, <em class="sig-param">imageData=None</em>, <em class="sig-param">density=-1</em>, <em class="sig-param">isPresent=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage.setProcessedData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage.setProcessedData" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setProcessedData</code><span class="sig-paren">(</span><em class="sig-param">filterId: str</em>, <em class="sig-param">type: str</em>, <em class="sig-param">imageData=None</em>, <em class="sig-param">density=-1</em>, <em class="sig-param">isPresent=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/GeoImage.html#GeoImage.setProcessedData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.GeoImage.GeoImage.setProcessedData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filterId</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Identifies the ProcessedData object</p></li>
-<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Defines the image format (‘ndarray’ or None)</p></li>
-<li><p><strong>imageData</strong> – Image’s pixel data, defaults to None</p></li>
-<li><p><strong>imageData</strong> – Numpy.ndarray, optional</p></li>
-<li><p><strong>density</strong> – Defines how much of a feature is present in an image (eg. greenery), defaults to -1</p></li>
-<li><p><strong>density</strong> – float (range: [0, 1]), optional</p></li>
-<li><p><strong>isPresent</strong> – Defines if a feature exists in the image (eg. Poles), defaults to None</p></li>
-<li><p><strong>isPresent</strong> – bool, optional</p></li>
-</ul>
+<dl class="simple">
+<dt>filterId<span class="classifier">str</span></dt><dd><p>Identifies the ProcessedData object with the id
+of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFilter</span></code> subclass used.</p>
+</dd>
+<dt>type:  str</dt><dd><p>Defines the image format (‘ndarray’ or None)</p>
+</dd>
+<dt>imageData=None: Any</dt><dd><p>Image’s pixel data, defaults to None. But can be
+a Numpy.ndarray or a base64 string</p>
+</dd>
+<dt>density=-1: float</dt><dd><p>Defines how much of a feature is present in an image (eg. greenery), defaults to -1</p>
+</dd>
+<dt>isPresent=None: boolean</dt><dd><p>Defines if a feature exists in the image (eg. Poles), defaults to None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -278,6 +354,29 @@ object the first time, the query is executed.</p>
 <em class="property">class </em><code class="sig-prename descclassname">django_website.Primitives.OSMPrimitives.</code><code class="sig-name descname">OSMNode</code><span class="sig-paren">(</span><em class="sig-param">id: int</em>, <em class="sig-param">type: str</em>, <em class="sig-param">lat: decimal.Decimal</em>, <em class="sig-param">lon: decimal.Decimal</em>, <em class="sig-param">tags={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/OSMPrimitives.html#OSMNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.OSMPrimitives.OSMNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMObject" title="django_website.Primitives.OSMPrimitives.OSMObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">django_website.Primitives.OSMPrimitives.OSMObject</span></code></a></p>
 <p>Class used as an OpenStreetMap Node object wrapper</p>
+<dl class="simple">
+<dt>fields:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>lat<span class="classifier">Decimal</span></dt><dd><p>Represents this OSMNode latitude</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>lon<span class="classifier">Decimal</span></dt><dd><p>Represents this OSMNode longitude</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>tags<span class="classifier">dict</span></dt><dd><p>Each <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMNode" title="django_website.Primitives.OSMPrimitives.OSMNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMNode</span></code></a>, <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMWay" title="django_website.Primitives.OSMPrimitives.OSMWay"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMWay</span></code></a> and <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMRelation" title="django_website.Primitives.OSMPrimitives.OSMRelation"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMRelation</span></code></a> can
+contain an arbitratry number of tags, each of which corresponds to
+some attribute of that OSM object (e.g. an OSMNode could
+have a tag ‘highway’ with the value ‘traffic_signals’).</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
@@ -298,7 +397,31 @@ uid: 0 #user’s id</p>
 <dt id="django_website.Primitives.OSMPrimitives.OSMRelation">
 <em class="property">class </em><code class="sig-prename descclassname">django_website.Primitives.OSMPrimitives.</code><code class="sig-name descname">OSMRelation</code><span class="sig-paren">(</span><em class="sig-param">id: int, type, members: List[django_website.Primitives.OSMPrimitives.OSMObject], tags={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/OSMPrimitives.html#OSMRelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.OSMPrimitives.OSMRelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMObject" title="django_website.Primitives.OSMPrimitives.OSMObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">django_website.Primitives.OSMPrimitives.OSMObject</span></code></a></p>
-<p>A OpenStreetMap relation represents ‘belongs to’ relations (i.e. <code class="xref py py-class docutils literal notranslate"><span class="pre">OSMNode`s</span> <span class="pre">belonging</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">:class:`OSMWay</span></code>)</p>
+<p>A OpenStreetMap relation represents ‘belongs to’ relations (i.e. <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMNode" title="django_website.Primitives.OSMPrimitives.OSMNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMNode</span></code></a> objects belonging
+to the same <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMWay" title="django_website.Primitives.OSMPrimitives.OSMWay"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMWay</span></code></a> or a collection of <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMWay" title="django_website.Primitives.OSMPrimitives.OSMWay"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMWay</span></code></a> objects that belongs to the same
+OSMRelation which represets for example the boundaries of some region.)</p>
+<dl class="simple">
+<dt>fields:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>id<span class="classifier">int</span></dt><dd><p>Represents the relation id as informed by OpenStreetMap database</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>type<span class="classifier">str</span></dt><dd><p>It can be anything for example ‘boundary’.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>members<span class="classifier">List[OSMObject]</span></dt><dd><p>An OSMRelation can be composed by any number and type of objects
+(e.g. an OSMRelation with type ‘route’ can contain different
+OSMWays that compose the route of a bus).</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
@@ -331,7 +454,26 @@ uid: 0 #user’s id</p>
 <dt id="django_website.Primitives.OSMPrimitives.OSMWay">
 <em class="property">class </em><code class="sig-prename descclassname">django_website.Primitives.OSMPrimitives.</code><code class="sig-name descname">OSMWay</code><span class="sig-paren">(</span><em class="sig-param">id: int, type, nodes: List[int], tags={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/django_website/Primitives/OSMPrimitives.html#OSMWay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#django_website.Primitives.OSMPrimitives.OSMWay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMObject" title="django_website.Primitives.OSMPrimitives.OSMObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">django_website.Primitives.OSMPrimitives.OSMObject</span></code></a></p>
-<p>Class used as an OpenStreetMap Way object wrapper</p>
+<p>Class used as an OpenStreetMap Way object wrapper.
+In this abstraction an OSMWay is only considered to be a set
+of nodes contained in the field nodes.</p>
+<dl class="simple">
+<dt>fields:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>nodes<span class="classifier">List[int]</span></dt><dd><p>The set of nodes contained in this OSMWay. An OSMWay
+is used to represent usually linear features such 
+as avenues and streets.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>tags<span class="classifier">dict</span></dt><dd><p>See tags in <a class="reference internal" href="#django_website.Primitives.OSMPrimitives.OSMNode" title="django_website.Primitives.OSMPrimitives.OSMNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">OSMNode</span></code></a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
