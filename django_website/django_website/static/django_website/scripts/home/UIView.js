@@ -16,11 +16,12 @@
  */
 class UIView
 {
-    constructor(uiModel, geoImageManager, openLayersHandler)
+    constructor(uiModel, geoImageManager, openLayersHandler, streetSelect)
     {
         this.uiModel = uiModel;
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
+        this.streetSelect = streetSelect;
 
         this.onClickExecuteQueryBtn = null;
         this.onClickExecuteImageFilterBtn = null;
@@ -136,6 +137,7 @@ class UIView
         SessionManager.on('sessionsaved', this._updateSaveSessionButtons.bind(this));
 
         StreetSelect.on("selectedfeaturechanged", this._updateSelectedFeature.bind(this));
+        StreetSelect.on("selectedfeaturechanged", this.updateLayersHintList.bind(this));
     }
 
     /**
@@ -311,38 +313,6 @@ class UIView
         }
     }
 
-    // set SelectedMapMiner(mapMinerId) {
-    //     //this._SelectedMapMiner = mapMinerId;
-
-
-    //     //let mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
-
-    //     //this.jqbtnExecuteQuery.removeClass("hidden");
-    //     //this.jqbtnClearSelections.removeClass("hidden");
-
-    //     //this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
-
-
-    //     // if (!this.SelectedMapFeature) {
-    //     //     this.filterFeaturesByMapMiner(mapMiner);
-    //     //     if (mapMiner.features.length === 1) {
-    //     //         this.changeMapFeature(mapMiner.features[0]);
-    //     //     }
-    //     // }
-    // }
-
-    // set SelectedMapFeature(mapFeatureName) {
-    //     //this._SelectedMapFeature = mapFeatureName;
-
-    //     // this.jqbtnClearSelections.removeClass("hidden");
-    //     // this.jqbtnExecuteQuery.removeClass("hidden");
-
-    //     //this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeatureName, false);
-
-    //     // if (!this.SelectedMapMiner) {
-    //     //     this.filterMinersByFeatureName(mapFeatureName);
-    //     // }
-    // }
     updateFeatureView(mapFeature)
     {
         this.jqbtnClearSelections.removeClass("hidden");
@@ -607,6 +577,15 @@ class UIView
     updateLayersHintList()
     {
         let hintLayers = [];
+
+
+        if (this.streetSelect.lastSelectedFeature)
+        {
+            this.jqbtnCollectImages.attr('data-original-title',
+            gettext("The selected feature is") + ":\n" +
+            this.streetSelect.lastSelectedFeature.getProperties().name);
+            return;
+        }
 
         //Set active layers list tooltip
         let activeRegions = this.uiModel.getActiveRegions();

@@ -23,6 +23,8 @@ class StreetSelect extends Subject
         this._openLayersHandler.map.on('pointermove', this._hoverIgnoreRegion.bind(this));
     }
 
+    get lastSelectedFeature() { return this._lastSelectedFeature; }
+
     _singleClickSelect(e)
     {
         this._openLayersHandler.map.forEachFeatureAtPixel(e.pixel, (feature, layer) =>

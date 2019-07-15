@@ -150,7 +150,7 @@ async function initializeUI() {
 
     /* UIModel init*/
     //TODO: Make the defaults parameters part of an object (maybe a config file?)
-    uiModel = new UIModel('regionsList', openLayersHandler);
+    uiModel = new UIModel('regionsList', openLayersHandler, streetSelect);
 
     let uiModelDefaults = {
         mapMiner: "osm",
@@ -175,7 +175,8 @@ async function initializeUI() {
     uiView = new UIView(
         uiModel,
         geoImageManager,
-        openLayersHandler);
+        openLayersHandler,
+        streetSelect);
     
     sessionManager = new SessionManager(
         {
@@ -186,7 +187,7 @@ async function initializeUI() {
     );
     sessionManager.loadSession();
 
-    uiController = new UIController(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager);
+    uiController = new UIController(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager, streetSelect);
 
     uiController.initialize();
     uiView.initialize();

@@ -1,5 +1,5 @@
 class GeoImageCollection {
-    constructor(){
+    constructor() {
         this._currentGeoImagesCollection = [];
         this._validImages = -1;
     }
@@ -17,8 +17,18 @@ class GeoImageCollection {
         return ret;
     }
 
-    loadGeoImagesFromFeatureCollection(newFeatureCollection)
-    {
+    loadGeoImagesFromFeature(newFeature) {
+        this._currentGeoImagesCollection = [];
+        if (getPropPath(newFeature.type === "Feature")) {
+            let geoImages = newFeature.properties.geoImages;
+            if (geoImages) {
+                this._currentGeoImagesCollection.push(geoImages);
+            }
+            this._cleanGeoImagesCollection();
+        }
+    }
+
+    loadGeoImagesFromFeatureCollection(newFeatureCollection) {
         this._currentGeoImagesCollection = [];
         if (getPropPath(newFeatureCollection, ['features', 'length']) > 0) {
             for (let featureIndex in newFeatureCollection.features) {

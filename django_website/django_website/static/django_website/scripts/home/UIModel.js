@@ -460,7 +460,7 @@ class FeatureRegions
 */
 class UIModel extends Subject
 {
-    constructor(regionsDivId, openLayersHandler)
+    constructor(regionsDivId, openLayersHandler, streetSelect)
     {
         super();
         this.setTarget(regionsDivId);
@@ -494,6 +494,7 @@ class UIModel extends Subject
         this._mapMinersAndFeatures = [];
 
         this._openLayersHandler = openLayersHandler;
+        this._streetSelect = streetSelect;
         //this._geoImageManager = geoImageManager;
 
         /*OpenLayers Event Handlers*/
@@ -681,12 +682,27 @@ class UIModel extends Subject
     /**
      * Collect the images (given an Image Provider)
      * for a set of geographic features
+     * @todo When updating a single feature (rather then a FeatureCollection)
+     * @todo update that single feature into the corresponding FeatureCollection(s)
+     * @todo This task requires that requests for images could be done
+     * @todo in a partial way.
      */
     async getImages()
     {
+        debugger;
         let numCalls = 0;
 
         let triggerGeoImages = false;
+
+        if (this._streetSelect.lastSelectedFeature)
+        {
+            let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
+            await GSVService.setPanoramaForFeature(geoJSONFeature);
+            UIModel.notify('getimages', geoJSONFeature);
+            return;
+        }
+
+
 
         let activeRegions = this.getActiveRegions();
         if (activeRegions.length === 0)

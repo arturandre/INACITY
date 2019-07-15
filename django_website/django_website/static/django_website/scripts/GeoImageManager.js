@@ -40,6 +40,8 @@ class GeoImageManager extends Subject {
         if (options && options.defaultImageUrl) {
             this._defaultImageUrl = options.defaultImageUrl;
         }
+
+        UIModel.on("getimages", this.displayGeoJSONFeature.bind(this));
     }
 
     saveToJSON() {
@@ -76,6 +78,17 @@ class GeoImageManager extends Subject {
         return getPropPath(this, ['geoImageCollection', 'validImages']);
     }
 
+    displayGeoJSONFeature(geoJSONFeature) {
+        this.geoImageCollection = geoJSONFeature;
+        if (!(this.geoImageCollection.validImages > 0)) {
+            this._clearPresentation();
+            return;
+        }
+        this._currentIndex = 0;
+
+        this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
+    }
+
 
     /**
      * Which image is currently being displayed. Ranges from 0 to [_validImages]{@link module:GeoImageManager~_validImages}.
@@ -100,7 +113,7 @@ class GeoImageManager extends Subject {
         //So that listeners of the change can know what is the current filterId
         this._imageFilterId = filterId;
         this.geoImageCollection = this._displayingLayers[this._currentLayer].featureCollection;
-        if (!this.geoImageCollection.validImages > 0) {
+        if (!(this.geoImageCollection.validImages > 0)) {
             this._clearPresentation();
             return;
         }
@@ -109,8 +122,7 @@ class GeoImageManager extends Subject {
         this.autoPlayGeoImages(GeoImageManager.PlayCommands.Play);
     }
 
-    clear()
-    {
+    clear() {
         this._clearPresentation();
     }
 
@@ -185,12 +197,19 @@ class GeoImageManager extends Subject {
 
     /**
      * Change the current GeoImage's Collection being presented
-     * @param {FeatureCollection} newFeatureCollection - A feature collection object with its features containing the geoImages as a property
+     * @param {FeatureCollection|Feature} newFeatureOrCollection - A feature collection object
+     * with its features containing the geoImages as a property or a GeoJSON Feature also
+     * containing GeoImages in its properties.
      * @fires [geoimagecollectionchange]{@link module:GeoImageManager~GeoImageManager.geoimagecollectionchange}
      */
     //set currentgeoImageCollection(newFeatureCollection) {
-    set geoImageCollection(newFeatureCollection) {
-        this.geoImageCollection.loadGeoImagesFromFeatureCollection(newFeatureCollection);
+    set geoImageCollection(newFeatureOrCollection) {
+        if (newFeatureOrCollection.features) { //Only featureCollections have a 'features' member
+            this.geoImageCollection.loadGeoImagesFromFeatureCollection(newFeatureOrCollection);
+        } else
+        {
+            this.geoImageCollection.loadGeoImagesFromFeature(newFeatureOrCollection);
+        }
         GeoImageManager.notify('geoimagecollectionchange', { geoImageCollection: this.geoImageCollection, imageFilterId: this.imageFilterId });
     }
 
@@ -236,8 +255,8 @@ class GeoImageManager extends Subject {
      * Display an image from a GeoImage tree. That is, a tree where leafs are GeoImage objects 
      * @param {int} index - An integer value representing some geoImage between 0 and _validImages
     */
-//     * @param {Bool} silentChange - If true then it won't trigger an event
-//    displayGeoImageAtIndex(index, silentChange) {
+    //     * @param {Bool} silentChange - If true then it won't trigger an event
+    //    displayGeoImageAtIndex(index, silentChange) {
     displayGeoImageAtIndex(index) {
         if (index > this.geoImageCollection.validImages) {
             throw new Error(`Index (${index}) out of valid range [0-${this.validImages}].`);
@@ -250,7 +269,7 @@ class GeoImageManager extends Subject {
         return true;
 
     }
-    
+
     get imageFilterId() { return this._imageFilterId; }
 
     set imageFilterId(imageFilterId) {

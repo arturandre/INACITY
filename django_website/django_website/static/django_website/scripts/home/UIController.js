@@ -10,13 +10,14 @@
      * @param {OpenLayerHandler} openLayersHandler 
      * @param {SessionManager} sessionManager 
      */
-    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager)
+    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager, streetSelected)
     {
         this.uiModel = uiModel;
         this.uiView = uiView;
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
         this.sessionManager = sessionManager;
+        this._streetSelected = streetSelected;
     }
 
     initialize()
@@ -283,6 +284,7 @@
         {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
             //Set the geoImageManager to display this collection
+            if (this._streetSelected) return;
             this.geoImageManager.updateDisplayingLayers();
         }
         catch(err)
