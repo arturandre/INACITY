@@ -689,7 +689,6 @@ class UIModel extends Subject
      */
     async getImages()
     {
-        debugger;
         let numCalls = 0;
 
         let triggerGeoImages = false;
