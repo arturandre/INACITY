@@ -231,8 +231,10 @@
     {
         try
         {
+            this._streetSelected.clear();
             if (await this.sessionManager.newSession())
             {
+                this.uiView.updateGeoImgSlider();
                 this.uiView.displayMessage(gettext("New blank session created!"));
             }
         } catch (error)

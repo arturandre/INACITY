@@ -23,30 +23,45 @@ class StreetSelect extends Subject
         this._openLayersHandler.map.on('pointermove', this._hoverIgnoreRegion.bind(this));
     }
 
+    clear()
+    {
+        this._selectFeature(null);
+    }
+
     get lastSelectedFeature() { return this._lastSelectedFeature; }
+
+    _selectFeature(OLFeature)
+    {
+        if (this._lastSelectedFeature)
+        {
+            this._lastSelectedFeature.setStyle(null);
+            if (this._lastSelectedFeature === OLFeature)
+            {
+                this._lastSelectedFeature = null;
+                StreetSelect.notify("selectedfeaturechanged", null);
+                return;
+            }
+        }
+        
+
+        this._lastSelectedFeature = OLFeature;
+        if (!OLFeature) return;
+        this._lastSelectedFeature.setStyle(StreetSelect.selectedStyle);
+    }
 
     _singleClickSelect(e)
     {
+        let hit = false;
         this._openLayersHandler.map.forEachFeatureAtPixel(e.pixel, (feature, layer) =>
         {
 
             if (feature.getProperties()['type'] !== 'region')
             {
+                hit = true;
                 if (feature === this._lastHoveredFeature)
                 {
                     console.log(feature.getId());
-                    if (this._lastSelectedFeature)
-                    {
-                        this._lastSelectedFeature.setStyle(null);
-                        if (this._lastSelectedFeature === this._lastHoveredFeature)
-                        {
-                            this._lastSelectedFeature = null;
-                            StreetSelect.notify("selectedfeaturechanged", null);
-                            return;
-                        }
-                    }
-                    this._lastSelectedFeature = this._lastHoveredFeature;
-                    this._lastSelectedFeature.setStyle(StreetSelect.selectedStyle);
+                    this._selectFeature(this._lastHoveredFeature);
                     StreetSelect.notify("selectedfeaturechanged", this._lastSelectedFeature);
                     return true;
                 }
@@ -55,6 +70,10 @@ class StreetSelect extends Subject
             {
                 hitTolerance: 10
             });
+        if (!hit)
+        {
+            this._selectFeature(null);
+        }
     }
 
     _hoverIgnoreRegion(e)
@@ -62,7 +81,9 @@ class StreetSelect extends Subject
         let features = e.target.getFeaturesAtPixel(e.pixel);
         if (features)
         {
-            if (features[0].getProperties()['type'] !== 'region')
+            if (
+                (features[0].getProperties()['type'] !== 'region')
+            && features[0].getProperties().name)
             {
                 if (this._lastHoveredFeature)
                 {

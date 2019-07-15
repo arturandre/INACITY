@@ -527,10 +527,17 @@ class UIView
             if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
             else
             {
-                // let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                // this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                this.openLayersHandler.globalVectorSource.removeFeature(feature);
-                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+                if (layer.hasOlFeatures)
+                {
+                    this.openLayersHandler.globalVectorSource.removeFeature(feature);
+                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.getProperties().name].drawed = false;
+                }
+                else
+                {
+                    let olFeature = this.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+                    this.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+                }
             }
         }
     }
@@ -582,8 +589,8 @@ class UIView
         if (this.streetSelect.lastSelectedFeature)
         {
             this.jqbtnCollectImages.attr('data-original-title',
-            gettext("The selected feature is") + ":\n" +
-            this.streetSelect.lastSelectedFeature.getProperties().name);
+                gettext("The selected feature is") + ":\n" +
+                this.streetSelect.lastSelectedFeature.getProperties().name);
             return;
         }
 

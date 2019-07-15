@@ -103,6 +103,7 @@ def newsession(request):
     write_to_log("newsession")
     request.session['sessionId'] = str(uuid4())
     if request.session.get('uiModelJSON') is not None: del request.session['uiModelJSON']
+    if request.session.get('sessionData') is not None: del request.session['sessionData']
     #print(f"request.session['sessionId']: {request.session['sessionId']}")
     return HttpResponse(request.session.get('sessionId'), status=200)
 

@@ -567,8 +567,8 @@ class UIModel extends Subject
             case 'removefeature':
                 if (vectorevent.feature.getProperties()['type'] === 'region')
                 {
-                    let featureId = vectorevent.feature.getId();
-                    this.removeRegion(featureId);
+                    // let featureId = vectorevent.feature.getId();
+                    // this.removeRegion(featureId);
                 }
                 break;
             case 'changefeature':
