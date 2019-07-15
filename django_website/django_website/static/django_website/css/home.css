@@ -1,4 +1,8 @@
-﻿
+﻿#lblSelectedFeature
+{
+    display: none;
+}
+
 #btnCancelDrawing
 {
     align-self: flex-end;

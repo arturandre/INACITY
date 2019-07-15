@@ -14,8 +14,10 @@
  * @param {ImageProvider[]} _imageProviders - The collection of Image Providers as reported by the backend
  * @param {MapMiner[]} _mapMinersAndFeatures - The collection of Map Miners and its respective features as reported by the backend
  */
-class UIView {
-    constructor(uiModel, geoImageManager, openLayersHandler) {
+class UIView
+{
+    constructor(uiModel, geoImageManager, openLayersHandler)
+    {
         this.uiModel = uiModel;
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
@@ -24,7 +26,7 @@ class UIView {
         this.onClickExecuteImageFilterBtn = null;
         this.onClickGetImagesBtn = null;
         this.onClickClearSelectionsBtn = null;
-        
+
         this.onClickSaveSessionBtn = null;
         this.onClickNewSessionBtn = null;
 
@@ -36,12 +38,12 @@ class UIView {
         this.onClickCancelDrawingBtn = null;
         this.onClickAddressBarBtn = null;
         this.onClickChangeImageFilter = null;
-        
+
 
         this.onImageSliderInput = null;
-        
-        
-        
+
+
+        this.jqlabelSelectedFeature = $(`#lblSelectedFeature`);
 
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqimageFilterDiv = $(`#imageFilterDiv`);
@@ -53,7 +55,7 @@ class UIView {
 
         this.jqbtnSaveSession = $(`#btnSaveSession`);
         this.jqbtnNewSession = $(`#btnNewSession`);
-        
+
 
         this.jqbtnExecuteImageFilter = $(`#btnExecuteImageFilter`);
         this.jqbtnImageFilter = $(`#btnImageFilter`);
@@ -67,7 +69,7 @@ class UIView {
         this.jqbtnAddressBar = $(`#btnAddressBar`);
 
         this.jqbtnShapeSelector = $(`#btnShapeSelector`);
-        
+
 
         this.jqbtnExecuteQuery = $(`#btnExecuteQuery`);
         this.jqbtnCollectImages = $(`#btnCollectImages`);
@@ -78,15 +80,16 @@ class UIView {
 
         this.jqimageDiv = $(".image-div");
         this.jqregionDiv = $(".region-div");
-        
 
 
-        
-        
+
+
+
         //this._fillMapMinersAndFeaturesDiv();
     }
 
-    initialize() {
+    initialize()
+    {
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));
@@ -94,9 +97,9 @@ class UIView {
 
         this.jqbtnSaveSession.on("click", this.onClickSaveSessionBtn.bind(this));
         this.jqbtnNewSession.on("click", this.onClickNewSessionBtn.bind(this));
-        
+
         this.jqbtnCancelDrawing.on("click", this.onClickCancelDrawingBtn);
-        
+
         this.jqbtnAddressBar.on("click", this.onClickAddressBarBtn);
         this.jqtxtAddressBar = $("#txtAddressBar");
 
@@ -117,21 +120,39 @@ class UIView {
         this.createSelectionButton(this.jqmapMinerDiv, this.uiModel.mapMinersAndFeatures, this.onClickChangeMapMinerBtn);
         this.createSelectionButton(
             this.jqmapFeatureDiv,
-            $.map(this.uiModel.mapMinersAndFeatures, function(v, k) { return v.features; }),
+            $.map(this.uiModel.mapMinersAndFeatures, function (v, k) { return v.features; }),
             this.onClickChangeMapFeatureBtn
         );
 
-        Region.on('activechange'  , this._updateActiveRegion.bind(this));
+        Region.on('activechange', this._updateActiveRegion.bind(this));
         UIModel.on('regioncreated', this._updateActiveRegion.bind(this));
 
-        UIModel.on('regioncreated'       , this.updateImageProviderView.bind(this));
-        Region.on('activechange'         , this.updateImageProviderView.bind(this));
+        UIModel.on('regioncreated', this.updateImageProviderView.bind(this));
+        Region.on('activechange', this.updateImageProviderView.bind(this));
         SessionManager.on('sessionloaded', this.updateImageProviderView.bind(this));
 
         SessionManager.on('sessionloaded', this._updateNewSessionButtons.bind(this));
-        SessionManager.on('sessionsaved' , this._updateNewSessionButtons.bind(this));
+        SessionManager.on('sessionsaved', this._updateNewSessionButtons.bind(this));
         SessionManager.on('sessionsaved', this._updateSaveSessionButtons.bind(this));
-        
+
+        StreetSelect.on("selectedfeaturechanged", this._updateSelectedFeature.bind(this));
+    }
+
+    /**
+     * 
+     * @param {OpenLayerFeature} selectedOLFeature - A feature object compatible with the OpenLayers API
+     */
+    _updateSelectedFeature(selectedOLFeature)
+    {
+        if (selectedOLFeature)
+        {
+            this.jqlabelSelectedFeature.show()
+            this.jqlabelSelectedFeature.text(gettext("Selected feature: ") + selectedOLFeature.getProperties().name);
+        }
+        else
+        {
+            this.jqlabelSelectedFeature.hide();
+        }
     }
 
     _updateSaveSessionButtons(sessionchanged)
@@ -175,21 +196,26 @@ class UIView {
         }
     }
 
-    setDefaults(defaults) {
-        if (defaults.shape) {
+    setDefaults(defaults)
+    {
+        if (defaults.shape)
+        {
             this.updateShapeToolView(defaults.shape);
             //this.uiModel.changeShapeTool(defaults.shape);
             //this.changeShapeClick(defaults.shape);
         }
-        if (defaults.tileProvider) {
+        if (defaults.tileProvider)
+        {
             //this.uiModel.changeMapProvider(defaults.tileProvider);
             this.updateMapProviderView(defaults.tileProvider);
         }
-        if (defaults.viewmode) {
+        if (defaults.viewmode)
+        {
             this.changeViewMode(defaults.viewmode);
             //this.uiModel.SelectedViewMode = defaults.viewmode;
         }
-        if (this.uiModel.SelectedImageProvider) {
+        if (this.uiModel.SelectedImageProvider)
+        {
             //this.uiModel.SelectedImageProvider = this.uiModel.imageProviders[defaults.imageProvider];
             this.updateImageProviderView();
         }
@@ -198,30 +224,33 @@ class UIView {
             this.updateImageFilterView(this.uiModel.SelectedImageFilter);
             //this.uiModel.SelectedImageFilter = defaults.imageFilter;
         }
-        if (this.uiModel.SelectedMapMiner) {
+        if (this.uiModel.SelectedMapMiner)
+        {
             this.updateMapMinerView(this.uiModel.SelectedMapMiner);
-            if (this.uiModel.SelectedMapFeature) {
+            if (this.uiModel.SelectedMapFeature)
+            {
                 this.updateFeatureView(this.uiModel.SelectedMapFeature);
             }
         }
 
     }
 
-    askSessionName(currentSessionName="")
+    askSessionName(currentSessionName = "")
     {
         return window.prompt(gettext("Would you like to give this session a name? Current one is:"), currentSessionName);
     }
 
     confirmLayerUpdate(regionName, layerName)
     {
-        return window.confirm(gettext("Would you like to update the layer")+" '" +layerName+"' from region '"+regionName+"'?");
+        return window.confirm(gettext("Would you like to update the layer") + " '" + layerName + "' from region '" + regionName + "'?");
     }
 
-    
+
 
     changeViewMode(viewmode)
     {
-        switch (viewmode.viewmode) {
+        switch (viewmode.viewmode)
+        {
             case 'Map':
                 this.jqimageDiv.addClass('hidden');
                 this.jqregionDiv.removeClass('hidden');
@@ -236,41 +265,48 @@ class UIView {
         }
         let viewModeLabel = $(`#changeModeDiv > label[id = '${viewmode.id}']`);
         let viewModeBtn = $(`#changeModeDiv > label[id = '${viewmode.id}'] > input`);
-        if (!viewModeBtn.prop('checked')) {
+        if (!viewModeBtn.prop('checked'))
+        {
             viewModeLabel.button('toggle');
             viewModeLabel.removeClass('focus');
         }
     }
 
-    setLabelSelectionBtn(jqselectorButton, label, deselected) {
-        if (deselected) {
+    setLabelSelectionBtn(jqselectorButton, label, deselected)
+    {
+        if (deselected)
+        {
             jqselectorButton.removeClass("btn-success");
             jqselectorButton.addClass("btn-secondary");
         }
-        else {
+        else
+        {
             jqselectorButton.addClass("btn-success");
             jqselectorButton.removeClass("btn-secondary");
         }
         jqselectorButton.html(label);
     }
 
-    updateGeoImgSlider() {
+    updateGeoImgSlider()
+    {
         if (this.uiModel.imgSliderMoving)
         {
             return;
         }
         let numGeoImages = this.geoImageManager.validImages;
 
-        if (numGeoImages > 0) {
+        if (numGeoImages > 0)
+        {
             // this.jqimgSlider.attr('min', 0);
             // this.jqimgSlider.attr('value', this.geoImageManager.currentIndex);
             // this.jqimgSlider.attr('max', numGeoImages-1);
             this.jqimgSlider[0].min = 0;
             this.jqimgSlider[0].value = this.geoImageManager.currentIndex;
-            this.jqimgSlider[0].max = numGeoImages-1;
+            this.jqimgSlider[0].max = numGeoImages - 1;
             this.jqimgSliderDiv.removeClass("hidden");
         }
-        else {
+        else
+        {
             this.jqimgSliderDiv.addClass("hidden");
         }
     }
@@ -314,11 +350,12 @@ class UIView {
 
         this.setLabelSelectionBtn(this.jqbtnMapFeature, mapFeature.name, false);
 
-        if (!this.uiModel.SelectedMapMiner) {
+        if (!this.uiModel.SelectedMapMiner)
+        {
             this.filterMinersByFeatureName(mapFeature.name);
         }
     }
-    
+
 
     updateMapMinerView(mapMiner)
     {
@@ -327,11 +364,13 @@ class UIView {
 
         this.setLabelSelectionBtn(this.jqbtnMapMiner, mapMiner.name, false);
 
-        if (!this.uiModel.SelectedMapFeature) {
+        if (!this.uiModel.SelectedMapFeature)
+        {
             this.createSelectionButton(this.jqmapFeatureDiv,
                 mapMiner.features, this.onClickChangeMapFeatureBtn);
 
-            if (mapMiner.features.length === 1) {
+            if (mapMiner.features.length === 1)
+            {
                 this.updateFeatureView(mapMiner.features[0]);
             }
         }
@@ -350,7 +389,7 @@ class UIView {
             this.jqbtnCollectImages.removeClass("disabled");
             this.jqbtnImageFilter.removeClass("disabled");
             this.jqbtnExecuteImageFilter.removeClass("disabled");
-            
+
         }
         else
         {
@@ -384,17 +423,17 @@ class UIView {
         this.jqbtnCancelDrawing.removeClass('hidden');
     }
 
-    
+
 
     // get SelectedMapMiner() { return this._SelectedMapMiner; }
     // get SelectedMapFeature() { return this._SelectedMapFeature; }
-    
+
     /**
      * Display messages to the user.
      * @param {String} message - The message to be displayed
      * @param {String=Alert} type - The type of the message, can be: Error|Alert
      */
-    displayMessage(message, type='Alert')
+    displayMessage(message, type = 'Alert')
     {
         switch (type)
         {
@@ -409,7 +448,7 @@ class UIView {
                 break;
         }
     }
-    
+
 
     /**
      * Creates an anchor button (<a href...>)
@@ -417,7 +456,8 @@ class UIView {
      * @param {object} optValue - The parameter to be used for the click handler
      * @param {function} clickHandler - A function that receives "optValue" as parameter and is triggered when the button is clicked
      */
-    createDropDownAnchorButton(label, optValue, clickHandler) {
+    createDropDownAnchorButton(label, optValue, clickHandler)
+    {
         let button = $(document.createElement('a'));
         button.addClass('dropdown-item');
         button.append(label);
@@ -426,14 +466,15 @@ class UIView {
         return button;
     }
 
-    
+
 
 
 
     /**
      * Resets the state of the user selections over the Map section
      */
-    clearSelections() {
+    clearSelections()
+    {
 
         //Selection fields
         // this._SelectedMapFeature = null;
@@ -450,12 +491,13 @@ class UIView {
         this.createSelectionButton(this.jqmapMinerDiv, this.uiModel.mapMinersAndFeatures, this.onClickChangeMapMinerBtn);
         this.createSelectionButton(
             this.jqmapFeatureDiv,
-            $.map(this.uiModel.mapMinersAndFeatures, function(v, k) { return v.features; }),
+            $.map(this.uiModel.mapMinersAndFeatures, function (v, k) { return v.features; }),
             this.onClickChangeMapFeatureBtn
         );
     }
 
-    drawLayer(layer, forceRedraw) {
+    drawLayer(layer, forceRedraw)
+    {
         if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollectionOL = layer.featureCollectionOL;
         let featureCollection = layer.featureCollection;
@@ -464,13 +506,15 @@ class UIView {
 
         //let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
-        for (let featureIdx in featureCollection.features) {
+        for (let featureIdx in featureCollection.features)
+        {
             let featureOL = featureCollectionOL.features[featureIdx];
             let feature = featureCollection.features[featureIdx];
 
             if (!this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
 
-            if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed) {
+            if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed)
+            {
                 if (forceRedraw)
                 {
                     featureOL.changed();
@@ -481,11 +525,13 @@ class UIView {
                     //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                     this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
                 }
-                else {
+                else
+                {
                     continue;
                 }
             }
-            else {
+            else
+            {
                 //let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
                 //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                 this.openLayersHandler.globalVectorSource.addFeature(featureOL);
@@ -494,20 +540,23 @@ class UIView {
         }
     }
 
-    removeLayer(layer) {
+    removeLayer(layer)
+    {
         if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         let featureCollection = layer.featureCollection;
 
         if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
-        for (let featureIdx in featureCollection.features) {
+        for (let featureIdx in featureCollection.features)
+        {
             let feature = featureCollection.features[featureIdx];
             /*
             Each individual feature needs to be checked because it
             can belong to more than one layer (from differente regions)
             */
             if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-            else {
+            else
+            {
                 // let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
                 // this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
                 this.openLayersHandler.globalVectorSource.removeFeature(feature);
@@ -520,8 +569,9 @@ class UIView {
     * Changes the html of buttons to indicate it's busy.
     * @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
     */
-    setLoadingText(jqElement) {
-        let loadingText = '<i class="far fa-compass fa-spin"></i> '+gettext('Loading')+'...';
+    setLoadingText(jqElement)
+    {
+        let loadingText = '<i class="far fa-compass fa-spin"></i> ' + gettext('Loading') + '...';
         jqElement.data('original-text', jqElement.html());
         jqElement.html(loadingText);
     }
@@ -530,8 +580,10 @@ class UIView {
     * Changes the html of buttons back to its unbusy state.
     * @param {JQueryObject} jqElement - An jquery element representing an html component (usually a button in this case)
     */
-    unsetLoadingText(jqElement) {
-        if (jqElement.data('original-text')) {
+    unsetLoadingText(jqElement)
+    {
+        if (jqElement.data('original-text'))
+        {
             jqElement.html(jqElement.data('original-text'));
         }
     }
@@ -552,27 +604,31 @@ class UIView {
     //}
 
 
-    updateLayersHintList() {
+    updateLayersHintList()
+    {
         let hintLayers = [];
 
         //Set active layers list tooltip
         let activeRegions = this.uiModel.getActiveRegions();
-        for (let regionIdx in activeRegions) {
+        for (let regionIdx in activeRegions)
+        {
 
             let region = activeRegions[regionIdx];
-            for (let layerIdx in region.layers) {
+            for (let layerIdx in region.layers)
+            {
                 const layer = region.layers[layerIdx];
                 const layerId = layer.layerId;
                 const mapMinerName = layerId.MapMiner.name;
                 const featureName = layerId.Feature.name;
                 let hintLayer = `${mapMinerName} - ${featureName}`;
-                if (hintLayers.indexOf(hintLayer) < 0) {
+                if (hintLayers.indexOf(hintLayer) < 0)
+                {
                     hintLayers.push(hintLayer);
                 }
             }
         }
 
-        this.jqbtnCollectImages.attr('data-original-title', gettext("Selected layers are")+":\n" + hintLayers.join('\n'));
+        this.jqbtnCollectImages.attr('data-original-title', gettext("Selected layers are") + ":\n" + hintLayers.join('\n'));
 
         //function refreshHintTitle()
         //{
@@ -613,7 +669,8 @@ class UIView {
         return jqContainerDiv;
     }
 
-    createToggleRadioButton(groupName, id, label, hint, optValue, clickHandler) {
+    createToggleRadioButton(groupName, id, label, hint, optValue, clickHandler)
+    {
         let buttonInput = $('<input type="radio">');
         buttonInput.attr('name', groupName);
         buttonInput.attr('autocomplete', 'off');
@@ -626,10 +683,10 @@ class UIView {
 
         if (hint)
             buttonLabel.attr('data-container', 'body');
-            buttonLabel.attr('data-toggle', 'tooltip');
-            buttonLabel.attr('data-trigger', 'hover');
-            buttonLabel.attr('data-placement', 'right');
-            buttonLabel.attr('data-title', hint);
+        buttonLabel.attr('data-toggle', 'tooltip');
+        buttonLabel.attr('data-trigger', 'hover');
+        buttonLabel.attr('data-placement', 'right');
+        buttonLabel.attr('data-title', hint);
 
 
 
@@ -680,7 +737,7 @@ class UIView {
      * the Image Filter Div should be (re)loaded too.
      * @private
      */
-    
+
     // _fillImageFilterDiv() {
     //     this.jqimageFilterDiv.empty();
     //     for (let imageFilterIdx in this.uiModel.imageFilters) {
@@ -704,7 +761,7 @@ class UIView {
      * @param {string} imageFilterId - Id defined by backend's class ImageFilter's subclasses
      * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
      */
-    
+
 
 
     //#endregion Image Provider
@@ -717,15 +774,18 @@ class UIView {
      * the Map Miner and Features Divs should be (re)loaded too.
      * @private
      */
-    _fillMapMinersAndFeaturesDiv() {
+    _fillMapMinersAndFeaturesDiv()
+    {
         let currentMapFeatures = [];
         this.jqmapMinerDiv.empty();
         this.jqmapFeatureDiv.empty();
-        for (let mapMinerId in this.uiModel.mapMinersAndFeatures) {
+        for (let mapMinerId in this.uiModel.mapMinersAndFeatures)
+        {
             const mapMiner = this.uiModel.mapMinersAndFeatures[mapMinerId];
             const btnMapMiner = this.createDropDownAnchorButton(mapMiner.name, mapMinerId, this.changeMapMiner);
             this.jqmapMinerDiv.append(btnMapMiner);
-            for (let featureIdx in mapMiner.features) {
+            for (let featureIdx in mapMiner.features)
+            {
                 let featureName = mapMiner.features[featureIdx];
                 if (currentMapFeatures.indexOf(featureName) !== -1) continue;
                 let mapFeature = this.createDropDownAnchorButton(featureName, featureName, this.changeMapFeature);
@@ -742,17 +802,18 @@ class UIView {
     // changeMapMiner(mapMinerId) {
     //     this.SelectedMapMiner = mapMinerId;
     // }
- 
-    
+
+
 
     /**
      * Given a feature name it removes all the map miners from mapMinerDiv that don't contains this feature's name
      * @param {string} FeatureName - The name of the feature as reported by the backend
      */
-    filterMinersByFeatureName(FeatureName) {
+    filterMinersByFeatureName(FeatureName)
+    {
         this.jqmapMinerDiv.empty();
         let currentMapMiners = this.uiModel.mapMinersAndFeatures.filter(
-            p => $.map(p.features, (v,k) => v.name).indexOf(FeatureName) !== -1
+            p => $.map(p.features, (v, k) => v.name).indexOf(FeatureName) !== -1
         );
 
         // for (let mapMinerIdx in this.uiModel.mapMinersAndFeatures) {
@@ -763,7 +824,8 @@ class UIView {
         //         currentMapMiners.push(mapMiner);
         //     }
         // }
-        if (currentMapMiners.length === 1) {
+        if (currentMapMiners.length === 1)
+        {
             this.uiModel.SelectedMapMiner = currentMapMiners[0];
             this.updateMapMinerView(currentMapMiners[0]);
         }
@@ -780,9 +842,11 @@ class UIView {
      * @param {string} mapMiner.name - The MapMiner name used for displaying
      * @param {string[]} mapMiner.features - The features' names contained by this MapMiner
      */
-    filterFeaturesByMapMiner(mapMiner) {
+    filterFeaturesByMapMiner(mapMiner)
+    {
         this.jqmapFeatureDiv.empty();
-        for (let featureIdx in mapMiner.features) {
+        for (let featureIdx in mapMiner.features)
+        {
             let featureName = mapMiner.features[featureIdx];
             let mapFeature = this.createDropDownAnchorButton(featureName, featureName, this.changeMapFeature);
             this.jqmapFeatureDiv.append(mapFeature);
@@ -792,28 +856,29 @@ class UIView {
     //#endregion Map Miner and Features
 }
 
-if (!UIView.init) {
+if (!UIView.init)
+{
     UIView.init = true;
 
     UIView.ViewModes =
-    {
-        ImageMode: {
-            id: "Image Mode",
-            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
-            viewmode: "Image",
-            hint: "Collect images for the selected regions"
-            // name: gettext("Image Mode"),
-            // viewmode: "Image"
-        },
-        MapMode: {
-            id: "Map Mode",
-            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
-            viewmode: "Map",
-            hint: gettext("Edit or remove selected regions.")
-            // name: gettext("Map Mode"),
-            // viewmode: "Map"
-        },
-    };
+        {
+            ImageMode: {
+                id: "Image Mode",
+                name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
+                viewmode: "Image",
+                hint: "Collect images for the selected regions"
+                // name: gettext("Image Mode"),
+                // viewmode: "Image"
+            },
+            MapMode: {
+                id: "Map Mode",
+                name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
+                viewmode: "Map",
+                hint: gettext("Edit or remove selected regions.")
+                // name: gettext("Map Mode"),
+                // viewmode: "Map"
+            },
+        };
 }
 
 

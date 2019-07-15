@@ -268,6 +268,7 @@ class Region extends Subject
                 : OpenLayersHandler.Styles.transparentStyle
         );
         this._boundaries.setId(this._id);
+        this._boundaries.setProperties({"type": "region"});
     }
 
     get boundaries() { return this._boundaries; }

@@ -85,10 +85,14 @@
         </div>
     </div>
     <div class="col-sm left-column map-div">
+        
         <div id="mapOverlay" class="hidden">
             <p class="mapOverlayText text-center align-middle">{% trans "Hold shift to zoom" %}</p>
         </div>
         <div id="map" class="map"></div>
+        <div>
+            <label id="lblSelectedFeature">{% trans "Selected feature: " %}</label>
+        </div>
 
     </div>
     <div class="col-sm right-column image-div">
