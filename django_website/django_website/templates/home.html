@@ -85,7 +85,7 @@
         </div>
     </div>
     <div class="col-sm left-column map-div">
-        
+
         <div id="mapOverlay" class="hidden">
             <p class="mapOverlayText text-center align-middle">{% trans "Hold shift to zoom" %}</p>
         </div>
@@ -138,28 +138,27 @@
     </div>
     <div class="col-sm left-column map-div">
         <div class="controlDiv">
-            <div class="btn-group" role="group">
-                <div class="labelBtnDiv">
-                    <label>{% trans "Visualization:" %}</label>
-                    <button id="btnMapProvider" type="button"
-                        class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        {% trans "Map provider" %}
-                    </button>
-                </div>
+            <div class="btn-group labelBtnDiv" role="group">
+
+                <label>{% trans "Visualization:" %}</label>
+                <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans "Map provider" %}
+                </button>
+
                 <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
                 </div>
 
             </div>
-            <div class="btn-group" role="group">
-                <div class="labelBtnDiv">
-                    <label>{% trans "Selection:" %}</label>
-                    <button id="btnShapeSelector" type="button"
-                        class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        {% trans "Shape type" %}
-                    </button>
-                </div>
+
+            <div class="btn-group labelBtnDiv" role="group">
+
+                <label>{% trans "Selection:" %}</label>
+                <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans "Shape type" %}
+                </button>
+
                 <div id="shapeSelectorDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
                 </div>
             </div>
