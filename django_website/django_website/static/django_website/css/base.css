@@ -1,7 +1,13 @@
-﻿#carouselSponsors {
+﻿.div-carousel
+{
+    border: 1px solid #C8C8F8;
+    background: #E8E8E8;
+}
+
+#carouselSponsors {
     margin: 10px 0 0 0;
-    /*border: 1px solid black;*/
     padding: 10px;
+    max-height: 5rem;
 }
 
 .inacity-logo-div {
@@ -38,11 +44,11 @@
 }
 
 .carousel-item {
-    height: 150px;
+    max-height: 5rem;
 }
 
 .carousel-item img {
-    max-height: 78%;
+    max-height: 5rem;
     max-width: 78%;
     margin:auto;
 }

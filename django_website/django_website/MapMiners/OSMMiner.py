@@ -10,6 +10,8 @@ from dateutil.parser import parse
 from threading import Lock
 import sys
 
+from django_website.LogGenerator import write_to_log
+
 from django_website.geofunctions import flip_geojson_coordinates
 
 
@@ -41,12 +43,12 @@ class OSMMiner(MapMiner):
     # Options are:
     # OverpassAPI.DE -> Public OSM API (with limits of request's size/rate)
     # inacity.org -> INACITY's private mirror of OSM
-    _OSMServerURL = 'inacity.org'
+    _OSMServerURL = 'OverpassAPI.DE'
 
     inacityorg = 'inacity.org'
     overpassapi = 'OverpassAPI.DE'
     if _OSMServerURL == inacityorg:
-        _overpassBaseUrl = "http://ssh.inacity.org/api/interpreter?data="
+        _overpassBaseUrl = "http://osm.inacity.org/api/interpreter?data="
     elif _OSMServerURL == overpassapi:
         _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
     else:
@@ -127,7 +129,7 @@ class OSMMiner(MapMiner):
             return ret
         pass
 
-    _overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
+    #_overpassBaseUrl = "http://overpass-api.de/api/interpreter?data="
     #_overpassBaseUrl = "http://inacity.eastus.cloudapp.azure.com/api/interpreter?data="
     _overspassApiStatusUrl = 'http://overpass-api.de/api/status'
     _outFormat = "[out:json]"
@@ -195,7 +197,10 @@ class OSMMiner(MapMiner):
         overpassQueryUrl = OSMMiner._createCollectStreetsQuery(regions)
 
         OSMMiner._lock.acquire()
-        print("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
+        write_to_log("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
+        write_to_log(f'OSMMiner._OSMServerURL: {OSMMiner._OSMServerURL}')
+        write_to_log(f'overpassQueryUrl: {overpassQueryUrl}')
+        
         while OSMMiner._currentQueries >= OSMMiner._rateLimit:
             time.sleep(1)
         OSMMiner._waitForAvailableSlots()
@@ -211,7 +216,7 @@ class OSMMiner(MapMiner):
             #TODO: Treat cases in which the OSM server fails
             osmResult = OSMResult.fromJsonString(jsonString)
         except:
-            print("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
+            write_to_log("Error while parsing overpass message. Message sample: %s" % jsonString[:100])
             raise AttributeError("Invalid jsonString")
         streetSegments = {}
         

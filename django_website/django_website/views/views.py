@@ -553,61 +553,6 @@ def getimagesforfeaturecollection(request):
     return JsonResponse(ret)
 
 
-@api_view(['POST'])
-def processimagesfromfeaturecollection(request):
-    """
-    End-point to process images previously collected.
-    Notice that the regionId and layerId passed
-    in the request and then returned are used
-    as a syncronizing mechanism allowing
-    async calls from the front-end.
-
-    Parameters
-    ----------
-    request : HttpRequest
-        An HTTP 'POST' request with:
-        - Image Filter Id (str)
-        - featureCollection (GeoJSON)
-            Notice that the featureCollection must have
-            GeoImages at the 'properties' property as
-            explained in the function 
-            'getimagesforfeaturecollection'.
-        
-        E.g.:
-
-        {
-            'imageFilterId': 'gsv',
-            'featureCollection': <GeoJSON(with GeoImages)>
-        }
-
-    Returns
-    -------
-    JsonResponse: Dict with the keys:
-    - 'featureCollection': A <GeoJSON> in which the
-    properties field of each feature will contain a
-    geoImage collection (structured just like the
-    feature coordinates array) and each geoImage
-    will contain a new entry named as the filterId
-    under the property called 'processedDataList'.
-    
-    GeoImages now will contain a new entry (the
-    filter id) at the property 'processedDataList'
-    containing the result of the processed GeoImage.
-    - regionId: (str)
-        The region Id of the region that contains the featureCollection 
-    - layerId (str)
-        The layer inside the region that contains the featureCollection
-
-    """
-    jsondata = request.data
-    imageFilterId = jsondata['imageFilterId']
-    featureCollection = geojson.loads(jsondata['featureCollection'])
-    ret = {}
-    ret['featureCollection'] = imageFilterManager.processImageFromFeatureCollection(imageFilterId, featureCollection)
-    ret['regionId'] = jsondata['regionId']
-    ret['layerId'] = jsondata['layerId']
-    return JsonResponse(ret, CustomJSONEncoder)
-
 ###### OLD TESTING CALLS #################################
 # @api_view(['POST'])
 # def getstreets(request):

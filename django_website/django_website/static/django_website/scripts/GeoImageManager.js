@@ -114,23 +114,29 @@ class GeoImageManager extends Subject
      */
     updateDisplayingLayers(filterId)
     {
-        this._displayingLayers = this.uiModel.getDisplayingLayers();
-        if (!(this._displayingLayers.length > 0))
-        {
-            this.clear();
-            return;
-        }
-        this._currentLayer = 0;
-
-
         //Firstly we set the filterId then the collection (possibly filtered)
         //So that listeners of the change can know what is the current filterId
         this._imageFilterId = filterId;
-        this.geoImageCollection = this._displayingLayers[this._currentLayer].featureCollection;
-        if (!(this.geoImageCollection.validImages > 0))
+        if (!this._displayingSingleFeature)
         {
-            this.clear();
-            return;
+            this._displayingLayers = this.uiModel.getDisplayingLayers();
+            if (!(this._displayingLayers.length > 0))
+            {
+                this.clear();
+                return;
+            }
+            this._currentLayer = 0;
+
+
+
+
+            this.geoImageCollection = this._displayingLayers[this._currentLayer].featureCollection;
+            if (!(this.geoImageCollection.validImages > 0))
+            {
+                this.clear();
+                return;
+            }
+
         }
         this._currentIndex = 0;
 
@@ -141,6 +147,7 @@ class GeoImageManager extends Subject
     {
         this._clearPresentation();
         this._displayingSingleFeature = false;
+        this._imageFilterId = null;
     }
 
 

@@ -52,6 +52,7 @@ class StreetSelect extends Subject
     _singleClickSelect(e)
     {
         let hit = false;
+        if (this._openLayersHandler.SelectedDrawTool) return false;
         this._openLayersHandler.map.forEachFeatureAtPixel(e.pixel, (feature, layer) =>
         {
 
@@ -79,6 +80,9 @@ class StreetSelect extends Subject
     _hoverIgnoreRegion(e)
     {
         let features = e.target.getFeaturesAtPixel(e.pixel);
+        
+        if (this._openLayersHandler.SelectedDrawTool) return false;
+        
         if (features)
         {
             if (

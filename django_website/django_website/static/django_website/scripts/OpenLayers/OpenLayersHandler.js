@@ -165,7 +165,7 @@ class OpenLayersHandler extends Subject
 
         GeoImageManager.on('geoimagecollectionchange', this._updateHeatmapLayer.bind(this));
         GeoImageManager.on('imagechange', this._updateImagePinPoint.bind(this));
-        Region.on('activechange', this._updateActiveStyles.bind(this));
+        //Region.on('activechange', this._updateActiveStyles.bind(this));
         UIModel.on('regioncreated', this._regionCreated.bind(this));
         UIModel.on('regiondeleted', this._regionDeleted.bind(this));
 

@@ -85,6 +85,11 @@ urlpatterns = [
     #Used to process images for a given set of GIS features called FeatureCollection that already has its images collected
     re_path(r'^processimagesfromfeaturecollection/?$', processimagesfromfeaturecollection, name='processimagesfromfeaturecollection'),
 
+    #Used to process images for a given GeoFeature that already has its images collected
+    re_path(r'^processimagesfromfeature/?$',
+        processimagesfromfeature,
+        name='processimagesfromfeature'),
+
     # Testing 
     # re_path(r'^integrationtest/?$', integrationTest, name='integrationtest'),
 
