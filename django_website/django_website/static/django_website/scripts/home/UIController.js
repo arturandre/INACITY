@@ -54,7 +54,7 @@
         UIModel.on('regionlistitemclick', this.onClickRegionListItem.bind(this));
         UIModel.on('featuresmerged', this.onFeaturesMerged.bind(this));
 
-        Layer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
+        RegionLayer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
 
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
@@ -168,13 +168,13 @@
         //this.sessionManager.saveSession();
     }
 
-    onFeatureCollectionChange(layer)
+    onFeatureCollectionChange(regionLayer)
     {
         this.uiView.updateLayersHintList();
-        if (layer)
+        if (regionLayer)
         {
-            this.uiModel.updateFeatureIndex(layer.layerId.toString()); //Model commands should be before View commands
-            this.uiView.drawLayer(layer, true);
+            this.uiModel.updateFeatureIndex(regionLayer.layerId.toString()); //Model commands should be before View commands
+            this.uiView.drawLayer(regionLayer, true);
         }
     }
 

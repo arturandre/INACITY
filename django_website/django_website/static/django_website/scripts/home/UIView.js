@@ -466,46 +466,41 @@ class UIView
         );
     }
 
-    drawLayer(layer, forceRedraw)
+    drawRegionLayer(regionLayer, forceRedraw)
     {
-        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
-        let featureCollectionOL = layer.featureCollectionOL;
-        let featureCollection = layer.featureCollection;
+        // if (!layer) { console.warn(gettext("Undefined layer!")); return; }
+        // let featureCollectionOL = layer.featureCollectionOL;
+
+        /**
+         * The regionLayer featureCollection contains only
+         * the feature id's, the actual features are at the UIModel
+         * featureByLayerId index
+         */
+        let featureCollection = regionLayer.featureCollection;
 
         if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
         //let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
-        for (let featureIdx in featureCollection.features)
+        for (let idx in featureCollection.features)
         {
-            let featureOL = featureCollectionOL.features[featureIdx];
-            let feature = featureCollection.features[featureIdx];
+            // let featureOL = featureCollectionOL.features[featureIdx];
+            let featureId = featureCollection.features[idx];
 
-            if (!this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+            if (!this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId)) continue;
 
-            if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed)
+            let feature = this.uiModel.featuresByLayerId[layer.layerId.toString()][featureId];
+
+            if (feature.drawed)
             {
-                if (forceRedraw)
-                {
-                    featureOL.changed();
-                    //let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                    //olFeature.changed();
-                    //this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                    //olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                    //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
-                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
-                }
-                else
-                {
-                    continue;
-                }
+                feature.changed();
             }
             else
             {
                 //let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
                 //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
-                this.openLayersHandler.globalVectorSource.addFeature(featureOL);
-                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
+                this.openLayersHandler.globalVectorSource.addFeature(feature);
+                feature.drawed = true;
             }
         }
     }
