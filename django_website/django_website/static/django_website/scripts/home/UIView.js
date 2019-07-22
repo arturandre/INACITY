@@ -487,55 +487,55 @@ class UIView
             // let featureOL = featureCollectionOL.features[featureIdx];
             let featureId = featureCollection.features[idx];
 
-            if (!this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId)) continue;
+            if (!this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId))
+            {
+                //FEATURE SHOULD HAVE STYLE TRANSPARENT
+            }
+            else
+            {
+                //FEATURE SHOULD HAVE STYLE NON TRANSPARENT
+            }
 
             let feature = this.uiModel.featuresByLayerId[layer.layerId.toString()][featureId];
-
-            if (feature.drawed)
+            
+            if (!this.openLayersHandler.globalVectorSource.getFeatureById(featureId))
             {
-                feature.changed();
-            }
-            else
-            {
-                //let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
                 this.openLayersHandler.globalVectorSource.addFeature(feature);
-                feature.drawed = true;
             }
         }
     }
 
-    removeLayer(layer)
-    {
-        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
-        let featureCollection = layer.featureCollection;
+    // removeLayer(layer)
+    // {
+    //     if (!layer) { console.warn(gettext("Undefined layer!")); return; }
+    //     let featureCollection = layer.featureCollection;
 
-        if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
+    //     if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
-        for (let featureIdx in featureCollection.features)
-        {
-            let feature = featureCollection.features[featureIdx];
-            /*
-            Each individual feature needs to be checked because it
-            can belong to more than one layer (from differente regions)
-            */
-            if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-            else
-            {
-                if (layer.hasOlFeatures)
-                {
-                    this.openLayersHandler.globalVectorSource.removeFeature(feature);
-                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.getProperties().name].drawed = false;
-                }
-                else
-                {
-                    let olFeature = this.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                    this.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
-                }
-            }
-        }
-    }
+    //     for (let featureIdx in featureCollection.features)
+    //     {
+    //         let feature = featureCollection.features[featureIdx];
+    //         /*
+    //         Each individual feature needs to be checked because it
+    //         can belong to more than one layer (from differente regions)
+    //         */
+    //         if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+    //         else
+    //         {
+    //             if (layer.hasOlFeatures)
+    //             {
+    //                 this.openLayersHandler.globalVectorSource.removeFeature(feature);
+    //                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.getProperties().name].drawed = false;
+    //             }
+    //             else
+    //             {
+    //                 let olFeature = this.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+    //                 this.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+    //                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+    //             }
+    //         }
+    //     }
+    // }
 
     /**
     * Changes the html of buttons to indicate it's busy.
