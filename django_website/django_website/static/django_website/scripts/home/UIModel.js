@@ -879,6 +879,11 @@ class UIModel extends Subject
         {
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
             await GSVService.setPanoramaForFeature(geoJSONFeature);
+            this._streetSelect.lastSelectedFeature
+                .setProperties(
+                    {
+                        geoImages: geoJSONFeature.properties.geoImages
+                    })
             UIModel.notify('getimages', geoJSONFeature);
             return;
         }
@@ -954,15 +959,20 @@ class UIModel extends Subject
         {
             let geoImagesTree =
                 this._streetSelect.lastSelectedFeature.getProperties().geoImages;
-            if (!geoImagesTree
-                || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
-            {
-                UIModel.notify('getimages',
-                    GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature));
-                return;
-            }
 
+            // if (geoImagesTree
+            //     && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
+            // {
+            //     UIModel.notify('getimages',
+            //         GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature));
+            //     return;
+            // }
+            // else
+            // {
+            //     await getImages();
+            // }
 
+            debugger;
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
             await GSVService.setPanoramaForFeature(geoJSONFeature);
 
