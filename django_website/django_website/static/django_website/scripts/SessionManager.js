@@ -29,6 +29,7 @@ class SessionManager extends Subject
         UIModel.on('regionlistitemclick', () => this.saveSession());
         UIModel.on('getimages', () => this.saveSession());
         GeoImageManager.on('geoimagecollectionchange', () => this.saveSession());
+        RegionLayer.on('featurecollectionchange', () => this.saveSession());
         //Layer.on('featurecollectionchange', () => this.saveSession());
     }
 

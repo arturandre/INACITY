@@ -172,6 +172,24 @@ class OpenLayersHandler extends Subject
         return instance;
     }
 
+    drawFeature(OLFeature)
+    {
+        if (!this.globalVectorSource.getFeatureById(OLFeature.getId()))
+        {
+            this.globalVectorSource.addFeature(OLFeature);
+        }
+    }
+
+    redrawFeature(OLFeature)
+    {
+        let oldFeature = this.globalVectorSource.getFeatureById(OLFeature.getId());
+        if (oldFeature)
+        {
+            this.globalVectorSource.removeFeature(oldFeature);
+        }
+        this.drawFeature(OLFeature);
+    }
+
     loadFromJSON(openLayersHandlerJSON)
     {
         this.view.setCenter(openLayersHandlerJSON.mapCenter);

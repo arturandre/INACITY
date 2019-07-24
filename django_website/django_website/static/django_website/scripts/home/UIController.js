@@ -53,6 +53,8 @@
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
         UIModel.on('regionlistitemclick', this.onClickRegionListItem.bind(this));
         UIModel.on('featuresmerged', this.onFeaturesMerged.bind(this));
+        UIModel.on('featurecreated', this.onFeatureCreated.bind(this));
+        UIModel.on('featureupdated', this.onFeatureUpdated.bind(this));
 
         RegionLayer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
 
@@ -168,19 +170,32 @@
         //this.sessionManager.saveSession();
     }
 
+    onFeatureUpdated(layerFeatureId)
+    {
+        let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
+        this.openLayersHandler.redrawFeature(OLFeature);
+    }
+
+    onFeatureCreated(layerFeatureId)
+    {
+        this.uiView.updateLayersHintList();
+        let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
+        this.openLayersHandler.drawFeature(OLFeature);
+    }
+
     onFeatureCollectionChange(regionLayer)
     {
         this.uiView.updateLayersHintList();
         if (regionLayer)
         {
-            this.uiModel.updateFeatureIndex(regionLayer.layerId.toString()); //Model commands should be before View commands
-            this.uiView.drawLayer(regionLayer, true);
+            //this.uiModel.updateFeatureIndex(regionLayer.layerId.toString()); //Model commands should be before View commands
+            this.uiView.drawRegionLayer(regionLayer, true);
         }
     }
 
     onFeaturesMerged(layer)
     {
-        this.uiView.drawLayer(layer, true);
+        this.uiView.drawRegionLayer(layer, true);
     }
 
     onClickRegionListItem()
@@ -271,7 +286,7 @@
         }
         catch (err)
         {
-            this.uiView.displayMessage(err, "Error");   
+            this.uiView.displayMessage(err, "Error");
         }
         finally
         {
@@ -289,7 +304,7 @@
             if (this._streetSelected) return;
             this.geoImageManager.updateDisplayingLayers();
         }
-        catch(err)
+        catch (err)
         {
             this.uiView.displayMessage(err.message, "Error");
         }

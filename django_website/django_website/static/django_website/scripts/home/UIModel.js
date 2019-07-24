@@ -5,11 +5,12 @@
  */
 
 
-class RegionLayer
+class RegionLayer extends Subject
 {
 
     constructor(layerId)
     {
+        super();
         if (!(layerId.MapMiner && layerId.Feature))
         {
             throw new Error("Invalid layerId, it should have 'MapMiner' and 'Feature' fields.");
@@ -23,7 +24,7 @@ class RegionLayer
     {
         let layerSession = {
             layerId: this._layerId.saveToJSON(),
-            featureCollection = this._featureCollection
+            featureCollection: this._featureCollection
         };
         return layerSession;
     }
@@ -34,13 +35,15 @@ class RegionLayer
 
         let ret = new Layer(layerId);
 
+        debugger;
+
         ret.featureCollection = layerSession.featureCollection;
         return ret;
     }
 
     loadFromJSON(layerSession)
     {
-        this.featureCollection = layerSession.featureCollection;
+        this._featureCollection = layerSession.featureCollection;
     }
 
     /** 
@@ -66,6 +69,7 @@ class RegionLayer
      */
     set featureCollection(newFeatureCollection)
     {
+        debugger;
         let triggered = (this._featureCollection !== newFeatureCollection);
 
         this._featureCollection = {};
@@ -82,21 +86,26 @@ class RegionLayer
 
         for (let idx in newFeatureCollection.features)
         {
-            let feature = newFeatureCollection.features[idx];
-            this._featureCollection.features.push(feature.id);
+            let featureId = newFeatureCollection.features[idx].id;
+            this._featureCollection.features.push(featureId);
+        }
+
+        if (triggered)
+        {
+            RegionLayer.notify('featurecollectionchange', this);
         }
     }
 }
 
 /** Triggered when a new set of features is assined to the [featureCollection]{@link module:UIModel~Layer#featureCollection} member.
-* @event module:UIModel~LayerRegion#featurecollectionchange
-* @param {LayerRegion}
+* @event module:UIModel~RegionLayer#featurecollectionchange
+* @param {RegionLayer}
 */
 //Singleton approach
-if (!LayerRegion.init)
+if (!RegionLayer.init)
 {
-    LayerRegion.init = true;
-    LayerRegion.registerEventNames([
+    RegionLayer.init = true;
+    RegionLayer.registerEventNames([
         'featurecollectionchange'
     ]);
 }
@@ -603,6 +612,24 @@ class FeatureRegions
         this.feature = feature;
         this.regions = regions;
     }
+
+    saveToJSON()
+    {
+        let ret = {};
+        ret.regions = this.regions;
+        ret.feature = GeoJSONHelper.writeFeature(this.feature);
+        return ret;
+    }
+
+    static createFromJSON(featureRegionSession)
+    {
+        let ret = new FeatureRegions
+            (
+                GeoJSONHelper.olGeoJson.readFeature(featureRegionSession.feature),
+                featureRegionSession.regions
+            );
+        return ret;
+    }
 }
 
 /**
@@ -866,7 +893,7 @@ class UIModel extends Subject
         }
         for (let regionIdx in activeRegions)
         {
-            var region = activeRegions[regionIdx];
+            let region = activeRegions[regionIdx];
             //(new Promise(function (resolve) {
             /*
               Case the user simply select a region and then try to get the images
@@ -874,9 +901,10 @@ class UIModel extends Subject
             */
             await this._collectLayersForEmptyRegions(region);
 
-            let activeLayers = region.getActiveLayers();
+            //let activeLayers = region.getActiveLayers();
 
-            for (let layerIdx in activeLayers)
+            //for (let layerIdx in activeLayers)
+            for (let layerIdx in region.layers)
             {
                 let layer = activeLayers[layerIdx];
 
@@ -1100,8 +1128,22 @@ class UIModel extends Subject
             {
                 regions[regionId] = this.regions[regionId].saveToJSON();
             }
+            let featuresByLayerId = {};
+            for (let layerId in this.featuresByLayerId)
+            {
+                if (!featuresByLayerId[layerId])
+                {
+                    featuresByLayerId[layerId] = {};
+                }
+                for (let featureRegionId in this.featuresByLayerId[layerId])
+                {
+                    featuresByLayerId[layerId][featureRegionId]
+                        = this.featuresByLayerId[layerId][featureRegionId].saveToJSON();
+                }
+            }
             let uiModelSession = {
                 regions: regions,
+                featuresByLayerId: featuresByLayerId
             };
             return uiModelSession;
         } catch (error)
@@ -1139,6 +1181,29 @@ class UIModel extends Subject
                     sessionRegion.id);
                 region.loadFromJSON(uiModelSession.regions[regionId]);
             }
+            if (uiModelSession.featuresByLayerId)
+            {
+                for (let layerId in uiModelSession.featuresByLayerId)
+                {
+                    if (!this._featuresByLayerId[layerId])
+                    {
+                        this._featuresByLayerId[layerId] = {};
+                    }
+                    for (let featureRegionId in uiModelSession.featuresByLayerId[layerId])
+                    {
+                        let featureRegion =
+                            FeatureRegions.createFromJSON(
+                                uiModelSession.featuresByLayerId[layerId][featureRegionId]);
+                        this._featuresByLayerId[layerId][featureRegionId] = featureRegion;
+                        UIModel.notify('featurecreated', {
+                            layerId: layerId,
+                            featureId: featureRegionId
+                        });
+                    }
+                }
+
+            }
+
             if (uiModelSession.geoImageManager)
             {
                 this._geoImageManager.loadFromJSON(uiModelSession.geoImageManager);
@@ -1335,6 +1400,7 @@ class UIModel extends Subject
      */
     _updateFeaturesByLayerIdIndex(regionId, layerId, GeoJSONFeatureCollection)
     {
+        debugger;
         if (!this._featuresByLayerId) this._featuresByLayerId = {};
         if (!this._featuresByLayerId[layerId]) this._featuresByLayerId[layerId] = {};
         for (let idx in GeoJSONFeatureCollection.features)
@@ -1350,10 +1416,11 @@ class UIModel extends Subject
                     this._featuresByLayerId[layerId][feature.id].regions.push(regionId);
                 }
 
-                if (feature.geometry.type.startswith('Multi'))
+                if (feature.geometry.type.startsWith('Multi'))
                 {
                     let oldFeature =
-                        GeoJSONHelper.writeFeature(this._featuresByLayerId[layerId][feature.id]);
+                        GeoJSONHelper.writeFeature(
+                            this._featuresByLayerId[layerId.toString()][feature.id].feature);
 
                     if (
                         JSON.stringify(oldFeature) !==
@@ -1383,9 +1450,9 @@ class UIModel extends Subject
                 let newFeature = GeoJSONHelper.olGeoJson.readFeature(feature);
 
                 newFeature.setStyle(
-                    this._featuresByLayerId[layerId][feature.id].getStyle());
+                    this._featuresByLayerId[layerId.toString()][feature.id].feature.getStyle());
 
-                this._featuresByLayerId[layerId][feature.id].feature = newFeature;
+                this._featuresByLayerId[layerId.toString()][feature.id].feature = newFeature;
                 UIModel.notify('featureupdated', {
                     layerId: layerId,
                     featureId: feature.id
@@ -1438,10 +1505,7 @@ class UIModel extends Subject
 
 
 
-            let geoJsonFeatures = olGeoJson.writeFeaturesObject(
-                [
-                    this._openLayersHandler.globalVectorSource.getFeatureById(region.boundaries)
-                ]);
+            let geoJsonFeatures = olGeoJson.writeFeatureObject(region.boundaries);
 
             geoJsonFeatures.crs = {
                 "type": "name",
@@ -1452,21 +1516,21 @@ class UIModel extends Subject
             //let data = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
             let newFeatureCollection = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
 
-            debugger;
             this._updateFeaturesByLayerIdIndex(region.id, layerId, newFeatureCollection);
 
             layer.featureCollection = newFeatureCollection;
             //if (layer.featureCollection.features.length === 0)
+            debugger;
             if (newFeatureCollection.features.length === 0)
             {
-                alert(gettext(`No ${layerId.Feature} were found inside the region ${region.name} using the GIS ${layerId.MapMiner}.`));
+                alert(gettext(`No ${layerId.Feature.name} were found inside the region ${region.name} using the GIS ${layerId.MapMiner.name}.`));
             }
             else
             {
                 alert(
                     ngettext(
-                        `There is ${newFeatureCollection.features.length} ${newFeatureCollection.name} found for the region`,
-                        `There are ${newFeatureCollection.features.length} ${newFeatureCollection.name} found for the region`,
+                        `There is ${newFeatureCollection.features.length} ${layerId.Feature.name} found for the region`,
+                        `There are ${newFeatureCollection.features.length} ${layerId.Feature.name} found for the region`,
                         layer.featureCollection.features.length)
                     + `: ${region.name}.`);
             }

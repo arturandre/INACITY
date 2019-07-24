@@ -117,6 +117,10 @@ class GeoJSONHelper
         feature1.geometry.coordinates = feature2.geometry.coordinates = allLineStrings;
     }
 
+    /**
+     * Converts a OpenLayer feature into its GeoJSON representation
+     * @param {OLFeature} olFeature - OpenLayer feature
+     */
     static writeFeature(olFeature)
     {
         return JSON.parse(GeoJSONHelper.olGeoJson.writeFeature(olFeature));

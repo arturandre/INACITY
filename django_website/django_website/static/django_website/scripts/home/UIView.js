@@ -180,22 +180,22 @@ class UIView
 
     _updateActiveRegion(region)
     {
-        if (region.active)
-        {
+        // if (region.active)
+        // {
             for (let layerIdx in region.layers)
             {
                 let layer = region.layers[layerIdx];
-                this.drawLayer(layer);
+                this.drawRegionLayer(layer);
             }
-        }
-        else
-        {
-            for (let layerIdx in region.layers)
-            {
-                let layer = region.layers[layerIdx];
-                this.removeLayer(layer);
-            }
-        }
+        // }
+        // else
+        // {
+        //     for (let layerIdx in region.layers)
+        //     {
+        //         let layer = region.layers[layerIdx];
+        //         this.removeLayer(layer);
+        //     }
+        // }
     }
 
     setDefaults(defaults)
@@ -466,7 +466,7 @@ class UIView
         );
     }
 
-    drawRegionLayer(regionLayer, forceRedraw)
+    drawRegionLayer(regionLayer)
     {
         // if (!layer) { console.warn(gettext("Undefined layer!")); return; }
         // let featureCollectionOL = layer.featureCollectionOL;
@@ -487,20 +487,22 @@ class UIView
             // let featureOL = featureCollectionOL.features[featureIdx];
             let featureId = featureCollection.features[idx];
 
-            if (!this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId))
+            let OLFeature = this.uiModel.featuresByLayerId[regionLayer.layerId.toString()][featureId].feature;
+            
+            if (this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId))
             {
-                //FEATURE SHOULD HAVE STYLE TRANSPARENT
+                OLFeature.setStyle(null);
+                //FEATURE SHOULD HAVE STYLE NON TRANSPARENT
             }
             else
             {
-                //FEATURE SHOULD HAVE STYLE NON TRANSPARENT
+                OLFeature.setStyle(OpenLayersHandler.Styles['transparentStyle']);
+                //FEATURE SHOULD HAVE STYLE TRANSPARENT
             }
-
-            let feature = this.uiModel.featuresByLayerId[layer.layerId.toString()][featureId];
             
             if (!this.openLayersHandler.globalVectorSource.getFeatureById(featureId))
             {
-                this.openLayersHandler.globalVectorSource.addFeature(feature);
+                this.openLayersHandler.globalVectorSource.addFeature(OLFeature);
             }
         }
     }
