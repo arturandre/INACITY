@@ -46,8 +46,6 @@ class GeoImageManager extends Subject
         {
             this._defaultImageUrl = options.defaultImageUrl;
         }
-
-        UIModel.on("getimages", this.displayGeoJSONFeature.bind(this));
     }
 
     saveToJSON()
@@ -88,7 +86,7 @@ class GeoImageManager extends Subject
         return getPropPath(this, ['geoImageCollection', 'validImages']);
     }
 
-    displayGeoJSONFeature(geoJSONFeature)
+    _displayFeature(geoJSONFeature)
     {
         this.geoImageCollection = geoJSONFeature;
         if (!(this.geoImageCollection.validImages > 0))
@@ -112,12 +110,17 @@ class GeoImageManager extends Subject
      * @param {String} [filterId] - If set then all layers with processedImages with this filterId will be presented
      * instead of the raw images collected from some Image Provider
      */
-    updateDisplayingLayers(filterId)
+    updateDisplayingLayers(filterId, geoJSONFeature)
     {
         //Firstly we set the filterId then the collection (possibly filtered)
         //So that listeners of the change can know what is the current filterId
         this._imageFilterId = filterId;
-        if (!this._displayingSingleFeature)
+
+        if (geoJSONFeature)
+        {
+            this._displayFeature(geoJSONFeature);
+        }
+        else if (!this._displayingSingleFeature)
         {
             this._displayingLayers = this.uiModel.getDisplayingLayers();
             if (!(this._displayingLayers.length > 0))
@@ -242,6 +245,7 @@ class GeoImageManager extends Subject
         if (newFeatureOrCollection.features)
         { //Only featureCollections have a 'features' member
             this.geoImageCollection.loadGeoImagesFromFeatureCollection(newFeatureOrCollection);
+            this._displayingSingleFeature = false;
         } else
         {
             this.geoImageCollection.loadGeoImagesFromFeature(newFeatureOrCollection);

@@ -959,18 +959,22 @@ class UIModel extends Subject
         {
             let geoImagesTree =
                 this._streetSelect.lastSelectedFeature.getProperties().geoImages;
+            
+            if (!geoImagesTree)
+            {
+                await getImages();
+            }
 
-            // if (geoImagesTree
-            //     && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
-            // {
-            //     UIModel.notify('getimages',
-            //         GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature));
-            //     return;
-            // }
-            // else
-            // {
-            //     await getImages();
-            // }
+            if (geoImagesTree
+                 && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
+            {
+                 UIModel.notify('getimages',
+                     {
+                         geoJSONFeature:
+                             GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature)
+                     });
+                 return;
+            }
 
             debugger;
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
@@ -996,6 +1000,7 @@ class UIModel extends Subject
                          * from regionId to the returned data's 'featureCollection' 
                         */
                         let feature = data.feature;
+                        feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
                         this._syncAndMergeMultiFeature(feature);
                         return feature;
 
@@ -1016,9 +1021,12 @@ class UIModel extends Subject
                 'json'
             );
 
+            this._streetSelect.lastSelectedFeature.setProperties({geoImages: 
+                processedFeature.feature.properties.geoImages});
 
 
-            UIModel.notify('getimages', processedFeature);
+
+            UIModel.notify('getimages', {filterId: this.SelectedImageFilter.id});
             return;
         }
 
@@ -1400,6 +1408,34 @@ class UIModel extends Subject
     }
 
     /**
+     * Updates a single feature from the FeaturesByLayerId index.
+     * @param {GeoJSONFeature} GeoJSONFeature - This GeoJSONFeature must
+     * contain at its properties the layerId that it belongs to.
+     */
+    _updateFeatureFromLayerIdIndex(GeoJSONFeature)
+    {
+        let layerId = GeoJSONFeature.properties.layerId;
+        if (this._featuresByLayerId[layerId][GeoJSONFeature.id])
+        {
+            let newFeature = GeoJSONHelper.olGeoJson.readFeature(GeoJSONFeature);
+
+                newFeature.setStyle(
+                    this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id].feature.getStyle());
+
+            this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id].feature = newFeature;
+            UIModel.notify('featureupdated', {
+                layerId: layerId,
+                featureId: GeoJSONFeature.id
+            });
+        }
+        else
+        {
+            throw new Error(gettext("Invalid layerId, the GeoJSONFeature must contain at its properties the layerId that it belongs to."));
+        }
+        
+    }
+
+    /**
      * Updates the features directly in the featuresByLayersId index.
      * If the layerId doesn't exists in the index then it'll be
      * created.
@@ -1416,7 +1452,8 @@ class UIModel extends Subject
         for (let idx in GeoJSONFeatureCollection.features)
         {
             let feature = GeoJSONFeatureCollection.features[idx];
-            feature.properties.layerId = layerId;
+            debugger;
+            feature.properties.layerId = LayerId.createFromJSON(layerId);
 
             // Updates the feature
             if (this._featuresByLayerId[layerId][feature.id])
@@ -1750,7 +1787,8 @@ class UIModel extends Subject
     _syncAndMergeMultiFeature(updatedFeature)
     {
         //let featureRegionsIndex = this._featuresByLayerId[updatedFeature.properties.layerId];
-        let featuresInLayer = this._featuresByLayerId[updatedFeature.properties.layerId];
+        let featuresInLayer = this._featuresByLayerId[updatedFeature.properties.layerId.toString()];
+        let geoJSONFeatureRegion = GeoJSONHelper.writeFeature(featuresInLayer[updatedFeature.id].feature);
 
         /**
          *  If the updatedFeature has updated properties
@@ -1759,11 +1797,10 @@ class UIModel extends Subject
          * then the properties from the feature in the index
          * are updated, that is, replaced with the ones from updatedFeature.
          * */
-        if (
-            JSON.stringify(featuresInLayer[updatedFeature.id].feature) !==
+        if (JSON.stringify(geoJSONFeatureRegion) !==
             JSON.stringify(updatedFeature))
         {
-            this._syncFeatureProperties(featuresInLayer[updatedFeature.id].feature,
+            this._syncFeatureProperties(geoJSONFeatureRegion,
                 updatedFeature);
         }
         // Otherwise nothing has to be done.
@@ -1784,9 +1821,11 @@ class UIModel extends Subject
         the feature.
         */
         GeoJSONHelper.mergeInPlaceMultilineStringFeatures(
-            featuresInLayer[updatedFeature.id].feature,
+            geoJSONFeatureRegion,
             updatedFeature
         );
+
+        this._updateFeatureFromLayerIdIndex(updatedFeature);
 
         // /*
         //  * After a merge it's necessary to update other regions that also contains

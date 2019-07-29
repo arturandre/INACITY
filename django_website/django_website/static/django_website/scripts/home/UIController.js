@@ -282,7 +282,15 @@
         {
             await this.uiModel.getProcessedImages.bind(this.uiModel)()
             //Set the geoImageManager to display this collection
-            this.geoImageManager.updateDisplayingLayers(filterId);
+            if (this._streetSelected.lastSelectedFeature)
+            {
+                this.geoImageManager.updateDisplayingLayers(filterId,
+                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
+            }
+            else
+            {    
+                this.geoImageManager.updateDisplayingLayers(filterId);
+            }
         }
         catch (err)
         {
@@ -301,8 +309,15 @@
         {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
             //Set the geoImageManager to display this collection
-            if (this._streetSelected) return;
-            this.geoImageManager.updateDisplayingLayers();
+            if (this._streetSelected.lastSelectedFeature)
+            {
+                this.geoImageManager.updateDisplayingLayers(null,
+                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
+            }
+            else
+            {    
+                this.geoImageManager.updateDisplayingLayers();
+            }
         }
         catch (err)
         {
