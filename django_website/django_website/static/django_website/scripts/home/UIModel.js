@@ -1044,12 +1044,11 @@ class UIModel extends Subject
               by default the Streets from OSM will be used as features
             */
             await this._collectLayersForEmptyRegions(region);//.then(() => {
-            let activeLayers = region.getActiveLayers();
             let skippedLayers = [];
 
-            for (let layerIdx in activeLayers)
+            for (let layerIdx in region.layers)
             {
-                let layer = activeLayers[layerIdx];
+                let layer = region.layers[layerIdx];
 
                 //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
                 let geoImagesTree = getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages']);
