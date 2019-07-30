@@ -939,6 +939,44 @@ class UIModel extends Subject
     }
 
 
+    async _getProcessedImagesForFeature(GeoJSONFeature)
+    {
+
+        return await $.ajax('/processimagesfromfeature/',
+            {
+                method: 'POST',
+                processData: false,
+                data: JSON.stringify({
+                    'imageFilterId': this.SelectedImageFilter.id,
+                    'feature': JSON.stringify(GeoJSONFeature)
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                context: this
+            }).done(function (data, textStatus, XHR)
+            {
+                let feature = data.feature;
+                feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
+                this._syncAndMergeMultiFeature(feature);
+                return feature;
+
+            }).fail(function (jqXHR, textStatus, errorThrown)
+            {
+                //@todo: Create a error handling mechanism
+                if (jqXHR.status === 413)
+                {
+                    alert(gettext("The request was too big to be processed. Try a smaller feature."));
+                }
+                else
+                {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                }
+            });
+
+    }
+
+
+
     /**
      * Each image filter can return different kinds of responses like
      * a greenery view index (0-100%) or a boolean flag indication if there's
@@ -959,74 +997,37 @@ class UIModel extends Subject
         {
             let geoImagesTree =
                 this._streetSelect.lastSelectedFeature.getProperties().geoImages;
-            
+
             if (!geoImagesTree)
             {
                 await getImages();
             }
 
             if (geoImagesTree
-                 && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
+                && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
             {
-                 UIModel.notify('getimages',
-                     {
-                         geoJSONFeature:
-                             GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature)
-                     });
-                 return;
+                UIModel.notify('getimages',
+                    {
+                        geoJSONFeature:
+                            GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature)
+                    });
+                return;
             }
 
             debugger;
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
             await GSVService.setPanoramaForFeature(geoJSONFeature);
 
-            let processedFeature = await $.ajax('/processimagesfromfeature/',
-                {
-                    method: 'POST',
-                    processData: false,
-                    data: JSON.stringify({
-                        'imageFilterId': this.SelectedImageFilter.id,
-                        'feature': JSON.stringify(geoJSONFeature)
-                        // 'regionId': region.id,
-                        // 'layerId': layer.layerId.toString()
-                    }),
-                    context: this,
-                    contentType: "application/json; charset=utf-8",
-                    dataType: 'json',
-                    success: function (data, textStatus, XHR)
-                    {
-                        /** 
-                         * Associate the featureCollection from layerId
-                         * from regionId to the returned data's 'featureCollection' 
-                        */
-                        let feature = data.feature;
-                        feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
-                        this._syncAndMergeMultiFeature(feature);
-                        return feature;
+            let processedFeature = await this._getProcessedImagesForFeature(geoJSONFeature);
 
-                    },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {
-                        //@todo: Create a error handling mechanism
-                        if (jqXHR.status === 413)
-                        {
-                            alert(gettext("The request was too big to be processed. Try a smaller feature (e.g. Street)."));
-                        }
-                        else
-                        {
-                            throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
-                        }
-                    }
-                },
-                'json'
-            );
-
-            this._streetSelect.lastSelectedFeature.setProperties({geoImages: 
-                processedFeature.feature.properties.geoImages});
+            this._streetSelect.lastSelectedFeature.setProperties({
+                geoImages:
+                    processedFeature.feature.properties.geoImages
+            });
 
 
 
-            UIModel.notify('getimages', {filterId: this.SelectedImageFilter.id});
+            UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
             return;
         }
 
@@ -1050,67 +1051,92 @@ class UIModel extends Subject
             {
                 let layer = region.layers[layerIdx];
 
-                //A layer without a FeatuerCollection, or with an empty FeatureCollection or that already got images will be skipped
-                let geoImagesTree = getPropPath(layer, ['featureCollection', 'features', 0, 'properties', 'geoImages']);
-                if (!geoImagesTree
-                    || GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
+                debugger;
+                let features = getPropPath(layer, ['featureCollection', 'features']);
+                if (!features)
                 {
-                    let skippedLayer =
-                    {
-                        regionName: region.name,
-                        layerId: layer.layerId.toString(),
-                        reason: ""
-                    };
                     if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
                     if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
                     if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
-                    if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
-
+                    //if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
                     skippedLayers.push(skippedLayer);
                     continue;
                 }
 
-                noCalls = false;
-                await $.ajax('/processimagesfromfeaturecollection/',
+                let promisesFeatures = [];
+                for (let featureIdx in features)
+                {
+                    let promise = new Promise(function (resolve, reject)
                     {
-                        method: 'POST',
-                        processData: false,
-                        data: JSON.stringify({
-                            'imageFilterId': this.SelectedImageFilter.id,
-                            'featureCollection': JSON.stringify(layer.featureCollection),
-                            'regionId': region.id,
-                            'layerId': layer.layerId.toString()
-                        }),
-                        contentType: "application/json; charset=utf-8",
-                        dataType: 'json',
-                        success: function (data, textStatus, XHR)
+                        try
                         {
-                            //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
-                            let layer = this.regions[data['regionId']].layers[data['layerId']];
-                            layer.featureCollection = data['featureCollection'];
-                        }.bind(this),
-                        error: function (jqXHR, textStatus, errorThrown)
+
+
+                            let featureId = features[featureIdx];
+                            let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
+                            let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
+
+                            let processedFeature = await this._getProcessedImagesForFeature(geoJSONFeature);
+
+                            olFeature.setProperties({
+                                geoImages:
+                                    processedFeature.feature.properties.geoImages
+                            });
+                            resolve();
+                        } catch (error)
                         {
-                            //@todo: Create a error handling mechanism
-                            if (jqXHR.status === 413)
-                            {
-                                alert(gettext("The request was too big to be processed. Try a smaller region."));
-                            }
-                            else
-                            {
-                                throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
-                            }
-                        },
-                        complete: function (jqXHR, textStatus)
-                        {
-                            // numCalls -= 1;
-                            // if (numCalls === 0) {
-                            //     return resolve();
-                            // }
-                        },
-                    },
-                    'json'
-                );
+                            reject();
+                        }
+                    }.bind(this));
+                    promisesFeatures.push(promise);
+                }
+
+                Promise.all(promisesFeatures).then(function ()
+                {
+                    UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
+                }.bind(this));
+
+                // noCalls = false;
+                // await $.ajax('/processimagesfromfeaturecollection/',
+                //     {
+                //         method: 'POST',
+                //         processData: false,
+                //         data: JSON.stringify({
+                //             'imageFilterId': this.SelectedImageFilter.id,
+                //             'featureCollection': JSON.stringify(layer.featureCollection),
+                //             'regionId': region.id,
+                //             'layerId': layer.layerId.toString()
+                //         }),
+                //         contentType: "application/json; charset=utf-8",
+                //         dataType: 'json',
+                //         success: function (data, textStatus, XHR)
+                //         {
+                //             //Associate the featureCollection from layerId from regionId to the returned data's 'featureCollection' 
+                //             let layer = this.regions[data['regionId']].layers[data['layerId']];
+                //             layer.featureCollection = data['featureCollection'];
+                //         }.bind(this),
+                //         error: function (jqXHR, textStatus, errorThrown)
+                //         {
+                //             //@todo: Create a error handling mechanism
+                //             if (jqXHR.status === 413)
+                //             {
+                //                 alert(gettext("The request was too big to be processed. Try a smaller region."));
+                //             }
+                //             else
+                //             {
+                //                 throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                //             }
+                //         },
+                //         complete: function (jqXHR, textStatus)
+                //         {
+                //             // numCalls -= 1;
+                //             // if (numCalls === 0) {
+                //             //     return resolve();
+                //             // }
+                //         },
+                //     },
+                //     'json'
+                // );
             }
             if (skippedLayers.length > 0)
             {
@@ -1418,8 +1444,8 @@ class UIModel extends Subject
         {
             let newFeature = GeoJSONHelper.olGeoJson.readFeature(GeoJSONFeature);
 
-                newFeature.setStyle(
-                    this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id].feature.getStyle());
+            newFeature.setStyle(
+                this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id].feature.getStyle());
 
             this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id].feature = newFeature;
             UIModel.notify('featureupdated', {
@@ -1431,7 +1457,7 @@ class UIModel extends Subject
         {
             throw new Error(gettext("Invalid layerId, the GeoJSONFeature must contain at its properties the layerId that it belongs to."));
         }
-        
+
     }
 
     /**
@@ -1481,7 +1507,7 @@ class UIModel extends Subject
                     same multilinearstring feature
                     appears in different layers
                     then they are joined together.
-
+    
                     Notice that the merging of the features
                     are performed using its coordinates, that is,
                     they are not related to the properties of
@@ -1813,7 +1839,7 @@ class UIModel extends Subject
         same multilinearstring feature
         appears in different layers
         then they are joined together.
-
+    
         Notice that the merging of the features
         are performed using its coordinates, that is,
         they are not related to the properties of
