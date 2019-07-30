@@ -782,6 +782,24 @@ class UIModel extends Subject
     get mapMinersAndFeatures() { return this._mapMinersAndFeatures; }
 
     /**
+     * Extracts the features from the featuresByLayerId
+     * index, converts then to the GeoJSON format and
+     * return a valid GeoJSON FeatureCollection object
+     * @param {RegionLayer} regionLayer 
+     */
+    getFeatureCollectionFromFeaturesByLayerIndex(regionLayer)
+    {
+        let ret = $.extend(true, {}, regionLayer.featureCollection);
+        for (let fId in regionLayer.featureCollection.features)
+        {
+            let feature = regionLayer.featureCollection.features[fId];
+            ret.features[fId] =
+                GeoJSONHelper.writeFeature(this.featuresByLayerId[regionLayer.layerId.toString()][feature].feature);
+        }
+        return ret;
+    }
+
+    /**
      * This function queries the SelectedMapMiner for the 
      * SelectedMapFeature and creates a new layer
      * for the region parameter containing the fetched data.
@@ -906,14 +924,16 @@ class UIModel extends Subject
             */
             await this._collectLayersForEmptyRegions(region);
 
-            //let activeLayers = region.getActiveLayers();
+            let activeLayers = this.getActiveLayers();
 
-            //for (let layerIdx in activeLayers)
-            for (let layerIdx in region.layers)
+            for (let layerIdx in activeLayers)
+            //for (let layerIdx in region.layers)
             {
                 let layer = activeLayers[layerIdx];
 
-                let properties = getPropPath(layer, ['featureCollection', 'features', 0, 'properties']);
+                let featureCollection = this.getFeatureCollectionFromFeaturesByLayerIndex(layer);
+
+                let properties = getPropPath(featureCollection, ['features', 0, 'properties']);
                 if (!properties || properties.geoImages)
                 {
                     console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
@@ -922,10 +942,11 @@ class UIModel extends Subject
 
                 numCalls += 1;
                 //layer.featureCollection always returns a copy
-                let fc = layer.featureCollection;
+                let fc = featureCollection;
                 await GSVService.setPanoramaForFeatureCollection(fc);
-                layer.featureCollection = fc;
-                layer.geoImagesLoaded = true;
+                this._updateFeatureCollectionFromLayerIdIndex(fc);
+                // layer.featureCollection = fc;
+                // layer.geoImagesLoaded = true;
                 numCalls -= 1;
                 triggerGeoImages = true;
             }
@@ -1066,7 +1087,7 @@ class UIModel extends Subject
                 let promisesFeatures = [];
                 for (let featureIdx in features)
                 {
-                    let promise = new Promise(function (resolve, reject)
+                    let promise = new Promise(async function (resolve, reject)
                     {
                         try
                         {
@@ -1433,6 +1454,21 @@ class UIModel extends Subject
     }
 
     /**
+     * Helper function to update a whole set of features
+     * from the FeaturesByLayerId index.
+     * @param {GeoJSONFeatureCollection} GeoJSONFeatureCollection 
+     */
+    _updateFeatureCollectionFromLayerIdIndex(GeoJSONFeatureCollection)
+    {
+        debugger;
+        for (let fId in GeoJSONFeatureCollection.features)
+        {
+            let feature = GeoJSONFeatureCollection.features[fId];
+            this._updateFeatureFromLayerIdIndex(feature);
+        }
+    }
+
+    /**
      * Updates a single feature from the FeaturesByLayerId index.
      * @param {GeoJSONFeature} GeoJSONFeature - This GeoJSONFeature must
      * contain at its properties the layerId that it belongs to.
@@ -1592,7 +1628,6 @@ class UIModel extends Subject
 
             layer.featureCollection = newFeatureCollection;
             //if (layer.featureCollection.features.length === 0)
-            debugger;
             if (newFeatureCollection.features.length === 0)
             {
                 alert(gettext(`No ${layerId.Feature.name} were found inside the region ${region.name} using the GIS ${layerId.MapMiner.name}.`));
@@ -1653,15 +1688,14 @@ class UIModel extends Subject
     getActiveLayers()
     {
         let activeLayers = [];
-        for (let regionIdx in this.regions)
+        let activeRegions = this.getActiveRegions();
+        for (let regionIdx in activeRegions)
         {
-            const region = this.regions[regionIdx];
-            if (!region.active) continue;
+            const region = activeRegions[regionIdx];
 
             for (let layerIdx in region.layers)
             {
                 const layer = region.layers[layerIdx];
-                if (!layer.active) continue;
 
                 activeLayers.push(layer);
             }

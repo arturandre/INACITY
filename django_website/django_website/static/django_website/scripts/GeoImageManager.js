@@ -122,7 +122,9 @@ class GeoImageManager extends Subject
         }
         else if (!this._displayingSingleFeature)
         {
-            this._displayingLayers = this.uiModel.getDisplayingLayers();
+            //this._displayingLayers = this.uiModel.getDisplayingLayers();
+            let activeLayers = this.uiModel.getActiveLayers();
+            this._displayingLayers = this.uiModel.getActiveLayers();
             if (!(this._displayingLayers.length > 0))
             {
                 this.clear();
@@ -133,7 +135,7 @@ class GeoImageManager extends Subject
 
 
 
-            this.geoImageCollection = this._displayingLayers[this._currentLayer].featureCollection;
+            this.geoImageCollection = this.uiModel.getFeatureCollectionFromFeaturesByLayerIndex(this._displayingLayers[this._currentLayer]);
             if (!(this.geoImageCollection.validImages > 0))
             {
                 this.clear();
@@ -282,7 +284,8 @@ class GeoImageManager extends Subject
             {
                 this._currentIndex = -1;
                 this._currentLayer = (this._currentLayer + 1) % this._displayingLayers.length;
-                this.geoImageCollection = this._displayingLayers[this._currentLayer].featureCollection;
+                this.geoImageCollection =
+                    this.uiModel.getFeatureCollectionFromFeaturesByLayerIndex(this._displayingLayers[this._currentLayer]);
             }
         }
         this._lastCurrentIndex = this._currentIndex;
