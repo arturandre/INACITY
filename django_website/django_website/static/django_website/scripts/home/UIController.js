@@ -56,6 +56,8 @@
         UIModel.on('featurecreated', this.onFeatureCreated.bind(this));
         UIModel.on('featureupdated', this.onFeatureUpdated.bind(this));
 
+        UIModel.on('getimages', this.onGetImages.bind(this));
+
         RegionLayer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
 
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
@@ -170,6 +172,27 @@
         //this.sessionManager.saveSession();
     }
 
+    onGetImages(event)
+    {
+        try
+        {
+
+            let filterId = getPropPath(event, ['filterId']);
+            if (this._streetSelected.lastSelectedFeature)
+            {
+                this.geoImageManager.updateDisplayingLayers(filterId,
+                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
+            }
+            else
+            {
+                this.geoImageManager.updateDisplayingLayers(filterId);
+            }
+        } catch (error)
+        {
+            this.uiView.displayMessage(error, "Error");
+        }
+    }
+
     onFeatureUpdated(layerFeatureId)
     {
         let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
@@ -277,20 +300,11 @@
     {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
 
-        let filterId = this.uiModel.SelectedImageFilter.id;
         try
         {
             await this.uiModel.getProcessedImages.bind(this.uiModel)()
             //Set the geoImageManager to display this collection
-            if (this._streetSelected.lastSelectedFeature)
-            {
-                this.geoImageManager.updateDisplayingLayers(filterId,
-                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
-            }
-            else
-            {    
-                this.geoImageManager.updateDisplayingLayers(filterId);
-            }
+
         }
         catch (err)
         {
@@ -308,16 +322,6 @@
         try
         {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
-            //Set the geoImageManager to display this collection
-            if (this._streetSelected.lastSelectedFeature)
-            {
-                this.geoImageManager.updateDisplayingLayers(null,
-                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
-            }
-            else
-            {    
-                this.geoImageManager.updateDisplayingLayers();
-            }
         }
         catch (err)
         {

@@ -412,6 +412,7 @@ class UIView
                 break;
             case 'Error':
                 alert(message);
+                throw new Error(message);
                 break;
             default:
                 throw Error(`Unknow message type: ${type}`);

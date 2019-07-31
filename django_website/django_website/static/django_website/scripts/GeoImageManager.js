@@ -118,12 +118,13 @@ class GeoImageManager extends Subject
 
         if (geoJSONFeature)
         {
+            this._displayingSingleFeature = true;
             this._displayFeature(geoJSONFeature);
         }
-        else if (!this._displayingSingleFeature)
+        else
         {
+            this._displayingSingleFeature = false;
             //this._displayingLayers = this.uiModel.getDisplayingLayers();
-            let activeLayers = this.uiModel.getActiveLayers();
             this._displayingLayers = this.uiModel.getActiveLayers();
             if (!(this._displayingLayers.length > 0))
             {
