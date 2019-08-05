@@ -1077,7 +1077,7 @@ class UIModel extends Subject
               by default the Streets from OSM will be used as features
             */
             await this._collectLayersForEmptyRegions(region);//.then(() => {
-            
+
 
             for (let layerIdx in region.layers)
             {
@@ -1106,10 +1106,11 @@ class UIModel extends Subject
                             let featureId = features[featureIdx];
                             let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                             let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
-                            
+
                             if (!geoJSONFeature.properties.geoImages)
                             {
                                 await this.getImages();
+                                olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                                 geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
                             }
 
