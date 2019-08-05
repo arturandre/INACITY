@@ -1067,6 +1067,8 @@ class UIModel extends Subject
         {
             throw new Error(gettext("Please, select or activate a region to continue."));
         }
+        let promisesFeatures = [];
+        let skippedLayers = [];
         for (let regionIdx in activeRegions)
         {
             var region = activeRegions[regionIdx];
@@ -1075,7 +1077,7 @@ class UIModel extends Subject
               by default the Streets from OSM will be used as features
             */
             await this._collectLayersForEmptyRegions(region);//.then(() => {
-            let skippedLayers = [];
+            
 
             for (let layerIdx in region.layers)
             {
@@ -1092,7 +1094,7 @@ class UIModel extends Subject
                     continue;
                 }
 
-                let promisesFeatures = [];
+
                 for (let featureIdx in features)
                 {
                     let promise = new Promise(async function (resolve, reject)
@@ -1119,12 +1121,11 @@ class UIModel extends Subject
                     }.bind(this));
                     promisesFeatures.push(promise);
                 }
-
-                Promise.all(promisesFeatures).then(function ()
-                {
-                    UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
-                }.bind(this));
             }
+            await Promise.all(promisesFeatures).then(function ()
+            {
+                UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
+            }.bind(this));
             if (skippedLayers.length > 0)
             {
                 let warnSkippedMessage = gettext("The following layers were skipped: \n");

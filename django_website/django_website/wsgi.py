@@ -24,6 +24,23 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 from django_website.LogGenerator import write_to_log
 write_to_log('wsgi loaded')
+print('wsgi loaded')
+
+
+
+import sys
+
+if 'runserver' in sys.argv:
+    import ptvsd
+    try:
+        address = ('0.0.0.0', 3000)
+        ptvsd.enable_attach(address)
+        print('ptvsd enabled')
+        write_to_log('ptvsd enabled')
+    except Exception as  e:
+        print(f'ptvsd error: {str(e)}')
+        write_to_log(f'ptvsd error: {str(e)}')
+        pass
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication

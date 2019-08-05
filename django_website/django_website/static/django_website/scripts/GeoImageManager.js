@@ -268,7 +268,7 @@ class GeoImageManager extends Subject
      */ // @fires [invalidcollection]{@link module:GeoImageManager~GeoImageManager.invalidcollection}
     _displayNextValidImage(fromStart, startAutoPlay)
     {
-        if (!this.geoImageCollection || this.geoImageCollection.length === 0)
+        if (!this.geoImageCollection || this.geoImageCollection.validImages === 0)
         {
             throw new Error("Error: Trying to display empty geoImages collection.");
             // console.warn("Error: Trying to display empty geoImages collection.");

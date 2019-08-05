@@ -5,7 +5,6 @@ Command-line utility for administrative tasks.
 
 import os
 import sys
-import ptvsd
 
 
 if __name__ == "__main__":
@@ -18,9 +17,5 @@ if __name__ == "__main__":
 
     execute_from_command_line(sys.argv)
 
-    try:
-        address = ('0.0.0.0', 3000)
-        ptvsd.enable_attach(address)
-    except:
-        pass
+
 
