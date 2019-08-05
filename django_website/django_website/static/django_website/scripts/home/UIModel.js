@@ -1106,6 +1106,12 @@ class UIModel extends Subject
                             let featureId = features[featureIdx];
                             let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                             let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
+                            
+                            if (!geoJSONFeature.properties.geoImages)
+                            {
+                                await this.getImages();
+                                geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
+                            }
 
                             let processedFeature = await this._getProcessedImagesForFeature(geoJSONFeature);
 
@@ -1116,7 +1122,7 @@ class UIModel extends Subject
                             resolve();
                         } catch (error)
                         {
-                            reject();
+                            reject(error);
                         }
                     }.bind(this));
                     promisesFeatures.push(promise);
