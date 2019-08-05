@@ -976,7 +976,7 @@ class UIModel extends Subject
             return GeoJSONFeature;
         }
 
-        return await $.ajax('/processimagesfromfeature/',
+        let data = await $.ajax('/processimagesfromfeature/',
             {
                 method: 'POST',
                 processData: false,
@@ -992,8 +992,6 @@ class UIModel extends Subject
                 let feature = data.feature;
                 feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
                 this._syncAndMergeMultiFeature(feature);
-                return feature;
-
             }).fail(function (jqXHR, textStatus, errorThrown)
             {
                 //@todo: Create a error handling mechanism
@@ -1006,6 +1004,7 @@ class UIModel extends Subject
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                 }
             });
+        return data.feature;
 
     }
 
