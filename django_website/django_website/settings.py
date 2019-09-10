@@ -28,7 +28,8 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
-INSTALLED_APPS = [# Add your apps here to enable them
+INSTALLED_APPS = [  # Add your apps here to enable them
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

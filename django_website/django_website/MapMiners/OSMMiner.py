@@ -1,3 +1,5 @@
+ # $Id: OSMMiner.py 
+
 from geojson import Point, LineString, MultiLineString, Polygon, Feature, FeatureCollection
 from django.contrib.gis.gdal import SpatialReference
 import requests
@@ -25,10 +27,7 @@ class OSMMiner(MapMiner):
             - mapMinerId : 'osm'
             - _basecrs : SpatialReference(3857)
         Internal:
-            -_OSMServerURL = 'inacity.org'
-            
-
-
+            - _OSMServerURL = 'inacity.org'
     """
 
     mapMinerName = "OpenStreetMap"
@@ -159,33 +158,7 @@ class OSMMiner(MapMiner):
 
     _rateLimit = -1
     _currentQueries = 0
-    
-    @staticmethod
-    def _setRateLimit():
-        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
-            OSMMiner._rateLimit = 99999999
-            return
-        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
-            """Check how many queries can be executed concurrently according to OverpassAPI Status"""
-            if OSMMiner._rateLimit <= 0:
-                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
-                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
-                OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
-            if OSMMiner._rateLimit <= 0:
-                raise ValueError("Couldn't set the rateLimit value!")
 
-    @staticmethod
-    def _waitForAvailableSlots():
-        """Collect status from OverpassAPI, available slots and current queries"""
-        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
-            pass
-        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
-            while True:
-                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
-                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
-                if ovpStatus.availableSlots > 0: break
-                timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
-                time.sleep(timeToWait)
 
     def _preFormatInput(GeoJsonInput: FeatureCollection):
         flip_geojson_coordinates(GeoJsonInput)
@@ -244,6 +217,33 @@ class OSMMiner(MapMiner):
            
         return FeatureCollection(featuresList, crs=OSMMiner._crs)
         #return StreetsDTOList
+
+    @staticmethod
+    def _setRateLimit():
+        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
+            OSMMiner._rateLimit = 99999999
+            return
+        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
+            """Check how many queries can be executed concurrently according to OverpassAPI Status"""
+            if OSMMiner._rateLimit <= 0:
+                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
+                OSMMiner._rateLimit = max(OSMMiner._rateLimit, ovpStatus.rateLimit)
+            if OSMMiner._rateLimit <= 0:
+                raise ValueError("Couldn't set the rateLimit value!")
+
+    @staticmethod
+    def _waitForAvailableSlots():
+        """Collect status from OverpassAPI, available slots and current queries"""
+        if OSMMiner._OSMServerURL == OSMMiner.inacityorg:
+            pass
+        elif OSMMiner._OSMServerURL == OSMMiner.overpassapi:
+            while True:
+                statusMessage = str(requests.get(OSMMiner._overspassApiStatusUrl).content)
+                ovpStatus = OSMMiner.OverpassAPIStatus.fromText(statusMessage)
+                if ovpStatus.availableSlots > 0: break
+                timeToWait = min(ovpStatus.waitingTime)+1 if len(ovpStatus.waitingTime) > 0 else 3
+                time.sleep(timeToWait)
 
     @staticmethod
     def _createCollectStreetsQuery(regions: FeatureCollection):
