@@ -109,14 +109,13 @@ class GreeneryFilter(ImageFilter):
         multi-equivalents and returns a list of GeoImage's
         """
 
-
         if feature['geometry']['type'] == 'MultiPolygon':
             #Number of Polygons
             for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
                 for lineIndex, lineString in enumerate(polygon):
                     for coordinateIndex in range(len(lineString)):
                         geoImage = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
-                        if not isinstance(geoImage, dict): return
+                        if not isinstance(geoImage, dict): continue
                         try:
                             geoImage = GeoImage.fromJSON(geoImage)
                         except JSONDecodeError:
@@ -127,7 +126,7 @@ class GreeneryFilter(ImageFilter):
                 for coordinateIndex in range(len(lineString)):
                     try:
                         geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
-                        if not isinstance(geoImage, dict): return
+                        if not isinstance(geoImage, dict): continue
                     except Exception:
                         raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
 
@@ -141,7 +140,7 @@ class GreeneryFilter(ImageFilter):
         elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
             for coordinateIndex in range(len(feature['geometry']['coordinates'])):
                 geoImage = feature['properties']['geoImages'][coordinateIndex]
-                if not isinstance(geoImage, dict): return
+                if not isinstance(geoImage, dict): continue
                 try:
                     geoImage = GeoImage.fromJSON(geoImage)
                 except JSONDecodeError:
@@ -150,12 +149,12 @@ class GreeneryFilter(ImageFilter):
         elif feature['geometry']['type'] == 'Point':
             coordinateIndex = 0
             geoImage = feature['properties']['geoImages'][coordinateIndex]
-            if not isinstance(geoImage, dict): return
-            try:
-                geoImage = GeoImage.fromJSON(geoImage)
-            except JSONDecodeError:
-                print(_('Error while parsing panorama: ') + str(geoImage)[:100])
-            cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
+            if isinstance(geoImage, dict):
+                try:
+                    geoImage = GeoImage.fromJSON(geoImage)
+                except JSONDecodeError:
+                    print(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
         return feature
 
 
