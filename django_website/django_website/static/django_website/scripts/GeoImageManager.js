@@ -67,6 +67,17 @@ class GeoImageManager extends Subject
     loadFromJSON(geoImageManagerSession)
     {
         this.updateDisplayingLayers();
+        /**
+         * The geoImageManagerSession is in general more
+         * detailed than the data contained in the UIModel
+         * (retrieved by updateDisplayingLayers). But if
+         * the geoImageManagerSession was saved in a
+         * not initialized state then the data from UIModel
+         * and it will collide.
+         */
+        if (geoImageManagerSession.geoImageCollection._validImages !==
+            this.geoImageCollection.validImages) return;
+        
         this._currentLayer = geoImageManagerSession.currentLayer;
         this._currentIndex = geoImageManagerSession.currentIndex;
         //this._validImages = geoImageManagerSession._validImages;
