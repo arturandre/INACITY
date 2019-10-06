@@ -16,12 +16,16 @@ class Time {
     constructor(parameters) 
     {
         var defaults = {
-            Af: null,
-            ng: null
+            kf: null,
+            pano: null,
+            Af: null, //deprecated
+            ng: null //deprecated
         };
         parameters = parameters || defaults;
-        this.Af = (parameters.Af || defaults.Af);
-        this.ng = (parameters.ng || defaults.ng);
+        this.Af = (parameters.Af || defaults.Af); //deprecated
+        this.ng = (parameters.ng || defaults.ng); //deprecated
+        this.kf = (parameters.kf || defaults.kf);
+        this.pano = (parameters.pano || defaults.pano);
     }
 }
 

@@ -13,8 +13,71 @@ class GSVService
     }
 
     /**
+     * Discover connected nodes through the links property in
+     * StreetViewPanoramaData
+     * @param {String} initialPanoId - Panorama ID of the initial node
+     * @param {int} [maxIter=100] - Maximum number of nodes to be collected. Set -1 for unbounded.
+     */
+    static async crawlNodes(initialPanoId, maxIter=100) {
+        let currentData =  null;
+        let linksList = [];
+        
+        
+        currentData = await GSVService.getPanoramaById(initialPanoId);
+        
+        for (let link in currentData.links) linksList.push(currentData.links[link]);
+    
+        let nodes = {};
+        nodes[currentData.location.pano] = currentData;
+    
+        while (linksList.length > 0 && (maxIter > 0 || maxIter === -1))
+        {
+          let lastLink = linksList.pop();
+          if (nodes[lastLink.pano]) continue;
+          currentData = await GSVService.getPanoramaById(lastLink.pano);
+          nodes[b.location.pano] = currentData;
+          if (typeof(currentData) !== "object"){
+              continue;
+          }
+          for (let link in currentData.links)
+          {
+            if (nodes[currentData.links[link].pano]) continue;
+            linksList.push(currentData.links[link]);
+          }
+          if (maxIter > 0) maxIter--;
+        }
+        return nodes;
+    }
+
+
+    /**
+     * Return a StreetViewPanoramaData object whose id is panoId
+     * @param {String} panoId - Panorama ID
+     * @returns {Promise} - StreetViewPanoramaData
+     */
+    static getPanoramaById(panoId)
+    {
+        return new Promise(function (resolve, reject)
+        {
+            GSVService._streetViewService.getPanoramaById(panoId, function (data, status)
+            {
+                //resolve({ data: data, status: status });
+                if (status === "OK")
+                {
+                    let parsedData = StreetViewPanoramaData.fromStreetViewServiceData(data);
+                    resolve(parsedData);
+                }
+                else
+                {
+                    reject(status);
+                }
+            });
+        });
+    }
+
+    /**
      * Return a StreetViewPanoramaData object from 
-     * within a radius of [maxRadius]{@link module:node/routes/index~maxRadius} lonLatCoordinate position if available.
+     * within a radius of [GSVService.maxRadius]{@link GSVService~maxRadius} lonLatCoordinate position if available.
      * @param {JSON} lonLatCoordinate - JSON containing coordinates.
      * @param {float} lonLatCoordinate.lon - Longitude in degrees
      * @param {float} lonLatCoordinate.lat - Latitude in degrees
@@ -27,7 +90,7 @@ class GSVService
             let lon = lonLatCoordinate[0];
             let lat = lonLatCoordinate[1];
             let latlng = new google.maps.LatLng(lat, lon);
-            GSVService.streetViewService.getPanoramaByLocation(latlng, GSVService.maxRadius, function (data, status)
+            GSVService._streetViewService.getPanoramaByLocation(latlng, GSVService.maxRadius, function (data, status)
             {
                 //resolve({ data: data, status: status });
                 if (status === "OK")
@@ -185,7 +248,7 @@ if (!GSVService.init)
     * @see StreetViewPanoramaData
     * @const {google.maps.StreetViewService}
     */
-    GSVService.streetViewService = new google.maps.StreetViewService();
+    GSVService._streetViewService = new google.maps.StreetViewService();
 
     /** 
     * Used to define the radius of the area, around given location, to search for a panorama. 
