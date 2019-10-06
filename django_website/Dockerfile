@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 	libproj-dev \
 	gdal-bin \
 	postgresql-client \
-	python-pygraphviz
+	python-pygraphviz \
+	neo4j
 
 #Setting debian testing repo to collect python3.6-dev needed to use mod_wsgi
 RUN echo 'deb http://ftp.de.debian.org/debian testing main' >> /etc/apt/sources.list
