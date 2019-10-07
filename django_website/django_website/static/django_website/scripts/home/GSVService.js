@@ -35,7 +35,11 @@ class GSVService
           let lastLink = linksList.pop();
           if (nodes[lastLink.pano]) continue;
           currentData = await GSVService.getPanoramaById(lastLink.pano);
+<<<<<<< HEAD
           nodes[b.location.pano] = currentData;
+=======
+          nodes[lastLink.location.pano] = currentData;
+>>>>>>> master
           if (typeof(currentData) !== "object"){
               continue;
           }
@@ -244,7 +248,10 @@ if (!GSVService.init)
     GSVService.baseurl = "https://maps.googleapis.com/maps/api/streetview";
 
     /**
-    * StreetViewService component used to collect the panoramas
+    * StreetViewService component used to collect the panoramas.
+    * The google.maps.StreetViewService is loaded by the script
+    * http://maps.google.com/maps/api/js
+    * So that script needs to be loaded before the GSVService.js script
     * @see StreetViewPanoramaData
     * @const {google.maps.StreetViewService}
     */
