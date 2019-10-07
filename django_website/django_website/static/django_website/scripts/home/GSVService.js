@@ -35,7 +35,7 @@ class GSVService
           let lastLink = linksList.pop();
           if (nodes[lastLink.pano]) continue;
           currentData = await GSVService.getPanoramaById(lastLink.pano);
-          nodes[b.location.pano] = currentData;
+          nodes[lastLink.location.pano] = currentData;
           if (typeof(currentData) !== "object"){
               continue;
           }
