@@ -4,6 +4,8 @@ from rest_framework.response import Response
 
 from django.http import HttpResponse
 
+from .db import DBManager
+
 @api_view(['POST'])
 def getPanoramasByAddressList(request):
     """
@@ -34,4 +36,11 @@ def getPanoramasByAddressList(request):
 
 @api_view(['POST'])
 def insertPanorama(request):
+    #JSON data
+    streetviewpanoramadata = request.data
+    
+    dbmanager = DBManager()
+    dbmanager.insertPanorama(streetviewpanoramadata)
+    dbmanager.close()
+
     return HttpResponse("insertPanorama")

@@ -18,33 +18,58 @@ class GSVService
      * @param {String} initialPanoId - Panorama ID of the initial node
      * @param {int} [maxIter=100] - Maximum number of nodes to be collected. Set -1 for unbounded.
      */
-    static async crawlNodes(initialPanoId, maxIter=100) {
-        let currentData =  null;
+    static async crawlNodes(initialPanoId, maxIter = 100)
+    {
+        let currentData = null;
         let linksList = [];
-        
-        
+        let progressIter = 0;
+        let progressMax = maxIter;
+        let progressCount = 0;
+
+
         currentData = await GSVService.getPanoramaById(initialPanoId);
-        
+
         for (let link in currentData.links) linksList.push(currentData.links[link]);
-    
+
         let nodes = {};
         nodes[currentData.location.pano] = currentData;
-    
+
+        //TESTING
+        let startTime = new Date();
+        let totalTime = 0;
+
         while (linksList.length > 0 && (maxIter > 0 || maxIter === -1))
         {
-          let lastLink = linksList.pop();
-          if (nodes[lastLink.pano]) continue;
-          currentData = await GSVService.getPanoramaById(lastLink.pano);
-          nodes[currentData.location.pano] = currentData;
-          if (typeof(currentData) !== "object"){
-              continue;
-          }
-          for (let link in currentData.links)
-          {
-            if (nodes[currentData.links[link].pano]) continue;
-            linksList.push(currentData.links[link]);
-          }
-          if (maxIter > 0) maxIter--;
+            let lastLink = linksList.pop();
+            if (nodes[lastLink.pano]) continue;
+            currentData = await GSVService.getPanoramaById(lastLink.pano);
+            nodes[currentData.location.pano] = currentData;
+            progressCount++;
+            if (typeof (currentData) !== "object")
+            {
+                continue;
+            }
+            for (let link in currentData.links)
+            {
+                if (nodes[currentData.links[link].pano]) continue;
+                linksList.push(currentData.links[link]);
+            }
+            if (maxIter > 0) maxIter--;
+            progressIter++;
+            if (progressIter % 100 === 0)
+            {
+
+                let endTime = new Date();
+                var timeDiff = endTime - startTime; //in ms
+                totalTime += timeDiff;
+                console.log(`Time elapsed (ms): ${timeDiff}`);
+                console.log(`Total elapsed (ms): ${totalTime}`);
+                
+                console.log(`progress: ${progressIter}/${progressMax}`);
+                console.log(`Nodes collected: ${progressCount}`);
+
+
+            }
         }
         return nodes;
     }
