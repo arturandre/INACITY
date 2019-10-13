@@ -137,3 +137,16 @@ APPEND_SLASH = True
 
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs')
 
+# Django Channels configuration (Redis)
+# https://github.com/django/channels_redis
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+ASGI_APPLICATION = "websocketproj.routing.application"

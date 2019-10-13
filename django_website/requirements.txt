@@ -9,6 +9,7 @@ backports-abc==0.4
 backports.ssl-match-hostname==3.5.0.1
 blinker==1.4
 certifi==2018.4.16
+channels==2.3.0
 chardet==3.0.4
 click==6.7
 cloudpickle==0.5.3
@@ -23,6 +24,8 @@ Cython==0.28.3
 dask==0.17.5
 decorator==4.3.0
 Django==2.0.6
+django-docs==0.3.0
+django-extensions==2.2.1
 djangorestframework==3.8.2
 future==0.16.0
 geojson==2.4.0
@@ -67,6 +70,7 @@ ptyprocess==0.5
 pyasn1==0.4.2
 pyasn1-modules==0.2.1
 Pygments==2.0.2
+pygraphviz==1.5
 PyJWT==1.5.3
 pyOpenSSL==17.5.0
 pyparsing==2.0.7
@@ -100,6 +104,3 @@ urllib3==1.22
 Werkzeug==0.14.1
 yarl==1.1.1
 zope.interface==4.3.2
-django-docs==0.3.0
-django-extensions==2.2.1
-pygraphviz==1.5

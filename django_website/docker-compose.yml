@@ -1,6 +1,12 @@
 version: '2'
 
 services:
+  rediscache:
+    image: redis:5.0.6
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379/tcp"
   graphdb:
     image: neo4j
     volumes:
