@@ -37,7 +37,10 @@ INSTALLED_APPS = [# Add your apps here to enable them
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
-    'django_website',]
+    'django_website',
+    'GSVPanoramaManager',
+    'GSVPanoramaCollector',
+    'django_js_reverse',]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -117,8 +120,11 @@ LOCALE_PATHS = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+# This url must be also configured in the apache files 'demo_site.conf'
 STATIC_URL = '/static/'
-STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
+#STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -144,9 +150,9 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("localhost", 6379)],
+            "hosts": [("rediscache", 6379)],
         },
     },
 }
 
-ASGI_APPLICATION = "websocketproj.routing.application"
+ASGI_APPLICATION = "GSVPanoramaCollector.routing.application"

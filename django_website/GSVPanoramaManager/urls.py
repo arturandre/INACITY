@@ -7,4 +7,5 @@ app_name = 'gsvpanoramamanager'
 urlpatterns = [
     path('getPanoramasByAddressList', getPanoramasByAddressList, name='getPanoramasByAddressList'),
     path('insertPanorama', insertPanorama, name='insertPanorama'),
+    path('getPanoramaById', getPanoramaById, name='getPanoramaById'),
 ]

@@ -49,7 +49,10 @@ services:
         && bash /var/www/html/wait-for-postgres.sh db
         && python3 manage.py makemigrations
         && python3 manage.py migrate
+        && python3 manage.py collectstatic --noinput
+        && python3 manage.py collectstatic_js_reverse
         && echo 'from django_website import load; load.run(False)' | python manage.py shell
+        && nohup daphne -b 0.0.0.0 -p 8000 django_website.asgi:application > /dev/null &
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         

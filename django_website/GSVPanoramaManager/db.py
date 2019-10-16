@@ -17,20 +17,32 @@ class DBManager(object):
     def close(self):
         self._driver.close()
 
-    def insertPanorama(self, streetviewpanoramadata):
+    def retrieve_panorama_by_id(self, pano):
         with self._driver.session() as session:
-            session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
-
-
+            return session.write_transaction(self._retrieve_panorama_by_id, pano)
         
-    #### REFERENCE CODE - @TODO: REMOVE
-    def print_greeting(self, message):
+
+    def insert_panorama(self, streetviewpanoramadata):
         with self._driver.session() as session:
-            greeting = session.write_transaction(self._create_and_return_greeting, message)
-            print(greeting)
+            return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
+
+    @staticmethod
+    def _retrieve_panorama_by_id(tx, pano):
+        result = tx.run(f"MATCH(p:Panorama {{pano: '{pano}'}}) RETURN p.pano")
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
 
     @staticmethod
     def _create_update_panorama(tx, streetviewpanoramadata):
+        """
+        Creates a new node based on the panorama data.
+        Notice that the neo4j query is constructed in such a way that
+        each statement is ended with an white-space allowing new 
+        statements to be inserted by just concatenating strings.
+        """
         loc = streetviewpanoramadata['location']
         lat = loc['lat']
         lon = loc['lon']
@@ -66,15 +78,9 @@ class DBManager(object):
                     f"ON MATCH SET l{nRel} += {{{allprops}}} "
                 )
                 nRel = nRel + 1
-        tx.run(qNode + qRel)
-        return True
-
-
-
-    @staticmethod
-    def _create_and_return_greeting(tx, message):
-        result = tx.run("CREATE (a:Greeting) "
-                        "SET a.message = $message "
-                        "RETURN a.message + ', from node ' + id(a)", message=message)
+        panoStr = "' pano: ' + p.pano"
+        shortDescriptionStr = "'\n shortDescription: ' + p.shortDescription "
+        descriptionStr = "'\n description: ' + p.description "
+        qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
+        result = tx.run(qNode + qRel + qRet)
         return result.single()[0]
-    #### REFERENCE CODE - @TODO: REMOVE

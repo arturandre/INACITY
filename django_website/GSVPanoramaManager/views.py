@@ -40,7 +40,18 @@ def insertPanorama(request):
     streetviewpanoramadata = request.data
     
     dbmanager = DBManager()
-    dbmanager.insertPanorama(streetviewpanoramadata)
+    result = dbmanager.insert_panorama(streetviewpanoramadata)
     dbmanager.close()
 
-    return HttpResponse("insertPanorama")
+    return HttpResponse(result)
+
+@api_view(['POST'])
+def getPanoramaById(request):
+    #JSON data
+    streetviewpanoramaid = request.data['pano']
+    
+    dbmanager = DBManager()
+    result = dbmanager.retrieve_panorama_by_id(streetviewpanoramaid)
+    dbmanager.close()
+
+    return HttpResponse(result)

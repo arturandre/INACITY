@@ -22,6 +22,9 @@ from django.views.i18n import JavaScriptCatalog
 
 urlpatterns = [
 
+    # GSVPanoramaCollector
+    path('gsvpanoramacollector/', include('GSVPanoramaCollector.urls')),
+    
     # GSVPanoramaManager
     path('gsvpanoramamanager/', include('GSVPanoramaManager.urls')),
     
