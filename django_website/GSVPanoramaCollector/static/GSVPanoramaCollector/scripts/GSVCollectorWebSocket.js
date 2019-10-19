@@ -15,6 +15,13 @@ class GSVCollectorWebSocket
         this.socket.onerror = this._onerror.bind(this);
     }
 
+    sendMessage(message)
+    {
+        this.socket.send(JSON.stringify({
+            'message': message
+        }));
+    }
+
     // Handle any errors that occur.
     _onerror(error)
     {

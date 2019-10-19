@@ -1,6 +1,7 @@
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 import json
+from django_website.LogGenerator import write_to_log
 
 class WSConsumer(WebsocketConsumer):
     def connect(self):
@@ -11,6 +12,17 @@ class WSConsumer(WebsocketConsumer):
             self.channel_name
         )
         self.accept()
+        message = json.dumps({
+            'message': self.channel_name
+        })
+        self.send(text_data=message)
+        #async_to_sync(self.channel_layer.send)(
+        #    self.channel_name,
+        #    {
+        #        "type": "relay_message",
+        #        "message": message
+        #    },
+        #)
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
@@ -22,7 +34,7 @@ class WSConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
         message = json.dumps({
-            'message': message
+            'message': message,
         })
 
         self.send(text_data=message)
