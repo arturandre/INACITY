@@ -1,1 +1,1 @@
-daphne -b 0.0.0.0 -p 8000 django_website.asgi:application &
+daphne -b 0.0.0.0 -p 8001 django_website.asgi:application &

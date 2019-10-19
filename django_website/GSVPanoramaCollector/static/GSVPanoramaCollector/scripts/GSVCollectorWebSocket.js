@@ -3,7 +3,7 @@ class GSVCollectorWebSocket
     constructor(collectorEndpoint, browser_session)
     {
         this.wsurl = 'ws://' + window.location.host
-            + ':8000' //daphne port
+            + ':8001' //daphne port
             + '/ws'
             + '/' + collectorEndpoint
             + '/' + browser_session
