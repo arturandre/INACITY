@@ -15,11 +15,16 @@ class GSVCollectorWebSocket
         this.socket.onerror = this._onerror.bind(this);
     }
 
-    sendMessage(message)
+    sendMessage(message, type, extraParams)
     {
-        this.socket.send(JSON.stringify({
+        let objMessage = {
             'message': message
-        }));
+        };
+        if (type)
+        {
+            objMessage['type'] = type;
+        }
+        this.socket.send(JSON.stringify(objMessage));
     }
 
     // Handle any errors that occur.
@@ -69,9 +74,20 @@ class GSVCollectorWebSocket
                 ret = "Error: function not found!"
             }
 
-            this.socket.send(JSON.stringify({
-                'message': ret
-            }));
+            if (data['type'] === 'request_message')
+            {
+                this.socket.send(JSON.stringify({
+                    'type': 'fulfill_request',
+                    'request_id': data['request_id'],
+                    'message': ret
+                }));
+            }
+            else
+            {
+                this.socket.send(JSON.stringify({
+                    'message': ret
+                }));
+            }
         }
         if (this.onmessagehandler) this.onmessagehandler(message);
     }
