@@ -34,17 +34,23 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
 
+    #TODO!!! IF NO BROWSER AVAILABLE LOOPS FOREVER!
     def _watch_requests(self, request_ids):
+        
         redisCon = wssender.get_default_redis_connection()
+        print(request_ids)
         while len(request_ids) > 0:
             for i in range(len(request_ids)):
                 request_i = redisCon.get(request_ids[i])
-                request_ids.remove(request_ids[i])
                 if request_i != b'pending':
                     request_i = request_i.decode('ascii')
                     request_i = json.loads(request_i)
                     request_i = request_i[next(iter(request_i.keys()))]
                     self.insert_panorama(request_i)
+                    print(f'request_id {request_ids[i]} removed!')
+                    request_ids.remove(request_ids[i])
+                    break
+
         
 
     def _update_panorama_references(self):
@@ -101,8 +107,8 @@ class DBManager(object):
         lat = loc['lat']
         lon = loc['lon']
         locprop = f"location:point({{x:{lon},y:{lat}}})"
-        shortdescprop = f"shortDescription: \"{loc['shortDescription']}\""
-        descprop = f"description: \"{loc['description']}\""
+        shortdescprop = f"shortDescription: {json.dumps(loc['shortDescription'])}"
+        descprop = f"description: {json.dumps(loc['description'])}"
         copyright = f"copyright: \"{streetviewpanoramadata['copyright']}\""
         allprops = (
             f"{locprop}"
@@ -112,7 +118,7 @@ class DBManager(object):
         )
         # Query for creating/updating the node
         qNode = (
-            f"MERGE (p:Panorama {{pano: \"{loc['pano']}\"}}) "
+            f"MERGE (p:Panorama {{pano: {json.dumps(loc['pano'])}}}) "
             f"ON CREATE SET p += {{{allprops}}} "
             f"ON MATCH SET p += {{{allprops}}} "
             )
@@ -120,14 +126,15 @@ class DBManager(object):
         nRel = 0
         if streetviewpanoramadata.get('links') is not None:
             for link in streetviewpanoramadata.get('links'):
-                lDesc = f"description: \"{link['description']}\""
+                lDesc = f"description: {json.dumps(link['description'])}"
                 lHead = f"heading: \"{link['heading']}\""
                 allprops = (
                     f"{lDesc}"
                     f",{lHead}"
                 )
                 qRel += (
-                    f"MERGE (p)-[l{nRel}:link]->(:Panorama {{pano: \"{link['pano']}\"}}) "
+                    f"MERGE (p{nRel}:Panorama {{pano: {json.dumps(link['pano'])}}}) "
+                    f"MERGE (p)-[l{nRel}:link]->(p{nRel}) "
                     f"ON CREATE SET l{nRel} += {{{allprops}}} "
                     f"ON MATCH SET l{nRel} += {{{allprops}}} "
                 )
@@ -137,4 +144,5 @@ class DBManager(object):
         descriptionStr = "'\n description: ' + p.description "
         qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
         result = tx.run(qNode + qRel + qRet)
+        print(qNode + qRel + qRet)
         return result.single()[0]
