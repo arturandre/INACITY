@@ -21,6 +21,10 @@ class DBManager(object):
     def close(self):
         self._driver.close()
 
+    def retrieve_ref_panoramas(self):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_ref_panoramas)
+
     def retrieve_panorama_by_id(self, pano):
         with self._driver.session() as session:
             return session.write_transaction(self._retrieve_panorama_by_id, pano)
@@ -67,6 +71,14 @@ class DBManager(object):
         pass
         
 
+
+    @staticmethod
+    def _retrieve_ref_panoramas(tx):
+        res = []
+        for record in tx.run("MATCH(p:Panorama) WHERE NOT exists(p.location) "
+                             "RETURN p.pano"):
+            res.append(record["p.pano"])
+        return res
 
     @staticmethod
     def _retrieve_panorama_by_id(tx, pano):
