@@ -55,18 +55,18 @@ class DBManager(object):
         (using a browser and a websocket).
         """
         # 1 - Collect reference nodes
-        #pano_refs = self.collect_panoramas_references()
+        pano_refs = self.retrieve_ref_panoramas()
 
         # 2 - Collect a panorama for each reference node
 
-        #request_ids = []
-        #for pano in pano_refs:
-        #    request_ids.append(wssender.collect_panorama(pano))
+        request_ids = []
+        for pano in pano_refs:
+            request_ids.append(wssender.collect_panorama(pano))
 
         # 3 - Insert all collected panoramas into the database
-        #t = threading.Thread(target=self._watch_requests, args=[request_ids])
-        #t.setDaemon(True)
-        #t.start()
+        t = threading.Thread(target=self._watch_requests, args=[request_ids])
+        t.setDaemon(True)
+        t.start()
 
         pass
         
