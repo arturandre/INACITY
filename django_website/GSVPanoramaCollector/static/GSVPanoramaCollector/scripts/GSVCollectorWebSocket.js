@@ -3,7 +3,7 @@ class GSVCollectorWebSocket
     constructor(collectorEndpoint, browser_session)
     {
         this.wsurl = 'ws://' + window.location.host
-            + ':8001' //daphne port
+            + ':' + daphne_port
             + '/ws'
             + '/' + collectorEndpoint
             + '/' + browser_session
@@ -13,6 +13,7 @@ class GSVCollectorWebSocket
         this.socket.onmessage = this._onmessage.bind(this);
         this.socket.onopen = this._onopen.bind(this);
         this.socket.onerror = this._onerror.bind(this);
+        GSVCollectorWebSocket.registerFunction("checkAlive", this._checkAlive);
     }
 
     sendMessage(message, type, extraParams)
@@ -27,6 +28,11 @@ class GSVCollectorWebSocket
         this.socket.send(JSON.stringify(objMessage));
     }
 
+    _checkAlive()
+    {
+        return true;
+    }
+    
     // Handle any errors that occur.
     _onerror(error)
     {

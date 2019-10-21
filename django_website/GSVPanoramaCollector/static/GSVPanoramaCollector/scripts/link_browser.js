@@ -36,6 +36,8 @@ async function probeGSVService()
 window.onload = async function ()
 {
     var socketStatus = document.getElementById("socketStatus");
+    var lastMessage = document.getElementById("lastMessage");
+    var lastMessageTime = document.getElementById("lastMessageTime");
     socketStatus.innerHTML = "Status: Disconnected";
 
     /** https://github.com/ierror/django-js-reverse/ */
@@ -44,7 +46,8 @@ window.onload = async function ()
     gsvWSConsumer.onerrorhandler = (error) => { console.log('WebSocket Error: ' + error); };
     gsvWSConsumer.onmessagehandler = (message) =>
     {
-        document.body.innerHTML += `<h1>Last message: ${message}</h1>`
+        lastMessage.innerHTML = `Last message: ${message}`
+        lastMessageTime.innerHTML = `Last time: ${new Date()}`
     };
     gsvWSConsumer.onopenhandler = async (event) =>
     {

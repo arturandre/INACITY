@@ -20,7 +20,7 @@ class WSConsumer(WebsocketConsumer):
         else:
             registered_browsers.append(self.channel_name)
             registered_browsers = ",".join(registered_browsers)
-        redisCon.set('registered_browsers', registered_browsers)
+        return redisCon.set('registered_browsers', registered_browsers)
 
     def connect(self):
         # https://channels.readthedocs.io/en/latest/tutorial/part_2.html
@@ -50,10 +50,12 @@ class WSConsumer(WebsocketConsumer):
 
         registered_browsers = wssender.get_registered_browser_channel_names()
         registered_browsers.remove(self.channel_name)
-        registered_browsers = ",".join(registered_browsers)
-
         redisCon = wssender.get_default_redis_connection()
-        redisCon.set('registered_browsers', registered_browsers)
+        if len(registered_browsers) == 0:
+            redisCon.delete('registered_browsers')
+        else:
+            registered_browsers = ",".join(registered_browsers)
+            redisCon.set('registered_browsers', registered_browsers)
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)

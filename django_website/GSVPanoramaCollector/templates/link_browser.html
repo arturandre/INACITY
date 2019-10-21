@@ -11,9 +11,12 @@
 
 <body>
     <h1 id="socketStatus">Status: Disconnected</h1>
+    <h1 id="lastMessage">Last message: N/A</h1>
+    <h1 id="lastMessageTime">Last time: N/A</h1>
 </body>
 <script>
     var browser_session = {{ browser_session_json }};
+    var daphne_port = {{ daphne_port_json }};
 </script>
 <script async defer type="text/javascript" src="{% static 'django_website/scripts/home/GSVService.js' %}"></script>
 <script async defer type="text/javascript" src="{% static 'GSVPanoramaCollector/scripts/GSVCollectorWebSocket.js' %}"></script>

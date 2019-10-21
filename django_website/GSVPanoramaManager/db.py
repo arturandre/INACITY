@@ -1,22 +1,24 @@
 from neo4j import GraphDatabase
 
 from GSVPanoramaManager import settings
-from GSVPanoramaCollector import wssender 
+from GSVPanoramaCollector import wssender
 
 import threading
 import json
 
+
 class DBManager(object):
-    
+
     def __init__(self):
         db_settings = settings.NEO4J_DATABASES['default']
 
         uri = 'bolt://' + db_settings['HOST'] + ':' + db_settings['PORT']
         auth = (db_settings['USER'], db_settings['PASSWORD'])
-        
+
         self._driver = GraphDatabase.driver(uri, auth=auth)
         with self._driver.session() as session:
-            session.run("CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
+            session.run(
+                "CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
 
     def close(self):
         self._driver.close()
@@ -28,30 +30,10 @@ class DBManager(object):
     def retrieve_panorama_by_id(self, pano):
         with self._driver.session() as session:
             return session.write_transaction(self._retrieve_panorama_by_id, pano)
-        
 
     def insert_panorama(self, streetviewpanoramadata):
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
-
-    #TODO!!! IF NO BROWSER AVAILABLE LOOPS FOREVER!
-    def _watch_requests(self, request_ids):
-        
-        redisCon = wssender.get_default_redis_connection()
-        print(request_ids)
-        while len(request_ids) > 0:
-            for i in range(len(request_ids)):
-                request_i = redisCon.get(request_ids[i])
-                if request_i != b'pending':
-                    request_i = request_i.decode('ascii')
-                    request_i = json.loads(request_i)
-                    request_i = request_i[next(iter(request_i.keys()))]
-                    self.insert_panorama(request_i)
-                    print(f'request_id {request_ids[i]} removed!')
-                    request_ids.remove(request_ids[i])
-                    break
-
-        
 
     def _update_panorama_references(self):
         """
@@ -60,6 +42,14 @@ class DBManager(object):
         in order for it to collect the Panoramas through GSVService.js
         (using a browser and a websocket).
         """
+        def handler(redis_key, redis_val):
+            redisCon = wssender.get_default_redis_connection()
+            redis_val = redisCon.get(redis_key)
+            redis_val = redis_val.decode('ascii')
+            redis_val = json.loads(redis_val)
+            redis_val = redis_val[next(iter(redis_val.keys()))]
+            self.insert_panorama(redis_val)
+
         # 1 - Collect reference nodes
         pano_refs = self.retrieve_ref_panoramas()
 
@@ -67,16 +57,38 @@ class DBManager(object):
 
         request_ids = []
         for pano in pano_refs:
-            request_ids.append(wssender.collect_panorama(pano))
+            request_id = wssender.collect_panorama(pano)
+            if request_id is not None:
+                request_ids.append(request_id)
+            else:
+                raise Exception(
+                    'Invalid request_id ({request_id}), is there any browser socket available?')
+
+        wssender.watch_requests(
+            request_ids=request_ids,
+            handler=handler,
+            remove_redis_key=True)
 
         # 3 - Insert all collected panoramas into the database
-        t = threading.Thread(target=self._watch_requests, args=[request_ids])
-        t.setDaemon(True)
-        t.start()
+
+        # The entire Python program exits when no alive non-daemon threads are left.
+        # https://docs.python.org/3.6/library/threading.html#threading.Thread.setDaemon
 
         pass
-        
 
+    @staticmethod
+    def _detect_disconnected_components(tx, root_id):
+        result = tx.run((
+            "MATCH (n:Panorama) SET n:Unreachable "
+            "WITH count(n) AS dummy "
+            "MATCH (root)-[*0..]-(n:Unreachable) "
+            f"WHERE id(root) = {root_id} " #2646
+            "REMOVE n:Unreachable "
+            "WITH count(n) AS dummy "
+            "MATCH (n:Unreachable) "
+            "RETURN COUNT(n) "
+        ))
+        return result.single()[0]
 
     @staticmethod
     def _retrieve_ref_panoramas(tx):
@@ -121,7 +133,7 @@ class DBManager(object):
             f"MERGE (p:Panorama {{pano: {json.dumps(loc['pano'])}}}) "
             f"ON CREATE SET p += {{{allprops}}} "
             f"ON MATCH SET p += {{{allprops}}} "
-            )
+        )
         qRel = ""
         nRel = 0
         if streetviewpanoramadata.get('links') is not None:

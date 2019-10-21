@@ -155,4 +155,6 @@ CHANNEL_LAYERS = {
     },
 }
 
+DAPHNE_PORT = 8001
+
 ASGI_APPLICATION = "GSVPanoramaCollector.routing.application"
