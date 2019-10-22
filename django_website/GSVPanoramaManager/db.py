@@ -16,6 +16,9 @@ class DBManager(object):
         auth = (db_settings['USER'], db_settings['PASSWORD'])
 
         self._driver = GraphDatabase.driver(uri, auth=auth)
+        
+        # This creates an uniqueness constraint over the 'pano' (panorama id)
+        # property and as a consequence an index is also created.
         with self._driver.session() as session:
             session.run(
                 "CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
