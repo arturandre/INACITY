@@ -16,12 +16,14 @@ class DBManager(object):
         auth = (db_settings['USER'], db_settings['PASSWORD'])
 
         self._driver = GraphDatabase.driver(uri, auth=auth)
-        
+
         # This creates an uniqueness constraint over the 'pano' (panorama id)
         # property and as a consequence an index is also created.
         with self._driver.session() as session:
             session.run(
                 "CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
+            session.run(
+                "CREATE INDEX ON :Panorama(location)")
 
     def close(self):
         self._driver.close()
@@ -85,13 +87,141 @@ class DBManager(object):
             "MATCH (n:Panorama) SET n:Unreachable "
             "WITH count(n) AS dummy "
             "MATCH (root)-[*0..]-(n:Unreachable) "
-            f"WHERE id(root) = {root_id} " #2646
+            f"WHERE id(root) = {root_id} "  # 2646
             "REMOVE n:Unreachable "
             "WITH count(n) AS dummy "
             "MATCH (n:Unreachable) "
             "RETURN COUNT(n) "
         ))
         return result.single()[0]
+
+    def retrieve_panoramas_for_street(self, street_name):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_panoramas_for_street, street_name)
+
+    @staticmethod
+    def _retrieve_panoramas_for_street(tx, street_name):
+        result = []
+        for record in tx.run((
+            "MATCH (p:Panorama) "
+            f"WHERE p.shortDescription = '{street_name}' "
+            "RETURN properties(p)"
+        )):
+            result.append(record["properties(p)"])
+        return result
+
+    def retrieve_average_filter_result_density_for_street(self, street_name, filter_result_type=None):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_average_filter_result_density_for_street, street_name, filter_result_type)
+
+    @staticmethod
+    def _retrieve_average_filter_result_density_for_street(tx, street_name, filter_result_type=None):
+        if filter_result_type is not None:
+            rel_type = f"[:{filter_result_type}]"
+        result = tx.run((
+            f"MATCH (p:Panorama)--(v:View)-{rel_type}-(f:FilterResult) "
+            f"WHERE p.shortDescription CONTAINS '{street_name}' "
+            "RETURN AVG(f.density)"
+        ))
+        return result.single()[0]
+
+    def retrieve_average_filter_result_density_in_bounding_box(self, bottom_left, top_right, filter_result_type=None):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_average_filter_result_density_in_bounding_box, bottom_left, top_right, filter_result_type)
+
+    @staticmethod
+    def _retrieve_average_filter_result_density_in_bounding_box(tx, bottom_left, top_right, filter_result_type=None):
+        low_long = bottom_left[0]
+        low_lat = bottom_left[1]
+        high_long = top_right[0]
+        high_lat = top_right[1]
+        if filter_result_type is not None:
+            rel_type = f"[:{filter_result_type}]"
+        result = tx.run((
+            f"MATCH (p:Panorama)--(v:View)-{rel_type}-(f:FilterResult) "
+            f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= p.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "RETURN AVG(f.density)"
+        ))
+        return result.single()[0]
+
+    def retrieve_filter_results_in_bounding_box(self, bottom_left, top_right, filter_result_type=None):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_filter_results_in_bounding_box, bottom_left, top_right, filter_result_type)
+
+    @staticmethod
+    def _retrieve_filter_results_in_bounding_box(tx, bottom_left, top_right, filter_result_type=None):
+        result = []
+        low_long = bottom_left[0]
+        low_lat = bottom_left[1]
+        high_long = top_right[0]
+        high_lat = top_right[1]
+        if filter_result_type is not None:
+            rel_type = f"[:{filter_result_type}]"
+        for record in tx.run((
+            f"MATCH (p:Panorama)--(v:View)-{rel_type}-(f:FilterResult) "
+            f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= p.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "RETURN properties(f)"
+        )):
+            result.append(record["properties(f)"])
+        return result
+
+    def retrieve_views_in_bounding_box(self, bottom_left, top_right):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_views_in_bounding_box, bottom_left, top_right)
+
+    @staticmethod
+    def _retrieve_views_in_bounding_box(tx, bottom_left, top_right):
+        result = []
+        low_long = bottom_left[0]
+        low_lat = bottom_left[1]
+        high_long = top_right[0]
+        high_lat = top_right[1]
+        for record in tx.run((
+            "MATCH (p:Panorama)--(v:View) "
+            f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= p.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "RETURN properties(v)"
+        )):
+            result.append(record["properties(v)"])
+        return result
+
+    def retrieve_panoramas_in_bounding_box(self, bottom_left, top_right):
+        """
+        Retrieves panorama nodes whose location property
+        is contained in a bouding box with botton left coordinate as
+        "bottom_left" and top right coordinate as "top_right"
+        notice that both bottom_left and top_right variables
+        must be lists with coordinates [long, lat] in projection wsg84 (srid 4326).
+
+        i.e.
+        retrieve_panoramas_in_bounding_box(
+            [-46.73277109852281, -23.55840302617493],
+            [-46.731283366534626, -23.557581286342867])
+        """
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_panoramas_in_bounding_box)
+
+    @staticmethod
+    def _retrieve_panoramas_in_bounding_box(tx, bottom_left, top_right):
+        result = []
+        low_long = bottom_left[0]
+        low_lat = bottom_left[1]
+        high_long = top_right[0]
+        high_lat = top_right[1]
+        for record in tx.run((
+            "MATCH (p:Panorama) "
+            f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= p.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "RETURN properties(p)"
+        )):
+            result.append(record["properties(p)"])
+        return result
 
     @staticmethod
     def _retrieve_ref_panoramas(tx):

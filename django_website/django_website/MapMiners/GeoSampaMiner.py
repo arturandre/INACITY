@@ -20,6 +20,8 @@ class GeoSampaMiner(MapMiner):
         }
         }
 
+    #TODO: Refactor this with the decorator @staticmethod
+    #TODO: Comment this method (and the whole class)
     def _getBusStops(regions: FeatureCollection) -> [Point]:
         ret = GeoSampa_BusStops.objects.all()[:0]
         for feature in regions['features']:

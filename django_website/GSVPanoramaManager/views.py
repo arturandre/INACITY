@@ -1,10 +1,21 @@
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework.response import Response, JsonResponse
 
 
 from django.http import HttpResponse
 
 from .db import DBManager
+
+#path('getAverageDensityBy', getAverageDensityByBoundingBox, name='getAverageDensityByBoundingBox'),
+#path('getAverageDensityBy', getAverageDensityByAddress, name='getAverageDensityByAddress'),
+#path('getAverageDensityBy', getAverageDensityByAddressList, name='getAverageDensityByAddressList'),
+
+#path('getFilterResultsByAddress', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
+#path('getFilterResultsByAddressList', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
+#path('getFilterResultsByBoundingBox', getFilterResultsByBoundingBox, name='getFilterResultsByBoundingBox'),
+
+#path('getPanoramasByBoundingBox', getPanoramasByBoundingBox, name='getPanoramasByBoundingBox'),
+#path('getPanoramasByAddress', getPanoramasByAddress, name='getPanoramasByAddress'),
 
 @api_view(['POST'])
 def getPanoramasByAddressList(request):
@@ -32,7 +43,13 @@ def getPanoramasByAddressList(request):
     -------
     none
     """
-    return HttpResponse("getPanoramasByAddressList")
+    addresslist = request.data['addresslist']
+    dbmanager = DBManager()
+    result = {}
+    for address in addresslist:
+        result[address] = dbmanager.retrieve_panoramas_for_street(address)
+    return JsonResponse(result)
+    #return HttpResponse("getPanoramasByAddressList")
 
 @api_view(['POST'])
 def insertPanorama(request):
