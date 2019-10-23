@@ -18,6 +18,47 @@ from .db import DBManager
 #path('getPanoramasByAddress', getPanoramasByAddress, name='getPanoramasByAddress'),
 
 @api_view(['POST'])
+def getPanoramasByBoundingBox(request):
+    """
+    End-point for collecting panoramas
+    considering a bounding box.
+
+    Two points regarding the left-bottom
+    and top-right corners of a bounding box
+    must be passed as a JSON array.
+
+    The coordinates must be encoded with
+    the projection wsg84, srid 4326 (long, lat)
+
+    i.e.
+
+    {
+        bottom_left: [-46.73277109852281, -23.55840302617493],
+        top_right: [-46.731283366534626, -23.557581286342867]
+    }
+
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP request.
+        @TODO FIX THIS
+
+    Returns
+    -------
+    @TODO FILL THIS
+    """
+
+    bottom_left = request.data['bottom_left']
+    top_right = request.data['top_right']
+    dbmanager = DBManager()
+    result = dbmanager.retrieve_panoramas_in_bounding_box(
+        bottom_left,
+        top_right)
+    return JsonResponse(result, safe=False)
+
+
+@api_view(['POST'])
 def getPanoramasByAddressList(request):
     """
     End-point for collecting panoramas
@@ -38,10 +79,11 @@ def getPanoramasByAddressList(request):
     ----------
     request : HttpRequest
         A basic HTTP request.
+        @TODO FIX THIS
 
     Returns
     -------
-    none
+    @TODO FILL THIS
     """
     addresslist = request.data['addresslist']
     dbmanager = DBManager()

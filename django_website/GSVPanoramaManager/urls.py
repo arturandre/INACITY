@@ -13,8 +13,8 @@ urlpatterns = [
 #    path('getFilterResultsByAddressList', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
 #    path('getFilterResultsByBoundingBox', getFilterResultsByBoundingBox, name='getFilterResultsByBoundingBox'),
 
-#    path('getPanoramasByBoundingBox', getPanoramasByBoundingBox, name='getPanoramasByBoundingBox'),
-#    path('getPanoramasByAddress', getPanoramasByAddress, name='getPanoramasByAddress'),
+    path('getPanoramasByBoundingBox', getPanoramasByBoundingBox, name='getPanoramasByBoundingBox'),
+
     path('getPanoramasByAddressList', getPanoramasByAddressList, name='getPanoramasByAddressList'),
 
     path('insertPanorama', insertPanorama, name='insertPanorama'),

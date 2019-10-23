@@ -204,7 +204,7 @@ class DBManager(object):
             [-46.731283366534626, -23.557581286342867])
         """
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_panoramas_in_bounding_box)
+            return session.write_transaction(self._retrieve_panoramas_in_bounding_box, bottom_left, top_right)
 
     @staticmethod
     def _retrieve_panoramas_in_bounding_box(tx, bottom_left, top_right):
