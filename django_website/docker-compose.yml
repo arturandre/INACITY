@@ -17,6 +17,8 @@ services:
     ports:
       - "7474:7474/tcp"
       - "7687:7687/tcp"
+    environment:
+      - NEO4J_AUTH=neo4j/1234 # doesn't work currently
   db:
     image: kartoza/postgis:9.6-2.4
     volumes:
@@ -37,8 +39,8 @@ services:
     environment:
       - POSTGRES_PASS=1234
       - POSTGRES_USER=postgres
-      - NEO4J_PASS=1234
       - NEO4J_USER=neo4j
+      - NEO4J_PASS=1234
     working_dir: /var/www/html/
 
     command: >

@@ -40,6 +40,18 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
 
+    def _seed_panorama(self):
+        """
+        Since the database starts empty, in order to
+        collect reference nodes it's important to have in it
+        at least one node to be used as seed.
+        """
+        seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":"2013-08-01T03:00:00.000Z","pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":"2015-11-01T02:00:00.000Z","pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":"2016-03-01T03:00:00.000Z","pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":"2017-03-01T03:00:00.000Z","pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":"2017-05-01T03:00:00.000Z","pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":"2017-07-01T03:00:00.000Z","pano":"9_P-g3LzyP2nTqpRYsJ4eA"}]}}'
+        seed_json = json.loads(seed_str_panoramastreetviewdata)
+        seed_json = seed_json[next(iter(seed_json))]
+        self.insert_panorama(seed_json)
+        
+
     def _update_panorama_references(self):
         """
         Should retrieve Panorama references (incomplete Panorama nodes)
