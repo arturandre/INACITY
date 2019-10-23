@@ -5,13 +5,11 @@ from .views import *
 app_name = 'gsvpanoramamanager'
 
 urlpatterns = [
-#    path('getAverageDensityBy', getAverageDensityByBoundingBox, name='getAverageDensityByBoundingBox'),
-#    path('getAverageDensityBy', getAverageDensityByAddress, name='getAverageDensityByAddress'),
-#    path('getAverageDensityBy', getAverageDensityByAddressList, name='getAverageDensityByAddressList'),
+    path('getAverageDensityByBoundingBox', getAverageDensityByBoundingBox, name='getAverageDensityByBoundingBox'),
+    path('getAverageDensityByAddressList', getAverageDensityByAddressList, name='getAverageDensityByAddressList'),
 
-#    path('getFilterResultsByAddress', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
-#    path('getFilterResultsByAddressList', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
-#    path('getFilterResultsByBoundingBox', getFilterResultsByBoundingBox, name='getFilterResultsByBoundingBox'),
+    path('getFilterResultsByAddressList', getFilterResultsByAddressList, name='getFilterResultsByAddressList'),
+    path('getFilterResultsByBoundingBox', getFilterResultsByBoundingBox, name='getFilterResultsByBoundingBox'),
 
     path('getPanoramasByBoundingBox', getPanoramasByBoundingBox, name='getPanoramasByBoundingBox'),
 

@@ -116,6 +116,7 @@ class DBManager(object):
 
     @staticmethod
     def _retrieve_average_filter_result_density_for_street(tx, street_name, filter_result_type=None):
+        rel_type = '[]'
         if filter_result_type is not None:
             rel_type = f"[:{filter_result_type}]"
         result = tx.run((
@@ -146,6 +147,24 @@ class DBManager(object):
         ))
         return result.single()[0]
 
+    def retrieve_filter_results_for_street(self, street_name, filter_result_type=None):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_filter_results_for_street, street_name, filter_result_type)
+
+    @staticmethod
+    def _retrieve_filter_results_for_street(tx, street_name, filter_result_type=None):
+        result = []
+        rel_type = '[]'
+        if filter_result_type is not None:
+            rel_type = f"[:{filter_result_type}]"
+        for record in tx.run((
+            f"MATCH (p:Panorama)--(v:View)-{rel_type}-(f:FilterResult) "
+            f"WHERE p.shortDescription = '{street_name}' "
+            "RETURN properties(f) "
+        )):
+            result.append(record["properties(f)"])
+        return result
+
     def retrieve_filter_results_in_bounding_box(self, bottom_left, top_right, filter_result_type=None):
         with self._driver.session() as session:
             return session.write_transaction(self._retrieve_filter_results_in_bounding_box, bottom_left, top_right, filter_result_type)
@@ -157,6 +176,7 @@ class DBManager(object):
         low_lat = bottom_left[1]
         high_long = top_right[0]
         high_lat = top_right[1]
+        rel_type = '[]'
         if filter_result_type is not None:
             rel_type = f"[:{filter_result_type}]"
         for record in tx.run((
@@ -164,7 +184,7 @@ class DBManager(object):
             f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
             f"<= p.location <= "
             f"point({{ x: {high_long}, y: {high_lat} }}) "
-            "RETURN properties(f)"
+            "RETURN properties(f) "
         )):
             result.append(record["properties(f)"])
         return result
