@@ -497,7 +497,8 @@ def getmapminerfeatures(request):
     region = geojson.loads(jsondata["regions"])
     
     ret = mapMinerManager.requestQueryToMapMiner(mapMinerId, query, region)
-    return JsonResponse(ret)
+    return JsonResponse(ret, CustomJSONEncoder)
+    #return JsonResponse(ret)
 
 @api_view(['POST'])
 def getimagesforfeaturecollection(request):

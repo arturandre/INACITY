@@ -42,6 +42,7 @@ class GeoSampaMiner(MapMiner):
                 geometry=Point(busStop.mpoint)))
         return FeatureCollection(featuresList, crs=GeoSampaMiner._crs)
 
+    @classmethod
     def _initialize(cls):
         pass
 
