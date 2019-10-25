@@ -147,6 +147,7 @@ class OSMMiner(MapMiner):
         raise Exception("This is a static class and should not be instantiated.")
         #pass
 
+    @classmethod
     def _initialize(cls):
         module = sys.modules[__name__]
         setattr(module, "OSMMiner", cls)

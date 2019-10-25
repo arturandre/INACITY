@@ -6,7 +6,6 @@ from GSVPanoramaCollector import wssender
 import threading
 import json
 
-
 class DBManager(object):
 
     def __init__(self):
@@ -40,6 +39,18 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
 
+    def _seed_panorama(self):
+        """
+        Since the database starts empty, in order to
+        collect reference nodes it's important to have in it
+        at least one node to be used as seed.
+        """
+        seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":"2013-08-01T03:00:00.000Z","pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":"2015-11-01T02:00:00.000Z","pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":"2016-03-01T03:00:00.000Z","pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":"2017-03-01T03:00:00.000Z","pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":"2017-05-01T03:00:00.000Z","pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":"2017-07-01T03:00:00.000Z","pano":"9_P-g3LzyP2nTqpRYsJ4eA"}]}}'
+        seed_json = json.loads(seed_str_panoramastreetviewdata)
+        seed_json = seed_json[next(iter(seed_json))]
+        self.insert_panorama(seed_json)
+        
+
     def _update_panorama_references(self):
         """
         Should retrieve Panorama references (incomplete Panorama nodes)
@@ -61,6 +72,7 @@ class DBManager(object):
         # 2 - Collect a panorama for each reference node
 
         request_ids = []
+        
         for pano in pano_refs:
             request_id = wssender.collect_panorama(pano)
             if request_id is not None:
@@ -68,6 +80,7 @@ class DBManager(object):
             else:
                 raise Exception(
                     'Invalid request_id ({request_id}), is there any browser socket available?')
+
 
         wssender.watch_requests(
             request_ids=request_ids,
@@ -208,6 +221,43 @@ class DBManager(object):
             "RETURN properties(v)"
         )):
             result.append(record["properties(v)"])
+        return result
+
+    def retrieve_panorama_subgraphs_in_bounding_box(self, bottom_left, top_right):
+        """
+        Retrieves panorama nodes whose location property
+        is contained in a bouding box with botton left coordinate as
+        "bottom_left" and top right coordinate as "top_right"
+        notice that both bottom_left and top_right variables
+        must be lists with coordinates [long, lat] in projection wsg84 (srid 4326).
+
+        i.e.
+        retrieve_panoramas_in_bounding_box(
+            [-46.73277109852281, -23.55840302617493],
+            [-46.731283366534626, -23.557581286342867])
+        """
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_panorama_subgraphs_in_bounding_box, bottom_left, top_right)
+
+    @staticmethod
+    def _retrieve_panorama_subgraphs_in_bounding_box(tx, bottom_left, top_right):
+        low_long = bottom_left[0]
+        low_lat = bottom_left[1]
+        high_long = top_right[0]
+        high_lat = top_right[1]
+        result = tx.run((
+            "MATCH (left:Panorama)-[r:link]->(right:Panorama) "
+            f"WHERE point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= left.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "and "
+            f"point({{ x: {low_long}, y: {low_lat} }}) "
+            f"<= right.location <= "
+            f"point({{ x: {high_long}, y: {high_lat} }}) "
+            "RETURN left,r,right"
+        ))
+        result = [record for record in result]
+        
         return result
 
     def retrieve_panoramas_in_bounding_box(self, bottom_left, top_right):

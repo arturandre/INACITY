@@ -49,6 +49,8 @@ class WSConsumer(WebsocketConsumer):
         )
 
         registered_browsers = wssender.get_registered_browser_channel_names()
+        if registered_browsers is None:
+            return
         registered_browsers.remove(self.channel_name)
         redisCon = wssender.get_default_redis_connection()
         if len(registered_browsers) == 0:

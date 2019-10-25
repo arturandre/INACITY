@@ -211,7 +211,13 @@ class StreetViewPanoramaData {
     {
         let ret = new GeoImage();
         ret.id = this.location.pano;
-        ret.location = this.location;
+        //ret.location = this.location;
+        //GeoJson Point specification
+        ret.location = {
+            type: 'Point',
+            coordinates: [this.location.lon, this.location.lat]
+        };
+
         ret.heading = this.tiles.centerHeading;
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;

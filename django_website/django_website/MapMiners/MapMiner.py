@@ -61,9 +61,10 @@ class MapMiner(ABC):
         checkFields = [
             (cls.mapMinerName, 'mapMinerName'),
             (cls.mapMinerId, 'mapMinerId'),
-            (cls._availableQueries, '_availableQueries'),
+            #(cls._availableQueries, '_availableQueries'),
             (cls._destcrs, '_destcrs'),
             ]
+        cls._initialize()
         for i in range(len(checkFields)):
             try:
                 if checkFields[i][0] is None:
@@ -75,7 +76,7 @@ class MapMiner(ABC):
             errors = ", ".join(notImplementedFields)
             raise NotImplementedError("%s not defined in subclass: %s" % (errors, cls.__name__))
     
-        cls._initialize(cls)
+        
         pass
     
     __all__ = ["mapMinerName", "mapMinerId", "getAmenities"]
@@ -106,10 +107,10 @@ class MapMiner(ABC):
         """Execute a registered query"""
         if not type(regions) is FeatureCollection: regions = FeatureCollection(regions)
         if not type(regions['features']) is list: regions['features'] = [regions['features']]
-        print(cls._availableQueries)
-        print(regions)
+        #print(cls._availableQueries)
+        #print(regions)
         results = cls._availableQueries[queryName](cls._preFormatInput(regions))
-        print(results)
+        #print(results)
         return results
 
     @classmethod
