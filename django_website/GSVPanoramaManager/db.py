@@ -27,9 +27,9 @@ class DBManager(object):
     def close(self):
         self._driver.close()
 
-    def retrieve_ref_panoramas(self):
+    def retrieve_ref_panoramas(self, limit=50):
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_ref_panoramas)
+            return session.write_transaction(self._retrieve_ref_panoramas, limit)
 
     def retrieve_panorama_by_id(self, pano):
         with self._driver.session() as session:
@@ -51,7 +51,7 @@ class DBManager(object):
         self.insert_panorama(seed_json)
         
 
-    def _update_panorama_references(self):
+    def _update_panorama_references(self, limit=50):
         """
         Should retrieve Panorama references (incomplete Panorama nodes)
         from neo4j and then submit then to the GSVCollector
@@ -67,7 +67,7 @@ class DBManager(object):
             self.insert_panorama(redis_val)
 
         # 1 - Collect reference nodes
-        pano_refs = self.retrieve_ref_panoramas()
+        pano_refs = self.retrieve_ref_panoramas(limit)
 
         # 2 - Collect a panorama for each reference node
 
@@ -82,10 +82,11 @@ class DBManager(object):
                     'Invalid request_id ({request_id}), is there any browser socket available?')
 
 
-        wssender.watch_requests(
+        t = wssender.watch_requests(
             request_ids=request_ids,
             handler=handler,
             remove_redis_key=True)
+        t.join()
 
         # 3 - Insert all collected panoramas into the database
 
@@ -294,10 +295,10 @@ class DBManager(object):
         return result
 
     @staticmethod
-    def _retrieve_ref_panoramas(tx):
+    def _retrieve_ref_panoramas(tx, limit=50):
         res = []
         for record in tx.run("MATCH(p:Panorama) WHERE NOT exists(p.location) "
-                             "RETURN p.pano"):
+                             f"RETURN p.pano LIMIT {limit}"):
             res.append(record["p.pano"])
         return res
 
@@ -359,5 +360,5 @@ class DBManager(object):
         descriptionStr = "'\n description: ' + p.description "
         qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
         result = tx.run(qNode + qRel + qRet)
-        print(qNode + qRel + qRet)
+        #print(qNode + qRel + qRet)
         return result.single()[0]

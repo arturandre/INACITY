@@ -18,10 +18,12 @@ from GSVPanoramaManager.db import DBManager
 from django_website.Primitives.GeoImage import GeoImage
 from django_website.settings_secret import GSV_KEY
 
+
 class Size():
     def __init__(self, width, height):
         self.width = width
         self.height = height
+
 
 class GSVPanoramaMiner(MapMiner):
     """
@@ -97,92 +99,36 @@ class GSVPanoramaMiner(MapMiner):
                 bottom_left, top_right)
             addresses = dict.fromkeys(
                 [d['r'].get('description') for d in result])
+            addresses.pop(None, 'None')
             leftNodes = set()
             rightNodes = set()
             for record in result:
-                leftNode = record['left']
-                rightNode = record['right']
-                arrow = record['r']
-                if (arrow['description'] in leftNode['description'])\
-                        and (arrow['description'] in rightNode['description']):
-                    if leftNode['pano'] in leftNodes:
-                        continue
-                    address = addresses[arrow['description']]
-                    if address is None:
-                        address = addresses[arrow['description']] = {}
-                    linestrings = address.get('linestrings')
-
-                    leftNodeProps = leftNode.__dict__['_properties'].copy()
-                    leftNodeProps['heading'] = arrow.get('heading')
-
-                    rightNodeProps = rightNode.__dict__['_properties'].copy()
-                    # Temporarily sets the heading of the last node from a
-                    # linestring. If a 'new' last node is found then
-                    # this heading will be updated (following the arrow)
-                    rightNodeProps['heading'] = arrow.get('heading')
-
-                    if linestrings is None:
-                        address['linestrings'] = []
+                try:
+                    leftNode = record['left']
+                    rightNode = record['right']
+                    arrow = record['r']
+                    if (arrow['description'] in leftNode['description'])\
+                            and (arrow['description'] in rightNode['description']):
+                        if leftNode['pano'] in leftNodes:
+                            continue
+                        address = addresses[arrow['description']]
+                        if address is None:
+                            address = addresses[arrow['description']] = {}
                         linestrings = address.get('linestrings')
 
-                        linestrings.append([
-                            leftNodeProps,
-                            rightNodeProps
-                        ])
-                        leftNodes.add(leftNodeProps['pano'])
-                        rightNodes.add(rightNodeProps['pano'])
+                        leftNodeProps = leftNode.__dict__['_properties'].copy()
+                        leftNodeProps['heading'] = arrow.get('heading')
 
-                    else:
-                        # This segment merges two linestrings already
-                        # added
-                        if (leftNodeProps['pano'] in rightNodes)\
-                                and (rightNodeProps['pano'] in leftNodes):
-                            for linestring in linestrings:
-                                leftLinestring = None
-                                rightLinestring = None
-                                # Notice that only one direction
-                                # can be extended at a time
-                                # so if backward arrows are found
-                                # they will be discarded since they
-                                # require both directions to be treated
-                                # in a single check.
-                                if linestring[-1]['pano'] == leftNodeProps['pano']:
-                                    leftLinestring = linestring
-                                elif linestring[0]['pano'] == rightNodeProps['pano']:
-                                    rightLinestring = linestring
-                                else:
-                                    continue
-                                if (leftLinestring is not None)\
-                                        and (rightLinestring is not None):
-                                    leftLinestring = leftLinestring + rightLinestring
-                                    break
-                        # The line can be extended to the right
-                        elif leftNodeProps['pano'] in rightNodes:
-                            for linestring in linestrings:
-                                if linestring[-1]['pano'] == leftNodeProps['pano']:
-                                    print(
-                                        f"extending (->) {linestring[-1]['pano']} with {rightNodeProps['pano']}")
-                                    # this updates the heading
-                                    linestring[-1] = leftNodeProps
-                                    # Updating the nodes that have been found as
-                                    # left nodes. This keeps the navigation
-                                    # consistently following a single direction.
-                                    leftNodes.add(leftNodeProps['pano'])
-                                    rightNodes.add(rightNodeProps['pano'])
-                                    linestring.append(rightNodeProps)
-                        # The line can be extended to the left
-                        elif rightNodeProps['pano'] in leftNodes:
-                            for linestring in linestrings:
-                                if linestring[0]['pano'] == rightNodeProps['pano']:
-                                    print(
-                                        f"extending (<-) {linestring[0]['pano']} with {leftNodeProps['pano']}")
-                                    # This time the heading of the existing node doesn't
-                                    # need to be updated.
-                                    rightNodes.add(rightNodeProps['pano'])
-                                    leftNodes.add(leftNodeProps['pano'])
-                                    linestring.insert(0, leftNodeProps)
-                        # A new linestring must be created
-                        else:
+                        rightNodeProps = rightNode.__dict__['_properties'].copy()
+                        # Temporarily sets the heading of the last node from a
+                        # linestring. If a 'new' last node is found then
+                        # this heading will be updated (following the arrow)
+                        rightNodeProps['heading'] = arrow.get('heading')
+
+                        if linestrings is None:
+                            address['linestrings'] = []
+                            linestrings = address.get('linestrings')
+
                             linestrings.append([
                                 leftNodeProps,
                                 rightNodeProps
@@ -190,13 +136,80 @@ class GSVPanoramaMiner(MapMiner):
                             leftNodes.add(leftNodeProps['pano'])
                             rightNodes.add(rightNodeProps['pano'])
 
-                            # Pegar a lista de endereços presentes na consulta
-                            # Cada dois nós de um mesmo endereço definem um segmento
-                            # um segmento pode ser extendido
-                            # Somente um sentido de cada rua é exibido
-                            # Se dois segmentos de uma mesma rua forem desconexos
-                            # então esta rua será representada por 2 linestrings
-                            # cada linestring tem sua própria orientação
+                        else:
+                            # This segment merges two linestrings already
+                            # added
+                            if (leftNodeProps['pano'] in rightNodes)\
+                                    and (rightNodeProps['pano'] in leftNodes):
+                                for linestring in linestrings:
+                                    leftLinestring = None
+                                    rightLinestring = None
+                                    # Notice that only one direction
+                                    # can be extended at a time
+                                    # so if backward arrows are found
+                                    # they will be discarded since they
+                                    # require both directions to be treated
+                                    # in a single check.
+                                    if linestring[-1]['pano'] == leftNodeProps['pano']:
+                                        leftLinestring = linestring
+                                    elif linestring[0]['pano'] == rightNodeProps['pano']:
+                                        rightLinestring = linestring
+                                    else:
+                                        continue
+                                    if (leftLinestring is not None)\
+                                            and (rightLinestring is not None):
+                                        leftLinestring = leftLinestring + rightLinestring
+                                        break
+                            # The line can be extended to the right
+                            elif leftNodeProps['pano'] in rightNodes:
+                                for linestring in linestrings:
+                                    if linestring[-1]['pano'] == leftNodeProps['pano']:
+                                        print(
+                                            f"extending (->) {linestring[-1]['pano']} with {rightNodeProps['pano']}")
+                                        # this updates the heading
+                                        linestring[-1] = leftNodeProps
+                                        # Updating the nodes that have been found as
+                                        # left nodes. This keeps the navigation
+                                        # consistently following a single direction.
+                                        leftNodes.add(leftNodeProps['pano'])
+                                        rightNodes.add(rightNodeProps['pano'])
+                                        linestring.append(rightNodeProps)
+                            # The line can be extended to the left
+                            elif rightNodeProps['pano'] in leftNodes:
+                                for linestring in linestrings:
+                                    if linestring[0]['pano'] == rightNodeProps['pano']:
+                                        print(
+                                            f"extending (<-) {linestring[0]['pano']} with {leftNodeProps['pano']}")
+                                        # This time the heading of the existing node doesn't
+                                        # need to be updated.
+                                        rightNodes.add(rightNodeProps['pano'])
+                                        leftNodes.add(leftNodeProps['pano'])
+                                        linestring.insert(0, leftNodeProps)
+                            # A new linestring must be created
+                            else:
+                                linestrings.append([
+                                    leftNodeProps,
+                                    rightNodeProps
+                                ])
+                                leftNodes.add(leftNodeProps['pano'])
+                                rightNodes.add(rightNodeProps['pano'])
+
+                                # Pegar a lista de endereços presentes na consulta
+                                # Cada dois nós de um mesmo endereço definem um segmento
+                                # um segmento pode ser extendido
+                                # Somente um sentido de cada rua é exibido
+                                # Se dois segmentos de uma mesma rua forem desconexos
+                                # então esta rua será representada por 2 linestrings
+                                # cada linestring tem sua própria orientação
+                except TypeError as typerror:
+                    if (arrow['description'] is None):
+                        continue
+                    else:
+                        print("Unexpected error:", sys.exc_info()[0])
+                        raise
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    raise
             for address in addresses:
                 MLS = []
                 geoImageMLS = []
@@ -205,16 +218,16 @@ class GSVPanoramaMiner(MapMiner):
                     geoImageLS = []
                     for node in linestring:
                         geoJsonPoint = Point([node['location'].x,
-                            node['location'].y])
+                                              node['location'].y])
                         LS.append(geoJsonPoint)
                         geoImage = GeoImage.fromJSON({
                             'id': node['pano'],
                             'location': geoJsonPoint,
                             'heading': node['heading'],
                             'pitch': 0
-                            })
+                        })
                         geoImage.data = GSVPanoramaMiner.\
-                                _imageURLBuilderForGeoImage(geoImage)
+                            _imageURLBuilderForGeoImage(geoImage)
                         geoImage.dataType = 'URL'
                         geoImageLS.append(geoImage)
 
@@ -222,29 +235,31 @@ class GSVPanoramaMiner(MapMiner):
                     geoImageMLS.append(geoImageLS)
 
                 newFeature = Feature(id=address,
-                    properties={
-                        'name': address,
-                        'geoImages': geoImageMLS
-                        },
-                    geometry=MultiLineString(MLS))
+                                     properties={
+                                         'name': address,
+                                         'geoImages': geoImageMLS
+                                     },
+                                     geometry=MultiLineString(MLS))
                 featuresList.append(newFeature)
 
-                #featuresList.append(
-                #    Feature(id=address, 
-                #        properties={'name':address}, 
+                # featuresList.append(
+                #    Feature(id=address,
+                #        properties={'name':address},
                 #        geometry=MultiLineString([LineString([
                 #        Point([n['location'].x,
-                #        n['location'].y]) for n in s]) 
+                #        n['location'].y]) for n in s])
                 #        for s in addresses[address]['linestrings']]))
-                #)
+                # )
 
         return FeatureCollection(featuresList, crs=GSVPanoramaMiner._crs)
         # return StreetsDTOList
 
     @staticmethod
-    def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size=None, key: str=None):
-        if size is None: size = Size(640, 640)
-        if key is None: key = GSV_KEY
+    def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size = None, key: str = None):
+        if size is None:
+            size = Size(640, 640)
+        if key is None:
+            key = GSV_KEY
         return GSVPanoramaMiner._imageURLBuilder(
             size,
             geoImage.id,
@@ -253,7 +268,7 @@ class GSVPanoramaMiner(MapMiner):
             key)
 
     @staticmethod
-    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    # https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilder')
         baseurl = "https://maps.googleapis.com/maps/api/streetview"
@@ -261,12 +276,12 @@ class GSVPanoramaMiner(MapMiner):
             f"?size={size.width}x{size.height}"
             f"&pano={panoid}"
             f"&heading={heading}&pitch={pitch}&key={key}"
-            )
+        )
 
         unsigned_url = baseurl + queryString
         #signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
         #print(f'signed_url: {signed_url}')
-        #return signed_url
+        # return signed_url
         return unsigned_url
 
     @classmethod
