@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 import requests
 import os
+import base64
 
 
 class DBManager(object):
@@ -113,6 +114,54 @@ class DBManager(object):
                            for record in result.records()]
         # pitchs = [record.get('r.pitch') for record in result.records()]
         return headings_pitchs
+
+    def load_processed_data_for_geoImage(self, geoImage: GeoImage, filter_type: str):
+        pano_id = geoImage.id
+        pitch = geoImage.pitch
+        heading = geoImage.heading
+        # lon = geoImage.location.coordinates[0]
+        # lat = geoImage.location.coordinates[1]
+        #processedDataList = geoImage.processedDataList
+
+        view = self.get_panorama_view(
+            pano_id,
+            target_heading=heading,
+            heading_tolerance=10,
+            target_pitch=pitch,
+            pitch_tolerance=1
+        )
+
+        if not view:
+            return False
+
+        img_filename = (
+            f"_panoid_{pano_id}"
+            f"_heading_{int(float(heading))}"
+            f"_pitch_{int(float(pitch))}"
+            ".png"
+        )
+
+        filter_result = self.retrieve_filter_result_by_view(
+            pano_id, view, filter_type)
+
+        if not filter_result:
+            return False
+
+        filter_path = os.path.join(
+            settings.PICTURES_FOLDER,
+            filter_type
+        )
+
+        filtered_image_filepath = os.path.join(
+            filter_path,
+            img_filename
+        )
+
+        if not os.path.exists(filtered_image_filepath):
+            return False
+
+        with open(filtered_image_filepath, 'rb') as img_file:
+            return filter_result, base64.b64encode(img_file.read())
 
     def store_geoImage_as_view(self, geoImage: GeoImage):
         # TODO: Distinguish GSV nodes from other nodes

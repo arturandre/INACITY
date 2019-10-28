@@ -275,6 +275,8 @@ class GeoImage():
             imageData = Image.fromarray(img_as_ubyte(imageData))
             imageData = GeoImage.imageToBase64JPEG(imageData)
             pImageData.imageData = f'data:image/jpeg;base64,{imageData}'
+        elif type == 'base64':
+            pImageData.imageData = f'data:image/jpeg;base64,{imageData}'
         pImageData.filterId = filterId
         pImageData.density = density
         pImageData.isPresent = isPresent

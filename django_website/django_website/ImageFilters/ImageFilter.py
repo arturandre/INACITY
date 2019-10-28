@@ -37,7 +37,7 @@ class ImageFilter(ABC):
     
     """This property represents id used to catalog all available filters"""
     filterId = None
-
+    
     @classmethod
     def _initialize(cls):
         pass  

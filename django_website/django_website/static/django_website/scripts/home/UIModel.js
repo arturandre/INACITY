@@ -1047,10 +1047,11 @@ class UIModel extends Subject
             await GSVService.setPanoramaForFeature(geoJSONFeature);
 
             let processedFeature = await this._getProcessedImagesForFeature(geoJSONFeature);
+            let processedFeatureProperties = getPropPath(processedFeature, ['feature', 'properties']) || getPropPath(processedFeature, ['properties'])
 
             this._streetSelect.lastSelectedFeature.setProperties({
                 geoImages:
-                    processedFeature.feature.properties.geoImages
+                processedFeatureProperties.geoImages
             });
 
 
