@@ -19,6 +19,8 @@ from django_website.LogGenerator import write_to_log
 from django.utils.translation import gettext as _, gettext_lazy
 import sys
 
+from GSVPanoramaManager.db import DBManager
+
 class GreeneryFilter(ImageFilter):
     """Image filter for greenery objects in images"""
     
@@ -39,6 +41,7 @@ class GreeneryFilter(ImageFilter):
             mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
             geoImage.setProcessedData(cls.filterId, 'ndarray', mask, density=density)
             featureLeaf[index] = geoImage
+            DBManager().store_geoImage_as_view(geoImage)
         except HTTPError:
             write_to_log(f"Http error - Have the quota been achieved?")
         except ValueError:

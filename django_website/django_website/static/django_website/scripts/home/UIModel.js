@@ -1043,7 +1043,6 @@ class UIModel extends Subject
                 return;
             }
 
-            debugger;
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
             await GSVService.setPanoramaForFeature(geoJSONFeature);
 

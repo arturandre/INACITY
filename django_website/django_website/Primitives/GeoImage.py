@@ -246,7 +246,7 @@ class GeoImage():
         An base64 decoded image.
 
         """
-        image_binary = base64.decodestring(base64str)
+        image_binary = base64.decodestring(base64str.encode('ascii'))
         return image_binary
     
     def setProcessedData(self, filterId: str, type: str, imageData=None, density=-1, isPresent=None):

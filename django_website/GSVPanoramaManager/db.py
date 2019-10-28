@@ -83,9 +83,9 @@ class DBManager(object):
         result = tx.run((
             f"MATCH (f:FilterResult)-[:{filter_name}]-(v:View)-[:view]-(p:Panorama {{pano: '{pano_id}'}}) "
             f"WHERE "
-            f"floor(v.heading) = floor({view.heading}) "
+            f"floor(v.heading) = floor({view.get('heading')}) "
             f"AND "
-            f"floor(v.pitch) = floor({view.pitch}) "
+            f"floor(v.pitch) = floor({view.get('pitch', 0)}) "
             f"RETURN properties(f) "
         ))
 
@@ -183,18 +183,18 @@ class DBManager(object):
 
     @staticmethod
     def _create_update_filter_result(tx, pano_id, view, filter_result):
-        allprops = (
-            f"filterId: {filter_result['filterId']}"
-            f",density: {filter_result['density']}"
-            f",isPresent: {filter_result['isPresent']}"
-        )
+        allprops = f"filterId: '{filter_result.filterId}'"
+        if filter_result.density is not None:
+            allprops += f", density: {filter_result.density}"
+        if filter_result.isPresent is not None:
+            allprops += f", isPresent: '{filter_result.isPresent}' "
         result = tx.run((
             f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View) "
             f"WHERE "
-            f"floor(v.heading) = floor({view.heading}) "
+            f"floor(v.heading) = floor({view.get('heading')}) "
             f"AND "
-            f"floor(v.pitch) = floor({view.pitch}) "
-            f"MERGE (p)-[:view]-(v)-[:{filter_result['filterId']}]-(f:FilterResult) "
+            f"floor(v.pitch) = floor({view.get('pitch')}) "
+            f"MERGE (p)-[:view]-(v)-[:{filter_result.filterId}]-(f:FilterResult) "
             f"ON CREATE SET f += {{{allprops}}} "
             f"ON MATCH SET f += {{{allprops}}} "
             "RETURN properties(f) "
