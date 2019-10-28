@@ -252,7 +252,7 @@ def getPanoramaById(request):
     streetviewpanoramaid = request.data['pano']
     
     dbmanager = DBManager()
-    result = dbmanager.retrieve_panorama_by_id(streetviewpanoramaid)
+    result = dbmanager.retrieve_panorama_by_panoid(streetviewpanoramaid)
     dbmanager.close()
 
     return HttpResponse(result)

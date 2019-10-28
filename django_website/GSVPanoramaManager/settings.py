@@ -8,3 +8,5 @@ NEO4J_DATABASES = {
         'PASSWORD':'1234'
     }
 }
+
+PICTURES_FOLDER = 'pictures/'

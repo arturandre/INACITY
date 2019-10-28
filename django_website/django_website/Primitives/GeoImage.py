@@ -231,6 +231,24 @@ class GeoImage():
         inputImage.save(buff, format="JPEG")
         return base64.b64encode(buff.getvalue()).decode("utf-8")
 
+    @staticmethod
+    def Base64ToImage(base64str):
+        """
+        Used to encode a base64 string into a PIL Image.
+
+        Parameters
+        ----------
+        base64str: str
+            The base64 string encoded image to be decoded
+
+        Returns
+        -------
+        An base64 decoded image.
+
+        """
+        image_binary = base64.decodestring(base64str)
+        return image_binary
+    
     def setProcessedData(self, filterId: str, type: str, imageData=None, density=-1, isPresent=None):
         """
         Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict

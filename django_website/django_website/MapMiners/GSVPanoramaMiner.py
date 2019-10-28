@@ -224,7 +224,7 @@ class GSVPanoramaMiner(MapMiner):
                             'id': node['pano'],
                             'location': geoJsonPoint,
                             'heading': node['heading'],
-                            'pitch': 0
+                            'pitch': node.get('pitch', 0)
                         })
                         geoImage.data = GSVPanoramaMiner.\
                             _imageURLBuilderForGeoImage(geoImage)
@@ -242,14 +242,6 @@ class GSVPanoramaMiner(MapMiner):
                                      geometry=MultiLineString(MLS))
                 featuresList.append(newFeature)
 
-                # featuresList.append(
-                #    Feature(id=address,
-                #        properties={'name':address},
-                #        geometry=MultiLineString([LineString([
-                #        Point([n['location'].x,
-                #        n['location'].y]) for n in s])
-                #        for s in addresses[address]['linestrings']]))
-                # )
 
         return FeatureCollection(featuresList, crs=GSVPanoramaMiner._crs)
         # return StreetsDTOList

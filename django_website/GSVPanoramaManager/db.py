@@ -2,9 +2,15 @@ from neo4j import GraphDatabase
 
 from GSVPanoramaManager import settings
 from GSVPanoramaCollector import wssender
+from django_website.settings_secret import GSV_KEY
+from django_website.Primitives.GeoImage import GeoImage
 
 import threading
 import json
+from datetime import datetime
+import requests
+import os
+
 
 class DBManager(object):
 
@@ -23,6 +29,8 @@ class DBManager(object):
                 "CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
             session.run(
                 "CREATE INDEX ON :Panorama(location)")
+        if not os.path.exists(settings.PICTURES_FOLDER):
+            os.makedirs(settings.PICTURES_FOLDER)
 
     def close(self):
         self._driver.close()
@@ -31,9 +39,9 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._retrieve_ref_panoramas, limit)
 
-    def retrieve_panorama_by_id(self, pano):
+    def retrieve_panorama_by_panoid(self, pano):
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_panorama_by_id, pano)
+            return session.write_transaction(self._retrieve_panorama_by_panoid, pano)
 
     def insert_panorama(self, streetviewpanoramadata):
         with self._driver.session() as session:
@@ -49,7 +57,237 @@ class DBManager(object):
         seed_json = json.loads(seed_str_panoramastreetviewdata)
         seed_json = seed_json[next(iter(seed_json))]
         self.insert_panorama(seed_json)
-        
+
+    @staticmethod
+    def _imageURLBuilderForPanoId(pano_id, heading, pitch):
+        size = {'width': 640, 'height': 640}
+        baseurl = "https://maps.googleapis.com/maps/api/streetview"
+        queryString = (
+            f"?size={size['width']}x{size['height']}"
+            f"&pano={pano_id}"
+            f"&heading={heading}&pitch={pitch}&key={GSV_KEY}"
+        )
+
+        unsigned_url = baseurl + queryString
+        # signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        # print(f'signed_url: {signed_url}')
+        # return signed_url
+        return unsigned_url
+
+    def retrieve_filter_result_by_view(self, pano_id, view, filter_name):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_filter_result_by_view, pano_id, view, filter_name)
+
+    @staticmethod
+    def _retrieve_filter_result_by_view(tx, pano_id, view, filter_name):
+        result = tx.run((
+            f"MATCH (f:FilterResult)-[:{filter_name}]-(v:View)-[:view]-(p:Panorama {{pano: '{pano_id}'}}) "
+            f"WHERE "
+            f"floor(v.heading) = floor({view.heading}) "
+            f"AND "
+            f"floor(v.pitch) = floor({view.pitch}) "
+            f"RETURN properties(f) "
+        ))
+
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
+
+    def retrieve_panorama_headings_pitchs(self, pano_id):
+        with self._driver.session() as session:
+            return session.write_transaction(
+                self._retrieve_panorama_headings_pitchs,
+                pano_id
+            )
+
+    @staticmethod
+    def _retrieve_panorama_headings_pitchs(tx, pano_id):
+        # BUXfV89b_wZglCY3gB8nCw
+        result = tx.run((
+            f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[r:link]-(:Panorama)"
+            f"RETURN r.heading, r.pitch"
+        ))
+        headings_pitchs = [(record['r.heading'], record['r.pitch'])
+                           for record in result.records()]
+        # pitchs = [record.get('r.pitch') for record in result.records()]
+        return headings_pitchs
+
+    def store_geoImage_as_view(self, geoImage: GeoImage):
+        # TODO: Distinguish GSV nodes from other nodes
+        # since the id could be something else than a pano_id
+        pano_id = geoImage.id
+        pitch = geoImage.pitch
+        heading = geoImage.heading
+        # lon = geoImage.location.coordinates[0]
+        # lat = geoImage.location.coordinates[1]
+        processedDataList = geoImage.processedDataList
+
+        view = self.get_panorama_view(
+            pano_id,
+            target_heading=heading,
+            heading_tolerance=10,
+            target_pitch=pitch,
+            pitch_tolerance=1
+        )
+        img_filename = (
+            f"_panoid_{pano_id}"
+            f"_heading_{int(float(heading))}"
+            f"_pitch_{int(float(pitch))}"
+            ".png"
+        )
+        if not view:
+            pano_url = self._imageURLBuilderForPanoId(
+                pano_id,
+                heading,
+                pitch
+            )
+            try:
+                req = requests.get(pano_url)
+                req.raise_for_status()
+                view = self.create_update_view(pano_id, heading, pitch)
+                with open(
+                    os.path.join(settings.PICTURES_FOLDER,
+                                 img_filename), 'wb') as img_file:
+                    img_file.write(req.content)
+            except requests.exceptions.HTTPError as err:
+                raise Exception(err)
+        for filter_type in processedDataList:
+            filter_result = self.retrieve_filter_result_by_view(
+                pano_id, view, filter_type)
+            if not filter_result:
+                filter_result = processedDataList[filter_type]
+                self.create_update_filter_result(
+                    pano_id,
+                    view, filter_result
+                )
+                filter_path = os.path.join(
+                    settings.PICTURES_FOLDER,
+                    filter_type
+                )
+                if not os.path.exists(filter_path):
+                    os.makedirs(filter_path)
+                imageData = processedDataList[filter_type].imageData
+                imageData = imageData.replace('data:image/jpeg;base64,', '')
+                with open(
+                        os.path.join(filter_path,
+                                     img_filename), 'wb') as img_file:
+                    img_file.write(GeoImage.Base64ToImage(imageData))
+
+        pass
+
+    def create_update_filter_result(self, pano_id, view, filter_result):
+        with self._driver.session() as session:
+            return session.write_transaction(self._create_update_filter_result, pano_id, view, filter_result)
+
+    @staticmethod
+    def _create_update_filter_result(tx, pano_id, view, filter_result):
+        allprops = (
+            f"filterId: {filter_result['filterId']}"
+            f",density: {filter_result['density']}"
+            f",isPresent: {filter_result['isPresent']}"
+        )
+        result = tx.run((
+            f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View) "
+            f"WHERE "
+            f"floor(v.heading) = floor({view.heading}) "
+            f"AND "
+            f"floor(v.pitch) = floor({view.pitch}) "
+            f"MERGE (p)-[:view]-(v)-[:{filter_result['filterId']}]-(f:FilterResult) "
+            f"ON CREATE SET f += {{{allprops}}} "
+            f"ON MATCH SET f += {{{allprops}}} "
+            "RETURN properties(f) "
+        ))
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
+
+    def _create_update_panorama_views(self, pano_ids):
+        """
+
+        """
+        gsv_panorama_urls = []
+
+        for pano_id in pano_ids:
+            panorama = self.retrieve_panorama_by_panoid(pano_id)
+            if not panorama:
+                continue
+            headings = panorama.get('centerHeading')
+            pitchs = panorama.get('originPitch', 0)
+            if headings is None:
+                headings_pitchs = self.retrieve_panorama_headings_pitchs(
+                    pano_id)
+            else:
+                headings = [headings]
+                pitchs = [pitchs]
+            for heading, pitch in headings_pitchs:
+                pitch = pitch or 0
+                view = self.get_panorama_view(pano_id,
+                                              target_heading=heading, heading_tolerance=10,
+                                              target_pitch=pitch,
+                                              pitch_tolerance=1)
+                if not view:
+                    pano_url = self._imageURLBuilderForPanoId(pano_id,
+                                                              heading,
+                                                              pitch
+                                                              )
+                    try:
+                        req = requests.get(pano_url)
+                        req.raise_for_status()
+                        self.create_update_view(pano_id, heading, pitch)
+                        img_filename = (
+                            f"_panoid_{pano_id}"
+                            f"_heading_{int(float(heading))}"
+                            f"_pitch_{int(float(pitch))}"
+                            ".png"
+                        )
+                        gsv_panorama_urls.append(img_filename)
+                        with open(
+                            os.path.join(settings.PICTURES_FOLDER,
+                                         img_filename), 'wb') as img_file:
+                            img_file.write(req.content)
+                    except requests.exceptions.HTTPError as err:
+                        raise Exception(err)
+        return gsv_panorama_urls
+
+    def create_update_view(self, pano_id, target_heading, target_pitch):
+        with self._driver.session() as session:
+            return session.write_transaction(self._create_update_view, pano_id, target_heading, target_pitch)
+
+    @staticmethod
+    def _create_update_view(tx, pano_id, target_heading, target_pitch):
+        result = tx.run((
+            f"MATCH (p:Panorama {{pano: '{pano_id}'}}) "
+            f"MERGE (p)-[:view]-(v:View {{heading: {target_heading}, pitch: {target_pitch}}}) "
+            "RETURN properties(v) "
+        ))
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
+
+    def get_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+        # 7Ewkd2wQqDGGOcFlUZMfjw
+        with self._driver.session() as session:
+            return session.write_transaction(self._get_panorama_view, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance)
+
+    @staticmethod
+    def _get_panorama_view(tx, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+        result = tx.run((
+            f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View) "
+            f"WHERE {target_heading} - {heading_tolerance} "
+            f"<= v.heading <= {target_heading} + {heading_tolerance} "
+            f"RETURN properties(v)"
+        ))
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
 
     def _update_panorama_references(self, limit=50):
         """
@@ -72,7 +310,7 @@ class DBManager(object):
         # 2 - Collect a panorama for each reference node
 
         request_ids = []
-        
+
         for pano in pano_refs:
             request_id = wssender.collect_panorama(pano)
             if request_id is not None:
@@ -80,7 +318,6 @@ class DBManager(object):
             else:
                 raise Exception(
                     'Invalid request_id ({request_id}), is there any browser socket available?')
-
 
         t = wssender.watch_requests(
             request_ids=request_ids,
@@ -138,7 +375,11 @@ class DBManager(object):
             f"WHERE p.shortDescription CONTAINS '{street_name}' "
             "RETURN AVG(f.density)"
         ))
-        return result.single()[0]
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
 
     def retrieve_average_filter_result_density_in_bounding_box(self, bottom_left, top_right, filter_result_type=None):
         with self._driver.session() as session:
@@ -159,7 +400,11 @@ class DBManager(object):
             f"point({{ x: {high_long}, y: {high_lat} }}) "
             "RETURN AVG(f.density)"
         ))
-        return result.single()[0]
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
 
     def retrieve_filter_results_for_street(self, street_name, filter_result_type=None):
         with self._driver.session() as session:
@@ -258,7 +503,7 @@ class DBManager(object):
             "RETURN left,r,right"
         ))
         result = [record for record in result]
-        
+
         return result
 
     def retrieve_panoramas_in_bounding_box(self, bottom_left, top_right):
@@ -303,8 +548,9 @@ class DBManager(object):
         return res
 
     @staticmethod
-    def _retrieve_panorama_by_id(tx, pano):
-        result = tx.run(f"MATCH(p:Panorama {{pano: '{pano}'}}) RETURN p.pano")
+    def _retrieve_panorama_by_panoid(tx, pano):
+        result = tx.run(
+            f"MATCH(p:Panorama {{pano: '{pano}'}}) RETURN properties(p)")
         result = result.single()
         if result is not None:
             return result[0]
@@ -326,11 +572,18 @@ class DBManager(object):
         shortdescprop = f"shortDescription: {json.dumps(loc['shortDescription'])}"
         descprop = f"description: {json.dumps(loc['description'])}"
         copyright = f"copyright: \"{streetviewpanoramadata['copyright']}\""
+        tiles = streetviewpanoramadata['tiles']
+        centerHeading = f"centerHeading: {tiles['centerHeading']}"
+        originHeading = f"originHeading: {tiles['originHeading']}"
+        originPitch = f"originPitch: {tiles['originPitch']}"
         allprops = (
             f"{locprop}"
             f",{shortdescprop}"
             f",{descprop}"
             f",{copyright}"
+            f",{centerHeading}"
+            f",{originHeading}"
+            f",{originPitch}"
         )
         # Query for creating/updating the node
         qNode = (
@@ -355,10 +608,25 @@ class DBManager(object):
                     f"ON MATCH SET l{nRel} += {{{allprops}}} "
                 )
                 nRel = nRel + 1
+        # ["time"][0]["kf"].getDate()
+        tRel = ""
+        ntRel = 0
+        if streetviewpanoramadata.get('time') is not None:
+            for time in streetviewpanoramadata.get('time'):
+                # kf is the property containing the datetime
+                timeDate = str(datetime.strptime(
+                    time['kf'], "%Y-%m-%dT%H:%M:%S.%fZ").date())
+                tRel += (
+                    f"MERGE (pt{ntRel}:Panorama {{pano: {json.dumps(time['pano'])}}}) "
+                    f"MERGE (p)-[t{ntRel}:time]->(pt{ntRel}) "
+                    f"ON CREATE SET pt{ntRel} += {{date: date('{timeDate}')}} "
+                    f"ON MATCH SET pt{ntRel} += {{date: date('{timeDate}')}} "
+                )
+                ntRel = ntRel + 1
         panoStr = "' pano: ' + p.pano"
         shortDescriptionStr = "'\n shortDescription: ' + p.shortDescription "
         descriptionStr = "'\n description: ' + p.description "
         qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
-        result = tx.run(qNode + qRel + qRet)
-        #print(qNode + qRel + qRet)
+        result = tx.run(qNode + qRel + tRel + qRet)
+        # print(qNode + qRel + qRet)
         return result.single()[0]
