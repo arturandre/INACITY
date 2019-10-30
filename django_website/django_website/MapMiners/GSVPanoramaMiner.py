@@ -119,7 +119,8 @@ class GSVPanoramaMiner(MapMiner):
                         leftNodeProps = leftNode.__dict__['_properties'].copy()
                         leftNodeProps['heading'] = arrow.get('heading')
 
-                        rightNodeProps = rightNode.__dict__['_properties'].copy()
+                        rightNodeProps = rightNode.__dict__[
+                            '_properties'].copy()
                         # Temporarily sets the heading of the last node from a
                         # linestring. If a 'new' last node is found then
                         # this heading will be updated (following the arrow)
@@ -201,8 +202,10 @@ class GSVPanoramaMiner(MapMiner):
                                 # Se dois segmentos de uma mesma rua forem desconexos
                                 # então esta rua será representada por 2 linestrings
                                 # cada linestring tem sua própria orientação
-                except TypeError as typerror:
-                    if (arrow['description'] is None):
+                except TypeError:
+                    if (arrow['description'] is None)\
+                       or (rightNode['description'] is None)\
+                       or (leftNode['description'] is None):
                         continue
                     else:
                         print("Unexpected error:", sys.exc_info()[0])
@@ -211,47 +214,49 @@ class GSVPanoramaMiner(MapMiner):
                     print("Unexpected error:", sys.exc_info()[0])
                     raise
             for address in addresses:
-                MLS = []
+                MLS=[]
                 geoImageMLS = []
+                if addresses[address] is None:
+                    continue
                 for linestring in addresses[address]['linestrings']:
-                    LS = []
-                    geoImageLS = []
+                    LS=[]
+                    geoImageLS=[]
                     for node in linestring:
-                        geoJsonPoint = Point([node['location'].x,
+                        geoJsonPoint=Point([node['location'].x,
                                               node['location'].y])
                         LS.append(geoJsonPoint)
-                        geoImage = GeoImage.fromJSON({
+                        geoImage=GeoImage.fromJSON({
                             'id': node['pano'],
                             'location': geoJsonPoint,
                             'heading': node['heading'],
                             'pitch': node.get('pitch', 0)
                         })
-                        geoImage.data = GSVPanoramaMiner.\
+                        geoImage.data=GSVPanoramaMiner.\
                             _imageURLBuilderForGeoImage(geoImage)
-                        geoImage.dataType = 'URL'
+                        geoImage.dataType='URL'
                         geoImageLS.append(geoImage)
 
                     MLS.append(LineString(LS))
                     geoImageMLS.append(geoImageLS)
 
-                newFeature = Feature(id=address,
-                                     properties={
+                newFeature=Feature(id = address,
+                                     properties = {
                                          'name': address,
                                          'geoImages': geoImageMLS
                                      },
-                                     geometry=MultiLineString(MLS))
+                                     geometry = MultiLineString(MLS))
                 featuresList.append(newFeature)
 
 
-        return FeatureCollection(featuresList, crs=GSVPanoramaMiner._crs)
+        return FeatureCollection(featuresList, crs = GSVPanoramaMiner._crs)
         # return StreetsDTOList
 
     @staticmethod
     def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size = None, key: str = None):
         if size is None:
-            size = Size(640, 640)
+            size=Size(640, 640)
         if key is None:
-            key = GSV_KEY
+            key=GSV_KEY
         return GSVPanoramaMiner._imageURLBuilder(
             size,
             geoImage.id,
@@ -263,19 +268,19 @@ class GSVPanoramaMiner(MapMiner):
     # https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilder')
-        baseurl = "https://maps.googleapis.com/maps/api/streetview"
-        queryString = (
+        baseurl="https://maps.googleapis.com/maps/api/streetview"
+        queryString=(
             f"?size={size.width}x{size.height}"
             f"&pano={panoid}"
             f"&heading={heading}&pitch={pitch}&key={key}"
         )
 
-        unsigned_url = baseurl + queryString
-        #signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
-        #print(f'signed_url: {signed_url}')
+        unsigned_url=baseurl + queryString
+        # signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        # print(f'signed_url: {signed_url}')
         # return signed_url
         return unsigned_url
 
     @classmethod
     def _initialize(cls):
-        cls._availableQueries = {'Panoramas': cls._getPanoramasInBoundingBoxes}
+        cls._availableQueries={'Panoramas': cls._getPanoramasInBoundingBoxes}

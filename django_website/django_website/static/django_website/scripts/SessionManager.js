@@ -53,6 +53,10 @@ class SessionManager extends Subject
     async saveSession(sessionName)
     {
         if (this._loading) return;
+        if (this._cooldown) return;
+        this._cooldown = true;
+        setTimeout(function () { this._cooldown = false; }.bind(this),
+            SessionManager.CooldownTimeout);
         sessionName = sessionName ? sessionName :
             this.currentSessionName ? this.currentSessionName :
                 undefined;
@@ -265,6 +269,7 @@ class SessionManager extends Subject
 if (!SessionManager.init)
 {
     SessionManager.init = true;
+    SessionManager.CooldownTimeout = 10; // Seconds
     SessionManager.registerEventNames([
         'sessionloaded',
         'sessionsaved'
