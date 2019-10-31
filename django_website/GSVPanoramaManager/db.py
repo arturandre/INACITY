@@ -36,9 +36,17 @@ class DBManager(object):
     def close(self):
         self._driver.close()
 
-    def retrieve_ref_panoramas(self, limit=50):
+    def redis_insert_pano_handler(self, redis_key, redis_val):
+        redisCon = wssender.get_default_redis_connection()
+        redis_val = redisCon.get(redis_key)
+        redis_val = redis_val.decode('ascii')
+        redis_val = json.loads(redis_val)
+        redis_val = redis_val[next(iter(redis_val.keys()))]
+        self.insert_panorama(redis_val)
+
+    def retrieve_ref_panoramas(self, limit=50, pano_seed=None):
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_ref_panoramas, limit)
+            return session.write_transaction(self._retrieve_ref_panoramas, limit, pano_seed)
 
     def retrieve_panorama_by_panoid(self, pano):
         with self._driver.session() as session:
@@ -48,16 +56,28 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
 
-    def _seed_panorama(self):
+    def _seed_panorama(self, seed_pano=None):
         """
         Since the database starts empty, in order to
         collect reference nodes it's important to have in it
         at least one node to be used as seed.
         """
-        seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":"2013-08-01T03:00:00.000Z","pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":"2015-11-01T02:00:00.000Z","pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":"2016-03-01T03:00:00.000Z","pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":"2017-03-01T03:00:00.000Z","pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":"2017-05-01T03:00:00.000Z","pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":"2017-07-01T03:00:00.000Z","pano":"9_P-g3LzyP2nTqpRYsJ4eA"}]}}'
-        seed_json = json.loads(seed_str_panoramastreetviewdata)
-        seed_json = seed_json[next(iter(seed_json))]
-        self.insert_panorama(seed_json)
+        if seed_pano is None:
+            seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":"2013-08-01T03:00:00.000Z","pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":"2015-11-01T02:00:00.000Z","pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":"2016-03-01T03:00:00.000Z","pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":"2017-03-01T03:00:00.000Z","pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":"2017-05-01T03:00:00.000Z","pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":"2017-07-01T03:00:00.000Z","pano":"9_P-g3LzyP2nTqpRYsJ4eA"}]}}'
+            seed_json = json.loads(seed_str_panoramastreetviewdata)
+            seed_json = seed_json[next(iter(seed_json))]
+            self.insert_panorama(seed_json)
+        else:
+            request_id = wssender.collect_panorama(seed_pano)
+            if request_id is None:
+                raise Exception(
+                    'Invalid request_id ({request_id}), is there any browser socket available?')
+
+            t = wssender.watch_requests(
+                request_ids=[request_id],
+                handler=self.redis_insert_pano_handler,
+                remove_redis_key=True)
+            t.join()
 
     @staticmethod
     def _imageURLBuilderForPanoId(pano_id, heading, pitch):
@@ -161,7 +181,7 @@ class DBManager(object):
             return False
 
         with open(filtered_image_filepath, 'rb') as img_file:
-            return filter_result, base64.b64encode(img_file.read())
+            return filter_result, base64.b64encode(img_file.read()).decode('ascii')
 
     def store_geoImage_as_view(self, geoImage: GeoImage):
         # TODO: Distinguish GSV nodes from other nodes
@@ -303,6 +323,9 @@ class DBManager(object):
         return gsv_panorama_urls
 
     def create_update_view(self, pano_id, target_heading, target_pitch):
+        pano = self.retrieve_panorama_by_panoid(pano_id)
+        if not pano:
+            self._seed_panorama(pano_id)
         with self._driver.session() as session:
             return session.write_transaction(self._create_update_view, pano_id, target_heading, target_pitch)
 
@@ -338,23 +361,23 @@ class DBManager(object):
         else:
             return False
 
-    def _update_panorama_references(self, limit=50):
+    def _update_panorama_references(self, limit=50, pano_seed=None):
         """
         Should retrieve Panorama references (incomplete Panorama nodes)
         from neo4j and then submit then to the GSVCollector
         in order for it to collect the Panoramas through GSVService.js
         (using a browser and a websocket).
         """
-        def handler(redis_key, redis_val):
-            redisCon = wssender.get_default_redis_connection()
-            redis_val = redisCon.get(redis_key)
-            redis_val = redis_val.decode('ascii')
-            redis_val = json.loads(redis_val)
-            redis_val = redis_val[next(iter(redis_val.keys()))]
-            self.insert_panorama(redis_val)
+        # def handler(redis_key, redis_val):
+        #    redisCon = wssender.get_default_redis_connection()
+        #    redis_val = redisCon.get(redis_key)
+        #    redis_val = redis_val.decode('ascii')
+        #    redis_val = json.loads(redis_val)
+        #    redis_val = redis_val[next(iter(redis_val.keys()))]
+        #    self.insert_panorama(redis_val)
 
         # 1 - Collect reference nodes
-        pano_refs = self.retrieve_ref_panoramas(limit)
+        pano_refs = self.retrieve_ref_panoramas(limit, pano_seed)
 
         # 2 - Collect a panorama for each reference node
 
@@ -370,7 +393,7 @@ class DBManager(object):
 
         t = wssender.watch_requests(
             request_ids=request_ids,
-            handler=handler,
+            handler=self.redis_insert_pano_handler,
             remove_redis_key=True)
         t.join()
 
@@ -378,8 +401,6 @@ class DBManager(object):
 
         # The entire Python program exits when no alive non-daemon threads are left.
         # https://docs.python.org/3.6/library/threading.html#threading.Thread.setDaemon
-
-        pass
 
     @staticmethod
     def _detect_disconnected_components(tx, root_id):
@@ -589,10 +610,17 @@ class DBManager(object):
         return result
 
     @staticmethod
-    def _retrieve_ref_panoramas(tx, limit=50):
+    def _retrieve_ref_panoramas(tx, limit=50, pano_seed=None):
         res = []
-        for record in tx.run("MATCH(p:Panorama) WHERE NOT exists(p.location) "
-                             f"RETURN p.pano LIMIT {limit}"):
+        # Q0VXNm1-gLkAAAQqz_mXHQ
+        if pano_seed is not None:
+            match = f"MATCH(p:Panorama)-[:link*]-(:Panorama {{pano: '{pano_seed}'}}) WHERE NOT exists(p.location) "
+        else:
+            match = "MATCH(p:Panorama) WHERE NOT exists(p.location) "
+        for record in tx.run((
+            match
+            + f" RETURN p.pano LIMIT {limit}"
+        )):
             res.append(record["p.pano"])
         return res
 
