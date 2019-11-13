@@ -1093,11 +1093,11 @@ class UIModel extends Subject
                 let features = getPropPath(layer, ['featureCollection', 'features']);
                 if (!features)
                 {
-                    if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
-                    if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
-                    if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
+                    if (!layer.featureCollection) skippedLayers.reason = gettext("No featureCollection available!");
+                    if (!layer.featureCollection.features) skippedLayers.reason = gettext("featureCollection without any features!");
+                    if (!layer.featureCollection.features[0].properties.geoImages) skippedLayers.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
                     //if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
-                    skippedLayers.push(skippedLayer);
+                    skippedLayers.push(skippedLayers);
                     continue;
                 }
 
