@@ -213,13 +213,15 @@ class DBManager(object):
                 pitch
             )
             try:
-                req = requests.get(pano_url)
-                req.raise_for_status()
+                image_path = os.path.join(settings.PICTURES_FOLDER,
+                                 img_filename)
+                image_exists = os.path.exists(image_path)
+                if not image_exists:
+                    req = requests.get(pano_url)
+                    req.raise_for_status()
+                    with open(image_path, 'wb') as img_file:
+                        img_file.write(req.content)
                 view = self.create_update_view(pano_id, heading, pitch)
-                with open(
-                    os.path.join(settings.PICTURES_FOLDER,
-                                 img_filename), 'wb') as img_file:
-                    img_file.write(req.content)
             except requests.exceptions.HTTPError as err:
                 raise Exception(err)
         for filter_type in processedDataList:
@@ -239,10 +241,11 @@ class DBManager(object):
                     os.makedirs(filter_path)
                 imageData = processedDataList[filter_type].imageData
                 imageData = imageData.replace('data:image/jpeg;base64,', '')
-                with open(
-                        os.path.join(filter_path,
-                                     img_filename), 'wb') as img_file:
-                    img_file.write(GeoImage.Base64ToImage(imageData))
+                image_filter_path = os.path.join(filter_path,
+                                     img_filename)
+                if not os.path.exists(image_filter_path):
+                    with open(image_filter_path, 'wb') as img_file:
+                        img_file.write(GeoImage.Base64ToImage(imageData))
 
         pass
 
@@ -653,6 +656,7 @@ class DBManager(object):
         centerHeading = f"centerHeading: {tiles['centerHeading']}"
         originHeading = f"originHeading: {tiles['originHeading']}"
         originPitch = f"originPitch: {tiles['originPitch']}"
+        imageDate = f"imageDate: \"{streetviewpanoramadata['imageDate']}\""
         allprops = (
             f"{locprop}"
             f",{shortdescprop}"
@@ -661,6 +665,7 @@ class DBManager(object):
             f",{centerHeading}"
             f",{originHeading}"
             f",{originPitch}"
+            f",{imageDate}"
         )
         # Query for creating/updating the node
         qNode = (
@@ -690,14 +695,15 @@ class DBManager(object):
         ntRel = 0
         if streetviewpanoramadata.get('time') is not None:
             for time in streetviewpanoramadata.get('time'):
-                # kf is the property containing the datetime
-                timeDate = str(datetime.strptime(
-                    time['kf'], "%Y-%m-%dT%H:%M:%S.%fZ").date())
+                # DEPRECATED: kf is the property containing the datetime
+                # nf is the property containing the datetime
+                #timeDate = str(datetime.strptime(
+                #    time['kf'], "%Y-%m-%dT%H:%M:%S.%fZ").date())
                 tRel += (
                     f"MERGE (pt{ntRel}:Panorama {{pano: {json.dumps(time['pano'])}}}) "
                     f"MERGE (p)-[t{ntRel}:time]->(pt{ntRel}) "
-                    f"ON CREATE SET pt{ntRel} += {{date: date('{timeDate}')}} "
-                    f"ON MATCH SET pt{ntRel} += {{date: date('{timeDate}')}} "
+                    #f"ON CREATE SET pt{ntRel} += {{date: date('{timeDate}')}} "
+                    #f"ON MATCH SET pt{ntRel} += {{date: date('{timeDate}')}} "
                 )
                 ntRel = ntRel + 1
         panoStr = "' pano: ' + p.pano"

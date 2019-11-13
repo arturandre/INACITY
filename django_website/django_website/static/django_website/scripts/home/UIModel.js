@@ -712,7 +712,15 @@ class UIModel extends Subject
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
-    set SelectedMapMiner(mapMiner) { this._SelectedMapMiner = mapMiner; }
+    set SelectedMapMiner(mapMiner)
+    {
+        this._SelectedMapMiner = mapMiner;
+        if (!mapMiner) return;
+        if ((mapMiner.features.length === 1) && !this._SelectedMapFeature)
+        {
+            this._SelectedMapFeature = mapMiner.features[0];
+        }
+    }
 
     get SelectedMapFeature() { return this._SelectedMapFeature; }
     set SelectedMapFeature(mapFeature) { this._SelectedMapFeature = mapFeature; }
@@ -1051,7 +1059,7 @@ class UIModel extends Subject
 
             this._streetSelect.lastSelectedFeature.setProperties({
                 geoImages:
-                processedFeatureProperties.geoImages
+                    processedFeatureProperties.geoImages
             });
 
 

@@ -313,6 +313,12 @@ class UIView
         }
     }
 
+    /**
+     * Update the selected Map Feature (e.g. Streets) button
+     * @param {MapFeatureObject} mapFeature - JSON with identification and presentation information.
+     * @param {string} mapFeature.id - Identifier of the MapFeature used as reference by the backend.
+     * @param {string} mapFeature.name - Label used for presentation in the front-end.
+     */
     updateFeatureView(mapFeature)
     {
         this.jqbtnClearSelections.removeClass("hidden");
@@ -342,6 +348,7 @@ class UIView
             if (mapMiner.features.length === 1)
             {
                 this.updateFeatureView(mapMiner.features[0]);
+                
             }
         }
     }

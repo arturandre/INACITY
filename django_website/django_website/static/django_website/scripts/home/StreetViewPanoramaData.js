@@ -16,7 +16,8 @@ class Time {
     constructor(parameters) 
     {
         var defaults = {
-            kf: null,
+            nf: null,
+            kf: null, //deprecated
             pano: null,
             Af: null, //deprecated
             ng: null //deprecated
@@ -24,7 +25,8 @@ class Time {
         parameters = parameters || defaults;
         this.Af = (parameters.Af || defaults.Af); //deprecated
         this.ng = (parameters.ng || defaults.ng); //deprecated
-        this.kf = (parameters.kf || defaults.kf);
+        this.kf = (parameters.kf || defaults.kf); //deprecated
+        this.nf = (parameters.nf || defaults.nf);
         this.pano = (parameters.pano || defaults.pano);
     }
 }
@@ -122,11 +124,13 @@ class LatLng
             lat: 0,
             shortDescription: null,
             description: null,
-            pano: null
+            pano: null,
+            imageDate: null
         };
         parameters = parameters || defaults;
 
         this.lon = (parameters.lon || defaults.lon);
+        this.imageDate = (parameters.imageDate || defaults.imageDate);
         this.lat = (parameters.lat || defaults.lat);
         this.shortDescription = (parameters.shortDescription || defaults.shortDescription);
         this.description = (parameters.description || defaults.description);
@@ -198,9 +202,10 @@ class StreetViewPanoramaData {
             lat: data.location.latLng.lat(),
             shortDescription: data.location.shortDescription,
             description: data.location.description,
-            pano: data.location.pano
+            pano: data.location.pano,
         });
         newSVPano.copyright = data.copyright;
+        newSVPano.imageDate = data.imageDate;
         for (const linkIndex in data.links) newSVPano.links.push(new Link(data.links[linkIndex]));
         newSVPano.tiles = new Tile(data.tiles);
         for (const timeIndex in data.time) newSVPano.time.push(new Time(data.time[timeIndex]));
