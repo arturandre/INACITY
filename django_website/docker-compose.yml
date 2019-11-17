@@ -7,18 +7,18 @@ services:
       - "6379"
     ports:
       - "6379:6379/tcp"
-  graphdb:
-    image: neo4j
-    volumes:
-      - /var/lib/neo4j/data
-    expose:
-      - "7474"
-      - "7687"
-    ports:
-      - "7474:7474/tcp"
-      - "7687:7687/tcp"
-    environment:
-      - NEO4J_AUTH=neo4j/1234 # doesn't work currently
+  #graphdb:
+  #  image: neo4j
+  #  volumes:
+  #    - /var/lib/neo4j/data
+  #  expose:
+  #    - "7474"
+  #    - "7687"
+  #  ports:
+  #    - "7474:7474/tcp"
+  #    - "7687:7687/tcp"
+  #  environment:
+  #    - NEO4J_AUTH=neo4j/1234 # doesn't work currently
   db:
     image: kartoza/postgis:9.6-2.4
     volumes:
@@ -35,12 +35,15 @@ services:
     image: inacity
     volumes:
       - ./:/var/www/html/
+      - /var/lib/neo4j/data
     build: .
+    shm_size: '1gb'
     environment:
       - POSTGRES_PASS=1234
       - POSTGRES_USER=postgres
       - NEO4J_USER=neo4j
       - NEO4J_PASS=1234
+      - NEO4J_AUTH=neo4j/1234
     working_dir: /var/www/html/
 
     command: >
@@ -64,11 +67,15 @@ services:
       - "8000"
       - "8001"
       - "80"
+      - "7474"
+      - "7687"
     ports:
       - "3000:3000/tcp"
       - "8000:8000/tcp"
       - "8001:8001/tcp"
       - "80:80/tcp"
+      - "7474:7474/tcp"
+      - "7687:7687/tcp"
     depends_on:
       - db
     tty: true

@@ -797,7 +797,9 @@ class UIModel extends Subject
     getFeatureCollectionFromFeaturesByLayerIndex(regionLayer)
     {
         let ret = $.extend(true, {}, regionLayer.featureCollection);
-        for (let fId in regionLayer.featureCollection.features)
+        let features = getPropPath(regionLayer, ['featureCollection', 'features']);
+        if (!features) return ret;
+        for (let fId in features)
         {
             let feature = regionLayer.featureCollection.features[fId];
             ret.features[fId] =

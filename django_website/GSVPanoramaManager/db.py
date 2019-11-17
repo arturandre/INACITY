@@ -710,6 +710,8 @@ class DBManager(object):
         shortDescriptionStr = "'\n shortDescription: ' + p.shortDescription "
         descriptionStr = "'\n description: ' + p.description "
         qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
-        result = tx.run(qNode + qRel + tRel + qRet)
         # print(qNode + qRel + qRet)
-        return result.single()[0]
+        #result = tx.run(qNode + qRel + tRel + qRet)
+        #return result.single()[0]
+        tx.run(qNode + qRel + tRel + qRet)
+        return True
