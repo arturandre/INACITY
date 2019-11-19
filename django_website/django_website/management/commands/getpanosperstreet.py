@@ -24,10 +24,19 @@ class Command(BaseCommand):
                 "RETURN DISTINCT(p.shortDescription), COUNT(p)"
             ))
             shortDescriptionGroups = shortDescriptionGroups.values()
-            if shortDescriptionGroups[-1][0] is None:
-                del shortDescriptionGroups[-1]
             import re
-            shortDescriptionGroups = [[re.sub(r'^\d+\s(\w)', r'\1', y[0]), y[1]] for y in shortDescriptionGroups]
+            temp = []
+            for y in shortDescriptionGroups:
+                try:
+                    if y[0] is None:
+                        continue
+                    temp.append([re.sub(r'^\d+\s(\w)', r'\1', y[0]), y[1]])
+                except:
+                    print(f'Error: y: {y} ---')
+                    raise Exception()
+                #shortDescriptionGroups = [ for y in shortDescriptionGroups]
+            shortDescriptionGroups = temp
+            
             addressDict = dict.fromkeys([y[0] for y in shortDescriptionGroups], 0)
             for address in shortDescriptionGroups:
                 addressDict[address[0]] += address[1]
