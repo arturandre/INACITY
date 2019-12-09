@@ -42,7 +42,9 @@ class OSMMiner(MapMiner):
     # Options are:
     # OverpassAPI.DE -> Public OSM API (with limits of request's size/rate)
     # inacity.org -> INACITY's private mirror of OSM
-    _OSMServerURL = 'OverpassAPI.DE'
+    
+    #_OSMServerURL = 'OverpassAPI.DE'
+    _OSMServerURL = 'inacity.org'
 
     inacityorg = 'inacity.org'
     overpassapi = 'OverpassAPI.DE'

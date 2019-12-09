@@ -2,6 +2,7 @@ version: '2'
 
 services:
   rediscache:
+    restart: unless-stopped
     image: redis:5.0.6
     expose:
       - "6379"
@@ -20,6 +21,7 @@ services:
   #  environment:
   #    - NEO4J_AUTH=neo4j/1234 # doesn't work currently
   db:
+    restart: unless-stopped
     image: kartoza/postgis:9.6-2.4
     volumes:
       - /var/lib/postgresql/data
@@ -32,6 +34,7 @@ services:
       - POSTGRES_PASS=1234
       - POSTGRES_DBNAME=INACITYdb
   inacity:
+    restart: unless-stopped
     image: inacity
     volumes:
       - ./:/var/www/html/
