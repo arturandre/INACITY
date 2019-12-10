@@ -1,3 +1,12 @@
+#exported csv files
+export_*.csv
+
+#pictures folder
+pictures/
+
+#Daphne PID file
+daphne_PID
+
 #pycache
 __pycache__/
 
@@ -9,7 +18,6 @@ Rel_Fapesp/
 
 #docs (sphinx) build files
 django_website/docs/_build/
-
 
 #Legacy project in nodejs (for GSV in backend)
 INACITY_nodejs/
