@@ -47,19 +47,28 @@ class GeoImageCollection {
      */
     get validImages() { return this._validImages; }
 
-
     /**
      * Given an DAG (Tree graph) or a GeoImage checks if it has some processed collection
      * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
      * @param {String} filterName - Image processing filter name (e.g. greenery)
      */
-    static isFiltered(root, filterId) {
-        while (!isLeaf(root)) {
-            root = root[0];
-        }
-        if (GeoImage.isGeoImageCompliant(root)) {
-            root = GeoImage.fromObject(root);
-            return root.processedDataList && (filterId in root.processedDataList);
+    static isFiltered(root, filterId)
+    {
+        let index = 0;
+        let node = null;
+        do
+        {
+            node = traverseCollection(root, index);
+            if (typeof node === "number") //root DAG with less than "index" leaf
+            {
+                return false;
+            }
+            index++;
+        } while (node === "Error");
+        
+        if (GeoImage.isGeoImageCompliant(node)) {
+            node = GeoImage.fromObject(node);
+            return node.processedDataList && (filterId in node.processedDataList);
         }
         throw "Root should be an tree-like structure whose leaves are GeoImage";
     }

@@ -14,6 +14,7 @@ class ImageFilter(ABC):
             (cls.filterName, 'filterName'),
             (cls.filterId, 'filterId'),
             (cls.processImageFromFeatureCollection, 'processImageFromFeatureCollection'),
+            (cls.processImageFromFeature, 'processImageFromFeature'),
             ]
         for i in range(len(checkFields)):
             try:
@@ -29,7 +30,7 @@ class ImageFilter(ABC):
         cls._initialize()
         pass
 
-    __all__ = ["filterName", "filterId", "processImageFromFeatureCollection"]
+    __all__ = ["filterName", "filterId", "processImageFromFeatureCollection", "processImageFromFeature"]
 
     """This property represents the filter's name that'll be displayed in the UI"""
     filterName = None
@@ -43,6 +44,12 @@ class ImageFilter(ABC):
 
     @abstractmethod
     def processImageFromFeatureCollection(location: FeatureCollection)->FeatureCollection:
+        """The processed images needs to still related to the original GeoImages from 
+           where images come from"""
+        pass
+
+    @abstractmethod
+    def processImageFromFeature(location: Feature)->Feature:
         """The processed images needs to still related to the original GeoImages from 
            where images come from"""
         pass

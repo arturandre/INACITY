@@ -72,7 +72,7 @@ class GreeneryFilter(ImageFilter):
                         try:
                             geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
                             if not isinstance(geoImage, dict): continue
-                        except Exception as exception:
+                        except Exception:
                             raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
 
                         try:
@@ -101,6 +101,61 @@ class GreeneryFilter(ImageFilter):
                     print(_('Error while parsing panorama: ') + str(geoImage)[:100])
                 cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
         return featureCollection
+
+    @classmethod
+    def processImageFromFeature(cls, feature: Feature) -> Feature:
+        """
+        Receives a feature of point/line or their
+        multi-equivalents and returns a list of GeoImage's
+        """
+
+        if feature['geometry']['type'] == 'MultiPolygon':
+            #Number of Polygons
+            for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
+                for lineIndex, lineString in enumerate(polygon):
+                    for coordinateIndex in range(len(lineString)):
+                        geoImage = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
+                        if not isinstance(geoImage, dict): continue
+                        try:
+                            geoImage = GeoImage.fromJSON(geoImage)
+                        except JSONDecodeError:
+                            print(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                        cls._setOutput(geoImage, feature['properties']['geoImages'][polygonIndex][lineIndex], coordinateIndex)
+        elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
+            for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
+                for coordinateIndex in range(len(lineString)):
+                    try:
+                        geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        if not isinstance(geoImage, dict): continue
+                    except Exception:
+                        raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
+
+                    try:
+                        geoImage = GeoImage.fromJSON(geoImage)
+                    except JSONDecodeError:
+                        write_to_log(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                    except Exception:
+                        raise Exception(f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
+                    cls._setOutput(geoImage, feature['properties']['geoImages'][lineIndex], coordinateIndex)
+        elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
+            for coordinateIndex in range(len(feature['geometry']['coordinates'])):
+                geoImage = feature['properties']['geoImages'][coordinateIndex]
+                if not isinstance(geoImage, dict): continue
+                try:
+                    geoImage = GeoImage.fromJSON(geoImage)
+                except JSONDecodeError:
+                    print(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
+        elif feature['geometry']['type'] == 'Point':
+            coordinateIndex = 0
+            geoImage = feature['properties']['geoImages'][coordinateIndex]
+            if isinstance(geoImage, dict):
+                try:
+                    geoImage = GeoImage.fromJSON(geoImage)
+                except JSONDecodeError:
+                    print(_('Error while parsing panorama: ') + str(geoImage)[:100])
+                cls._setOutput(geoImage, feature['properties']['geoImages'], coordinateIndex)
+        return feature
 
 
     def _processImageMock() -> GeoImage:

@@ -53,8 +53,12 @@
         /*onregionlistitemclick - Triggers when an region is [de]/selected ([de]/activated)*/
         UIModel.on('regionlistitemclick', this.onClickRegionListItem.bind(this));
         UIModel.on('featuresmerged', this.onFeaturesMerged.bind(this));
+        UIModel.on('featurecreated', this.onFeatureCreated.bind(this));
+        UIModel.on('featureupdated', this.onFeatureUpdated.bind(this));
 
-        Layer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
+        UIModel.on('getimages', this.onGetImages.bind(this));
+
+        RegionLayer.on('featurecollectionchange', this.onFeatureCollectionChange.bind(this));
 
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
@@ -168,19 +172,53 @@
         //this.sessionManager.saveSession();
     }
 
-    onFeatureCollectionChange(layer)
+    onGetImages(event)
+    {
+        try
+        {
+
+            let filterId = getPropPath(event, ['filterId']);
+            if (this._streetSelected.lastSelectedFeature)
+            {
+                this.geoImageManager.updateDisplayingLayers(filterId,
+                    GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
+            }
+            else
+            {
+                this.geoImageManager.updateDisplayingLayers(filterId);
+            }
+        } catch (error)
+        {
+            this.uiView.displayMessage(error, "Error");
+        }
+    }
+
+    onFeatureUpdated(layerFeatureId)
+    {
+        let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
+        this.openLayersHandler.redrawFeature(OLFeature);
+    }
+
+    onFeatureCreated(layerFeatureId)
     {
         this.uiView.updateLayersHintList();
-        if (layer)
+        let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
+        this.openLayersHandler.drawFeature(OLFeature);
+    }
+
+    onFeatureCollectionChange(regionLayer)
+    {
+        this.uiView.updateLayersHintList();
+        if (regionLayer)
         {
-            this.uiModel.updateFeatureIndex(layer.layerId.toString()); //Model commands should be before View commands
-            this.uiView.drawLayer(layer, true);
+            //this.uiModel.updateFeatureIndex(regionLayer.layerId.toString()); //Model commands should be before View commands
+            this.uiView.drawRegionLayer(regionLayer, true);
         }
     }
 
     onFeaturesMerged(layer)
     {
-        this.uiView.drawLayer(layer, true);
+        this.uiView.drawRegionLayer(layer, true);
     }
 
     onClickRegionListItem()
@@ -231,8 +269,10 @@
     {
         try
         {
+            this._streetSelected.clear();
             if (await this.sessionManager.newSession())
             {
+                this.uiView.updateGeoImgSlider();
                 this.uiView.displayMessage(gettext("New blank session created!"));
             }
         } catch (error)
@@ -260,16 +300,15 @@
     {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
 
-        let filterId = this.uiModel.SelectedImageFilter.id;
         try
         {
             await this.uiModel.getProcessedImages.bind(this.uiModel)()
             //Set the geoImageManager to display this collection
-            this.geoImageManager.updateDisplayingLayers(filterId);
+
         }
         catch (err)
         {
-            this.uiView.displayMessage(err, "Error");   
+            this.uiView.displayMessage(err, "Error");
         }
         finally
         {
@@ -283,11 +322,8 @@
         try
         {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
-            //Set the geoImageManager to display this collection
-            if (this._streetSelected) return;
-            this.geoImageManager.updateDisplayingLayers();
         }
-        catch(err)
+        catch (err)
         {
             this.uiView.displayMessage(err.message, "Error");
         }

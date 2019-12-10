@@ -37,7 +37,8 @@ INSTALLED_APPS = [# Add your apps here to enable them
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
-    'django_website',]
+    'django_website',
+    'django_extensions',]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

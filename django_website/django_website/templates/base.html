@@ -6,7 +6,7 @@
 <html lang="en">
 <head>
     {% load staticfiles %}
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-9ralMzdK1QYsk4yBY680hmsb4/hJ98xK3w0TIaJ3ll4POWpWUYaA2bRjGGujGT8w" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'django_website/css/all.css' %}"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="shortcut icon" type="image/png" href="{% static 'django_website/images/favicon.png' %}?v=2"/>
     <link rel="stylesheet" href="{% static 'django_website/css/base.css' %}"/>
@@ -64,14 +64,14 @@
           <h1><img border="0" class="inacity-logo" alt="Logo" src="{% static 'django_website/images/logo.png' %}"> INACITY</h1>
           <p class="lead">INvestigate and Analyze a CITY - INACITY</p>
         </div>
-        <div class="col-sm">
-            <h4>{% trans "Sponsors &amp; Associated Projects:"%}</h4>
+        <div class="col-sm div-carousel">
+            <h5>{% trans "Sponsors &amp; Associated Projects:"%}</h5>
             <div id="carouselSponsors" class="carousel slide" data-ride="carousel">
-              <ol class="carousel-indicators">
+              <!-- <ol class="carousel-indicators">
                 <li data-target="#carouselSponsors" data-slide-to="0" class="active"></li>
                 <li data-target="#carouselSponsors" data-slide-to="1"></li>
                 <li data-target="#carouselSponsors" data-slide-to="2"></li>
-              </ol>
+              </ol> -->
               <div class="carousel-inner">
                 <div class="carousel-item active">
                   <img class="d-block" src="{% static 'django_website/images/logo_capes.png' %}" alt="CAPES">

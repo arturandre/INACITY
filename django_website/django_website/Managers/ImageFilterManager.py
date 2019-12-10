@@ -56,6 +56,13 @@ class ImageFilterManager(object):
         else:
             return gettext("filterId not found!")
         pass
+    
+    def processImageFromFeature(self, filterId, feature: Feature) -> Feature:
+        if filterId in self._ImageFilters:
+            return self._ImageFilters[filterId].processImageFromFeature(feature)
+        else:
+            return gettext("filterId not found!")
+        pass
 
 
     

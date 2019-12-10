@@ -180,22 +180,22 @@ class UIView
 
     _updateActiveRegion(region)
     {
-        if (region.active)
-        {
+        // if (region.active)
+        // {
             for (let layerIdx in region.layers)
             {
                 let layer = region.layers[layerIdx];
-                this.drawLayer(layer);
+                this.drawRegionLayer(layer);
             }
-        }
-        else
-        {
-            for (let layerIdx in region.layers)
-            {
-                let layer = region.layers[layerIdx];
-                this.removeLayer(layer);
-            }
-        }
+        // }
+        // else
+        // {
+        //     for (let layerIdx in region.layers)
+        //     {
+        //         let layer = region.layers[layerIdx];
+        //         this.removeLayer(layer);
+        //     }
+        // }
     }
 
     setDefaults(defaults)
@@ -412,6 +412,7 @@ class UIView
                 break;
             case 'Error':
                 alert(message);
+                throw new Error(message);
                 break;
             default:
                 throw Error(`Unknow message type: ${type}`);
@@ -466,74 +467,78 @@ class UIView
         );
     }
 
-    drawLayer(layer, forceRedraw)
+    drawRegionLayer(regionLayer)
     {
-        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
-        let featureCollectionOL = layer.featureCollectionOL;
-        let featureCollection = layer.featureCollection;
+        // if (!layer) { console.warn(gettext("Undefined layer!")); return; }
+        // let featureCollectionOL = layer.featureCollectionOL;
+
+        /**
+         * The regionLayer featureCollection contains only
+         * the feature id's, the actual features are at the UIModel
+         * featureByLayerId index
+         */
+        let featureCollection = regionLayer.featureCollection;
 
         if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
         //let olGeoJson = new ol.format.GeoJSON({ featureProjection: featureCollection.crs.properties.name });
 
-        for (let featureIdx in featureCollection.features)
+        for (let idx in featureCollection.features)
         {
-            let featureOL = featureCollectionOL.features[featureIdx];
-            let feature = featureCollection.features[featureIdx];
+            // let featureOL = featureCollectionOL.features[featureIdx];
+            let featureId = featureCollection.features[idx];
 
-            if (!this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-
-            if (this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed)
+            let OLFeature = this.uiModel.featuresByLayerId[regionLayer.layerId.toString()][featureId].feature;
+            
+            if (this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId))
             {
-                if (forceRedraw)
-                {
-                    featureOL.changed();
-                    //let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                    //olFeature.changed();
-                    //this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                    //olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                    //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
-                    this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
-                }
-                else
-                {
-                    continue;
-                }
+                OLFeature.setStyle(null);
+                //FEATURE SHOULD HAVE STYLE NON TRANSPARENT
             }
             else
             {
-                //let olFeature = olGeoJson.readFeature(feature, { featureProjection: featureCollection.crs.properties.name });
-                //this.uiModel.openLayersHandler.globalVectorSource.addFeature(olFeature);
-                this.openLayersHandler.globalVectorSource.addFeature(featureOL);
-                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = true;
+                OLFeature.setStyle(OpenLayersHandler.Styles['transparentStyle']);
+                //FEATURE SHOULD HAVE STYLE TRANSPARENT
+            }
+            
+            if (!this.openLayersHandler.globalVectorSource.getFeatureById(featureId))
+            {
+                this.openLayersHandler.globalVectorSource.addFeature(OLFeature);
             }
         }
     }
 
-    removeLayer(layer)
-    {
-        if (!layer) { console.warn(gettext("Undefined layer!")); return; }
-        let featureCollection = layer.featureCollection;
+    // removeLayer(layer)
+    // {
+    //     if (!layer) { console.warn(gettext("Undefined layer!")); return; }
+    //     let featureCollection = layer.featureCollection;
 
-        if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
+    //     if (!featureCollection) { console.warn(gettext("Empty layer (no feature collection)!")); return; }
 
-        for (let featureIdx in featureCollection.features)
-        {
-            let feature = featureCollection.features[featureIdx];
-            /*
-            Each individual feature needs to be checked because it
-            can belong to more than one layer (from differente regions)
-            */
-            if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
-            else
-            {
-                // let olFeature = this.uiModel.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
-                // this.uiModel.openLayersHandler.globalVectorSource.removeFeature(olFeature);
-                this.openLayersHandler.globalVectorSource.removeFeature(feature);
-                this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
-            }
-        }
-    }
+    //     for (let featureIdx in featureCollection.features)
+    //     {
+    //         let feature = featureCollection.features[featureIdx];
+    //         /*
+    //         Each individual feature needs to be checked because it
+    //         can belong to more than one layer (from differente regions)
+    //         */
+    //         if (!this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed || this.uiModel.isFeatureActive(layer.layerId.toString(), feature.id)) continue;
+    //         else
+    //         {
+    //             if (layer.hasOlFeatures)
+    //             {
+    //                 this.openLayersHandler.globalVectorSource.removeFeature(feature);
+    //                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.getProperties().name].drawed = false;
+    //             }
+    //             else
+    //             {
+    //                 let olFeature = this.openLayersHandler.globalVectorSource.getFeatureById(feature.id);
+    //                 this.openLayersHandler.globalVectorSource.removeFeature(olFeature);
+    //                 this.uiModel.featuresByLayerId[layer.layerId.toString()][feature.id].drawed = false;
+    //             }
+    //         }
+    //     }
+    // }
 
     /**
     * Changes the html of buttons to indicate it's busy.
@@ -582,8 +587,8 @@ class UIView
         if (this.streetSelect.lastSelectedFeature)
         {
             this.jqbtnCollectImages.attr('data-original-title',
-            gettext("The selected feature is") + ":\n" +
-            this.streetSelect.lastSelectedFeature.getProperties().name);
+                gettext("The selected feature is") + ":\n" +
+                this.streetSelect.lastSelectedFeature.getProperties().name);
             return;
         }
 

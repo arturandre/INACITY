@@ -45,12 +45,11 @@
 {% block title %}{{WebsiteName}} | {% trans "Home"%}{% endblock %}
 
 {% block pageheader %}
-<div class="container alert alert-warning text-center" role="alert">
+<!-- <div class="container alert alert-warning text-center" role="alert">
     {% comment %} A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit),
     caso tenha problemas usando um navegador diferente experimente ele. {% endcomment %}
     {% trans "The platform was developed and tested with the browser Google Chrome version 58.0.3029.110 (64-bit). If you're having troubles while using some other browser try that." %}
-    <!--A plataforma foi desenvolvida e testada com o navegador Google Chrome Versão 58.0.3029.110 (64-bit), caso tenha problemas usando um navegador diferente experimente ele.-->
-</div>
+</div> -->
 
 {% endblock %}
 
@@ -85,7 +84,7 @@
         </div>
     </div>
     <div class="col-sm left-column map-div">
-        
+
         <div id="mapOverlay" class="hidden">
             <p class="mapOverlayText text-center align-middle">{% trans "Hold shift to zoom" %}</p>
         </div>
@@ -138,28 +137,27 @@
     </div>
     <div class="col-sm left-column map-div">
         <div class="controlDiv">
-            <div class="btn-group" role="group">
-                <div class="labelBtnDiv">
-                    <label>{% trans "Visualization:" %}</label>
-                    <button id="btnMapProvider" type="button"
-                        class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        {% trans "Map provider" %}
-                    </button>
-                </div>
+            <div class="btn-group labelBtnDiv" role="group">
+
+                <label>{% trans "Visualization:" %}</label>
+                <button id="btnMapProvider" type="button" class="btn btn-secondary dropdown-toggle single-option-btn"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans "Map provider" %}
+                </button>
+
                 <div id="mapProviderDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
                 </div>
 
             </div>
-            <div class="btn-group" role="group">
-                <div class="labelBtnDiv">
-                    <label>{% trans "Selection:" %}</label>
-                    <button id="btnShapeSelector" type="button"
-                        class="btn btn-secondary dropdown-toggle single-option-btn" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        {% trans "Shape type" %}
-                    </button>
-                </div>
+
+            <div class="btn-group labelBtnDiv" role="group">
+
+                <label>{% trans "Selection:" %}</label>
+                <button id="btnShapeSelector" type="button" class="btn btn-secondary dropdown-toggle single-option-btn"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans "Shape type" %}
+                </button>
+
                 <div id="shapeSelectorDiv" class="dropdown-menu" aria-labelledby="btnMapProvider">
                 </div>
             </div>

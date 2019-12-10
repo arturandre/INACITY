@@ -21,13 +21,16 @@ class SessionManager extends Subject
         // this._openLayersHandler.globalVectorSource.on('addfeature', this.olFeatureChangedHandler, this);
         // this._openLayersHandler.globalVectorSource.on('removefeature', this.olFeatureChangedHandler, this);
         // this._openLayersHandler.globalVectorSource.on('changefeature', this.olFeatureChangedHandler, this);
+        UIModel.on('featurecreated', () => this.saveSession());
+        UIModel.on('featureupdated', () => this.saveSession());
         UIModel.on('featuresmerged', () => this.saveSession());
         UIModel.on('regioncreated', () => this.saveSession());
         UIModel.on('regiondeleted', () => this.saveSession());
         UIModel.on('regionlistitemclick', () => this.saveSession());
         UIModel.on('getimages', () => this.saveSession());
         GeoImageManager.on('geoimagecollectionchange', () => this.saveSession());
-        Layer.on('featurecollectionchange', () => this.saveSession());
+        RegionLayer.on('featurecollectionchange', () => this.saveSession());
+        //Layer.on('featurecollectionchange', () => this.saveSession());
     }
 
     get currentSessionName()

@@ -1,6 +1,16 @@
 version: '2'
 
 services:
+  graphdb:
+    image: neo4j
+    volumes:
+      - /var/lib/neo4j/data
+    expose:
+      - "7474"
+      - "7687"
+    ports:
+      - "7474:7474/tcp"
+      - "7687:7687/tcp"
   db:
     image: kartoza/postgis:9.6-2.4
     volumes:
@@ -21,6 +31,8 @@ services:
     environment:
       - POSTGRES_PASS=1234
       - POSTGRES_USER=postgres
+      - NEO4J_PASS=1234
+      - NEO4J_USER=neo4j
     working_dir: /var/www/html/
 
     command: >
