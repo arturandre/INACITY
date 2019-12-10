@@ -47,6 +47,11 @@
 *.jpg   binary
 *.png   binary
 *.gif   binary
+*.mp4   binary
+*.eot   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
 
 ###############################################################################
 # diff behavior for common document formats
