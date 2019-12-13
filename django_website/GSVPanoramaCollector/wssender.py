@@ -92,7 +92,8 @@ def watch_requests(request_ids, handler, remove_redis_key=False, timeout_sec=-1,
             if elapsed_time > timeout_sec:
                 if timeout_handler is not None:
                     timeout_handler(request_ids)
-                return False
+                return
+                #return False
         for i in range(len(request_ids)):
             request_id = request_ids[i]
             request_i = redisCon.get(request_id)
@@ -102,7 +103,8 @@ def watch_requests(request_ids, handler, remove_redis_key=False, timeout_sec=-1,
                     redisCon.delete(request_id)
                 request_ids.remove(request_id)
                 break
-    return True
+    return
+    #return True
 
 def clear_inactive_browsers():
     redisCon = get_default_redis_connection()

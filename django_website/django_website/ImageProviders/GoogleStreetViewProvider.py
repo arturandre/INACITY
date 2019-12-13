@@ -30,9 +30,10 @@ class GoogleStreetViewProvider(ImageProvider):
     __all__ = ["imageProviderName", "imageProviderId", "getImageFromLocation"]
 
     _baseurl = "https://maps.googleapis.com/maps/api/streetview"
-    _key = "AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"
-    _GSVNodeBaseURL = "http://localhost:3000/"
-    _GSVNodeCollectFCPanoramasURL = "http://localhost:3000/collectfcpanoramas"
+    _key = settings_secret.GSV_KEY
+    #_key = "AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"
+    #_GSVNodeBaseURL = "http://localhost:3000/"
+    #_GSVNodeCollectFCPanoramasURL = "http://localhost:3000/collectfcpanoramas"
     
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
@@ -41,9 +42,15 @@ class GoogleStreetViewProvider(ImageProvider):
     imageProviderName = "Google Street View"
     imageProviderId = "gsvProvider"
 
+    @staticmethod
     def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
-        """Receives a feature collection of point/line or their multi equivalents and returns a list of GeoImage's"""
+        """
+        Receives a feature collection of point/line or their
+        multi equivalents and returns a list of GeoImage's
+        """
         write_to_log(f'getImageForFeatureCollection')
+
+        
         
         gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
         if not gsvpanoramas.ok:
