@@ -108,14 +108,15 @@ class GSVService
      * @param {float} lonLatCoordinate.lat - Latitude in degrees
      * @returns {Promise} - StreetViewPanoramaData
      */
-    static getPanoramaByLocation(lonLatCoordinate)
+    static getPanoramaByLocation(lonLatCoordinate, maxRadius=null)
     {
+        if (!maxRadius) maxRadius = GSVService.maxRadius;
         return new Promise(function (resolve, reject)
         {
             let lon = lonLatCoordinate[0];
             let lat = lonLatCoordinate[1];
             let latlng = new google.maps.LatLng(lat, lon);
-            GSVService._streetViewService.getPanoramaByLocation(latlng, GSVService.maxRadius, function (data, status)
+            GSVService._streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
             {
                 //resolve({ data: data, status: status });
                 if (status === "OK")

@@ -97,7 +97,7 @@ class ProcessedImageData():
         self.density = -1
         self.isPresent = None
 
-class GeoImage():
+class GeoImage(SimpleDTO):
     """
     Object responsible for keeping image and panorama's data
 

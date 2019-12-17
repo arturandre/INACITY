@@ -205,6 +205,19 @@ def collect_panorama(panoid):
         )
     return request_id
 
+def collect_panorama_by_location(longLatCoordinates, max_radius=10):
+    #browser_channel_name = get_registered_browser_channel_names()[-1]
+    browser_channel_name = get_random_browser_channel_name()
+    if browser_channel_name is None:
+        return None
+    request_id = register_request(browser_channel_name)
+    send_request_message(
+        browser_channel_name,
+        f'func:getPanoramaByLocation,{longLatCoordinates},{max_radius}',
+        request_id
+        )
+    return request_id
+
 
 # def broadcast_function(function, *args):
 #     params = ",".join(args)

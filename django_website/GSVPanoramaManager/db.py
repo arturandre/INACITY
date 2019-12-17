@@ -41,7 +41,9 @@ class DBManager(object):
         redis_val = redisCon.get(redis_key)
         redis_val = redis_val.decode('ascii')
         redis_val = json.loads(redis_val)
-        redis_val = redis_val[next(iter(redis_val.keys()))]
+        #Tests if redis_val is an array of panoramas or a single panorama
+        if not redis_val.get('location'):
+            redis_val = redis_val[next(iter(redis_val.keys()))]
         self.insert_panorama(redis_val)
 
     def retrieve_ref_panoramas(self, limit=50, pano_seed=None):
@@ -364,6 +366,24 @@ class DBManager(object):
         else:
             return False
 
+    def collect_panorama_by_location(self, coordinates, max_radius=10.):
+        request_ids = []
+
+        request_id = wssender.collect_panorama_by_location(coordinates, max_radius)
+        if request_id is not None:
+            request_ids.append(request_id)
+        else:
+            raise Exception(
+                'Invalid request_id ({request_id}), is there any browser socket available?')
+        t = wssender.watch_requests(
+            request_ids=request_ids,
+            handler=self.redis_insert_pano_handler,
+            remove_redis_key=True)
+        t.join()
+
+        return self.retrieve_nearest_panorama(coordinates, max_radius)
+        
+
     def _update_panorama_references(self, limit=50, pano_seed=None):
         """
         Should retrieve Panorama references (incomplete Panorama nodes)
@@ -578,6 +598,50 @@ class DBManager(object):
         result = [record for record in result]
 
         return result
+
+    def retrieve_nearest_panorama(self, coordinates, max_radius=10.):
+        """
+        Retrieves panorama nodes whose location property
+        is contained in a bouding box centered at the coordinates
+        given with a side with max_radius meters (defaults to 10 meters).
+
+        Notice that an approximation is used to convert meters to degrees
+        so the max_radius should be small.
+
+        ref: https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
+
+        i.e.
+        retrieve_nearest_panorama(
+            [-46.73277109852281, -23.55840302617493],
+            50)
+        """
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_nearest_panorama, coordinates, max_radius)
+
+    @staticmethod
+    def _retrieve_nearest_panorama(tx, coordinates, max_radius=10.):
+        #ref: https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
+        simple_approximation = (max_radius/111111.)/2.
+
+        lng = coordinates[0]
+        lat = coordinates[1]
+        lower_point_str = f"point({{ x: {lng-simple_approximation}, y: {lat-simple_approximation} }})"
+        upper_point_str = f"point({{ x: {lng+simple_approximation}, y: {lat+simple_approximation} }})"
+        point_str = f"point({{ x: {lng}, y: {lat} }}) "
+        result = tx.run((
+            "MATCH (p:Panorama)"
+            f"WHERE  {lower_point_str}"
+            "<= p.location <= "
+            f"{upper_point_str} "
+            f"RETURN properties(p) "
+            f"ORDER BY distance({point_str}, p.location) "
+            "LIMIT 1 "
+            ))
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
 
     def retrieve_panoramas_in_bounding_box(self, bottom_left, top_right):
         """

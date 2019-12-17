@@ -9,6 +9,8 @@ from geojson import Point, MultiPoint, LineString, MultiLineString, Feature, Fea
 from typing import List
 import json
 
+from GSVPanoramaManager.db import DBManager
+
 from django_website import settings_secret
 from django_website.LogGenerator import write_to_log
 
@@ -50,74 +52,97 @@ class GoogleStreetViewProvider(ImageProvider):
         """
         write_to_log(f'getImageForFeatureCollection')
 
+        dbmanager = DBManager()
+
+        def ffunction(feature, clonedTree):
+            feature['properties']['geoImages'] = clonedTree
+            pass
+        
+        def cfunction(coordinates):
+            #Try to retrieve or collect the panorama
+            panorama = dbmanager.retrieve_nearest_panorama(coordinates) or dbmanager.collect_panorama_by_location(coordinates)
+            if panorama:
+                #Get view and consequently the stored image or its url
+                pass
+            else:
+                pass                
+            pass
+
+
+
+        ImageProvider.traverseFeatureCollection(featureCollection, ffunction, cfunction)
+        return
         
         
-        gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
-        if not gsvpanoramas.ok:
+        #gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
+        #if not gsvpanoramas.ok:
             #gsvpanoramas.status_code #413
             #gsvpanoramas.reason #'Payload Too Large'
-            return gsvpanoramas
-        featureCollection = geojson.loads(gsvpanoramas.text)
-        for feature in featureCollection['features']:
-            if feature['geometry']['type'] == 'MultiPolygon':
-                #Number of Polygons
-                for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
-                    for lineIndex, lineString in enumerate(polygon):
-                        for coordinateIndex in range(len(lineString)):
-                            streetViewPanoramaData = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
-                            #The lack of a panorama should be propagated in order to keep the
-                            #geoImages property structurely equal to the geography property
-                            if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
-                                feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
-                                    streetViewPanoramaData
-                            else:
-                                feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
-                                    GoogleStreetViewProvider.\
-                                        createGeoImageFromStreetViewPanoramaData\
-                                            (streetViewPanoramaData).toJSON()
-            elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
-                for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
-                    for coordinateIndex in range(len(lineString)):
-                        streetViewPanoramaData = feature['properties']['geoImages'][lineIndex][coordinateIndex]
-                        #The lack of a panorama should be propagated in order to keep the
-                        #geoImages property structurely equal to the geography property
-                        if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
-                            feature['properties']['geoImages'][lineIndex][coordinateIndex] =\
-                                streetViewPanoramaData
-                        else:
-                            feature['properties']['geoImages'][lineIndex][coordinateIndex] =\
-                                GoogleStreetViewProvider.\
-                                    createGeoImageFromStreetViewPanoramaData\
-                                        (streetViewPanoramaData).toJSON()
-            elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
-                for coordinateIndex in range(len(feature['geometry']['coordinates'])):
-                    streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
-                    #The lack of a panorama should be propagated in order to keep the
-                    #geoImages property structurely equal to the geography property
-                    if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
-                        feature['properties']['geoImages'][coordinateIndex] =\
-                            streetViewPanoramaData
-                    else:
-                        feature['properties']['geoImages'][coordinateIndex] =\
-                            GoogleStreetViewProvider.\
-                                createGeoImageFromStreetViewPanoramaData\
-                                    (streetViewPanoramaData).toJSON()
-            elif feature['geometry']['type'] == 'Point':
-                coordinateIndex = 0
-                streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
-                #The lack of a panorama should be propagated in order to keep the
-                #geoImages property structurely equal to the geography property
-                if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
-                    feature['properties']['geoImages'][coordinateIndex] =\
-                        streetViewPanoramaData
-                else:
-                    feature['properties']['geoImages'][coordinateIndex] =\
-                        GoogleStreetViewProvider.\
-                            createGeoImageFromStreetViewPanoramaData\
-                                (streetViewPanoramaData).toJSON()
+        #    return gsvpanoramas
+        
+        # featureCollection = geojson.loads(gsvpanoramas.text)
+        # #featureCollection = None
+        # for feature in featureCollection['features']:
+        #     if feature['geometry']['type'] == 'MultiPolygon':
+        #         #Number of Polygons
+        #         for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
+        #             for lineIndex, lineString in enumerate(polygon):
+        #                 for coordinateIndex in range(len(lineString)):
+        #                     streetViewPanoramaData = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
+        #                     #The lack of a panorama should be propagated in order to keep the
+        #                     #geoImages property structurely equal to the geography property
+        #                     if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+        #                         feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
+        #                             streetViewPanoramaData
+        #                     else:
+        #                         feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex] =\
+        #                             GoogleStreetViewProvider.\
+        #                                 createGeoImageFromStreetViewPanoramaData\
+        #                                     (streetViewPanoramaData).toJSON()
+        #     elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
+        #         for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
+        #             for coordinateIndex in range(len(lineString)):
+        #                 streetViewPanoramaData = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+        #                 #The lack of a panorama should be propagated in order to keep the
+        #                 #geoImages property structurely equal to the geography property
+        #                 if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+        #                     feature['properties']['geoImages'][lineIndex][coordinateIndex] =\
+        #                         streetViewPanoramaData
+        #                 else:
+        #                     feature['properties']['geoImages'][lineIndex][coordinateIndex] =\
+        #                         GoogleStreetViewProvider.\
+        #                             createGeoImageFromStreetViewPanoramaData\
+        #                                 (streetViewPanoramaData).toJSON()
+        #     elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
+        #         for coordinateIndex in range(len(feature['geometry']['coordinates'])):
+        #             streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
+        #             #The lack of a panorama should be propagated in order to keep the
+        #             #geoImages property structurely equal to the geography property
+        #             if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+        #                 feature['properties']['geoImages'][coordinateIndex] =\
+        #                     streetViewPanoramaData
+        #             else:
+        #                 feature['properties']['geoImages'][coordinateIndex] =\
+        #                     GoogleStreetViewProvider.\
+        #                         createGeoImageFromStreetViewPanoramaData\
+        #                             (streetViewPanoramaData).toJSON()
+        #     elif feature['geometry']['type'] == 'Point':
+        #         coordinateIndex = 0
+        #         streetViewPanoramaData = feature['properties']['geoImages'][coordinateIndex]
+        #         #The lack of a panorama should be propagated in order to keep the
+        #         #geoImages property structurely equal to the geography property
+        #         if isinstance(streetViewPanoramaData, str): #Error or ZERO_RESULTS
+        #             feature['properties']['geoImages'][coordinateIndex] =\
+        #                 streetViewPanoramaData
+        #         else:
+        #             feature['properties']['geoImages'][coordinateIndex] =\
+        #                 GoogleStreetViewProvider.\
+        #                     createGeoImageFromStreetViewPanoramaData\
+        #                         (streetViewPanoramaData).toJSON()
       
-        return featureCollection
+        # return featureCollection
 
+    @staticmethod
     def createGeoImageFromStreetViewPanoramaData(streetViewPanoramaData):
         write_to_log(f'createGeoImageFromStreetViewPanoramaData')
         geoImage = GeoImage()
@@ -141,6 +166,7 @@ class GoogleStreetViewProvider(ImageProvider):
     #    return GeoImage
 
     #ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
+    @staticmethod
     def _sign_url(input_url=None):
         """ Sign a request URL with a URL signing secret.
 
@@ -183,6 +209,7 @@ class GoogleStreetViewProvider(ImageProvider):
         
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    @staticmethod
     def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilderLocation')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderLocation(size, location, heading, pitch, key)
@@ -190,11 +217,12 @@ class GoogleStreetViewProvider(ImageProvider):
         write_to_log(f'signed_url: {signed_url}')
         return signed_url
 
-
+    @staticmethod
     def _queryStringBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
         write_to_log(f'_queryStringBuilderLocation')
         return "?size=%dx%d&location=%f,%f&heading=%f&pitch=%f&key=%s"% (size.width, size.height, location['lat'], location['lon'], heading,pitch,key)
     
+    @staticmethod
     def _imageURLBuilderForGeoImage(geoImage: GeoImage, size: Size=None, key: str=None):
         write_to_log(f'_imageURLBuilderForGeoImage')
         if size is None: size = Size(640, 640)
@@ -207,6 +235,7 @@ class GoogleStreetViewProvider(ImageProvider):
             GoogleStreetViewProvider._key)
  
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    @staticmethod
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilder')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
@@ -214,6 +243,7 @@ class GoogleStreetViewProvider(ImageProvider):
         print(f'signed_url: {signed_url}')
         return signed_url
 
+    @staticmethod
     def _queryStringBuilderPanorama(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_queryStringBuilderPanorama')
         return "?size=%dx%d&pano=%s&heading=%f&pitch=%f&key=%s" % (size.width,size.height, panoid, heading,pitch,key)

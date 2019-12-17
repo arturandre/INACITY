@@ -23,7 +23,38 @@ class ImageProvider(ABC):
     imageProviderName = None
     imageProviderId = None
 
+    @staticmethod
     @abstractmethod
     def getImageForFeatureCollection(location: FeatureCollection)->List[GeoImage]:
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass
+
+    @staticmethod
+    def traverseFeature(feature, function):
+        cloneTree = []
+        if type(feature) is list:
+            coordinatesRoot = feature
+        else:
+            coordinatesRoot = feature['geometry']['coordinates']
+        if type(coordinatesRoot[0]) is not list:
+            #the feature is a point
+            cloneTree.append(function(coordinatesRoot))
+        else:
+            for j in range(len(coordinatesRoot)):
+                if type(coordinatesRoot[j][0]) is list:
+                    cloneTree.append(ImageProvider.traverseFeature(coordinatesRoot[j], function))
+                else:
+                    cloneTree.append(function(coordinatesRoot[j]))
+        return cloneTree
+
+    
+
+    @staticmethod
+    def traverseFeatureCollection(featureCollection, ffunction, cfunction):
+        for feature in featureCollection['features']:
+            clonedTree = ImageProvider.traverseFeature(feature, cfunction)
+            ffunction(feature, clonedTree)
+
+        pass    
+
+    
