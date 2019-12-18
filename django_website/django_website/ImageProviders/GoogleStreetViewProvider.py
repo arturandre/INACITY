@@ -10,6 +10,7 @@ from typing import List
 import json
 
 from GSVPanoramaManager.db import DBManager
+from GSVPanoramaManager import settings
 
 from django_website import settings_secret
 from django_website.LogGenerator import write_to_log
@@ -18,6 +19,8 @@ import hashlib
 import hmac
 import base64
 import urllib
+
+import os
 
 class Size():
     def __init__(self, width, height):
@@ -63,6 +66,51 @@ class GoogleStreetViewProvider(ImageProvider):
             panorama = dbmanager.retrieve_nearest_panorama(coordinates) or dbmanager.collect_panorama_by_location(coordinates)
             if panorama:
                 #Get view and consequently the stored image or its url
+                pano_id = panorama['pano']
+                heading = panorama['centerHeading']
+                pitch = panorama['originPitch']
+                #view = dbmanager.retrieve_panorama_view(
+                #    pano_id,
+                #    target_heading=heading,
+                #    heading_tolerance=10,
+                #    target_pitch=pitch,
+                #    pitch_tolerance=1
+                #    ) or dbmanager.create_update_view(
+                #        pano_id,
+                #        heading,
+                #        pitch
+                #        )
+                
+                #img_filename = dbmanager.image_filename_from_panorama_parameters(
+                #    pano_id,
+                #    heading,
+                #    pitch
+                #)
+                #img_path = os.path.join(
+                #    settings.PICTURES_FOLDER,
+                #    img_filename
+                #)
+                #if os.path.exists(img_path):
+
+                local_img = dbmanager._retrieve_local_image(
+                    pano_id,
+                    heading,
+                    pitch
+                    )
+                if not local_img:
+                    dbmanager._store_image_local(
+                        pano_id,
+                        heading,
+                        pitch
+                        )
+                    local_img = dbmanager._retrieve_local_image(
+                        pano_id,
+                        heading,
+                        pitch
+                        )
+                    pass
+
+
                 pass
             else:
                 pass                

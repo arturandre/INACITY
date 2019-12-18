@@ -41,7 +41,7 @@ class DBManager(object):
         redis_val = redisCon.get(redis_key)
         redis_val = redis_val.decode('ascii')
         redis_val = json.loads(redis_val)
-        #Tests if redis_val is an array of panoramas or a single panorama
+        # Tests if redis_val is an array of panoramas or a single panorama
         if not redis_val.get('location'):
             redis_val = redis_val[next(iter(redis_val.keys()))]
         self.insert_panorama(redis_val)
@@ -145,7 +145,7 @@ class DBManager(object):
         # lat = geoImage.location.coordinates[1]
         #processedDataList = geoImage.processedDataList
 
-        view = self.get_panorama_view(
+        view = self.retrieve_panorama_view(
             pano_id,
             target_heading=heading,
             heading_tolerance=10,
@@ -195,7 +195,7 @@ class DBManager(object):
         # lat = geoImage.location.coordinates[1]
         processedDataList = geoImage.processedDataList
 
-        view = self.get_panorama_view(
+        view = self.retrieve_panorama_view(
             pano_id,
             target_heading=heading,
             heading_tolerance=10,
@@ -216,7 +216,7 @@ class DBManager(object):
             )
             try:
                 image_path = os.path.join(settings.PICTURES_FOLDER,
-                                 img_filename)
+                                          img_filename)
                 image_exists = os.path.exists(image_path)
                 if not image_exists:
                     req = requests.get(pano_url)
@@ -244,7 +244,7 @@ class DBManager(object):
                 imageData = processedDataList[filter_type].imageData
                 imageData = imageData.replace('data:image/jpeg;base64,', '')
                 image_filter_path = os.path.join(filter_path,
-                                     img_filename)
+                                                 img_filename)
                 if not os.path.exists(image_filter_path):
                     with open(image_filter_path, 'wb') as img_file:
                         img_file.write(GeoImage.Base64ToImage(imageData))
@@ -279,6 +279,63 @@ class DBManager(object):
         else:
             return False
 
+    def _retrieve_local_image(self, pano_id, heading, pitch):
+        """
+        If the image is present then it retrieves it as a base64 string
+        otherwise returns False
+        """
+        img_filename = (
+            f"_panoid_{pano_id}"
+            f"_heading_{int(float(heading))}"
+            f"_pitch_{int(float(pitch))}"
+            ".png"
+        )
+        img_path = os.path.join(settings.PICTURES_FOLDER,
+                                img_filename)
+        # with open(filtered_image_filepath, 'rb') as img_file:
+        #    return filter_result, base64.b64encode(img_file.read()).decode('ascii')
+        if os.path.exists(img_path):
+            with open(img_path, 'rb') as img_file:
+                return base64.b64encode(img_file.read()).decode('ascii')
+        else:
+            return False
+
+    def _store_image_local(self, pano_id, heading, pitch):
+        pano_url = self._imageURLBuilderForPanoId(
+            pano_id,
+            heading,
+            pitch
+            )
+        img_filename = self.image_filename_from_panorama_parameters(
+            pano_id,
+            heading,
+            pitch
+        )
+        img_path = os.path.join(
+            settings.PICTURES_FOLDER,
+            img_filename
+        )
+        try:
+            req = requests.get(pano_url)
+            req.raise_for_status()
+            with open(img_path, 'wb') as img_file:
+                img_file.write(req.content)
+            return True
+        except requests.exceptions.HTTPError as err:
+            raise Exception(err)
+        return False
+
+    def image_filename_from_panorama_parameters(self, pano_id, heading, pitch):
+        #TODO: Since the pitch spans mostly from -1 to 1 then
+            #it needs a better representation than "int(float(pitch))""
+        img_filename = (
+                    f"_panoid_{pano_id}"
+                    f"_heading_{int(float(heading))}"
+                    f"_pitch_{int(float(pitch))}"
+                    ".png"
+                )
+        return img_filename
+
     def _create_update_panorama_views(self, pano_ids):
         """
 
@@ -299,32 +356,31 @@ class DBManager(object):
                 pitchs = [pitchs]
             for heading, pitch in headings_pitchs:
                 pitch = pitch or 0
-                view = self.get_panorama_view(pano_id,
-                                              target_heading=heading, heading_tolerance=10,
-                                              target_pitch=pitch,
-                                              pitch_tolerance=1)
+                view = self.retrieve_panorama_view(pano_id,
+                                                   target_heading=heading, heading_tolerance=10,
+                                                   target_pitch=pitch,
+                                                   pitch_tolerance=1)
+                img_filename = self.image_filename_from_panorama_parameters(
+                    pano_id,
+                    heading,
+                    pitch
+                )
+                img_path = os.path.join(
+                    settings.PICTURES_FOLDER,
+                    img_filename
+                )
                 if not view:
-                    pano_url = self._imageURLBuilderForPanoId(pano_id,
-                                                              heading,
-                                                              pitch
-                                                              )
-                    try:
-                        req = requests.get(pano_url)
-                        req.raise_for_status()
-                        self.create_update_view(pano_id, heading, pitch)
-                        img_filename = (
-                            f"_panoid_{pano_id}"
-                            f"_heading_{int(float(heading))}"
-                            f"_pitch_{int(float(pitch))}"
-                            ".png"
-                        )
-                        gsv_panorama_urls.append(img_filename)
-                        with open(
-                            os.path.join(settings.PICTURES_FOLDER,
-                                         img_filename), 'wb') as img_file:
-                            img_file.write(req.content)
-                    except requests.exceptions.HTTPError as err:
-                        raise Exception(err)
+                    self.create_update_view(pano_id, heading, pitch)
+
+                if not os.path.exists(img_path):
+                    #Try to collect the image
+                    if self._store_image_local(
+                        pano_id,
+                        heading,
+                        pitch
+                        ):
+                        raise Exception("Something went wrong in image storing")
+                gsv_panorama_urls.append(img_filename)
         return gsv_panorama_urls
 
     def create_update_view(self, pano_id, target_heading, target_pitch):
@@ -347,13 +403,13 @@ class DBManager(object):
         else:
             return False
 
-    def get_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+    def retrieve_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
         # 7Ewkd2wQqDGGOcFlUZMfjw
         with self._driver.session() as session:
-            return session.write_transaction(self._get_panorama_view, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance)
+            return session.write_transaction(self._retrieve_panorama_view, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance)
 
     @staticmethod
-    def _get_panorama_view(tx, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+    def _retrieve_panorama_view(tx, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
         result = tx.run((
             f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View) "
             f"WHERE {target_heading} - {heading_tolerance} "
@@ -369,7 +425,8 @@ class DBManager(object):
     def collect_panorama_by_location(self, coordinates, max_radius=10.):
         request_ids = []
 
-        request_id = wssender.collect_panorama_by_location(coordinates, max_radius)
+        request_id = wssender.collect_panorama_by_location(
+            coordinates, max_radius)
         if request_id is not None:
             request_ids.append(request_id)
         else:
@@ -382,7 +439,6 @@ class DBManager(object):
         t.join()
 
         return self.retrieve_nearest_panorama(coordinates, max_radius)
-        
 
     def _update_panorama_references(self, limit=50, pano_seed=None):
         """
@@ -620,7 +676,7 @@ class DBManager(object):
 
     @staticmethod
     def _retrieve_nearest_panorama(tx, coordinates, max_radius=10.):
-        #ref: https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
+        # ref: https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
         simple_approximation = (max_radius/111111.)/2.
 
         lng = coordinates[0]
@@ -636,7 +692,7 @@ class DBManager(object):
             f"RETURN properties(p) "
             f"ORDER BY distance({point_str}, p.location) "
             "LIMIT 1 "
-            ))
+        ))
         result = result.single()
         if result is not None:
             return result[0]
@@ -761,7 +817,7 @@ class DBManager(object):
             for time in streetviewpanoramadata.get('time'):
                 # DEPRECATED: kf is the property containing the datetime
                 # nf is the property containing the datetime
-                #timeDate = str(datetime.strptime(
+                # timeDate = str(datetime.strptime(
                 #    time['kf'], "%Y-%m-%dT%H:%M:%S.%fZ").date())
                 tRel += (
                     f"MERGE (pt{ntRel}:Panorama {{pano: {json.dumps(time['pano'])}}}) "
@@ -776,6 +832,6 @@ class DBManager(object):
         qRet = f"RETURN {panoStr} + {shortDescriptionStr} + {descriptionStr}"
         # print(qNode + qRel + qRet)
         #result = tx.run(qNode + qRel + tRel + qRet)
-        #return result.single()[0]
+        # return result.single()[0]
         tx.run(qNode + qRel + tRel + qRet)
         return True
