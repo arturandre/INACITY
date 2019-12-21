@@ -19,6 +19,7 @@ import hashlib
 import hmac
 import base64
 import urllib
+#import urlparse
 
 import os
 
@@ -58,10 +59,19 @@ class GoogleStreetViewProvider(ImageProvider):
         dbmanager = DBManager()
 
         def ffunction(feature, clonedTree):
+            """
+            ffunction - Feature's function
+            Defines how each feature (e.g. street) must be
+            processed.
+            """
             feature['properties']['geoImages'] = clonedTree
             pass
         
         def cfunction(coordinates):
+            """
+            cfunction - Coordinates's function
+            Defines how each coordinate must be processed.
+            """
             #Try to retrieve or collect the panorama
             panorama = dbmanager.retrieve_nearest_panorama(coordinates) or dbmanager.collect_panorama_by_location(coordinates)
             if panorama:
@@ -69,17 +79,21 @@ class GoogleStreetViewProvider(ImageProvider):
                 pano_id = panorama['pano']
                 heading = panorama['centerHeading']
                 pitch = panorama['originPitch']
-                #view = dbmanager.retrieve_panorama_view(
-                #    pano_id,
-                #    target_heading=heading,
-                #    heading_tolerance=10,
-                #    target_pitch=pitch,
-                #    pitch_tolerance=1
-                #    ) or dbmanager.create_update_view(
-                #        pano_id,
-                #        heading,
-                #        pitch
-                #        )
+                
+                # Optional: Just used to keep track of which views
+                # were already collected.
+
+                view = dbmanager.retrieve_panorama_view(
+                    pano_id,
+                    target_heading=heading,
+                    heading_tolerance=10,
+                    target_pitch=pitch,
+                    pitch_tolerance=1
+                    ) or dbmanager.create_update_view(
+                        pano_id,
+                        heading,
+                        pitch
+                        )
                 
                 #img_filename = dbmanager.image_filename_from_panorama_parameters(
                 #    pano_id,
@@ -94,21 +108,27 @@ class GoogleStreetViewProvider(ImageProvider):
 
                 local_img = dbmanager._retrieve_local_image(
                     pano_id,
-                    heading,
-                    pitch
+                    view
                     )
                 if not local_img:
                     dbmanager._store_image_local(
                         pano_id,
-                        heading,
-                        pitch
+                        view
                         )
                     local_img = dbmanager._retrieve_local_image(
                         pano_id,
-                        heading,
-                        pitch
+                        view
                         )
                     pass
+                return GoogleStreetViewProvider.createGeoImage(
+                    pano_id,
+                    panorama['location'],
+                    view,
+                    local_img
+                ).toJSON()
+                #        GoogleStreetViewProvider.\
+                #                                 createGeoImageFromStreetViewPanoramaData\
+                #                                     (streetViewPanoramaData).toJSON()
 
 
                 pass
@@ -119,7 +139,23 @@ class GoogleStreetViewProvider(ImageProvider):
 
 
         ImageProvider.traverseFeatureCollection(featureCollection, ffunction, cfunction)
-        return
+        return True
+
+    @staticmethod
+    def createGeoImage(pano_id, location, view, data):
+        write_to_log(f'createGeoImageFromStreetViewPanoramaData')
+        geoImage = GeoImage()
+        geoImage.id = pano_id
+        geoImage.location = location
+        geoImage.heading = view['heading']
+        geoImage.pitch = view['pitch']
+        #geoImage.data = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
+        geoImage.data = data
+        #geoImage.dataType = "URL"
+        geoImage.dataType = "data:image/jpeg;base64"
+        geoImage.metadata['imageURL'] = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
+        return geoImage
+
         
         
         #gsvpanoramas = requests.post(GoogleStreetViewProvider._GSVNodeCollectFCPanoramasURL, json=featureCollection)
@@ -192,6 +228,7 @@ class GoogleStreetViewProvider(ImageProvider):
 
     @staticmethod
     def createGeoImageFromStreetViewPanoramaData(streetViewPanoramaData):
+        """DEPRECATED"""
         write_to_log(f'createGeoImageFromStreetViewPanoramaData')
         geoImage = GeoImage()
         geoImage.id = streetViewPanoramaData['location']['pano']
@@ -219,10 +256,13 @@ class GoogleStreetViewProvider(ImageProvider):
         """ Sign a request URL with a URL signing secret.
 
             Usage:
-            signed_url = _sign_url(input_url=my_url)
+            from urlsigner import sign_url
+
+            signed_url = sign_url(input_url=my_url, secret=SECRET)
 
             Args:
             input_url - The URL to sign
+            secret    - Your URL signing secret
 
             Returns:
             The signed request URL
@@ -234,7 +274,8 @@ class GoogleStreetViewProvider(ImageProvider):
         if not input_url or not secret:
             raise Exception("input_url and secret are required")
 
-        url = urllib.parse(input_url)
+        #url = urlparse.urlparse(input_url)
+        url = urllib.parse.urlparse(input_url)
 
         # We only need to sign the path+query part of the string
         url_to_sign = url.path + "?" + url.query
@@ -245,7 +286,7 @@ class GoogleStreetViewProvider(ImageProvider):
 
         # Create a signature using the private key and the URL-encoded
         # string using HMAC SHA1. This signature will be binary.
-        signature = hmac.new(decoded_key, url_to_sign, hashlib.sha1)
+        signature = hmac.new(decoded_key, url_to_sign.encode('utf8'), hashlib.sha1)
 
         # Encode the binary signature into base64 for use within a URL
         encoded_signature = base64.urlsafe_b64encode(signature.digest())
@@ -253,7 +294,7 @@ class GoogleStreetViewProvider(ImageProvider):
         original_url = url.scheme + "://" + url.netloc + url.path + "?" + url.query
 
         # Return signed URL
-        return original_url + "&signature=" + encoded_signature
+        return original_url + "&signature=" + encoded_signature.decode('utf8')
         
     
     #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
@@ -288,7 +329,7 @@ class GoogleStreetViewProvider(ImageProvider):
         write_to_log(f'_imageURLBuilder')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
         signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
-        print(f'signed_url: {signed_url}')
+        #print(f'signed_url: {signed_url}')
         return signed_url
 
     @staticmethod

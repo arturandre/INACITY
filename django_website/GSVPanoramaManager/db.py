@@ -82,13 +82,13 @@ class DBManager(object):
             t.join()
 
     @staticmethod
-    def _imageURLBuilderForPanoId(pano_id, heading, pitch):
+    def _imageURLBuilderForPanoId(pano_id, view):
         size = {'width': 640, 'height': 640}
         baseurl = "https://maps.googleapis.com/maps/api/streetview"
         queryString = (
             f"?size={size['width']}x{size['height']}"
             f"&pano={pano_id}"
-            f"&heading={heading}&pitch={pitch}&key={GSV_KEY}"
+            f"&heading={view['heading']}&pitch={view['pitch']}&key={GSV_KEY}"
         )
 
         unsigned_url = baseurl + queryString
@@ -156,11 +156,9 @@ class DBManager(object):
         if not view:
             return False
 
-        img_filename = (
-            f"_panoid_{pano_id}"
-            f"_heading_{int(float(heading))}"
-            f"_pitch_{int(float(pitch))}"
-            ".png"
+        img_filename = self.image_filename_from_panorama_parameters(
+            pano_id,
+            view
         )
 
         filter_result = self.retrieve_filter_result_by_view(
@@ -202,19 +200,18 @@ class DBManager(object):
             target_pitch=pitch,
             pitch_tolerance=1
         )
-        img_filename = (
-            f"_panoid_{pano_id}"
-            f"_heading_{int(float(heading))}"
-            f"_pitch_{int(float(pitch))}"
-            ".png"
-        )
+        
         if not view:
+            view = self.create_update_view(pano_id, heading, pitch)
             pano_url = self._imageURLBuilderForPanoId(
                 pano_id,
-                heading,
-                pitch
+                view
             )
             try:
+                img_filename = self.image_filename_from_panorama_parameters(
+                    pano_id,
+                    view
+                )
                 image_path = os.path.join(settings.PICTURES_FOLDER,
                                           img_filename)
                 image_exists = os.path.exists(image_path)
@@ -223,7 +220,7 @@ class DBManager(object):
                     req.raise_for_status()
                     with open(image_path, 'wb') as img_file:
                         img_file.write(req.content)
-                view = self.create_update_view(pano_id, heading, pitch)
+                
             except requests.exceptions.HTTPError as err:
                 raise Exception(err)
         for filter_type in processedDataList:
@@ -279,16 +276,16 @@ class DBManager(object):
         else:
             return False
 
-    def _retrieve_local_image(self, pano_id, heading, pitch):
+    #def _retrieve_local_image(self, pano_id, heading, pitch):
+    def _retrieve_local_image(self, pano_id, view):
         """
         If the image is present then it retrieves it as a base64 string
         otherwise returns False
         """
-        img_filename = (
-            f"_panoid_{pano_id}"
-            f"_heading_{int(float(heading))}"
-            f"_pitch_{int(float(pitch))}"
-            ".png"
+        
+        img_filename = self.image_filename_from_panorama_parameters(
+            pano_id,
+            view
         )
         img_path = os.path.join(settings.PICTURES_FOLDER,
                                 img_filename)
@@ -300,16 +297,14 @@ class DBManager(object):
         else:
             return False
 
-    def _store_image_local(self, pano_id, heading, pitch):
+    def _store_image_local(self, pano_id, view):
         pano_url = self._imageURLBuilderForPanoId(
             pano_id,
-            heading,
-            pitch
+            view
             )
         img_filename = self.image_filename_from_panorama_parameters(
             pano_id,
-            heading,
-            pitch
+            view
         )
         img_path = os.path.join(
             settings.PICTURES_FOLDER,
@@ -325,13 +320,13 @@ class DBManager(object):
             raise Exception(err)
         return False
 
-    def image_filename_from_panorama_parameters(self, pano_id, heading, pitch):
+    def image_filename_from_panorama_parameters(self, pano_id, view):
         #TODO: Since the pitch spans mostly from -1 to 1 then
             #it needs a better representation than "int(float(pitch))""
         img_filename = (
                     f"_panoid_{pano_id}"
-                    f"_heading_{int(float(heading))}"
-                    f"_pitch_{int(float(pitch))}"
+                    f"_heading_{int(float(view['heading']))}"
+                    f"_pitch_{int(float(view['pitch']))}"
                     ".png"
                 )
         return img_filename
@@ -349,35 +344,36 @@ class DBManager(object):
             headings = panorama.get('centerHeading')
             pitchs = panorama.get('originPitch', 0)
             if headings is None:
-                headings_pitchs = self.retrieve_panorama_headings_pitchs(
-                    pano_id)
+                headings_pitchs =\
+                    self.retrieve_panorama_headings_pitchs(pano_id)
             else:
                 headings = [headings]
                 pitchs = [pitchs]
             for heading, pitch in headings_pitchs:
                 pitch = pitch or 0
-                view = self.retrieve_panorama_view(pano_id,
-                                                   target_heading=heading, heading_tolerance=10,
-                                                   target_pitch=pitch,
-                                                   pitch_tolerance=1)
-                img_filename = self.image_filename_from_panorama_parameters(
+                view = self.retrieve_panorama_view(
                     pano_id,
-                    heading,
-                    pitch
+                    target_heading=heading,
+                    heading_tolerance=10,
+                    target_pitch=pitch,
+                    pitch_tolerance=1)
+                if not view:
+                    view = self.create_update_view(pano_id, heading, pitch)
+                img_filename =\
+                    self.image_filename_from_panorama_parameters(
+                    pano_id,
+                    view
                 )
                 img_path = os.path.join(
                     settings.PICTURES_FOLDER,
                     img_filename
                 )
-                if not view:
-                    self.create_update_view(pano_id, heading, pitch)
 
                 if not os.path.exists(img_path):
                     #Try to collect the image
                     if self._store_image_local(
                         pano_id,
-                        heading,
-                        pitch
+                        view
                         ):
                         raise Exception("Something went wrong in image storing")
                 gsv_panorama_urls.append(img_filename)
