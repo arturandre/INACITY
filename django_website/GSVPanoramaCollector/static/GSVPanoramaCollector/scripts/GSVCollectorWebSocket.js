@@ -104,8 +104,15 @@ class GSVCollectorWebSocket
                     ret = fn(...params);
                     if (ret instanceof Promise)
                     {
-                        ret = await ret;
-                        debugger;
+                        try {
+                            ret = await ret;
+                        } catch (error)
+                        {
+                            console.error(error);
+                            ret = "ERROR";
+                        }
+                        
+                        
                     }
                 }
             }

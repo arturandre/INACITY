@@ -64,7 +64,7 @@ class GSVService
                 totalTime += timeDiff;
                 console.log(`Time elapsed (ms): ${timeDiff}`);
                 console.log(`Total elapsed (ms): ${totalTime}`);
-                
+
                 console.log(`progress: ${progressIter}/${progressMax}`);
                 console.log(`Nodes collected: ${progressCount}`);
 
@@ -108,7 +108,7 @@ class GSVService
      * @param {float} lonLatCoordinate.lat - Latitude in degrees
      * @returns {Promise} - StreetViewPanoramaData
      */
-    static getPanoramaByLocation(lonLatCoordinate, maxRadius=null)
+    static getPanoramaByLocation(lonLatCoordinate, maxRadius = null)
     {
         if (!maxRadius) maxRadius = GSVService.maxRadius;
         return new Promise(function (resolve, reject)
@@ -123,6 +123,10 @@ class GSVService
                 {
                     let parsedData = StreetViewPanoramaData.fromStreetViewServiceData(data);
                     resolve(parsedData);
+                }
+                else if (status === "ZERO_RESULTS")
+                {
+                    resolve(status);
                 }
                 else
                 {

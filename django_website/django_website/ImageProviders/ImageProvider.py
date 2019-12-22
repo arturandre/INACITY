@@ -1,7 +1,7 @@
 from django_website.Primitives.GeoImage import GeoImage
 from abc import ABC, abstractmethod
 from typing import List
-from geojson import FeatureCollection
+from geojson import FeatureCollection, Feature
 
 class ImageProvider(ABC):
     """abstract class describing the common interface to all Image Providers classes"""
@@ -25,7 +25,14 @@ class ImageProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def getImageForFeatureCollection(location: FeatureCollection)->List[GeoImage]:
+    def getImageForFeatureCollection(location: FeatureCollection)->FeatureCollection:
+        """An image provider coupled with a GIS must be able to get images by coordinates"""
+        pass
+
+
+    @staticmethod
+    @abstractmethod
+    def getImageForFeature(location: Feature)->Feature:
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass
 

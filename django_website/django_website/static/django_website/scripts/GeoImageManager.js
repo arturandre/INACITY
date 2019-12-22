@@ -361,7 +361,10 @@ class GeoImageManager extends Subject
         }
         else
         {
-            if (geoImage.dataType === 'URL')
+            if (
+                (geoImage.dataType === 'URL')
+                || (geoImage.dataType === 'data:image/jpeg;base64')
+            )
             {
                 this._DOMImage.attr("src", geoImage.data);
             }

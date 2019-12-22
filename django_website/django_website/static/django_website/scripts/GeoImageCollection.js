@@ -102,6 +102,14 @@ class GeoImageCollection {
         let count = 0;
         let oldCount = 0;
         while (root[n]) {
+            if (typeof (root[n]) === "string")
+            {
+                try {
+                    root[n] = GeoImage.fromObject(JSON.parse(root[n]));
+                } catch (error) {
+                    console.warn(error);
+                }
+            }
             count += GeoImageCollection.removeInvalidImages(root[n]);
             if (count === oldCount) {
                 root.splice(n, 1);

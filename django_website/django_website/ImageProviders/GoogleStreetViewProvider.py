@@ -49,13 +49,25 @@ class GoogleStreetViewProvider(ImageProvider):
     imageProviderId = "gsvProvider"
 
     @staticmethod
-    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
+    def getImageForFeature(feature: Feature) -> Feature:
         """
-        Receives a feature collection of point/line or their
-        multi equivalents and returns a list of GeoImage's
-        """
-        write_to_log(f'getImageForFeatureCollection')
+        Receives a single Feature from a 
+        Feature Collection of point/line or their
+        multi equivalents and inserts a "geoimages"
+        property with images for the coordinates of this
+        Feature.
 
+        Works in-place.
+
+        The geoimages property will have the same structure 
+        of the geometry property.
+
+        The coordinates without a corresponding panorama will
+        be represented by a string "NOT FOUND" in the geoimages
+        correspondent position.
+        """
+
+        write_to_log(f'getImageForFeature')
         dbmanager = DBManager()
 
         def ffunction(feature, clonedTree):
@@ -66,14 +78,15 @@ class GoogleStreetViewProvider(ImageProvider):
             """
             feature['properties']['geoImages'] = clonedTree
             pass
-        
+
         def cfunction(coordinates):
             """
             cfunction - Coordinates's function
             Defines how each coordinate must be processed.
             """
             #Try to retrieve or collect the panorama
-            panorama = dbmanager.retrieve_nearest_panorama(coordinates) or dbmanager.collect_panorama_by_location(coordinates)
+            panorama = dbmanager.retrieve_nearest_panorama(coordinates)\
+                or dbmanager.collect_panorama_by_location(coordinates)
             if panorama:
                 #Get view and consequently the stored image or its url
                 pano_id = panorama['pano']
@@ -126,17 +139,94 @@ class GoogleStreetViewProvider(ImageProvider):
                     view,
                     local_img
                 ).toJSON()
-                #        GoogleStreetViewProvider.\
-                #                                 createGeoImageFromStreetViewPanoramaData\
-                #                                     (streetViewPanoramaData).toJSON()
-
-
-                pass
             else:
-                pass                
+                return "NOT FOUND"
+        
+        clonedTree = ImageProvider.traverseFeature(feature, cfunction)
+        ffunction(feature, clonedTree)
+        return True
+
+    @staticmethod
+    def getImageForFeatureCollection(featureCollection: FeatureCollection) -> FeatureCollection:
+        """
+        Receives a feature collection of point/line or their
+        multi equivalents and returns a list of GeoImage's
+        """
+        write_to_log(f'getImageForFeatureCollection')
+
+        dbmanager = DBManager()
+
+        def ffunction(feature, clonedTree):
+            """
+            ffunction - Feature's function
+            Defines how each feature (e.g. street) must be
+            processed.
+            """
+            feature['properties']['geoImages'] = clonedTree
             pass
+        
+        def cfunction(coordinates):
+            """
+            cfunction - Coordinates's function
+            Defines how each coordinate must be processed.
+            """
+            #Try to retrieve or collect the panorama
+            panorama = dbmanager.retrieve_nearest_panorama(coordinates)\
+                or dbmanager.collect_panorama_by_location(coordinates)
+            if panorama:
+                #Get view and consequently the stored image or its url
+                pano_id = panorama['pano']
+                heading = panorama['centerHeading']
+                pitch = panorama['originPitch']
+                
+                # Optional: Just used to keep track of which views
+                # were already collected.
 
+                view = dbmanager.retrieve_panorama_view(
+                    pano_id,
+                    target_heading=heading,
+                    heading_tolerance=10,
+                    target_pitch=pitch,
+                    pitch_tolerance=1
+                    ) or dbmanager.create_update_view(
+                        pano_id,
+                        heading,
+                        pitch
+                        )
+                
+                #img_filename = dbmanager.image_filename_from_panorama_parameters(
+                #    pano_id,
+                #    heading,
+                #    pitch
+                #)
+                #img_path = os.path.join(
+                #    settings.PICTURES_FOLDER,
+                #    img_filename
+                #)
+                #if os.path.exists(img_path):
 
+                local_img = dbmanager._retrieve_local_image(
+                    pano_id,
+                    view
+                    )
+                if not local_img:
+                    dbmanager._store_image_local(
+                        pano_id,
+                        view
+                        )
+                    local_img = dbmanager._retrieve_local_image(
+                        pano_id,
+                        view
+                        )
+                    pass
+                return GoogleStreetViewProvider.createGeoImage(
+                    pano_id,
+                    panorama['location'],
+                    view,
+                    local_img
+                ).toJSON()
+            else:
+                return "NOT FOUND"                
 
         ImageProvider.traverseFeatureCollection(featureCollection, ffunction, cfunction)
         return True
@@ -146,13 +236,13 @@ class GoogleStreetViewProvider(ImageProvider):
         write_to_log(f'createGeoImageFromStreetViewPanoramaData')
         geoImage = GeoImage()
         geoImage.id = pano_id
-        geoImage.location = location
+        geoImage.location = {"coordinates": location}
         geoImage.heading = view['heading']
         geoImage.pitch = view['pitch']
         #geoImage.data = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
-        geoImage.data = data
-        #geoImage.dataType = "URL"
         geoImage.dataType = "data:image/jpeg;base64"
+        geoImage.data = f'data:image/jpeg;base64,{data}'
+        #geoImage.dataType = "URL"
         geoImage.metadata['imageURL'] = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
         return geoImage
 
