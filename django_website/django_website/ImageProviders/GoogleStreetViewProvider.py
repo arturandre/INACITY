@@ -138,7 +138,8 @@ class GoogleStreetViewProvider(ImageProvider):
                     panorama['location'],
                     view,
                     local_img
-                ).toJSON()
+                ).__dict__
+                #).toJSON()
             else:
                 return "NOT FOUND"
         
@@ -224,7 +225,8 @@ class GoogleStreetViewProvider(ImageProvider):
                     panorama['location'],
                     view,
                     local_img
-                ).toJSON()
+                ).__dict__
+                #).toJSON()
             else:
                 return "NOT FOUND"                
 
@@ -241,9 +243,11 @@ class GoogleStreetViewProvider(ImageProvider):
         geoImage.pitch = view['pitch']
         #geoImage.data = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
         geoImage.dataType = "data:image/jpeg;base64"
-        geoImage.data = f'data:image/jpeg;base64,{data}'
+        #geoImage.data = f'data:image/jpeg;base64,{data}'
+        geoImage.data = data
         #geoImage.dataType = "URL"
-        geoImage.metadata['imageURL'] = GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
+        geoImage.metadata['imageURL'] =\
+            GoogleStreetViewProvider._imageURLBuilderForGeoImage(geoImage)
         return geoImage
 
         

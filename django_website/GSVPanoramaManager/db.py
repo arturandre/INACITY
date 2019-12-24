@@ -42,7 +42,7 @@ class DBManager(object):
         redis_val = redis_val.decode('ascii')
         redis_val = json.loads(redis_val)
         # Tests if redis_val is an array of panoramas or a single panorama
-        if not redis_val.get('location'):
+        if (redis_val is dict) and (not redis_val.get('location')):
             redis_val = redis_val[next(iter(redis_val.keys()))]
         self.insert_panorama(redis_val)
 
@@ -207,22 +207,22 @@ class DBManager(object):
                 pano_id,
                 view
             )
-            try:
-                img_filename = self.image_filename_from_panorama_parameters(
-                    pano_id,
-                    view
-                )
-                image_path = os.path.join(settings.PICTURES_FOLDER,
-                                          img_filename)
-                image_exists = os.path.exists(image_path)
-                if not image_exists:
-                    req = requests.get(pano_url)
-                    req.raise_for_status()
-                    with open(image_path, 'wb') as img_file:
-                        img_file.write(req.content)
-                
-            except requests.exceptions.HTTPError as err:
-                raise Exception(err)
+        try:
+            img_filename = self.image_filename_from_panorama_parameters(
+                pano_id,
+                view
+            )
+            image_path = os.path.join(settings.PICTURES_FOLDER,
+                                        img_filename)
+            image_exists = os.path.exists(image_path)
+            if not image_exists:
+                req = requests.get(pano_url)
+                req.raise_for_status()
+                with open(image_path, 'wb') as img_file:
+                    img_file.write(req.content)
+            
+        except requests.exceptions.HTTPError as err:
+            raise Exception(err)
         for filter_type in processedDataList:
             filter_result = self.retrieve_filter_result_by_view(
                 pano_id, view, filter_type)
@@ -232,19 +232,19 @@ class DBManager(object):
                     pano_id,
                     view, filter_result
                 )
-                filter_path = os.path.join(
-                    settings.PICTURES_FOLDER,
-                    filter_type
-                )
-                if not os.path.exists(filter_path):
-                    os.makedirs(filter_path)
-                imageData = processedDataList[filter_type].imageData
-                imageData = imageData.replace('data:image/jpeg;base64,', '')
-                image_filter_path = os.path.join(filter_path,
-                                                 img_filename)
-                if not os.path.exists(image_filter_path):
-                    with open(image_filter_path, 'wb') as img_file:
-                        img_file.write(GeoImage.Base64ToImage(imageData))
+            filter_path = os.path.join(
+                settings.PICTURES_FOLDER,
+                filter_type
+            )
+            if not os.path.exists(filter_path):
+                os.makedirs(filter_path)
+            imageData = processedDataList[filter_type].imageData
+            imageData = imageData.replace('data:image/jpeg;base64,', '')
+            image_filter_path = os.path.join(filter_path,
+                                                img_filename)
+            if not os.path.exists(image_filter_path):
+                with open(image_filter_path, 'wb') as img_file:
+                    img_file.write(GeoImage.Base64ToImage(imageData))
 
         pass
 

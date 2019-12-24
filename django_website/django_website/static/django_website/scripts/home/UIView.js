@@ -419,9 +419,11 @@ class UIView
                 break;
             case 'Error':
                 alert(message);
+                console.trace();
                 throw new Error(message);
                 break;
             default:
+                console.trace();
                 throw Error(`Unknow message type: ${type}`);
                 break;
         }

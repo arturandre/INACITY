@@ -1,14 +1,18 @@
-class GeoImageCollection {
-    constructor() {
+class GeoImageCollection
+{
+    constructor()
+    {
         this._currentGeoImagesCollection = [];
         this._validImages = -1;
     }
 
-    loadFromJSON(geoImageCollectionSession) {
+    loadFromJSON(geoImageCollectionSession)
+    {
         this._validImages = geoImageCollectionSession._validImages;
     }
 
-    saveToJSON() {
+    saveToJSON()
+    {
         let ret =
         {
             _validImages: this._validImages,
@@ -17,24 +21,31 @@ class GeoImageCollection {
         return ret;
     }
 
-    loadGeoImagesFromFeature(newFeature) {
+    loadGeoImagesFromFeature(newFeature)
+    {
         this._currentGeoImagesCollection = [];
-        if (getPropPath(newFeature.type === "Feature")) {
+        if (getPropPath(newFeature.type === "Feature"))
+        {
             let geoImages = newFeature.properties.geoImages;
-            if (geoImages) {
+            if (geoImages)
+            {
                 this._currentGeoImagesCollection.push(geoImages);
             }
             this._cleanGeoImagesCollection();
         }
     }
 
-    loadGeoImagesFromFeatureCollection(newFeatureCollection) {
+    loadGeoImagesFromFeatureCollection(newFeatureCollection)
+    {
         this._currentGeoImagesCollection = [];
-        if (getPropPath(newFeatureCollection, ['features', 'length']) > 0) {
-            for (let featureIndex in newFeatureCollection.features) {
+        if (getPropPath(newFeatureCollection, ['features', 'length']) > 0)
+        {
+            for (let featureIndex in newFeatureCollection.features)
+            {
                 let feature = newFeatureCollection.features[featureIndex];
                 let geoImages = feature.properties.geoImages;
-                if (geoImages) {
+                if (geoImages)
+                {
                     this._currentGeoImagesCollection.push(geoImages);
                 }
             }
@@ -64,9 +75,11 @@ class GeoImageCollection {
                 return false;
             }
             index++;
-        } while (node === "Error");
-        
-        if (GeoImage.isGeoImageCompliant(node)) {
+        } while (!GeoImage.isGeoImageCompliant(node));
+        //} while (node === "Error");
+
+        if (GeoImage.isGeoImageCompliant(node))
+        {
             node = GeoImage.fromObject(node);
             return node.processedDataList && (filterId in node.processedDataList);
         }
@@ -77,14 +90,17 @@ class GeoImageCollection {
  * Given an DAG (Tree graph) root count how many leafs are GeoImages objects
  * @param {Graph} root - Represents the roots node from a tree (e.g. FeatureCollection)
  */
-    static countValidImages(root) {
-        if (isLeaf(root)) {
+    static countValidImages(root)
+    {
+        if (isLeaf(root))
+        {
             //return isValidJsonObject(root) ? 1 : 0;
             return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
-        while (root[n]) {
+        while (root[n])
+        {
             count += GeoImageCollection.countValidImages(root[n]);
             n += 1;
         }
@@ -94,24 +110,33 @@ class GeoImageCollection {
      * Given an DAG (Tree graph) root count how many leafs are GeoImages objects and remove leafs that aren't GeoImages
      * @param {Graph} root - Root node from a tree (e.g. FeatureCollection)
      */
-    static removeInvalidImages(root) {
-        if (isLeaf(root)) {
+    static removeInvalidImages(root)
+    {
+        if (isLeaf(root))
+        {
             return (GeoImage.isGeoImageCompliant(root)) ? 1 : 0;
         }
         let n = 0;
         let count = 0;
         let oldCount = 0;
-        while (root[n]) {
+        while (root[n])
+        {
             if (typeof (root[n]) === "string")
             {
-                try {
-                    root[n] = GeoImage.fromObject(JSON.parse(root[n]));
-                } catch (error) {
-                    console.warn(error);
+                if (root[n] !== "NOT FOUND")
+                {
+                    try
+                    {
+                        root[n] = GeoImage.fromObject(JSON.parse(root[n]));
+                    } catch (error)
+                    {
+                        console.warn(error);
+                    }
                 }
             }
             count += GeoImageCollection.removeInvalidImages(root[n]);
-            if (count === oldCount) {
+            if (count === oldCount)
+            {
                 root.splice(n, 1);
                 n -= 1;
             }
@@ -129,15 +154,18 @@ class GeoImageCollection {
      * @param {int} index - Starting index
      * @returns {GeoImage}
      */
-    getGeoImageAtIndex(index) {
+    getGeoImageAtIndex(index)
+    {
         let ret = traverseCollection(this._currentGeoImagesCollection, index);
-        if (typeof ret === "number") {
+        if (typeof ret === "number")
+        {
             throw new Error(`GeoImage at index ${index} is out of the valid limit: ${this._validImages}`);
         }
         return GeoImage.fromObject(ret);
     }
 
-    _cleanGeoImagesCollection() {
+    _cleanGeoImagesCollection()
+    {
         let removedCount = GeoImageCollection.removeInvalidImages(this._currentGeoImagesCollection);
         this._validImages = GeoImageCollection.countValidImages(this._currentGeoImagesCollection);
         if (removedCount !== this._validImages)

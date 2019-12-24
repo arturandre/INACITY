@@ -2,9 +2,11 @@
 from urllib.error import HTTPError
 
 import imageio
+import base64
 import scipy
 import numpy as np
 from skimage import color, img_as_float, img_as_ubyte
+
 
 import matplotlib.pyplot as plt
 from scipy import misc, ndimage
@@ -49,7 +51,12 @@ class GreeneryFilter(ImageFilter):
                     density=filter_result['density']
                 )
             else:
-                ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+                if geoImage.dataType == 'data:image/jpeg;base64':
+                    base64decoded = base64.b64decode(geoImage.data)
+                    ndarrayImage = img_as_float(imageio.imread(base64decoded))
+                elif geoImage.dataType == 'URL':
+                    ndarrayImage = img_as_float(imageio.imread(geoImage.data))
+
                 mask = mt_li_espectral(ndarrayImage)
                 density = np.count_nonzero(mask)/mask.size
                 mask = img_as_ubyte(overlay_mask(ndarrayImage, mask))
