@@ -51,6 +51,7 @@
 *.woff  binary
 *.woff2 binary
 *.ttf   binary
+*.mp4   binary
 
 ###############################################################################
 # diff behavior for common document formats
