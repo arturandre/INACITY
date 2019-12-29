@@ -42,7 +42,7 @@ class DBManager(object):
         redis_val = redis_val.decode('ascii')
         redis_val = json.loads(redis_val)
         # Tests if redis_val is an array of panoramas or a single panorama
-        if (redis_val is dict) and (not redis_val.get('location')):
+        if (type(redis_val) is dict) and (not redis_val.get('location')):
             redis_val = redis_val[next(iter(redis_val.keys()))]
         self.insert_panorama(redis_val)
 
@@ -65,7 +65,7 @@ class DBManager(object):
         at least one node to be used as seed.
         """
         if seed_pano is None:
-            seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":"2013-08-01T03:00:00.000Z","pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":"2015-11-01T02:00:00.000Z","pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":"2016-03-01T03:00:00.000Z","pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":"2017-03-01T03:00:00.000Z","pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":"2017-05-01T03:00:00.000Z","pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":"2017-07-01T03:00:00.000Z","pano":"9_P-g3LzyP2nTqpRYsJ4eA"}]}}'
+            seed_str_panoramastreetviewdata = '{"9_P-g3LzyP2nTqpRYsJ4eA":{"location":{"lon":-46.73341431803249,"imageDate":null,"lat":-23.55733714144167,"shortDescription":"1380 Av. Prof. Luciano Gualberto","description":"1380 Av. Prof. Luciano Gualberto, São Paulo, State of São Paulo","pano":"9_P-g3LzyP2nTqpRYsJ4eA"},"copyright":"© 2019 Google","links":[{"description":"Av. Prof. Luciano Gualberto","heading":117.7491073608398,"pano":"S4itBmmAY-n8Kg5OLSoMbA"},{"description":"Av. Prof. Luciano Gualberto","heading":298.2005310058594,"pano":"pB9GU71lP4QdvReUn92neA"}],"tiles":{"centerHeading":297.3766174316406,"originHeading":297.3766174316406,"originPitch":0.40338134765625,"tileSize":{"b":"px","f":"px","height":512,"width":512},"worldSize":{"b":"px","f":"px","height":6656,"width":13312}},"time":[{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"kokTxHGdiadnHNsy6V5d8g"},{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"rZDQxOtFy1LuocgeMJ21Uw"},{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"S6Vm8zW3zozIoWG5OAIdbg"},{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"ZLPELffL0LEaIER3PDFAnQ"},{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"OEJCBxXDnT_NaSVQqPV_rA"},{"Af":null,"ng":null,"kf":null,"nf":null,"pano":"9_P-g3LzyP2nTqpRYsJ4eA"}],"imageDate":"2017-07"}}'
             seed_json = json.loads(seed_str_panoramastreetviewdata)
             seed_json = seed_json[next(iter(seed_json))]
             self.insert_panorama(seed_json)
@@ -761,6 +761,7 @@ class DBManager(object):
         each statement is ended with an white-space allowing new 
         statements to be inserted by just concatenating strings.
         """
+        #print(streetviewpanoramadata)
         loc = streetviewpanoramadata['location']
         lat = loc['lat']
         lon = loc['lon']
@@ -815,8 +816,13 @@ class DBManager(object):
                 # nf is the property containing the datetime
                 # timeDate = str(datetime.strptime(
                 #    time['kf'], "%Y-%m-%dT%H:%M:%S.%fZ").date())
+                timePano = json.dumps(time['pano'])
+                if json.dumps(loc['pano']) == timePano:
+                    continue
                 tRel += (
-                    f"MERGE (pt{ntRel}:Panorama {{pano: {json.dumps(time['pano'])}}}) "
+                    f"MERGE (pt{ntRel} {{pano: {timePano}}}) "
+                    f"ON CREATE SET pt{ntRel}:Time "
+                    f"ON MATCH SET pt{ntRel}:Time "
                     f"MERGE (p)-[t{ntRel}:time]->(pt{ntRel}) "
                     #f"ON CREATE SET pt{ntRel} += {{date: date('{timeDate}')}} "
                     #f"ON MATCH SET pt{ntRel} += {{date: date('{timeDate}')}} "

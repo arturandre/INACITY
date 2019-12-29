@@ -2,7 +2,7 @@ class GSVCollectorWebSocket
 {
     constructor(collectorEndpoint, browser_session)
     {
-        this.wsurl = 'ws://' + window.location.host
+        this.wsurl = 'ws://' + window.location.hostname
             + ':' + daphne_port
             + '/ws'
             + '/' + collectorEndpoint
