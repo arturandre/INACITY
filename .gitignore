@@ -1,5 +1,6 @@
 #exported csv files
 export_*.csv
+*.dump
 
 #pictures folder
 pictures/
