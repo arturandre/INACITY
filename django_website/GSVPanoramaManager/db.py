@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 import requests
 import os
+from pathlib import Path
 import base64
 
 
@@ -30,8 +31,7 @@ class DBManager(object):
                 "CREATE CONSTRAINT ON (p:Panorama) ASSERT p.pano IS UNIQUE")
             session.run(
                 "CREATE INDEX ON :Panorama(location)")
-        if not os.path.exists(settings.PICTURES_FOLDER):
-            os.makedirs(settings.PICTURES_FOLDER)
+        Path(settings.PICTURES_FOLDER).mkdir(parents=True, exist_ok=True)
 
     def close(self):
         self._driver.close()
