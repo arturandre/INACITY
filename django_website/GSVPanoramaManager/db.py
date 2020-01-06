@@ -55,8 +55,11 @@ class DBManager(object):
             return session.write_transaction(self._retrieve_panorama_by_panoid, pano)
 
     def insert_panorama(self, streetviewpanoramadata):
-        with self._driver.session() as session:
-            return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
+        try:    
+            with self._driver.session() as session:
+                return session.write_transaction(self._create_update_panorama, streetviewpanoramadata)
+        except:
+            return streetviewpanoramadata
 
     def _seed_panorama(self, seed_pano=None):
         """

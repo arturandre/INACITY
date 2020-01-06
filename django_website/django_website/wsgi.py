@@ -13,6 +13,7 @@ middleware here, or combine a Django application with an application of another
 framework.
 
 """
+from pathlib import Path
 import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_website.settings")
@@ -23,6 +24,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_website.settings")
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 from django_website.LogGenerator import write_to_log
+
+# This is needed since the apache mod_wsgi will set the current working
+# directory as the root (or the user home) folders. Here the working
+# directory will be INACITY root folder (the outermost 'django_website' folder)
+path = Path(os.path.dirname(__file__))
+os.chdir(path.parent)
+
+write_to_log(f'Working dir: {os.getcwd()}')
+print(f'Working dir: {os.getcwd()}')
+
 write_to_log('wsgi loaded')
 print('wsgi loaded')
 

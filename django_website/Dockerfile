@@ -12,8 +12,9 @@ RUN apt update && apt-get install -y \
 	gdal-bin \
 	postgresql-client \
 	python-pygraphviz \
-	chromium \
 	default-jre default-jre-headless
+	
+#	chromium \
 
 #NEO4J -> default-jre default-jre-headless
 
