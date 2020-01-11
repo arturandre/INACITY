@@ -1,4 +1,7 @@
-#exported csv files
+#ignored folder
+ignored/
+
+#exported files
 export_*.csv
 *.dump
 
