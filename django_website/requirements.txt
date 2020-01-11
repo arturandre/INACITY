@@ -22,7 +22,7 @@ cycler==0.10.0
 Cython==0.28.3
 dask==0.17.5
 decorator==4.3.0
-Django==2.0.6
+Django==2.0.12
 djangorestframework==3.8.2
 future==0.16.0
 geojson==2.4.0
