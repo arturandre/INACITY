@@ -37,9 +37,37 @@ class Command(BaseCommand):
                 #shortDescriptionGroups = [ for y in shortDescriptionGroups]
             shortDescriptionGroups = temp
             
-            addressDict = dict.fromkeys([y[0] for y in shortDescriptionGroups], 0)
+            #addressDict = dict.fromkeys([y[0] for y in shortDescriptionGroups], 0)
+            addressDict = dict.fromkeys([y[0] for y in shortDescriptionGroups], None)
             for address in shortDescriptionGroups:
-                addressDict[address[0]] += address[1]
-            with open('export_address_panoramas.csv', 'w+') as expf:
-                for k, v in addressDict.items():
-                    expf.write(k+','+str(v)+'\n')
+                if addressDict[address[0]] is None:
+                    addressDict[address[0]] = {
+                        "count": 0,
+                        "length": -1
+                    }
+                addressDict[address[0]]["count"] += address[1]
+                #raise Exception(addressDict[address[0]])
+            with open('export_20200109_address_panoramas.csv', 'w+') as expf:
+                #Header
+                expf.write('Address,panorama counting, length'+'\n')
+                for address in addressDict.keys():
+                    #Length already divided by two to account
+                    #for going foward and backwards.
+                    addressNeo4j = address.replace('"', '\\"')
+                    addressLength = session.run((
+                        f'MATCH (root:Panorama)-[:link]->(next:Panorama) '
+                        f'WHERE '
+                        f'root.shortDescription CONTAINS "{addressNeo4j}" '
+                        f'and '
+                        f'next.shortDescription CONTAINS "{addressNeo4j}" '
+                        f'RETURN SUM(distance('
+                        f'point({{longitude: root.location.x, latitude: root.location.y}}), '
+                        f'point({{longitude: next.location.x, latitude: next.location.y}})))/2'
+                        )).single()[0]
+                    addressDict[address]["length"] = addressLength
+                    expf.write((
+                        f"{address},"
+                        f'{str(addressDict[address]["count"])},'
+                        f'{str(addressDict[address]["length"])}'
+                        "\n"
+                        ))
