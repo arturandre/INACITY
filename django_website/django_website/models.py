@@ -2,6 +2,12 @@ from django_website.Primitives.GeoSampa import GeoSampa_BusStops
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+from django.utils.translation import ugettext_lazy as _
+
+# Ref. https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 # Ref.: https://arthurpemberton.com/2015/04/fixing-uuid-is-not-json-serializable
 '''
@@ -15,6 +21,33 @@ def JSONEncoder_newdefault(self, o):
     return JSONEncoder_olddefault(self, o)
 JSONEncoder.default = JSONEncoder_newdefault
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    gsv_api_key = models.CharField(
+        _('Google Street View API key'),
+        max_length=39,
+        blank=True
+        )
+    use_alternative_gsv_api_key = models.BooleanField(
+        _('Use this Google Street View API key by default?'),
+        default=False)
+    gsv_url_signing_secret = models.CharField(
+        _('Google Street View url signing secret'),
+        max_length=28,
+        blank=True)
+    use_alternative_gsv_signing_secret = models.BooleanField(
+        _('Use this Google Street View signing secret by default?'),
+        default=False)
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+    
 
 class GeoImage(models.Model):
     """

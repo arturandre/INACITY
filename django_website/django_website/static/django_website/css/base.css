@@ -1,4 +1,42 @@
-﻿.div-carousel
+﻿#btnSettings
+{
+    font-size: 16px;
+    margin-right: 6px;
+}
+
+.navbar-right > a
+{
+    margin-left: 6px;
+} 
+
+.btnLogin:after
+{
+    content: '|';
+    color: rgba(255, 255, 255, .3);
+    margin-left: 10px;
+    margin-right: 4px;
+} 
+.btnLogin:last-child:after
+{
+    content: '';
+} 
+
+
+/* .nav-link
+{
+  background-color: rgba(255,255,255,0.05);
+  margin-left: 6px;
+  border-radius: 5px;
+  
+} */
+
+.navbar-right
+{
+    margin-left: 12px;
+    align-content: center;
+}
+
+.div-carousel
 {
     border: 1px solid #C8C8F8;
     background: #E8E8E8;
@@ -73,8 +111,6 @@
     align-items: center;
     justify-content: center;
 }
-
-
 
 .inacity-logo {
     width: 100px;
