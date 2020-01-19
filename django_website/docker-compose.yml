@@ -1,7 +1,6 @@
 version: '2'
 
 services:
-<<<<<<< HEAD
   rediscache:
     restart: unless-stopped
     image: redis:5.0.6
@@ -21,8 +20,6 @@ services:
   #    - "7687:7687/tcp"
   #  environment:
   #    - NEO4J_AUTH=neo4j/1234 # doesn't work currently
-=======
->>>>>>> neo4j remover from docker-compose
   db:
     restart: unless-stopped
     image: kartoza/postgis:9.6-2.4
