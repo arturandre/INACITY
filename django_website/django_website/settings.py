@@ -72,6 +72,7 @@ WSGI_APPLICATION = 'django_website.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+# Use HOST: 'db' for docker and HOST: 'localhost' when not using docker
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
