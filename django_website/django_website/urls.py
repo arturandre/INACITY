@@ -38,6 +38,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/profile/', profile, name='profile'),
     path('accounts/register/', register, name='register'),
+    path('user_settings/', user_settings, name='user_settings'),
     path('logout/', logout, name='logout'),
 
     #api/session/

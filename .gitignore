@@ -1,5 +1,12 @@
-#exported csv files
+#nohup file
+nohup.out
+
+#ignored folder
+ignored/
+
+#exported files
 export_*.csv
+*.dump
 
 #pictures folder
 pictures/

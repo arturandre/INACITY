@@ -10,8 +10,6 @@ DEBIAN_FRONTEND=noninteractive apt update && apt-get install -y neo4j
 python -m pip install ptvsd mod_wsgi
 python -m pip install -r ./requirements.txt
 
-echo "Copying settings.py.docker to setting.py"
-cp -f ./django_website/settings.py.docker ./django_website/settings.py
 echo "Copying demo_site.conf to /etc/apache2/sites-available/inacity.conf"
 cp /var/www/html/demo_site.conf /etc/apache2/sites-available/inacity.conf
 echo "disabling apache 000-default page"
