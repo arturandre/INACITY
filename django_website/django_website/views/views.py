@@ -12,7 +12,6 @@ from urllib.parse import unquote, urlparse
 
 from django_website.Forms.UserForm import ProfileForm, UserForm
 
-
 import ast
 import json
 import datetime
@@ -40,6 +39,7 @@ from django.template import loader
 #User Auth
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 
 # To avoid an override of the function logout
 # Define an alias for django.contrib.auth.login function using as keyword.
@@ -262,7 +262,8 @@ def sign_gsv_url(request):
     # Return signed URL
     return HttpResponse(original_url + "&signature=" + encoded_signature.decode('utf-8'))
 
-@api_view(['GET'])
+@login_required
+@api_view(['GET', 'POST'])
 def user_settings(request):
     """
     End-point for the user settings page, containing his/her
