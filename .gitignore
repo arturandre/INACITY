@@ -1,3 +1,16 @@
+#nohup file
+nohup.out
+
+#ignored folder
+ignored/
+
+#exported files
+export_*.csv
+*.dump
+
+#pictures folder
+pictures/
+
 #Daphne PID file
 daphne_PID
 
