@@ -2,7 +2,7 @@ class GSVCollectorWebSocket
 {
     constructor(collectorEndpoint, browser_session)
     {
-        this.wsurl = 'ws://' + window.location.host
+        this.wsurl = 'ws://' + window.location.hostname
             + ':' + daphne_port
             + '/ws'
             + '/' + collectorEndpoint
@@ -57,9 +57,38 @@ class GSVCollectorWebSocket
         }
         if (message.startsWith("func:"))
         {
-            message = message.replace("func:", "").split(",");
-            let funcName = message.shift(); //Retrieves and remove array 1st item
+            message = message.replace("func:", "");
+
+            let array_regex = /\[[^\]]+\]/g
+
+            let arrays = [...message.matchAll(array_regex)];
+
+            message = message.replace(array_regex, '[]');
+
+            message = message.split(",");
+
+            /** 
+             * Retrieves and remove array 1st item which corresponds
+             * to the function name
+            */
+            let funcName = message.shift(); 
+
             let params = message;
+            for (let i = 0; i < params.length; i++)
+            {
+                if (params[i] === '[]')
+                {
+                    params[i] = JSON.parse(arrays.shift()[0]);
+                }
+                else
+                {
+                    try {
+                        params[i] = JSON.parse(params[i]);
+                    } catch {
+                        params[i] = params[i];
+                    }
+                }
+            }
 
             let fn = GSVCollectorWebSocket.registeredFunctions[funcName];
             let ret = "";
@@ -73,6 +102,18 @@ class GSVCollectorWebSocket
                 else
                 {
                     ret = fn(...params);
+                    if (ret instanceof Promise)
+                    {
+                        try {
+                            ret = await ret;
+                        } catch (error)
+                        {
+                            console.error(error);
+                            ret = "ERROR";
+                        }
+                        
+                        
+                    }
                 }
             }
             else
@@ -120,4 +161,5 @@ if (!GSVCollectorWebSocket.init)
 {
     GSVCollectorWebSocket.init = true;
     GSVCollectorWebSocket.registerFunction("crawlNodes", GSVService.crawlNodes);
+    GSVCollectorWebSocket.registerFunction("getPanoramaByLocation", GSVService.getPanoramaByLocation);
 }
