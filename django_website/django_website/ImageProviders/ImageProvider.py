@@ -1,7 +1,7 @@
 from django_website.Primitives.GeoImage import GeoImage
 from abc import ABC, abstractmethod
 from typing import List
-from geojson import FeatureCollection
+from geojson import FeatureCollection, Feature
 
 class ImageProvider(ABC):
     """abstract class describing the common interface to all Image Providers classes"""
@@ -25,12 +25,19 @@ class ImageProvider(ABC):
 
     @staticmethod
     @abstractmethod
-    def getImageForFeatureCollection(location: FeatureCollection)->List[GeoImage]:
+    def getImageForFeatureCollection(location: FeatureCollection)->FeatureCollection:
+        """An image provider coupled with a GIS must be able to get images by coordinates"""
+        pass
+
+
+    @staticmethod
+    @abstractmethod
+    def getImageForFeature(location: Feature)->Feature:
         """An image provider coupled with a GIS must be able to get images by coordinates"""
         pass
 
     @staticmethod
-    def traverseFeature(feature, function):
+    def traverseFeature(feature, cfunction):
         cloneTree = []
         if type(feature) is list:
             coordinatesRoot = feature
@@ -38,13 +45,13 @@ class ImageProvider(ABC):
             coordinatesRoot = feature['geometry']['coordinates']
         if type(coordinatesRoot[0]) is not list:
             #the feature is a point
-            cloneTree.append(function(coordinatesRoot))
+            cloneTree.append(cfunction(coordinatesRoot))
         else:
             for j in range(len(coordinatesRoot)):
                 if type(coordinatesRoot[j][0]) is list:
-                    cloneTree.append(ImageProvider.traverseFeature(coordinatesRoot[j], function))
+                    cloneTree.append(ImageProvider.traverseFeature(coordinatesRoot[j], cfunction))
                 else:
-                    cloneTree.append(function(coordinatesRoot[j]))
+                    cloneTree.append(cfunction(coordinatesRoot[j]))
         return cloneTree
 
     
@@ -55,6 +62,4 @@ class ImageProvider(ABC):
             clonedTree = ImageProvider.traverseFeature(feature, cfunction)
             ffunction(feature, clonedTree)
 
-        pass    
-
-    
+        pass

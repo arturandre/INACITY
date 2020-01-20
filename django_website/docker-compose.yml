@@ -64,7 +64,6 @@ services:
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         
-
     expose:
       - "3000"
       - "8000"

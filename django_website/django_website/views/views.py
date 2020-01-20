@@ -10,6 +10,7 @@ from django.utils.translation import gettext
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
 
+from django_website.Forms.UserForm import ProfileForm, UserForm
 
 import ast
 import json
@@ -38,6 +39,7 @@ from django.template import loader
 #User Auth
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 
 # To avoid an override of the function logout
 # Define an alias for django.contrib.auth.login function using as keyword.
@@ -260,6 +262,58 @@ def sign_gsv_url(request):
     # Return signed URL
     return HttpResponse(original_url + "&signature=" + encoded_signature.decode('utf-8'))
 
+@login_required
+@api_view(['GET', 'POST'])
+def user_settings(request):
+    """
+    End-point for the user settings page, containing his/her
+    saved settings like API keys and personal data.
+    
+    Notice that user must be signed in.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        A basic HTTP 'GET' request
+
+    Returns
+    -------
+    The requested page with the user sessions.
+    """
+    htmlfile = 'registration/user_settings.html'
+    
+    #if request.user.is_authenticated:
+    #    userSessions = Session.objects.filter(user_id=request.user.id).values('id', 'sessionName')
+    #    local_vars = {'sessionList': userSessions}
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=request.user.profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            #messages.success(request, _('Your profile was successfully updated!'))
+            return redirect('user_settings')
+        else:
+            #messages.error(request, _('Please correct the error below.'))
+            pass
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = ProfileForm(instance=request.user.profile)
+    local_vars = {
+        'user_form': user_form,
+        'profile_form': profile_form
+        }
+    
+    #return render(request, 'profiles/profile.html', {
+    #    'user_form': user_form,
+    #    'profile_form': profile_form
+    #})
+    return render(
+        request,
+        htmlfile,
+        __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
+
+
 @api_view(['GET'])
 def profile(request):
     """
@@ -318,9 +372,6 @@ def register(request):
     htmlfile = 'registration/register.html'
     local_vars = {'sample_key': 'sample_data', 'form': form}
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-
-
-
 
 def logout(request):
     """

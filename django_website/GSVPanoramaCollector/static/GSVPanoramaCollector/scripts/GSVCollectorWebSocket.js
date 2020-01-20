@@ -2,7 +2,7 @@ class GSVCollectorWebSocket
 {
     constructor(collectorEndpoint, browser_session)
     {
-        this.wsurl = 'ws://' + window.location.host
+        this.wsurl = 'ws://' + window.location.hostname
             + ':' + daphne_port
             + '/ws'
             + '/' + collectorEndpoint
@@ -104,8 +104,15 @@ class GSVCollectorWebSocket
                     ret = fn(...params);
                     if (ret instanceof Promise)
                     {
-                        ret = await ret;
-                        debugger;
+                        try {
+                            ret = await ret;
+                        } catch (error)
+                        {
+                            console.error(error);
+                            ret = "ERROR";
+                        }
+                        
+                        
                     }
                 }
             }

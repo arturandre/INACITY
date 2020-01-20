@@ -64,11 +64,8 @@ class GSVService
                 totalTime += timeDiff;
                 console.log(`Time elapsed (ms): ${timeDiff}`);
                 console.log(`Total elapsed (ms): ${totalTime}`);
-                
                 console.log(`progress: ${progressIter}/${progressMax}`);
                 console.log(`Nodes collected: ${progressCount}`);
-
-
             }
         }
         return nodes;
@@ -108,7 +105,7 @@ class GSVService
      * @param {float} lonLatCoordinate.lat - Latitude in degrees
      * @returns {Promise} - StreetViewPanoramaData
      */
-    static getPanoramaByLocation(lonLatCoordinate, maxRadius=null)
+    static getPanoramaByLocation(lonLatCoordinate, maxRadius = null)
     {
         if (!maxRadius) maxRadius = GSVService.maxRadius;
         return new Promise(function (resolve, reject)
@@ -116,13 +113,18 @@ class GSVService
             let lon = lonLatCoordinate[0];
             let lat = lonLatCoordinate[1];
             let latlng = new google.maps.LatLng(lat, lon);
-            GSVService._streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
+            //GSVService._streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
+            GSVService._streetViewService.getPanorama({location: latlng, preference: 'nearest', radius: maxRadius, source: 'outdoor'}, function (data, status)
             {
                 //resolve({ data: data, status: status });
                 if (status === "OK")
                 {
                     let parsedData = StreetViewPanoramaData.fromStreetViewServiceData(data);
                     resolve(parsedData);
+                }
+                else if (status === "ZERO_RESULTS")
+                {
+                    resolve(status);
                 }
                 else
                 {
