@@ -16,7 +16,7 @@ echo "disabling apache 000-default page"
 a2dissite 000-default
 echo "enabling apache inacity page"
 a2ensite inacity
-echo "Starting apache (just in case it's stopped"
+echo "Starting apache (just in case it's stopped)"
 service apache2 start
 echo "Reloading apache"
 service apache2 reload
