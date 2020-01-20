@@ -552,6 +552,61 @@ def getmapminerfeatures(request):
     #return JsonResponse(ret)
 
 @api_view(['POST'])
+def getimagesforfeature(request):
+    """
+    End-point to retrieve images for
+    urban features previously collected.
+
+    Notice that in order to collect geolocated
+    images, some locations are required.
+
+    E.g. When collecting images from a street
+    nodes composing the line segments representing
+    the street are used as locations and
+    the direction from one point to the next
+    are used as horizontal angle for the camera.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        An HTTP 'POST' request with:
+        - Image provider name (str)
+        - Feature (GeoJSON)
+        
+        E.g.:
+
+        {
+            'imageProviderName': 'gsv',
+            'feature': <GeoJSON>
+        }
+
+    Returns
+    -------
+    JsonResponse: Dict with the keys:
+    - 'feature': <GeoJSON> whose its property 'properties'
+        will contain a new entry called 'geoImages'. The geoImages
+        property will be structured just as the 'features' property
+        of the GeoJSON, but rather than coordinates it'll have
+        GeoImages as its leaves.
+    """
+    #write_to_log('getimagesforfeaturecollection')
+    jsondata = request.data
+    imageProviderName = jsondata['imageProviderName']
+    feature = geojson.loads(jsondata['feature'])
+    ret = {}
+    #Works in-place
+    imageProviderManager.getImageForFeature(imageProviderName, feature)
+    #if (isinstance(tryGetImagesForCollection, requests.Response)):
+    #    return HttpResponse(content=tryGetImagesForCollection.content,
+    #        status=tryGetImagesForCollection.status_code,
+    #        content_type=tryGetImagesForCollection.headers['Content-Type'])
+    ret['feature'] = feature #imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    #ret['regionId'] = jsondata['regionId']
+    #ret['layerId'] = jsondata['layerId']
+    return JsonResponse(ret)
+
+
+@api_view(['POST'])
 def getimagesforfeaturecollection(request):
     """
     End-point to retrieve images for
@@ -570,13 +625,13 @@ def getimagesforfeaturecollection(request):
     ----------
     request : HttpRequest
         An HTTP 'POST' request with:
-        - Image miner name (str)
+        - Image provider name (str)
         - featureCollection (GeoJSON)
         
         E.g.:
 
         {
-            'imageMinerName': 'gsv',
+            'imageProviderName': 'gsv',
             'featureCollection': <GeoJSON>
         }
 
@@ -591,15 +646,16 @@ def getimagesforfeaturecollection(request):
     """
     #write_to_log('getimagesforfeaturecollection')
     jsondata = request.data
-    imageMinerName = jsondata['imageMinerName']
+    imageProviderName = jsondata['imageProviderName']
     featureCollection = geojson.loads(jsondata['featureCollection'])
     ret = {}
-    tryGetImagesForCollection = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
-    if (isinstance(tryGetImagesForCollection, requests.Response)):
-        return HttpResponse(content=tryGetImagesForCollection.content,
-            status=tryGetImagesForCollection.status_code,
-            content_type=tryGetImagesForCollection.headers['Content-Type'])
-    ret['featureCollection'] = imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
+    #Works in-place
+    imageProviderManager.getImageForFeatureCollection(imageProviderName, featureCollection)
+    #if (isinstance(tryGetImagesForCollection, requests.Response)):
+    #    return HttpResponse(content=tryGetImagesForCollection.content,
+    #        status=tryGetImagesForCollection.status_code,
+    #        content_type=tryGetImagesForCollection.headers['Content-Type'])
+    ret['featureCollection'] = featureCollection #imageProviderManager.getImageForFeatureCollection(imageMinerName, featureCollection)
     ret['regionId'] = jsondata['regionId']
     ret['layerId'] = jsondata['layerId']
     return JsonResponse(ret)

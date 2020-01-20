@@ -61,6 +61,8 @@ services:
         && python3 manage.py collectstatic_js_reverse
         && echo 'from django_website import load; load.run(False)' | python manage.py shell
         && bash /var/www/html/scripts/daphne_starter.sh
+        && neo4j start
+        && curl -H "Content-Type: application/json" -XPOST -d '{"password":"1234"}' -u neo4j:neo4j http://localhost:7474/user/neo4j/password
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         

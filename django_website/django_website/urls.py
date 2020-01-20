@@ -86,6 +86,10 @@ urlpatterns = [
     #Get GIS data related to a particular type of feature inside a given region
     re_path(r'^getmapminerfeatures/?$', getmapminerfeatures, name='getmapminerfeatures'),
 
+    #Used to collect images for a given GIS feature called Feature
+    re_path(r'^getimagesforfeature/?$', getimagesforfeature, name='getimagesforfeature'),
+
+
     #Used to collect images for a given set of GIS features called FeatureCollection
     re_path(r'^getimagesforfeaturecollection/?$', getimagesforfeaturecollection, name='getimagesforfeaturecollection'),
 

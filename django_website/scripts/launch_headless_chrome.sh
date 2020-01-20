@@ -1,0 +1,1 @@
+google-chrome --no-sandbox --headless --remote-debugging-port=9222 http://localhost/gsvpanoramacollector/link_browser/default/

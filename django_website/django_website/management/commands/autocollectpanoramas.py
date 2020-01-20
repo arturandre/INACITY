@@ -9,6 +9,8 @@ from pyppeteer import launch
 import pyppeteer
 from datetime import datetime
 
+import sys, traceback
+
 current_browser = None
 x = None
 
@@ -30,12 +32,14 @@ class Command(BaseCommand):
         page = await browser.newPage()
         await page.goto('http://localhost/gsvpanoramacollector/link_browser/default/')
         try:
-            self.stdout.write("await page.waitForNavigation({'waitUntil': 'load', 'timeout': 3000})")
-            await page.waitForNavigation({'waitUntil': 'load', 'timeout': 3000})
+            self.stdout.write("await page.waitForNavigation({'waitUntil': 'load', 'timeout': 5000})")
+            await page.waitForNavigation({'waitUntil': 'load', 'timeout': 5000})
             #self.stdout.write('waiting for navigation')
             #await page.waitForNavigation({'timeout': 5000})
-        except Exception as e:
-            self.stdout.write(e)
+        #except Exception as e:
+        except Exception:
+            #print(f'2 e.__str__(): {e.__str__()}')
+            traceback.print_exc(file=sys.stdout)
             
         
 
@@ -50,6 +54,7 @@ class Command(BaseCommand):
             await current_browser.close()
 
     def handle(self, *args, **options):
+        try_seeding = True
         #asyncio.get_event_loop().run_until_complete(start_headless_browser())
         #x = DBManager()
 
@@ -60,15 +65,23 @@ class Command(BaseCommand):
         #self.stdout.write('process opened, waiting 5 seconds to start...')
         #sleep(5)
         self.stdout.write('Starting!')
+
         iterations = 1
         while True:
             self.stdout.write(f'Collecting...')
             try:
+                self.stdout.write('Starting DBManager')
+                x = DBManager()
+                self.stdout.write('Starting headless browser')
                 asyncio.get_event_loop().run_until_complete(self.start_headless_browser())
                 self.stdout.write('x = DBManager()')
-                x = DBManager()
+                if try_seeding:
+                    try_seeding = False
+                    self.stdout.write('Trying to seed')
+                    x._seed_panorama()
+                
                 self.stdout.write('x._update_panorama_references()')
-                self.stdout.write(datetime.now().time())
+                self.stdout.write(f'{datetime.now().time()}')
                 x._update_panorama_references()
                 self.stdout.write(f'Success: {iterations}')
                 iterations += 1
@@ -80,8 +93,10 @@ class Command(BaseCommand):
                 x.close()
                 self.stdout.write('asyncio.get_event_loop().run_until_complete(stop_headless_browser())')
                 asyncio.get_event_loop().run_until_complete(self.stop_headless_browser())
-            except:
+            except Exception as e:
                 self.stdout.write(f'Failed (iteration {iterations}) updating trying to reset chromium')
+                #print(f'e.__str__(): {e.__str__()}')
+                traceback.print_exc(file=sys.stdout)
                 #process.kill()
                 asyncio.get_event_loop().run_until_complete(self.stop_headless_browser())
                 if x is not None:

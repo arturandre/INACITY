@@ -83,7 +83,8 @@ class GSVPanoramaMiner(MapMiner):
 
     @staticmethod
     def _getPanoramasInBoundingBoxes(regions: FeatureCollection) -> MultiLineString:
-        """Collect a set of Ways (from GSVPanoramaManager) and convert them to a MultiLineString"""
+        """Collect a set of Ways (from GSVPanoramaManager)
+        and convert them to a MultiLineString"""
 
         neo4jDB = DBManager()
 
@@ -142,24 +143,30 @@ class GSVPanoramaMiner(MapMiner):
                             # added
                             if (leftNodeProps['pano'] in rightNodes)\
                                     and (rightNodeProps['pano'] in leftNodes):
+                                leftLinestringIdx = None
+                                rightLinestringIdx = None
+                                counter = -1
                                 for linestring in linestrings:
-                                    leftLinestring = None
-                                    rightLinestring = None
+                                    counter = counter + 1
                                     # Notice that only one direction
-                                    # can be extended at a time
+                                    # can be extended at once
                                     # so if backward arrows are found
                                     # they will be discarded since they
                                     # require both directions to be treated
                                     # in a single check.
                                     if linestring[-1]['pano'] == leftNodeProps['pano']:
-                                        leftLinestring = linestring
+                                        leftLinestringIdx = counter
                                     elif linestring[0]['pano'] == rightNodeProps['pano']:
-                                        rightLinestring = linestring
+                                        rightLinestringIdx = counter
                                     else:
                                         continue
-                                    if (leftLinestring is not None)\
-                                            and (rightLinestring is not None):
-                                        leftLinestring = leftLinestring + rightLinestring
+                                    if (leftLinestringIdx is not None)\
+                                            and (rightLinestringIdx is not None):
+                                        linestrings[leftLinestringIdx] = \
+                                            linestrings[leftLinestringIdx] +\
+                                            linestrings[rightLinestringIdx]
+                                        linestrings.pop(rightLinestringIdx)
+                                        #leftLinestring = leftLinestring + rightLinestring
                                         break
                             # The line can be extended to the right
                             elif leftNodeProps['pano'] in rightNodes:
@@ -195,10 +202,10 @@ class GSVPanoramaMiner(MapMiner):
                                 leftNodes.add(leftNodeProps['pano'])
                                 rightNodes.add(rightNodeProps['pano'])
 
-                                # Pegar a lista de endereços presentes na consulta
-                                # Cada dois nós de um mesmo endereço definem um segmento
-                                # um segmento pode ser extendido
-                                # Somente um sentido de cada rua é exibido
+                                # Pegar a lista de endereços presentes na consulta.
+                                # Cada dois nós de um mesmo endereço definem um segmento.
+                                # Um segmento pode ser extendido.
+                                # Somente um sentido de cada rua é exibido.
                                 # Se dois segmentos de uma mesma rua forem desconexos
                                 # então esta rua será representada por 2 linestrings
                                 # cada linestring tem sua própria orientação
