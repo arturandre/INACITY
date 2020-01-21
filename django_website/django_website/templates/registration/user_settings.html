@@ -28,7 +28,7 @@
 {% if user.is_authenticated %}
   <h1>{% trans "Hi" %} {{ user.username }}!</h1>
   <p>{% trans "Here you can set your settings." %}</p>
-  <form>
+  <form method="post">
     <div class="form-group" method="post">
         {% csrf_token %}
         {{ user_form.as_p }}

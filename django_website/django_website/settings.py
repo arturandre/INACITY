@@ -38,7 +38,9 @@ INSTALLED_APPS = [# Add your apps here to enable them
     'django.contrib.gis',
     'rest_framework',
     'django_website',
-    'django_extensions',]
+    'django_extensions',
+    'django_js_reverse',
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,6 +72,7 @@ WSGI_APPLICATION = 'django_website.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+# Use HOST: 'db' for docker and HOST: 'localhost' when not using docker
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
