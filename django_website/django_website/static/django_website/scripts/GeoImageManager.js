@@ -365,6 +365,10 @@ class GeoImageManager extends Subject
             {
                 this._DOMImage.attr("src", geoImage.data);
             }
+            else if (geoImage.dataType === 'data:image/jpeg;base64')
+            {
+                this._DOMImage.attr("src", `data:image/jpeg;base64,${geoImage.data}`);
+            }
             else
             {
                 throw new Error(`Unrecognized geoImage dataType: ${geoImage.dataType}`);

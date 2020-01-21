@@ -64,11 +64,8 @@ class GSVService
                 totalTime += timeDiff;
                 console.log(`Time elapsed (ms): ${timeDiff}`);
                 console.log(`Total elapsed (ms): ${totalTime}`);
-
                 console.log(`progress: ${progressIter}/${progressMax}`);
                 console.log(`Nodes collected: ${progressCount}`);
-
-
             }
         }
         return nodes;

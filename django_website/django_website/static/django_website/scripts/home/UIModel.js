@@ -712,7 +712,15 @@ class UIModel extends Subject
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
-    set SelectedMapMiner(mapMiner) { this._SelectedMapMiner = mapMiner; }
+    set SelectedMapMiner(mapMiner)
+    {
+        this._SelectedMapMiner = mapMiner;
+        if (!mapMiner) return;
+        if ((mapMiner.features.length === 1) && !this._SelectedMapFeature)
+        {
+            this._SelectedMapFeature = mapMiner.features[0];
+        }
+    }
 
     get SelectedMapFeature() { return this._SelectedMapFeature; }
     set SelectedMapFeature(mapFeature) { this._SelectedMapFeature = mapFeature; }
@@ -789,7 +797,9 @@ class UIModel extends Subject
     getFeatureCollectionFromFeaturesByLayerIndex(regionLayer)
     {
         let ret = $.extend(true, {}, regionLayer.featureCollection);
-        for (let fId in regionLayer.featureCollection.features)
+        let features = getPropPath(regionLayer, ['featureCollection', 'features']);
+        if (!features) return ret;
+        for (let fId in features)
         {
             let feature = regionLayer.featureCollection.features[fId];
             ret.features[fId] =
@@ -893,7 +903,7 @@ class UIModel extends Subject
      * @todo This task requires that requests for images could be done
      * @todo in a partial way.
      */
-    async getImages()
+    async getImagesOld()
     {
         let numCalls = 0;
 
@@ -966,6 +976,176 @@ class UIModel extends Subject
             UIModel.notify('getimages', null);
             // }
         }
+    }
+
+    async _getImagesForFeature(GeoJSONFeature)
+    {
+        if (getPropPath(GeoJSONFeature, ['properties', 'geoImages']))
+        {
+            return GeoJSONFeature;
+        }
+
+        let data = await $.ajax('/getimagesforfeature/',
+            {
+                method: 'POST',
+                processData: false,
+                data: JSON.stringify({
+                    'imageProviderName': this.SelectedImageProvider.id,
+                    'feature': JSON.stringify(GeoJSONFeature)
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                context: this
+            }).done(function (data, textStatus, XHR)
+            {
+                let feature = data.feature;
+                feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
+                this._syncAndMergeMultiFeature(feature);
+            }).fail(function (jqXHR, textStatus, errorThrown)
+            {
+                //@todo: Create a error handling mechanism
+                if (jqXHR.status === 413)
+                {
+                    alert(gettext("The request was too big to be processed. Try a smaller feature."));
+                }
+                else
+                {
+                    throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+                }
+            });
+        return data.feature;
+    }
+
+    /**
+     * Each image filter can return different kinds of responses like
+     * a greenery view index (0-100%) or a boolean flag indication if there's
+     * an intersection between the trees greenery and pole wires.
+     * 
+     * This function sends a feature collection already filled with geoImages. 
+     * The data processed by the filters will be appended to each GeoImage as the
+     * property processedData['filterId']
+     * @param {string} selectedImageFilter - Indicates which filter should be used to process images from the active layers.
+     * @returns {Promise} - Empty
+     * @todo: Treat parcial returns, the user should be able to see the results as they are being received, rather than wait all of them.
+     */
+    async getImages()
+    {
+        let noCalls = true;
+
+        if (this._streetSelect.lastSelectedFeature)
+        {
+            let geoImagesTree =
+                this._streetSelect.lastSelectedFeature.getProperties().geoImages;
+
+            if (geoImagesTree)
+            {
+                UIModel.notify('getimages', null);
+                return;
+            }
+
+            let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
+            await GSVService.setPanoramaForFeature(geoJSONFeature);
+
+            let imagedFeature = await this._getImagesForFeature(geoJSONFeature);
+            let imagedFeatureProperties = getPropPath(imagedFeature, ['feature', 'properties']) || getPropPath(imagedFeature, ['properties'])
+
+            this._streetSelect.lastSelectedFeature.setProperties({
+                geoImages:
+                imagedFeatureProperties.geoImages
+            });
+
+
+
+            UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
+            return;
+        }
+
+
+        let activeRegions = this.getActiveRegions();
+        if (activeRegions.length === 0)
+        {
+            throw new Error(gettext("Please, select or activate a region to continue."));
+        }
+        let promisesFeatures = [];
+        let skippedLayers = [];
+        for (let regionIdx in activeRegions)
+        {
+            var region = activeRegions[regionIdx];
+            /*
+              Case the user simply select a region and then try to get the images
+              by default the Streets from OSM will be used as source for
+              sample feature. The feature to be used as sample will be by
+              default "Street".
+            */
+            await this._collectLayersForEmptyRegions(region);//.then(() => {
+
+
+            for (let layerIdx in region.layers)
+            {
+                let layer = region.layers[layerIdx];
+
+                let features = getPropPath(layer, ['featureCollection', 'features']);
+                if (!features)
+                {
+                    if (!layer.featureCollection) skippedLayers.reason = gettext("No featureCollection available!");
+                    if (!layer.featureCollection.features) skippedLayers.reason = gettext("featureCollection without any features!");
+                    //if (!layer.featureCollection.features[0].properties.geoImages) skippedLayers.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
+                    //if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
+                    skippedLayers.push(skippedLayers);
+                    continue;
+                }
+
+
+                for (let featureIdx in features)
+                {
+                    let promise = new Promise(async function (resolve, reject)
+                    {
+                        try
+                        {
+                            let featureId = features[featureIdx];
+                            let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
+                            let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
+
+                            // if (!geoJSONFeature.properties.geoImages)
+                            // {
+                            //     await this.getImages();
+                            //     olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
+                            //     geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
+                            // }
+
+                            let imagedFeature = await this._getImagesForFeature(geoJSONFeature);
+
+                            olFeature.setProperties({
+                                geoImages:
+                                imagedFeature.properties.geoImages
+                            });
+                            resolve();
+                        } catch (error)
+                        {
+                            reject(error);
+                        }
+                    }.bind(this));
+                    promisesFeatures.push(promise);
+                }
+            }
+            await Promise.all(promisesFeatures).then(function ()
+            {
+                UIModel.notify('getimages', null);
+            }.bind(this));
+            if (skippedLayers.length > 0)
+            {
+                let warnSkippedMessage = gettext("The following layers were skipped: \n");
+                for (let skippedLayerIdx in skippedLayers)
+                {
+                    let skippedLayer = skippedLayers[skippedLayerIdx];
+                    warnSkippedMessage += gettext("Layer: ") + skippedLayer.layerId + "."
+                        + gettext(" From region: ") + skippedLayer.regionName + "."
+                        + gettext(" Reason: ") + skippedLayer.reason + "\n";
+                }
+                alert(warnSkippedMessage);
+            }
+        }
+        if (noCalls) return;
     }
 
 
@@ -1043,15 +1223,15 @@ class UIModel extends Subject
                 return;
             }
 
-            debugger;
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
             await GSVService.setPanoramaForFeature(geoJSONFeature);
 
             let processedFeature = await this._getProcessedImagesForFeature(geoJSONFeature);
+            let processedFeatureProperties = getPropPath(processedFeature, ['feature', 'properties']) || getPropPath(processedFeature, ['properties'])
 
             this._streetSelect.lastSelectedFeature.setProperties({
                 geoImages:
-                    processedFeature.feature.properties.geoImages
+                    processedFeatureProperties.geoImages
             });
 
 
@@ -1073,7 +1253,9 @@ class UIModel extends Subject
             var region = activeRegions[regionIdx];
             /*
               Case the user simply select a region and then try to get the images
-              by default the Streets from OSM will be used as features
+              by default the Streets from OSM will be used as source for
+              sample feature. The feature to be used as sample will be by
+              default "Street".
             */
             await this._collectLayersForEmptyRegions(region);//.then(() => {
 
@@ -1085,11 +1267,11 @@ class UIModel extends Subject
                 let features = getPropPath(layer, ['featureCollection', 'features']);
                 if (!features)
                 {
-                    if (!layer.featureCollection) skippedLayer.reason = gettext("No featureCollection available!");
-                    if (!layer.featureCollection.features) skippedLayer.reason = gettext("featureCollection without any features!");
-                    if (!layer.featureCollection.features[0].properties.geoImages) skippedLayer.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
+                    if (!layer.featureCollection) skippedLayers.reason = gettext("No featureCollection available!");
+                    if (!layer.featureCollection.features) skippedLayers.reason = gettext("featureCollection without any features!");
+                    if (!layer.featureCollection.features[0].properties.geoImages) skippedLayers.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
                     //if (GeoImageCollection.isFiltered(layer.featureCollection.features[0].properties.geoImages, this.SelectedImageFilter.id)) skippedLayer.reason = gettext("This layer already has the requested processed images.");
-                    skippedLayers.push(skippedLayer);
+                    skippedLayers.push(skippedLayers);
                     continue;
                 }
 
@@ -1100,8 +1282,6 @@ class UIModel extends Subject
                     {
                         try
                         {
-
-
                             let featureId = features[featureIdx];
                             let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                             let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
@@ -1144,11 +1324,8 @@ class UIModel extends Subject
                 }
                 alert(warnSkippedMessage);
             }
-            //});
         }
-        if (noCalls) return;// resolve();
-
-        //}.bind(this));
+        if (noCalls) return;
     }
 
     /**
@@ -1941,9 +2118,17 @@ class UIModel extends Subject
 
 /**
 * Triggered when MultiLineString Features are joined together
-* @event module:UIModel~UIModel.featuresmerged
+* @event module:UIModel~UIModel#event:featuresmerged
 * @type {Layer}
 * @property {Layer} layer - See [Layer]{module:UIModel~Layer}
+*/
+
+/**
+* Triggered when images or processed images are collected
+* @event module:UIModel~UIModel#event:getimages
+* @type {object | null}
+* @property {string} filterId - If undefined then it's the original image
+* otherwise it's an image processed by a filter whose id is filterId (e.g. greenery)
 */
 if (!UIModel.init)
 {

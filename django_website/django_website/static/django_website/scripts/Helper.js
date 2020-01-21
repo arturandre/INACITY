@@ -1,4 +1,4 @@
-/**
+/**x
      * Check if object is a leaf (geoImage)
      * @private
      * @param {any} object - The object to be tested

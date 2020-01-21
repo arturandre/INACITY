@@ -97,7 +97,7 @@ class ProcessedImageData():
         self.density = -1
         self.isPresent = None
 
-class GeoImage():
+class GeoImage(SimpleDTO):
     """
     Object responsible for keeping image and panorama's data
 
@@ -231,6 +231,24 @@ class GeoImage():
         inputImage.save(buff, format="JPEG")
         return base64.b64encode(buff.getvalue()).decode("utf-8")
 
+    @staticmethod
+    def Base64ToImage(base64str):
+        """
+        Used to encode a base64 string into a PIL Image.
+
+        Parameters
+        ----------
+        base64str: str
+            The base64 string encoded image to be decoded
+
+        Returns
+        -------
+        An base64 decoded image.
+
+        """
+        image_binary = base64.decodestring(base64str.encode('ascii'))
+        return image_binary
+    
     def setProcessedData(self, filterId: str, type: str, imageData=None, density=-1, isPresent=None):
         """
         Sets or updates a ProcessedData object (identified by its filterId) from the ProcessedDataDict
@@ -256,6 +274,8 @@ class GeoImage():
         if type == 'ndarray':
             imageData = Image.fromarray(img_as_ubyte(imageData))
             imageData = GeoImage.imageToBase64JPEG(imageData)
+            pImageData.imageData = f'data:image/jpeg;base64,{imageData}'
+        elif type == 'base64':
             pImageData.imageData = f'data:image/jpeg;base64,{imageData}'
         pImageData.filterId = filterId
         pImageData.density = density

@@ -275,7 +275,8 @@ class OpenLayersHandler extends Subject
 
         this._imagePinPoint = new ol.Feature({
             geometry: new ol.geom.Point(
-                ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])
+                //ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])
+                ol.proj.fromLonLat([geoImage.location.coordinates[0], geoImage.location.coordinates[1]])
             )
         });
         this._imagePinPoint.setStyle(new ol.style.Style({
@@ -291,13 +292,15 @@ class OpenLayersHandler extends Subject
         //rightPointingArrow.scale(1, 1);
         let rotation = (Math.PI * geoImage.heading) / 180;
         rightPointingArrow.rotate(-rotation, [0, 0])
-        let pCoords = ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]);
+        //let pCoords = ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]);
+        let pCoords = ol.proj.fromLonLat([geoImage.location.coordinates[0], geoImage.location.coordinates[1]]);
         rightPointingArrow.translate(pCoords[0], pCoords[1]);
 
         this._imagePinPointArrow = new ol.Feature({
             geometry: new ol.geom.LineString(
                 [
-                    ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]),
+                    //ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat]),
+                    ol.proj.fromLonLat([geoImage.location.coordinates[0], geoImage.location.coordinates[1]]),
                     rightPointingArrow.getCoordinates()
                 ]
             )
@@ -409,7 +412,8 @@ class OpenLayersHandler extends Subject
                 if (!isNaN(geoImage.processedDataList[imageFilterId].density))
                 {
                     let feature = new ol.Feature({
-                        geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])),
+                        //geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.lon, geoImage.location.lat])),
+                        geometry: new ol.geom.Point(ol.proj.fromLonLat([geoImage.location.coordinates[0], geoImage.location.coordinates[1]])),
                         weight: geoImage.processedDataList[imageFilterId].density
                     });
                     newHeatmapVectorSource.addFeature(feature);

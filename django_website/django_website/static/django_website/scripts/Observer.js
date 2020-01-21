@@ -20,7 +20,7 @@ class Subject {
      */
     static registerEventNames(eventNames)
     {
-        /* this is the subclass */
+        /* 'this' is the subclass */
         this._eventNames = eventNames;
         this._observers = {};
     }

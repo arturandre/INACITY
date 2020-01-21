@@ -60,6 +60,10 @@ services:
         && python3 manage.py collectstatic --noinput
         && python3 manage.py collectstatic_js_reverse
         && echo 'from django_website import load; load.run(False)' | python manage.py shell
+        && chmod +x /var/www/html/scripts/daphne_starter.sh
+        && bash /var/www/html/scripts/daphne_starter.sh
+        && chmod +x /var/www/html/scripts/daphne_starter.sh
+        && bash /var/www/html/scripts/neo4j_config.sh
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         
