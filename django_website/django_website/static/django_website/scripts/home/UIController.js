@@ -22,6 +22,7 @@
 
     initialize()
     {
+        this.uiView.onErrorImgUrbanPicture = this.onErrorImgUrbanPicture.bind(this);
 
         this.uiView.onClickExecuteQueryBtn = this.onClickExecuteQueryBtn.bind(this);
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
@@ -63,6 +64,17 @@
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
 
+    }
+
+    async onErrorImgUrbanPicture(event)
+    {
+        await $.get(event.target.src).fail((obj) =>
+        {
+            $(`#b_${event.target.id}`).remove();
+            $(`<b id=b_${event.target.id} class="imgErrorText">${obj.responseText}</b>`).insertAfter(event.target);
+        });
+    /**<b class="imgErrorText">The Google Maps Platform server rejected your request. The provided API key is invalid.</b> */
+    // event.target.innerHTML = '<b style="position:absolute; top:50%; left:50%;transform: translate(-50%, -50%);">The Google Maps Platform server rejected your request. The provided API key is invalid222.</b>'
     }
 
     /**

@@ -4,13 +4,19 @@ import sys
 
 import requests
 from rest_framework.decorators import api_view
+#from rest_framework.decorators import authentication_classes, permission_classes
+#from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
 from django.utils.translation import gettext
+from django.core.exceptions import MultipleObjectsReturned
+from django.contrib import messages
+
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
 
-from django_website.Forms.UserForm import ProfileForm, UserForm
 
 import ast
 import json
@@ -18,7 +24,10 @@ import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
+
 from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
+
+from django_website.Forms.UserForm import ProfileForm, UserForm
 
 from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
@@ -26,7 +35,6 @@ from django_website.Managers.ImageFilterManager import ImageFilterManager
 from django_website.Managers.UserManager import UserManager
 
 from django_website.models import Session
-from django.core.exceptions import MultipleObjectsReturned
 
 
 # General functions
@@ -120,6 +128,18 @@ def home(request):
     """
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
+    if request.user.is_authenticated:
+        try:
+            # Note that the signing url key must be used exclusively
+            # at the backend, thus it should never be sent to the
+            # front-end.
+            masked_gsv_api_key = request.user.profile.gsv_api_key[:4] + "*****"
+            local_vars['gsv_api_key'] = request.user.profile.gsv_api_key
+            local_vars['masked_gsv_api_key'] = masked_gsv_api_key
+            local_vars['use_alternative_gsv_api_key'] = request.user.profile.use_alternative_gsv_api_key
+        except AttributeError as e:
+            write_to_log(f'Error: {e}')
+
     return render(request, htmlfile, __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
 
 def backend_diag(request):
@@ -262,8 +282,10 @@ def sign_gsv_url(request):
     # Return signed URL
     return HttpResponse(original_url + "&signature=" + encoded_signature.decode('utf-8'))
 
+#@authentication_classes([SessionAuthentication, BasicAuthentication])
+#@permission_classes([IsAuthenticated])
+@api_view(['POST', 'GET'])
 @login_required
-@api_view(['GET', 'POST'])
 def user_settings(request):
     """
     End-point for the user settings page, containing his/her
@@ -274,7 +296,9 @@ def user_settings(request):
     Parameters
     ----------
     request : HttpRequest
-        A basic HTTP 'GET' request
+        A basic HTTP 'GET' request to render the html page or,
+        an HTTP 'POST' request with user's profile data to be
+            recorded to the database
 
     Returns
     -------
@@ -291,61 +315,10 @@ def user_settings(request):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
-            #messages.success(request, _('Your profile was successfully updated!'))
+            messages.success(request, gettext('Your settings were successfully updated!'))
             return redirect('user_settings')
         else:
-            #messages.error(request, _('Please correct the error below.'))
-            pass
-    else:
-        user_form = UserForm(instance=request.user)
-        profile_form = ProfileForm(instance=request.user.profile)
-    local_vars = {
-        'user_form': user_form,
-        'profile_form': profile_form
-        }
-    
-    #return render(request, 'profiles/profile.html', {
-    #    'user_form': user_form,
-    #    'profile_form': profile_form
-    #})
-    return render(
-        request,
-        htmlfile,
-        __merge_two_dicts(__TEMPLATE_GLOBAL_VARS, local_vars))
-
-
-@api_view(['GET'])
-def user_settings(request):
-    """
-    End-point for the user settings page, containing his/her
-    saved settings like API keys and personal data.
-    
-    Notice that user must be signed in.
-
-    Parameters
-    ----------
-    request : HttpRequest
-        A basic HTTP 'GET' request
-
-    Returns
-    -------
-    The requested page with the user sessions.
-    """
-    htmlfile = 'registration/user_settings.html'
-    
-    #if request.user.is_authenticated:
-    #    userSessions = Session.objects.filter(user_id=request.user.id).values('id', 'sessionName')
-    #    local_vars = {'sessionList': userSessions}
-    if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, instance=request.user.profile)
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            #messages.success(request, _('Your profile was successfully updated!'))
-            return redirect('user_settings')
-        else:
-            #messages.error(request, _('Please correct the error below.'))
+            messages.error(request, gettext('Please correct the error(s) below.'))
             pass
     else:
         user_form = UserForm(instance=request.user)

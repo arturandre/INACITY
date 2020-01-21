@@ -66,7 +66,7 @@ class GSVService
                 console.log(`Total elapsed (ms): ${totalTime}`);
                 console.log(`progress: ${progressIter}/${progressMax}`);
                 console.log(`Nodes collected: ${progressCount}`);
-            }
+                    }
         }
         return nodes;
     }
@@ -111,7 +111,7 @@ class GSVService
         return new Promise(function (resolve, reject)
         {
             let lon = lonLatCoordinate[0];
-            let lat = lonLatCoordinate[1];
+            let lat = lonLatCoordinate[1];  
             let latlng = new google.maps.LatLng(lat, lon);
             //GSVService._streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
             GSVService._streetViewService.getPanorama({location: latlng, preference: 'nearest', radius: maxRadius, source: 'outdoor'}, function (data, status)
@@ -217,7 +217,7 @@ class GSVService
         return newRoot;
     }
 
-    static async imageURLBuilderForGeoImage(geoImage, size, key)
+    static async imageURLBuilderForGeoImage(geoImage, key, size)
     {
         let _size = size || [640, 640];
         let _key = key || GSVService.defaultKey;
@@ -274,18 +274,18 @@ if (!GSVService.init)
     /**
     * StreetViewService component used to collect the panoramas.
     * The google.maps.StreetViewService is loaded by the script
-    * http://maps.google.com/maps/api/js
-    * So that script needs to be loaded before the GSVService.js script
-    * @see StreetViewPanoramaData
+        * http://m aps.google.com/maps/api/js 
+    *  So that script needs to be loaded before the GSVService.js script
+* @see StreetViewPanoramaData
     * @const {google.maps.StreetViewService}
-    */
-    GSVService._streetViewService = new google.maps.StreetViewService();
+*/
+GSVService._streetViewService = new google.maps.StreetViewService();
 
-    /** 
-    * Used to define the radius of the area, around given location, to search for a panorama. 
-    * @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
+/** 
+* Used to define the radius of the area, around given location, to search for a panorama. 
+* @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
     * @const {int} 
-    */
+*/
     GSVService.maxRadius = 10;
 
     GSVService.SignURLs = false;

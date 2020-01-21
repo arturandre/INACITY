@@ -14,6 +14,14 @@ import os
 import posixpath
 from django_website.settings_secret import *
 
+
+# Changing error messages to match bootstraps' 'danger' style
+# Ref: https://stackoverflow.com/a/55202887/3562468
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'alert alert-danger',
+}
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

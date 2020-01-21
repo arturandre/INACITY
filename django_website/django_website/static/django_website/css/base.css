@@ -1,4 +1,9 @@
-﻿#btnSettings
+﻿.errorlist
+{
+    color: red;
+}
+
+#btnSettings
 {
     font-size: 16px;
     margin-right: 6px;

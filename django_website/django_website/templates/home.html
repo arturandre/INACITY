@@ -6,6 +6,14 @@
 
 {% get_current_language as LANGUAGE_CODE %}
 
+<script type="text/javascript">
+    var use_alternative_gsv_api_key = ("{{ use_alternative_gsv_api_key }}" == "True");
+    if (use_alternative_gsv_api_key)
+    {
+        var user_gsv_api_key = "{{ gsv_api_key }}";
+    }
+</script>
+
 <link rel="stylesheet" href="{% static 'django_website/css/home.css' %}" />
 <!--<link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">-->
 <link rel="stylesheet" href="{% static 'django_website/css/ol.css' %}" />
@@ -198,8 +206,19 @@
                 </div>
                 <button type="button" id="btnCollectImages" class="btn btn-warning hidden disabled" role="button"
                     data-container="body" data-toggle="tooltip" data-trigger="hover" data-placement="right"
-                    data-title="Selected layers:">{% trans "Get Images" %}</button>
-            </div>
+                    data-title="Selected layers:">
+                    {% trans "Get Images" %}
+                </button>
+                {% if user.is_authenticated and use_alternative_gsv_api_key %}
+                <span id="badgerGsvKey" class="badge badge-danger" data-toggle="tooltip" data-trigger="hover"
+                    data-placement="top"
+                    data-original-title='{% trans "Using user&#39;s Google Street View key: " %} {{ masked_gsv_api_key }}'>
+                    !
+                    <span class="sr-only">
+                        {% trans "Using user&#39;s Google Street View key" %}
+                    </span>
+                </span>
+                {% endif %}            </div>
         </div>
     </div>
 </div>

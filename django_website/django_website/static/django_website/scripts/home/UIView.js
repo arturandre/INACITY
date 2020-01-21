@@ -23,6 +23,8 @@ class UIView
         this.openLayersHandler = openLayersHandler;
         this.streetSelect = streetSelect;
 
+        this.onErrorImgUrbanPicture = null;
+
         this.onClickExecuteQueryBtn = null;
         this.onClickExecuteImageFilterBtn = null;
         this.onClickGetImagesBtn = null;
@@ -46,6 +48,8 @@ class UIView
 
         this.jqlabelSelectedFeature = $(`#lblSelectedFeature`);
 
+        this.jqimgUrbanPicture = $(`#imgUrbanPicture`);
+
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqimageFilterDiv = $(`#imageFilterDiv`);
         this.jqmapMinerDiv = $(`#mapMinerDiv`);
@@ -61,6 +65,7 @@ class UIView
         this.jqbtnExecuteImageFilter = $(`#btnExecuteImageFilter`);
         this.jqbtnImageFilter = $(`#btnImageFilter`);
         this.jqbtnImageProvider = $(`#btnImageProvider`);
+        this.jqbadgerGsvKey = $(`#badgerGsvKey`);
         this.jqbtnMapMiner = $(`#btnMapMiner`);
         this.jqbtnMapFeature = $(`#btnMapFeature`);
 
@@ -91,6 +96,8 @@ class UIView
 
     initialize()
     {
+        this.jqimgUrbanPicture.on("error", this.onErrorImgUrbanPicture.bind(this));
+
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
         this.jqbtnCollectImages.on("click", this.onClickGetImagesBtn.bind(this));

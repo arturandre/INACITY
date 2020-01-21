@@ -226,7 +226,8 @@ class StreetViewPanoramaData {
         ret.heading = this.tiles.centerHeading;
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
-        ret.data = await GSVService.imageURLBuilderForGeoImage(ret);
+        let userkey = (use_alternative_gsv_api_key) ? user_gsv_api_key : undefined;
+        ret.data = await GSVService.imageURLBuilderForGeoImage(ret, userkey);
         ret.dataType = "URL";
         ret.metadata['imageURL'] = ret.data;
         return ret;
