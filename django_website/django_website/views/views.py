@@ -11,10 +11,6 @@ from uuid import uuid4
 from urllib.parse import unquote, urlparse
 
 from django_website.Forms.UserForm import ProfileForm, UserForm
-<<<<<<< HEAD
-
-=======
->>>>>>> 483af8ae925334455979fadd54b740b5d3d18ecd
 
 import ast
 import json
