@@ -126,12 +126,8 @@ LOCALE_PATHS = [
 # This url must be also configured in the apache files 'demo_site.conf'
 STATIC_URL = '/static/'
 #STATIC_ROOT = posixpath.join(*(BASE_DIR.split(os.path.sep) + ['static']))
-<<<<<<< HEAD
-STATIC_ROOT = 'static'
-=======
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
->>>>>>> master
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
