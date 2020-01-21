@@ -903,7 +903,7 @@ class UIModel extends Subject
      * @todo This task requires that requests for images could be done
      * @todo in a partial way.
      */
-    async getImagesOld()
+    async getImages()
     {
         let numCalls = 0;
 
@@ -1028,7 +1028,7 @@ class UIModel extends Subject
      * @returns {Promise} - Empty
      * @todo: Treat parcial returns, the user should be able to see the results as they are being received, rather than wait all of them.
      */
-    async getImages()
+    async getImages_ex()
     {
         let noCalls = true;
 
