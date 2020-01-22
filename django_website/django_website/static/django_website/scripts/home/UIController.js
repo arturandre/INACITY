@@ -23,6 +23,7 @@
     initialize()
     {
         this.uiView.onErrorImgUrbanPicture = this.onErrorImgUrbanPicture.bind(this);
+        this.uiView.onLoadImgUrbanPicture = this.onLoadImgUrbanPicture.bind(this);
 
         this.uiView.onClickExecuteQueryBtn = this.onClickExecuteQueryBtn.bind(this);
         this.uiView.onClickGetImagesBtn = this.onClickGetImagesBtn.bind(this);
@@ -66,6 +67,10 @@
 
     }
 
+    onLoadImgUrbanPicture(event)
+    {
+        $(`#b_${event.target.id}`).remove();
+    }
     async onErrorImgUrbanPicture(event)
     {
         await $.get(event.target.src).fail((obj) =>

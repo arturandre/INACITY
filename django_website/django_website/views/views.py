@@ -136,7 +136,10 @@ def home(request):
             masked_gsv_api_key = request.user.profile.gsv_api_key[:4] + "*****"
             local_vars['gsv_api_key'] = request.user.profile.gsv_api_key
             local_vars['masked_gsv_api_key'] = masked_gsv_api_key
-            local_vars['use_alternative_gsv_api_key'] = request.user.profile.use_alternative_gsv_api_key
+            local_vars['use_alternative_gsv_api_key'] = \
+                request.user.profile.use_alternative_gsv_api_key
+            local_vars['use_alternative_gsv_signing_secret'] = \
+                request.user.profile.use_alternative_gsv_signing_secret
         except AttributeError as e:
             write_to_log(f'Error: {e}')
 
@@ -253,11 +256,18 @@ def sign_gsv_url(request):
     
     
     
-    input_url=jsonData['gsv_unsigned_url']
+    input_url = jsonData['gsv_unsigned_url']
     secret = settings_secret.GSV_SIGNING_SECRET
+    
+    if request.user.is_authenticated:
+        try:
+            if request.user.use_alternative_gsv_signing_secret:
+                secret = request.user.gsv_url_signing_secret
+        except AttributeError as e:
+            write_to_log(f'Error: {e}')
 
     if not input_url:
-        raise Exception("input_url and secret are required")
+        raise Exception("input_url is required")
     if not secret:
         return HttpResponse(input_url)
 

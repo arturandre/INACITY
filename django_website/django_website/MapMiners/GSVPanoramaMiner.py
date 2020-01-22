@@ -283,7 +283,7 @@ class GSVPanoramaMiner(MapMiner):
         )
 
         unsigned_url=baseurl + queryString
-        # signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        # signed_url = GoogleStreetViewProvider.sign_url(unsigned_url)
         # print(f'signed_url: {signed_url}')
         # return signed_url
         return unsigned_url

@@ -288,6 +288,6 @@ GSVService._streetViewService = new google.maps.StreetViewService();
 */
     GSVService.maxRadius = 10;
 
-    GSVService.SignURLs = false;
+    GSVService.SignURLs = use_alternative_gsv_signing_secret;
 
 }

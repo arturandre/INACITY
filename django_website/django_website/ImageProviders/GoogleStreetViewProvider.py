@@ -346,24 +346,26 @@ class GoogleStreetViewProvider(ImageProvider):
 
     #ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
     @staticmethod
-    def _sign_url(input_url=None):
-        """ Sign a request URL with a URL signing secret.
+    def sign_url(input_url=None, custom_url_sign_secret=None):
+        """ 
+            Sign a request URL with a (default) URL signing secret.
 
             Usage:
-            from urlsigner import sign_url
-
-            signed_url = sign_url(input_url=my_url, secret=SECRET)
+            signed_url = sign_url(input_url=my_url)
+            signed_url = sign_url(input_url=my_url, custom_url_sign_secret=SECRET)
 
             Args:
             input_url - The URL to sign
-            secret    - Your URL signing secret
+            (Optional) custom_url_sign_secret - User's URL signing secret
 
             Returns:
             The signed request URL
         """
-        write_to_log(f'_sign_url')
-        secret = settings_secret.GSV_SIGNING_SECRET
-        write_to_log(f'secret: {secret}')
+        write_to_log(f'sign_url')
+        if custom_url_sign_secret is not None:
+            secret = custom_url_sign_secret
+        else:
+            secret = settings_secret.GSV_SIGNING_SECRET
 
         if not input_url or not secret:
             raise Exception("input_url and secret are required")
@@ -396,7 +398,7 @@ class GoogleStreetViewProvider(ImageProvider):
     def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilderLocation')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderLocation(size, location, heading, pitch, key)
-        signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        signed_url = GoogleStreetViewProvider.sign_url(unsigned_url)
         write_to_log(f'signed_url: {signed_url}')
         return signed_url
 
@@ -422,7 +424,7 @@ class GoogleStreetViewProvider(ImageProvider):
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilder')
         unsigned_url = GoogleStreetViewProvider._baseurl + GoogleStreetViewProvider._queryStringBuilderPanorama(size, panoid, heading, pitch, key)
-        signed_url = GoogleStreetViewProvider._sign_url(unsigned_url)
+        signed_url = GoogleStreetViewProvider.sign_url(unsigned_url)
         #print(f'signed_url: {signed_url}')
         return signed_url
 

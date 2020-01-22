@@ -24,6 +24,7 @@ class UIView
         this.streetSelect = streetSelect;
 
         this.onErrorImgUrbanPicture = null;
+        this.onLoadImgUrbanPicture = null;
 
         this.onClickExecuteQueryBtn = null;
         this.onClickExecuteImageFilterBtn = null;
@@ -97,6 +98,7 @@ class UIView
     initialize()
     {
         this.jqimgUrbanPicture.on("error", this.onErrorImgUrbanPicture.bind(this));
+        this.jqimgUrbanPicture.on("load", this.onLoadImgUrbanPicture.bind(this));
 
         this.jqbtnExecuteQuery.on("click", this.onClickExecuteQueryBtn.bind(this));
         this.jqbtnExecuteImageFilter.on("click", this.onClickExecuteImageFilterBtn.bind(this));
