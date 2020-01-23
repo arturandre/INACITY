@@ -2,8 +2,10 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django_website.models import Quota
+from django_website import settings
 from functools import wraps
 import datetime
+
 
 
 def quota_decorator_factory(check_quota, update_quota, out_of_quota_message=None):
@@ -70,6 +72,8 @@ def quota_request_decorator_factory(
     def quota_request_decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
+            if settings.SKIP_QUOTAS:
+                return func(request, *args, **kwargs)
             if skip_condition is not None:
                 if skip_condition(request):
                     return func(request, *args, **kwargs)

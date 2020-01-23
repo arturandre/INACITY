@@ -169,3 +169,8 @@ CHANNEL_LAYERS = {
 DAPHNE_PORT = 8001
 
 ASGI_APPLICATION = "GSVPanoramaCollector.routing.application"
+
+# If true then the quota system (e.g. quota.py module) will be skipped
+# and every call decorated with it will be executed regardless of the
+# user having available quota or not.
+SKIP_QUOTAS = True
