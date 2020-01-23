@@ -1,4 +1,9 @@
-﻿.imgErrorText
+﻿#alertDiv
+{
+    display: none;
+}
+
+.imgErrorText
 {
     position:absolute;
     top:50%;

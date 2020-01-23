@@ -1,5 +1,12 @@
-class GSVService
+class GSVService extends Subject
 {
+    constructor()
+    {
+        super();
+    }
+
+
+
     /**
      * Auxiliar function to print errors caught.
      * @param {Error} err - {message: ..., stack: ...}
@@ -66,7 +73,7 @@ class GSVService
                 console.log(`Total elapsed (ms): ${totalTime}`);
                 console.log(`progress: ${progressIter}/${progressMax}`);
                 console.log(`Nodes collected: ${progressCount}`);
-                    }
+            }
         }
         return nodes;
     }
@@ -111,10 +118,10 @@ class GSVService
         return new Promise(function (resolve, reject)
         {
             let lon = lonLatCoordinate[0];
-            let lat = lonLatCoordinate[1];  
+            let lat = lonLatCoordinate[1];
             let latlng = new google.maps.LatLng(lat, lon);
             //GSVService._streetViewService.getPanoramaByLocation(latlng, maxRadius, function (data, status)
-            GSVService._streetViewService.getPanorama({location: latlng, preference: 'nearest', radius: maxRadius, source: 'outdoor'}, function (data, status)
+            GSVService._streetViewService.getPanorama({ location: latlng, preference: 'nearest', radius: maxRadius, source: 'outdoor' }, function (data, status)
             {
                 //resolve({ data: data, status: status });
                 if (status === "OK")
@@ -233,6 +240,13 @@ class GSVService
             return gsv_unsigned_url;
         }
 
+        if (GSVService.SignURLs &&
+            !use_alternative_gsv_signing_secret &&
+            GSVService.out_of_quota)
+        {
+            GSVService.notify('outofquota');
+            return false;
+        }
 
         return await $.ajax("/sign_gsv_url/",
             {
@@ -249,7 +263,16 @@ class GSVService
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
-                    defaultAjaxErrorHandler('imageURLBuilderForGeoImage', textStatus, errorThrown);
+                    if ((jqXHR.status === 403)
+                        && (jqXHR.responseText === "out_of_quota_message"))
+                    {
+                        GSVService.out_of_quota = true;
+                        GSVService.notify('outofquota');
+                    }
+                    else
+                    {
+                        defaultAjaxErrorHandler('imageURLBuilderForGeoImage', textStatus, errorThrown);
+                    }
                 }
             });
     }
@@ -274,20 +297,33 @@ if (!GSVService.init)
     /**
     * StreetViewService component used to collect the panoramas.
     * The google.maps.StreetViewService is loaded by the script
-        * http://m aps.google.com/maps/api/js 
+    * http://m aps.google.com/maps/api/js 
     *  So that script needs to be loaded before the GSVService.js script
-* @see StreetViewPanoramaData
+    * @see StreetViewPanoramaData
     * @const {google.maps.StreetViewService}
-*/
-GSVService._streetViewService = new google.maps.StreetViewService();
+    */
+    GSVService._streetViewService = new google.maps.StreetViewService();
 
-/** 
-* Used to define the radius of the area, around given location, to search for a panorama. 
-* @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
-    * @const {int} 
-*/
+    /** 
+    * Used to define the radius of the area, around given location, to search for a panorama. 
+    * @see [getPanoramaByLocation]{@link module:node/routes/index~getPanoramaByLocation}.
+        * @const {int} 
+    */
     GSVService.maxRadius = 10;
 
-    GSVService.SignURLs = use_alternative_gsv_signing_secret;
+    /**
+     * The backend must sign the url if the user is providing
+     * both a signing key and an API key or if
+     * the user is using the default API and sining key,
+     * any other case must no be signed, that happens
+     * when the user is using his API key without a signing key or
+     * vice-versa.
+     */
+    GSVService.SignURLs =
+        (use_alternative_gsv_signing_secret == use_alternative_gsv_api_key);
+    GSVService.out_of_quota = false;
 
+    GSVService.registerEventNames([
+        'outofquota'
+    ]);
 }

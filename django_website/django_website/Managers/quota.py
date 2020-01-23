@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django_website.models import Quota
@@ -62,17 +62,29 @@ def quota_decorator_factory(check_quota, update_quota, out_of_quota_message=None
         return wrapper_func
     return quota_decorator
 
-
-def quota_request_decorator(func):
-    @wraps(func)
-    def inner(request, *args, **kwargs):
-        quota_manager = QuotaManager(request, 30)
-        if quota_manager.check_quota(func.__name__) > 0:
-            quota_manager.update_quota(func.__name__)
-            return func(request, *args, **kwargs)
-        else:
-            raise Exception('out_of_quota_message')
-    return inner
+def quota_request_decorator_factory(
+    default_user_quota,
+    default_anonymous_quota,
+    skip_condition=None
+    ):
+    def quota_request_decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            if skip_condition is not None:
+                if skip_condition(request):
+                    return func(request, *args, **kwargs)
+            if request.user.is_authenticated:
+                quota_manager = QuotaManager(request, default_user_quota)
+            else:
+                quota_manager = QuotaManager(request, default_anonymous_quota)
+            if quota_manager.check_quota(func.__name__) > 0:
+                quota_manager.update_quota(func.__name__)
+                return func(request, *args, **kwargs)
+            else:
+                #raise Exception('out_of_quota_message')
+                return HttpResponseForbidden('out_of_quota_message')
+        return inner
+    return quota_request_decorator
     
 
 

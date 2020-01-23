@@ -35,14 +35,16 @@ class ProfileForm(ModelForm):
         }
     def clean(self):
         cd = self.cleaned_data
-        if cd.get('use_alternative_gsv_api_key') and not (cd.get('gsv_api_key').strip()):
+        if cd.get('use_alternative_gsv_api_key')\
+            and not (cd.get('gsv_api_key').strip()):
             self.add_error('gsv_api_key', (
                 'Using an alternative Google Street View API key is checked, '
                 'but no API key was provided.\n'
                 'If the remotion of the key is intended then uncheck '
                 'the box \'Use this Google Street View API key by default?\''
                 ))
-        if cd.get('use_alternative_gsv_signing_secret') and not (cd.get('gsv_url_signing_secret').strip()):
+        if cd.get('use_alternative_gsv_signing_secret')\
+            and not (cd.get('gsv_url_signing_secret').strip()):
             self.add_error('gsv_url_signing_secret', (
                 'Using an alternative Google Street View '
                 'URL signing key is checked, '
@@ -50,4 +52,14 @@ class ProfileForm(ModelForm):
                 'If the remotion of the key is intended then uncheck '
                 'the box \'Use this Google Street View signing secret by default?\''
                 ))
+        if cd.get('use_alternative_gsv_signing_secret')\
+            and not (cd.get('use_alternative_gsv_api_key')):
+            self.add_error('gsv_url_signing_secret', (
+                'Using an alternative Google Street View '
+                'URL signing key is checked, '
+                'but an alternative Google Street View API key is not checked.\n'
+                'To use a signing key the corresponding API key must be '
+                'provided.'
+                ))
+
                 

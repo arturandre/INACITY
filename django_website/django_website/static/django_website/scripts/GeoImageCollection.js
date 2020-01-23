@@ -123,7 +123,10 @@ class GeoImageCollection
         {
             if (typeof (root[n]) === "string")
             {
-                if (root[n] !== "NOT FOUND")
+                if (
+                    (root[n].toLowerCase() !== "not found") &&
+                    (root[n].toLowerCase() !== "error")
+                )
                 {
                     try
                     {

@@ -12,7 +12,8 @@
  * @param {Date} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
  * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
-class Time {
+class Time
+{
     constructor(parameters) 
     {
         var defaults = {
@@ -61,8 +62,10 @@ class Link
 * @param {int} [height=512] - Height
 * @param {int} [width=512]  - Width
 */
-class gsvSize {
-    constructor(parameters) {
+class gsvSize
+{
+    constructor(parameters)
+    {
         var defaults = {
             b: "px",
             f: "px",
@@ -162,8 +165,10 @@ class LatLng
  * @param {string} [time.Af=null] - Time stamp (e.g. '2013-08-01T03:00:00.000Z')
  * @param {string} [time.ng=null] - Panorama id (e.g. 'eXUjXRg8uLIykI-z0BaL5w')
  */
-class StreetViewPanoramaData {
-    constructor(parameters) {
+class StreetViewPanoramaData
+{
+    constructor(parameters)
+    {
         var defaults = {
             location: null,
             copyright: null,
@@ -195,7 +200,8 @@ class StreetViewPanoramaData {
      * @returns {StreetViewPanoramaData} - An instance fufilled of StreetViewPanoramaData
      * @see [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng}
      */
-    static fromStreetViewServiceData(data) {
+    static fromStreetViewServiceData(data)
+    {
         let newSVPano = new StreetViewPanoramaData();
         newSVPano.location = new LatLng({
             lon: data.location.latLng.lng(),
@@ -227,10 +233,20 @@ class StreetViewPanoramaData {
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
         let userkey = (use_alternative_gsv_api_key) ? user_gsv_api_key : undefined;
-        ret.data = await GSVService.imageURLBuilderForGeoImage(ret, userkey);
-        ret.dataType = "URL";
-        ret.metadata['imageURL'] = ret.data;
+        let url = await GSVService.imageURLBuilderForGeoImage(ret, userkey);
+        if (!url)
+        {
+            return "Error";
+            // ret.data = 'Error';
+            // ret.dataType = "Invalid";
+        }
+        else
+        {
+            ret.data = url;
+            ret.dataType = "URL";
+            ret.metadata['imageURL'] = ret.data;
+        }
         return ret;
-        
+
     }
 }

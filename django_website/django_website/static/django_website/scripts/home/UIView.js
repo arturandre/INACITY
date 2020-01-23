@@ -51,6 +51,8 @@ class UIView
 
         this.jqimgUrbanPicture = $(`#imgUrbanPicture`);
 
+        this.jqalertDiv = $(`#alertDiv`);
+
         this.jqimageProviderDiv = $(`#imageProviderDiv`);
         this.jqimageFilterDiv = $(`#imageFilterDiv`);
         this.jqmapMinerDiv = $(`#mapMinerDiv`);
@@ -134,6 +136,11 @@ class UIView
             this.onClickChangeMapFeatureBtn
         );
 
+        GSVService.on('outofquota', function ()
+        {
+            this.displayMessage("The image url signing quota was reached.")
+        }.bind(this));
+
         Region.on('activechange', this._updateActiveRegion.bind(this));
         UIModel.on('regioncreated', this._updateActiveRegion.bind(this));
 
@@ -148,6 +155,8 @@ class UIView
         StreetSelect.on("selectedfeaturechanged", this._updateSelectedFeature.bind(this));
         StreetSelect.on("selectedfeaturechanged", this.updateLayersHintList.bind(this));
     }
+
+    
 
     /**
      * 
@@ -421,13 +430,16 @@ class UIView
      */
     displayMessage(message, type = 'Alert')
     {
+        this.jqalertDiv.show();
         switch (type)
         {
             case 'Alert':
-                alert(message);
+                //alert(message);
+                this.jqalertDiv.text(message);
                 break;
             case 'Error':
-                alert(message);
+                //alert(message);
+                this.jqalertDiv.text(message);
                 console.trace();
                 throw new Error(message);
                 break;
