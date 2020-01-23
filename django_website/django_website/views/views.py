@@ -33,6 +33,7 @@ from django_website.Managers.MapMinerManager import MapMinerManager
 from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
 from django_website.Managers.UserManager import UserManager
+from django_website.Managers.quota import quota_request_decorator
 
 from django_website.models import Session
 
@@ -229,8 +230,10 @@ def users(request):
 
     return HttpResponse(f'Hello Users! {retMethod}')
 
+
 #ref: https://developers.google.com/maps/documentation/streetview/get-api-key#sample-code-for-url-signing
 @api_view(['POST'])
+@quota_request_decorator
 def sign_gsv_url(request):
     """
     Sign a request URL with a URL signing secret.

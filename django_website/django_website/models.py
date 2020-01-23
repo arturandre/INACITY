@@ -1,3 +1,4 @@
+from django.contrib.sessions.models import Session as DjangoSession
 from django_website.Primitives.GeoSampa import GeoSampa_BusStops
 from django.db import models
 from django.contrib.auth.models import User
@@ -70,3 +71,17 @@ class Session(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sessionName = models.CharField(max_length=256, unique=False)
     uimodelJSON = models.TextField()
+
+class Quota(models.Model):
+    user = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
+    session = models.ForeignKey(DjangoSession,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
+    function_name = models.CharField(max_length=256, unique=False)
+    quota_available = models.IntegerField()
+    last_update = models.DateField()
