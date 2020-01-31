@@ -4,7 +4,10 @@
 echo "" > /etc/apt/apt.conf.d/00local
 wget --no-check-certificate -O - https://debian.neo4j.org/neotechnology.gpg.key | apt-key add -
 echo 'deb http://debian.neo4j.org/repo stable/' | tee /etc/apt/sources.list.d/neo4j.list
-DEBIAN_FRONTEND=noninteractive apt update && apt-get install -y neo4j
+DEBIAN_FRONTEND=noninteractive
+
+apt update
+apt install -y neo4j
 
 
 python -m pip install ptvsd mod_wsgi
