@@ -255,8 +255,8 @@ write_headers = not path.exists('results.csv')
 writer_lock = threading.Lock()
 
 with open('results.csv', 'a+') as f:
-    #with ThreadPoolExecutor(max_workers=10) as executor:
-    with ThreadPoolExecutor(max_workers=1) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
+    #with ThreadPoolExecutor(max_workers=1) as executor:
         for p in executor.map(run, mapMinerRequests):
             with writer_lock:
                 if write_headers:
