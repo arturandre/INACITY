@@ -1,0 +1,43 @@
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+<!-- This should be encapsuled in a div class=model like the
+one commented bellow -->
+<!-- <div class="modal" tabindex="-1" role="dialog"> -->
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">{% trans "Load shapefile" %}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>{% trans "A shapefile (.shp) can be used to define a set of features of interest" %}
+                {% trans "(e.g. the location of trees). Notice that the shapefile must contain a" %} 
+                {% trans "set of Point geometries." %}
+            </p>
+            <p>{% trans "Besides the '.shp' file the files '.dbf' and '.prj' can also be selected." %}
+                {% trans "The assumed projection is WGS84, so if the data is in another coodinates" %} 
+                {% trans "reference system it is important to provide a '.prj' file with the proper" %} 
+                {% trans "PROJ or WKT string." %}
+            </p>
+            <a href="http://proj4js.org/">{% trans "More information on '.prj' files and projections." %}</a>
+            <div class="custom-file">
+                <input type="file"
+                class="custom-file-input"
+                id="inputShapefiles"
+                accept=".shp,.dbf,.prj"
+                multiple>
+                <label class="custom-file-label" for="inputShapefiles">{% trans "Select files" %}</label>
+              </div>
+        </div>
+        <div class="modal-footer">
+            <button id="btnLoadShapefiles" type="button" class="btn btn-primary">{% trans "Load files" %}</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+        </div>
+    </div>
+</div>
+<!-- </div> -->
+<!-- pairs with the div class="Model" above -->

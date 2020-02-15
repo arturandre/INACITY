@@ -23,6 +23,9 @@ class UIView
         this.openLayersHandler = openLayersHandler;
         this.streetSelect = streetSelect;
 
+        this.onClickLoadShapefilesBtn = null;
+        this.onChangeInputShapefiles = null;
+
         this.onErrorImgUrbanPicture = null;
         this.onLoadImgUrbanPicture = null;
 
@@ -45,6 +48,12 @@ class UIView
 
 
         this.onImageSliderInput = null;
+
+        /**
+         * Shapefile selection modal dialog
+         */
+        this.jqinputShapefiles = $("#inputShapefiles");
+        this.jqbtnLoadShapefiles = $("#btnLoadShapefiles");
 
 
         this.jqlabelSelectedFeature = $(`#lblSelectedFeature`);
@@ -99,6 +108,9 @@ class UIView
 
     initialize()
     {
+        this.jqbtnLoadShapefiles.on("click", this.onClickLoadShapefilesBtn.bind(this));
+        this.jqinputShapefiles.on("change", this.onChangeInputShapefiles.bind(this));
+
         this.jqimgUrbanPicture.on("error", this.onErrorImgUrbanPicture.bind(this));
         this.jqimgUrbanPicture.on("load", this.onLoadImgUrbanPicture.bind(this));
 

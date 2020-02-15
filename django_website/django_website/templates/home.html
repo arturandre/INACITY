@@ -44,6 +44,12 @@
 <script type="text/javascript" src="{% static 'django_website/scripts/GeoImageCollection.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/GeoImageManager.js' %}"></script>
 
+<!--
+    https://github.com/calvinmetcalf/shapefile-js
+    Used to read .shp files (shapefiles) with javascript
+-->
+<script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
+
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIModel.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIView.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/home/UIController.js' %}"></script>
@@ -64,6 +70,11 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- The modal dialog container -->
+<div class="modal" id="shapefile_modal" tabindex="-1" role="dialog">
+{% include 'dialogs/load_shapefile.html' %}
+</div>
 
 <div class="row">
     <div id="changeModeDiv" class="col-sm left-column btn-group btn-group-toggle" data-toggle="buttons"
@@ -135,6 +146,11 @@
                     </div>
 
                 </div>
+                <button id="btnUploadCustomFeatures" type="button"
+                    class="btn btn-primary"
+                    data-toggle="modal" data-target="#shapefile_modal">
+                    {% trans "Load Shapefile" %}
+                </button>
                 <button id="btnClearSelections" type="button"
                     class="btn btn-danger hidden">{% trans "Clear selections" %}</button>
             </div>

@@ -22,6 +22,9 @@
 
     initialize()
     {
+        this.uiView.onChangeInputShapefiles = this.onChangeInputShapefiles.bind(this);
+        this.uiView.onClickLoadShapefilesBtn = this.onClickLoadShapefilesBtn.bind(this);
+
         this.uiView.onErrorImgUrbanPicture = this.onErrorImgUrbanPicture.bind(this);
         this.uiView.onLoadImgUrbanPicture = this.onLoadImgUrbanPicture.bind(this);
 
@@ -65,6 +68,16 @@
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
 
+    }
+
+    onChangeInputShapefiles(event)
+    {
+        debugger;
+    }
+
+    onClickLoadShapefilesBtn(event)
+    {
+        debugger;
     }
 
     onLoadImgUrbanPicture(event)
