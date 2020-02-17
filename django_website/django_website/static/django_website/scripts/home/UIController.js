@@ -169,6 +169,20 @@
             let maxLat = geoJson.features[0].geometry.coordinates[1];
             debugger;
 
+
+            let badFeature = null;
+            do {
+                badFeature = geoJson.features.find((f) =>
+                    (f.geometry.coordinates[0] < -180) ||
+                    (f.geometry.coordinates[0] > 180) ||
+                    (f.geometry.coordinates[1] < -90) ||
+                    (f.geometry.coordinates[1] > 90)
+                );
+                if (badFeature) {
+                    geoJson.features.splice(geoJson.features.indexOf(badFeature), 1);
+                }
+            } while (badFeature);
+
             geoJson.features.forEach((f) => {
                 if (!f.id) f.id = uuid();
                 let lon = f.geometry.coordinates[0];
