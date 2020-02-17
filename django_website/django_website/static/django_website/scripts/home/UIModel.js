@@ -5,14 +5,11 @@
  */
 
 
-class RegionLayer extends Subject
-{
+class RegionLayer extends Subject {
 
-    constructor(layerId)
-    {
+    constructor(layerId) {
         super();
-        if (!(layerId.MapMiner && layerId.Feature))
-        {
+        if (!(layerId.MapMiner && layerId.Feature)) {
             throw new Error("Invalid layerId, it should have 'MapMiner' and 'Feature' fields.");
         }
 
@@ -20,8 +17,7 @@ class RegionLayer extends Subject
         this._featureCollection = null;
     }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         let layerSession = {
             layerId: this._layerId.saveToJSON(),
             featureCollection: this._featureCollection
@@ -29,8 +25,7 @@ class RegionLayer extends Subject
         return layerSession;
     }
 
-    static createFromJSON(layerSession)
-    {
+    static createFromJSON(layerSession) {
         let layerId = LayerId.createFromJSON(layerSession.layerId);
 
         let ret = new Layer(layerId);
@@ -41,8 +36,7 @@ class RegionLayer extends Subject
         return ret;
     }
 
-    loadFromJSON(layerSession)
-    {
+    loadFromJSON(layerSession) {
         this._featureCollection = layerSession.featureCollection;
     }
 
@@ -53,8 +47,7 @@ class RegionLayer extends Subject
      */
     get layerId() { return this._layerId; }
 
-    get featureCollection()
-    {
+    get featureCollection() {
         if ((!this._featureCollection)
             || this._featureCollection.length === 0)
             return null;
@@ -67,30 +60,25 @@ class RegionLayer extends Subject
      * @acess public 
      * @fires [featurecollectionchange]{@link module:UIModel~Layer#featurecollectionchange}
      */
-    set featureCollection(newFeatureCollection)
-    {
+    set featureCollection(newFeatureCollection) {
         let triggered = (this._featureCollection !== newFeatureCollection);
 
         this._featureCollection = {};
 
-        for (let key in newFeatureCollection)
-        {
-            if (key !== 'features')
-            {
+        for (let key in newFeatureCollection) {
+            if (key !== 'features') {
                 this._featureCollection[key] = newFeatureCollection[key];
             }
         }
 
         this._featureCollection.features = [];
 
-        for (let idx in newFeatureCollection.features)
-        {
+        for (let idx in newFeatureCollection.features) {
             let featureId = newFeatureCollection.features[idx].id;
             this._featureCollection.features.push(featureId);
         }
 
-        if (triggered)
-        {
+        if (triggered) {
             RegionLayer.notify('featurecollectionchange', this);
         }
     }
@@ -101,8 +89,7 @@ class RegionLayer extends Subject
 * @param {RegionLayer}
 */
 //Singleton approach
-if (!RegionLayer.init)
-{
+if (!RegionLayer.init) {
     RegionLayer.init = true;
     RegionLayer.registerEventNames([
         'featurecollectionchange'
@@ -331,21 +318,17 @@ if (!RegionLayer.init)
 //     }
 // }
 
-class LayerId
-{
-    constructor(mapMiner, feature)
-    {
+class LayerId {
+    constructor(mapMiner, feature) {
         this.MapMiner = mapMiner;
         this.Feature = feature;
     }
 
-    toString()
-    {
+    toString() {
         return this.MapMiner.name + " - " + this.Feature.name;
     }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         let layerIdJSON = {
             MapMiner: this.MapMiner,
             Feature: this.Feature
@@ -353,14 +336,12 @@ class LayerId
         return layerIdJSON;
     }
 
-    static createFromJSON(layerIdJSON)
-    {
+    static createFromJSON(layerIdJSON) {
 
         return (new LayerId(layerIdJSON.MapMiner, layerIdJSON.Feature));
     }
 
-    loadFromJSON(layerIdJSON)
-    {
+    loadFromJSON(layerIdJSON) {
         this.MapMiner = layerIdJSON.MapMiner;
         this.Feature = layerIdJSON.Feature;
     }
@@ -403,12 +384,22 @@ class LayerId
 * @param {string} name - Region display name.
 * @param {boolean} active - Represents if the region is in user's current selection or not.
 */
-class Region extends Subject
-{
-    constructor(id, name, active, boundaries)
-    {
+class Region extends Subject {
+    constructor(id, name, active, boundaries) {
         super();
 
+        if (Array.isArray(boundaries)) {
+            boundaries = new ol.Feature(
+                new ol.geom.Polygon(boundaries));
+        }
+        else {
+            try {
+                let olFeatureBoundary = GeoJSONHelper.olGeoJson.readFeature(boundaries);
+                boundaries = olFeatureBoundary;
+            } catch (error) {
+                //'boundaries' is already an OpenLayer feature object
+            }
+        }
 
         active = typeof (active) === 'undefined' ? false : active;
         this._id = id;
@@ -431,11 +422,9 @@ class Region extends Subject
 
     get boundaries() { return this._boundaries; }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         let layersJSON = {};
-        for (let layerKey in this.layers)
-        {
+        for (let layerKey in this.layers) {
             layersJSON[layerKey] = this.layers[layerKey].saveToJSON();
         }
         let regionSession = {
@@ -448,28 +437,23 @@ class Region extends Subject
         return regionSession;
     }
 
-    static createFromJSON(regionSession)
-    {
+    static createFromJSON(regionSession) {
         let ret = new Region(regionSession.id, regionSession.name, regionSession.active);
 
-        for (let layerKey in regionSession.layers)
-        {
+        for (let layerKey in regionSession.layers) {
             ret[layerKey] = RegionLayer.createFromJSON(regionSession.layers[layerKey]);
         }
         return ret;
     }
 
-    loadFromJSON(regionSession)
-    {
-        for (let layerKey in regionSession.layers)
-        {
+    loadFromJSON(regionSession) {
+        for (let layerKey in regionSession.layers) {
             let layerSession = regionSession.layers[layerKey];
             let layerId = LayerId.createFromJSON(layerSession.layerId);
             let layer = this.createLayer(layerId);
             let test_featureCollection =
                 getPropPath(layerSession, ['featureCollection', 'features']);
-            if (test_featureCollection && test_featureCollection.length > 0)
-            {
+            if (test_featureCollection && test_featureCollection.length > 0) {
                 layer.loadFromJSON(layerSession);
             }
         }
@@ -480,18 +464,15 @@ class Region extends Subject
     * @returns {Layer} - A new instance of Layer
     * @fires [addlayer]{@link module:UIModel~Region#addlayer}
     */
-    createLayer(layerId)
-    {
-        if (!getPropPath(this, ["layers", layerId.toString()]))
-        {
+    createLayer(layerId) {
+        if (!getPropPath(this, ["layers", layerId.toString()])) {
             //if (!this.getLayerById(layerId)) {
             let newLayer = new RegionLayer(layerId);
             this._layers[layerId.toString()] = newLayer;
             Region.notify('addlayer', newLayer);
             return newLayer;
         }
-        else
-        {
+        else {
             throw Error(`layerId: '${layerId.toString()}' already present in layers list of this region (${this.name})!`);
         }
     }
@@ -500,8 +481,7 @@ class Region extends Subject
      * @returns {Boolean} - The new active value
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
-    toggleActive()
-    {
+    toggleActive() {
         this.active = !this.active;
         return this.active;
     }
@@ -552,8 +532,7 @@ class Region extends Subject
      * @type {boolean}
      * @fires [activechange]{@link module:UIModel~Region#activechange}
      */
-    set active(newState)
-    {
+    set active(newState) {
         if (typeof (newState) !== "boolean")
             throw Error(`newState parameter type should be boolean, but is: ${typeof (newState)}`);
         let triggerActiveChange = this._active !== newState;
@@ -567,8 +546,7 @@ class Region extends Subject
         // {
         //     this._layers[layerIdx].active = newState;
         // }
-        if (triggerActiveChange)
-        {
+        if (triggerActiveChange) {
             Region.notify('activechange', this);
         }
     }
@@ -590,8 +568,7 @@ class Region extends Subject
 * @See [Layer]{@link module:UIModel~Layer}
 */
 //Singleton approach
-if (!Region.init)
-{
+if (!Region.init) {
     Region.init = true;
     Region.registerEventNames([
         'activechange',
@@ -604,24 +581,20 @@ if (!Region.init)
  * @param {Feature} feature - A GeoJson Feature
  * @param {string[]} regions - A list of region Ids representing the regions to which this [FeatureRegions.feature]{@link module:UIModel~FeatureRegions.feature} belongs
  */
-class FeatureRegions
-{
-    constructor(feature, regions)
-    {
+class FeatureRegions {
+    constructor(feature, regions) {
         this.feature = feature;
         this.regions = regions;
     }
 
-    saveToJSON()
-    {
+    saveToJSON() {
         let ret = {};
         ret.regions = this.regions;
         ret.feature = GeoJSONHelper.writeFeature(this.feature);
         return ret;
     }
 
-    static createFromJSON(featureRegionSession)
-    {
+    static createFromJSON(featureRegionSession) {
         let ret = new FeatureRegions
             (
                 GeoJSONHelper.olGeoJson.readFeature(featureRegionSession.feature),
@@ -639,10 +612,8 @@ class FeatureRegions
 * @param {Object.mapMiner} - Default map miner selection (e.g. OSM)
 * @param {Object.mapFeature} - Default map feature selection (e.g. Streets)
 */
-class UIModel extends Subject
-{
-    constructor(regionsDivId, openLayersHandler, streetSelect)
-    {
+class UIModel extends Subject {
+    constructor(regionsDivId, openLayersHandler, streetSelect) {
         super();
         this.setTarget(regionsDivId);
 
@@ -684,40 +655,31 @@ class UIModel extends Subject
         this._openLayersHandler.globalVectorSource.on('changefeature', this.updateRegionsList, this);
     }
 
-    setDefaults(defaults)
-    {
-        if (defaults)
-        {
-            if (defaults.mapMiner)
-            {
+    setDefaults(defaults) {
+        if (defaults) {
+            if (defaults.mapMiner) {
                 this.SelectedMapMiner = this.mapMinersAndFeatures.find(p => p.id === defaults.mapMiner);
-                if (defaults.mapFeature)
-                {
+                if (defaults.mapFeature) {
                     this.SelectedMapFeature = this.SelectedMapMiner.features.find(p => p.id === defaults.mapFeature);
                 }
             }
-            if (defaults.imageProvider)
-            {
+            if (defaults.imageProvider) {
                 this.SelectedImageProvider = this.imageProviders.find(p => p.id === defaults.imageProvider);
             }
-            if (defaults.imageFilter)
-            {
+            if (defaults.imageFilter) {
                 this.SelectedImageFilter = this.imageFilters.find(p => p.id === defaults.imageFilter);
             }
-            if (defaults.viewmode)
-            {
+            if (defaults.viewmode) {
                 this.SelectedViewMode = defaults.viewmode;
             }
         }
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
-    set SelectedMapMiner(mapMiner)
-    {
+    set SelectedMapMiner(mapMiner) {
         this._SelectedMapMiner = mapMiner;
         if (!mapMiner) return;
-        if ((mapMiner.features.length === 1) && !this._SelectedMapFeature)
-        {
+        if ((mapMiner.features.length === 1) && !this._SelectedMapFeature) {
             this._SelectedMapFeature = mapMiner.features[0];
         }
     }
@@ -726,20 +688,17 @@ class UIModel extends Subject
     set SelectedMapFeature(mapFeature) { this._SelectedMapFeature = mapFeature; }
 
     get SelectedImageProvider() { return this._SelectedImageProvider; }
-    set SelectedImageProvider(imageProvider)
-    {
+    set SelectedImageProvider(imageProvider) {
         this._SelectedImageProvider = imageProvider;
     }
 
     get SelectedImageFilter() { return this._SelectedImageFilter; }
-    set SelectedImageFilter(imageFilter)
-    {
+    set SelectedImageFilter(imageFilter) {
         this._SelectedImageFilter = imageFilter;
     }
 
     get SelectedViewMode() { return this._SelectedViewMode; }
-    set SelectedViewMode(viewmode)
-    {
+    set SelectedViewMode(viewmode) {
         this._SelectedViewMode = viewmode;
     }
 
@@ -747,15 +706,12 @@ class UIModel extends Subject
 
     get openLayersHandler() { return this._openLayersHandler; }
 
-    updateRegionsList(vectorevent)
-    {
-        switch (vectorevent.type)
-        {
+    updateRegionsList(vectorevent) {
+        switch (vectorevent.type) {
             case 'addfeature':
                 break;
             case 'removefeature':
-                if (vectorevent.feature.getProperties()['type'] === 'region')
-                {
+                if (vectorevent.feature.getProperties()['type'] === 'region') {
                     // let featureId = vectorevent.feature.getId();
                     // this.removeRegion(featureId);
                 }
@@ -777,8 +733,7 @@ class UIModel extends Subject
      * Collects images' providers and filters and maps' miners and features.
      * @returns {Promise} - All the providers as registered at server's side
      */
-    async initialize()
-    {
+    async initialize() {
         let getServerDataPromises = Promise.all([this.getImageProviders(), this.getMapMinersAndFeatures(), this.getImageFilters()]);
 
         return getServerDataPromises;
@@ -794,20 +749,16 @@ class UIModel extends Subject
      * return a valid GeoJSON FeatureCollection object
      * @param {RegionLayer} regionLayer 
      */
-    getFeatureCollectionFromFeaturesByLayerIndex(regionLayer)
-    {
+    getFeatureCollectionFromFeaturesByLayerIndex(regionLayer) {
         let ret = $.extend(true, {}, regionLayer.featureCollection);
         let features = getPropPath(regionLayer, ['featureCollection', 'features']);
         if (!features) return ret;
-        for (let fId in features)
-        {
+        for (let fId in features) {
             let feature = regionLayer.featureCollection.features[fId];
             ret.features[fId] =
                 GeoJSONHelper.writeFeature(this.featuresByLayerId[regionLayer.layerId.toString()][feature].feature);
-            if (ret.features[fId].properties.layerId)
-            {
-                if (!(ret.features[fId].properties.layerId instanceof LayerId))
-                {
+            if (ret.features[fId].properties.layerId) {
+                if (!(ret.features[fId].properties.layerId instanceof LayerId)) {
                     ret.features[fId].properties.layerId = LayerId.createFromJSON(ret.features[fId].properties.layerId);
                 }
             }
@@ -823,8 +774,7 @@ class UIModel extends Subject
      * @param {Region} region - The region of interest where the query for the
      *                          SelectedMapFeature should be done given the SelectedMapMiner
      */
-    async _collectLayersForEmptyRegions(region)
-    {
+    async _collectLayersForEmptyRegions(region) {
         let layerId = new LayerId(this.SelectedMapMiner, this.SelectedMapFeature);
 
         /* 
@@ -832,12 +782,10 @@ class UIModel extends Subject
         * (e.g. OpenStreetMap - Streets)
         */
         let layer = getPropPath(region, ['layers', layerId.toString()]);
-        if (!layer)
-        {
+        if (!layer) {
             layer = region.createLayer(layerId);
         }
-        if (!layer.featureCollection)
-        {
+        if (!layer.featureCollection) {
             await this.executeQuery(layerId);
             //this.saveSession();
             return;
@@ -848,8 +796,7 @@ class UIModel extends Subject
      * Ref: https://nominatim.org/release-docs/develop/api/Search/
      * @param {String} address 
      */
-    async searchAddress(address)
-    {
+    async searchAddress(address) {
         let simpleAddress = address.split(' ').join('/');
         let result = await $.ajax
             (
@@ -857,21 +804,17 @@ class UIModel extends Subject
                 {
                     method: 'GET',
                     context: this,
-                    success: function (data, textStatus, jqXHR)
-                    {
+                    success: function (data, textStatus, jqXHR) {
                         return data;
                     },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {
+                    error: function (jqXHR, textStatus, errorThrown) {
                         throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                     },
                 });
-        if (result.length > 0)
-        {
+        if (result.length > 0) {
             return result;
         }
-        else
-        {
+        else {
             return await $.ajax
                 (
                     "https://nominatim.openstreetmap.org/search",
@@ -883,12 +826,10 @@ class UIModel extends Subject
                             "format": "json",
                         },
                         context: this,
-                        success: function (data, textStatus, jqXHR)
-                        {
+                        success: function (data, textStatus, jqXHR) {
                             return data;
                         },
-                        error: function (jqXHR, textStatus, errorThrown)
-                        {
+                        error: function (jqXHR, textStatus, errorThrown) {
                             throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                         },
                     });
@@ -903,21 +844,17 @@ class UIModel extends Subject
      * @todo This task requires that requests for images could be done
      * @todo in a partial way.
      */
-    async getImages()
-    {
+    async getImages() {
         let numCalls = 0;
 
         let triggerGeoImages = false;
 
-        if (this._streetSelect.lastSelectedFeature)
-        {
+        if (this._streetSelect.lastSelectedFeature) {
             let geoJSONFeature = GeoJSONHelper.writeFeature(this._streetSelect.lastSelectedFeature);
-            if (!geoJSONFeature.properties || geoJSONFeature.properties.geoImages)
-            {
+            if (!geoJSONFeature.properties || geoJSONFeature.properties.geoImages) {
                 console.warn(`Feature '${geoJSONFeature.id}' already fulfilled.`);
             }
-            else
-            {
+            else {
                 await GSVService.setPanoramaForFeature(geoJSONFeature);
                 this._streetSelect.lastSelectedFeature
                     .setProperties(
@@ -932,13 +869,11 @@ class UIModel extends Subject
 
 
         let activeRegions = this.getActiveRegions();
-        if (activeRegions.length === 0)
-        {
+        if (activeRegions.length === 0) {
             //return reject(gettext("Please, select or activate a region to continue."));
             throw new Error(gettext("Please, select or activate a region to continue."));
         }
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             let region = activeRegions[regionIdx];
             /*
               Case the user simply select a region and then try to get the images
@@ -948,15 +883,13 @@ class UIModel extends Subject
 
             let activeLayers = this.getActiveLayers();
 
-            for (let layerIdx in activeLayers)
-            {
+            for (let layerIdx in activeLayers) {
                 let layer = activeLayers[layerIdx];
 
                 let featureCollection = this.getFeatureCollectionFromFeaturesByLayerIndex(layer);
 
                 let properties = getPropPath(featureCollection, ['features', 0, 'properties']);
-                if (!properties || properties.geoImages)
-                {
+                if (!properties || properties.geoImages) {
                     console.warn(`Layer '${layer.layerId}' without features or already fulfilled.`);
                     continue;
                 }
@@ -978,10 +911,8 @@ class UIModel extends Subject
         }
     }
 
-    async _getImagesForFeature(GeoJSONFeature)
-    {
-        if (getPropPath(GeoJSONFeature, ['properties', 'geoImages']))
-        {
+    async _getImagesForFeature(GeoJSONFeature) {
+        if (getPropPath(GeoJSONFeature, ['properties', 'geoImages'])) {
             return GeoJSONFeature;
         }
 
@@ -996,20 +927,16 @@ class UIModel extends Subject
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json',
                 context: this
-            }).done(function (data, textStatus, XHR)
-            {
+            }).done(function (data, textStatus, XHR) {
                 let feature = data.feature;
                 feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
                 this._syncAndMergeMultiFeature(feature);
-            }).fail(function (jqXHR, textStatus, errorThrown)
-            {
+            }).fail(function (jqXHR, textStatus, errorThrown) {
                 //@todo: Create a error handling mechanism
-                if (jqXHR.status === 413)
-                {
+                if (jqXHR.status === 413) {
                     alert(gettext("The request was too big to be processed. Try a smaller feature."));
                 }
-                else
-                {
+                else {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                 }
             });
@@ -1028,17 +955,14 @@ class UIModel extends Subject
      * @returns {Promise} - Empty
      * @todo: Treat parcial returns, the user should be able to see the results as they are being received, rather than wait all of them.
      */
-    async getImages_ex()
-    {
+    async getImages_ex() {
         let noCalls = true;
 
-        if (this._streetSelect.lastSelectedFeature)
-        {
+        if (this._streetSelect.lastSelectedFeature) {
             let geoImagesTree =
                 this._streetSelect.lastSelectedFeature.getProperties().geoImages;
 
-            if (geoImagesTree)
-            {
+            if (geoImagesTree) {
                 UIModel.notify('getimages', null);
                 return;
             }
@@ -1051,7 +975,7 @@ class UIModel extends Subject
 
             this._streetSelect.lastSelectedFeature.setProperties({
                 geoImages:
-                imagedFeatureProperties.geoImages
+                    imagedFeatureProperties.geoImages
             });
 
 
@@ -1062,14 +986,12 @@ class UIModel extends Subject
 
 
         let activeRegions = this.getActiveRegions();
-        if (activeRegions.length === 0)
-        {
+        if (activeRegions.length === 0) {
             throw new Error(gettext("Please, select or activate a region to continue."));
         }
         let promisesFeatures = [];
         let skippedLayers = [];
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             var region = activeRegions[regionIdx];
             /*
               Case the user simply select a region and then try to get the images
@@ -1080,13 +1002,11 @@ class UIModel extends Subject
             await this._collectLayersForEmptyRegions(region);//.then(() => {
 
 
-            for (let layerIdx in region.layers)
-            {
+            for (let layerIdx in region.layers) {
                 let layer = region.layers[layerIdx];
 
                 let features = getPropPath(layer, ['featureCollection', 'features']);
-                if (!features)
-                {
+                if (!features) {
                     if (!layer.featureCollection) skippedLayers.reason = gettext("No featureCollection available!");
                     if (!layer.featureCollection.features) skippedLayers.reason = gettext("featureCollection without any features!");
                     //if (!layer.featureCollection.features[0].properties.geoImages) skippedLayers.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
@@ -1096,12 +1016,9 @@ class UIModel extends Subject
                 }
 
 
-                for (let featureIdx in features)
-                {
-                    let promise = new Promise(async function (resolve, reject)
-                    {
-                        try
-                        {
+                for (let featureIdx in features) {
+                    let promise = new Promise(async function (resolve, reject) {
+                        try {
                             let featureId = features[featureIdx];
                             let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                             let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
@@ -1117,26 +1034,22 @@ class UIModel extends Subject
 
                             olFeature.setProperties({
                                 geoImages:
-                                imagedFeature.properties.geoImages
+                                    imagedFeature.properties.geoImages
                             });
                             resolve();
-                        } catch (error)
-                        {
+                        } catch (error) {
                             reject(error);
                         }
                     }.bind(this));
                     promisesFeatures.push(promise);
                 }
             }
-            await Promise.all(promisesFeatures).then(function ()
-            {
+            await Promise.all(promisesFeatures).then(function () {
                 UIModel.notify('getimages', null);
             }.bind(this));
-            if (skippedLayers.length > 0)
-            {
+            if (skippedLayers.length > 0) {
                 let warnSkippedMessage = gettext("The following layers were skipped: \n");
-                for (let skippedLayerIdx in skippedLayers)
-                {
+                for (let skippedLayerIdx in skippedLayers) {
                     let skippedLayer = skippedLayers[skippedLayerIdx];
                     warnSkippedMessage += gettext("Layer: ") + skippedLayer.layerId + "."
                         + gettext(" From region: ") + skippedLayer.regionName + "."
@@ -1149,10 +1062,8 @@ class UIModel extends Subject
     }
 
 
-    async _getProcessedImagesForFeature(GeoJSONFeature)
-    {
-        if (GeoImageCollection.isFiltered(GeoJSONFeature.properties.geoImages, this.SelectedImageFilter.id))
-        {
+    async _getProcessedImagesForFeature(GeoJSONFeature) {
+        if (GeoImageCollection.isFiltered(GeoJSONFeature.properties.geoImages, this.SelectedImageFilter.id)) {
             return GeoJSONFeature;
         }
 
@@ -1167,20 +1078,16 @@ class UIModel extends Subject
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json',
                 context: this
-            }).done(function (data, textStatus, XHR)
-            {
+            }).done(function (data, textStatus, XHR) {
                 let feature = data.feature;
                 feature.properties.layerId = LayerId.createFromJSON(feature.properties.layerId);
                 this._syncAndMergeMultiFeature(feature);
-            }).fail(function (jqXHR, textStatus, errorThrown)
-            {
+            }).fail(function (jqXHR, textStatus, errorThrown) {
                 //@todo: Create a error handling mechanism
-                if (jqXHR.status === 413)
-                {
+                if (jqXHR.status === 413) {
                     alert(gettext("The request was too big to be processed. Try a smaller feature."));
                 }
-                else
-                {
+                else {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                 }
             });
@@ -1202,23 +1109,19 @@ class UIModel extends Subject
      * @returns {Promise} - Empty
      * @todo: Treat parcial returns, the user should be able to see the results as they are being received, rather than wait all of them.
      */
-    async getProcessedImages()
-    {
+    async getProcessedImages() {
         let noCalls = true;
 
-        if (this._streetSelect.lastSelectedFeature)
-        {
+        if (this._streetSelect.lastSelectedFeature) {
             let geoImagesTree =
                 this._streetSelect.lastSelectedFeature.getProperties().geoImages;
 
-            if (!geoImagesTree)
-            {
+            if (!geoImagesTree) {
                 await this.getImages();
             }
 
             if (geoImagesTree
-                && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id))
-            {
+                && GeoImageCollection.isFiltered(geoImagesTree, this.SelectedImageFilter.id)) {
                 UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
                 return;
             }
@@ -1242,14 +1145,12 @@ class UIModel extends Subject
 
 
         let activeRegions = this.getActiveRegions();
-        if (activeRegions.length === 0)
-        {
+        if (activeRegions.length === 0) {
             throw new Error(gettext("Please, select or activate a region to continue."));
         }
         let promisesFeatures = [];
         let skippedLayers = [];
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             var region = activeRegions[regionIdx];
             /*
               Case the user simply select a region and then try to get the images
@@ -1260,13 +1161,11 @@ class UIModel extends Subject
             await this._collectLayersForEmptyRegions(region);//.then(() => {
 
 
-            for (let layerIdx in region.layers)
-            {
+            for (let layerIdx in region.layers) {
                 let layer = region.layers[layerIdx];
 
                 let features = getPropPath(layer, ['featureCollection', 'features']);
-                if (!features)
-                {
+                if (!features) {
                     if (!layer.featureCollection) skippedLayers.reason = gettext("No featureCollection available!");
                     if (!layer.featureCollection.features) skippedLayers.reason = gettext("featureCollection without any features!");
                     if (!layer.featureCollection.features[0].properties.geoImages) skippedLayers.reason = gettext("features without any images. Try to collect images for this layer before requesting them to be processed.");
@@ -1276,18 +1175,14 @@ class UIModel extends Subject
                 }
 
 
-                for (let featureIdx in features)
-                {
-                    let promise = new Promise(async function (resolve, reject)
-                    {
-                        try
-                        {
+                for (let featureIdx in features) {
+                    let promise = new Promise(async function (resolve, reject) {
+                        try {
                             let featureId = features[featureIdx];
                             let olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                             let geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
 
-                            if (!geoJSONFeature.properties.geoImages)
-                            {
+                            if (!geoJSONFeature.properties.geoImages) {
                                 await this.getImages();
                                 olFeature = this.featuresByLayerId[layer.layerId.toString()][featureId].feature;
                                 geoJSONFeature = GeoJSONHelper.writeFeature(olFeature);
@@ -1300,23 +1195,19 @@ class UIModel extends Subject
                                     processedFeature.properties.geoImages
                             });
                             resolve();
-                        } catch (error)
-                        {
+                        } catch (error) {
                             reject(error);
                         }
                     }.bind(this));
                     promisesFeatures.push(promise);
                 }
             }
-            await Promise.all(promisesFeatures).then(function ()
-            {
+            await Promise.all(promisesFeatures).then(function () {
                 UIModel.notify('getimages', { filterId: this.SelectedImageFilter.id });
             }.bind(this));
-            if (skippedLayers.length > 0)
-            {
+            if (skippedLayers.length > 0) {
                 let warnSkippedMessage = gettext("The following layers were skipped: \n");
-                for (let skippedLayerIdx in skippedLayers)
-                {
+                for (let skippedLayerIdx in skippedLayers) {
                     let skippedLayer = skippedLayers[skippedLayerIdx];
                     warnSkippedMessage += gettext("Layer: ") + skippedLayer.layerId + "."
                         + gettext(" From region: ") + skippedLayer.regionName + "."
@@ -1333,24 +1224,18 @@ class UIModel extends Subject
      * as part of the userSession
      * @todo Create a function out of UIModel to aggregate all components' data 
      */
-    saveToJSON()
-    {
-        try
-        {
+    saveToJSON() {
+        try {
             let regions = {}; /* Regions data for tracking */
-            for (let regionId in this.regions)
-            {
+            for (let regionId in this.regions) {
                 regions[regionId] = this.regions[regionId].saveToJSON();
             }
             let featuresByLayerId = {};
-            for (let layerId in this.featuresByLayerId)
-            {
-                if (!featuresByLayerId[layerId])
-                {
+            for (let layerId in this.featuresByLayerId) {
+                if (!featuresByLayerId[layerId]) {
                     featuresByLayerId[layerId] = {};
                 }
-                for (let featureRegionId in this.featuresByLayerId[layerId])
-                {
+                for (let featureRegionId in this.featuresByLayerId[layerId]) {
                     featuresByLayerId[layerId][featureRegionId]
                         = this.featuresByLayerId[layerId][featureRegionId].saveToJSON();
                 }
@@ -1360,14 +1245,12 @@ class UIModel extends Subject
                 featuresByLayerId: featuresByLayerId
             };
             return uiModelSession;
-        } catch (error)
-        {
+        } catch (error) {
             console.error(error);
         }
     }
 
-    clear()
-    {
+    clear() {
         this._regions = {};
         this._featuresByLayerId = {};
         this._currentSessionName = "";
@@ -1377,34 +1260,27 @@ class UIModel extends Subject
     /** 
      * @todo Treat possible exceptions
      * **/
-    loadFromJSON(uiModelSession)
-    {
-        try
-        {
+    loadFromJSON(uiModelSession) {
+        try {
             if (typeof session === "string") session = JSON.parse(session);
 
             this._openLayersHandler.globalVectorSource.clear();
             this._featuresByLayerId = {};
-            for (let regionId in uiModelSession.regions)
-            {
+            for (let regionId in uiModelSession.regions) {
                 let sessionRegion = uiModelSession.regions[regionId];
                 let region = this.createRegion(
-                    GeoJSONHelper.olGeoJson.readFeature(uiModelSession.regions[regionId].boundaries),
+                    uiModelSession.regions[regionId].boundaries,
                     sessionRegion.active,
                     sessionRegion.name,
                     sessionRegion.id);
                 region.loadFromJSON(uiModelSession.regions[regionId]);
             }
-            if (uiModelSession.featuresByLayerId)
-            {
-                for (let layerId in uiModelSession.featuresByLayerId)
-                {
-                    if (!this._featuresByLayerId[layerId])
-                    {
+            if (uiModelSession.featuresByLayerId) {
+                for (let layerId in uiModelSession.featuresByLayerId) {
+                    if (!this._featuresByLayerId[layerId]) {
                         this._featuresByLayerId[layerId] = {};
                     }
-                    for (let featureRegionId in uiModelSession.featuresByLayerId[layerId])
-                    {
+                    for (let featureRegionId in uiModelSession.featuresByLayerId[layerId]) {
                         let featureRegion =
                             FeatureRegions.createFromJSON(
                                 uiModelSession.featuresByLayerId[layerId][featureRegionId]);
@@ -1418,12 +1294,10 @@ class UIModel extends Subject
 
             }
 
-            if (uiModelSession.geoImageManager)
-            {
+            if (uiModelSession.geoImageManager) {
                 this._geoImageManager.loadFromJSON(uiModelSession.geoImageManager);
             }
-        } finally
-        {
+        } finally {
 
         }
 
@@ -1437,8 +1311,7 @@ class UIModel extends Subject
      * @param {LayerId} layerId - Defines which GIS and which feature should be collected
      * @returns {Promise} - Data will be a GeoJson
      */
-    async getMapMinerFeatures(region, geoJsonFeatures, layerId)
-    {
+    async getMapMinerFeatures(region, geoJsonFeatures, layerId) {
         //return new Promise(function (resolve) {
         //let that = this; /* window */
         return await $.ajax
@@ -1453,12 +1326,10 @@ class UIModel extends Subject
                     }),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
-                    success: function (data, textStatus, jqXHR)
-                    {
+                    success: function (data, textStatus, jqXHR) {
                         return data;
                     },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {
+                    error: function (jqXHR, textStatus, errorThrown) {
                         throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
                         //reject(errorThrown);
                     },
@@ -1477,19 +1348,16 @@ class UIModel extends Subject
      * image providers
      * @returns {Promise} resolve with an ImageProvider[] object array (with ImageProviderIds as keys) and rejects with the errorThrown string.
      */
-    async getImageProviders()
-    {
+    async getImageProviders() {
         return await $.ajax("/getimageproviders/",
             {
                 cache: false,
                 method: "GET",
                 context: this,
-                success: function (data, textStatus, jqXHR)
-                {
+                success: function (data, textStatus, jqXHR) {
                     this._imageProviders = data;
                 },
-                error: function (jqXHR, textStatus, errorThrown)
-                {
+                error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                 },
                 dataType: "json"
@@ -1508,19 +1376,16 @@ class UIModel extends Subject
      * map miners and its respective features
      * @returns {Promise} resolve with a MapMiner[] object array (with mapMinerIds as keys) and rejects with the errorThrown string.
      */
-    async getMapMinersAndFeatures()
-    {
+    async getMapMinersAndFeatures() {
         return await $.ajax("/getavailablemapminers/",
             {
                 cache: false,
                 method: "GET",
                 context: this,
-                success: function (data, textStatus, jqXHR)
-                {
+                success: function (data, textStatus, jqXHR) {
                     this._mapMinersAndFeatures = data;
                 },
-                error: function (jqXHR, textStatus, errorThrown)
-                {
+                error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                 },
                 dataType: "json"
@@ -1538,19 +1403,16 @@ class UIModel extends Subject
      * image filters
      * @returns {Promise} resolve with an ImageFilter[] object array (with ImageFilters' Ids as keys) and rejects with the errorThrown string.
      */
-    async getImageFilters()
-    {
+    async getImageFilters() {
         return await $.ajax("/getimagefilters/",
             {
                 cache: false,
                 method: "GET",
                 context: this,
-                success: function (data, textStatus, jqXHR)
-                {
+                success: function (data, textStatus, jqXHR) {
                     this._imageFilters = data;
                 },
-                error: function (jqXHR, textStatus, errorThrown)
-                {
+                error: function (jqXHR, textStatus, errorThrown) {
                     throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
                 },
                 dataType: "json"
@@ -1561,15 +1423,12 @@ class UIModel extends Subject
      * All active layers from getActiveLayers() with geoImagesLoaded set to true are displayingLayers
      * and contains GeoImages to be displayed.
      */
-    getDisplayingLayers()
-    {
+    getDisplayingLayers() {
         let displayingLayers = [];
         let activeLayers = this.getActiveLayers();
-        for (let layerIdx in activeLayers)
-        {
+        for (let layerIdx in activeLayers) {
             let layer = activeLayers[layerIdx];
-            if (layer.geoImagesLoaded)
-            {
+            if (layer.geoImagesLoaded) {
                 displayingLayers.push(layer);
             }
         }
@@ -1585,16 +1444,13 @@ class UIModel extends Subject
      *                            (e.g. "OpenStreetMap - Streets")
      * @returns {Promise} - Empty
      */
-    async executeQuery(layerId = null)
-    {
+    async executeQuery(layerId = null) {
         if (layerId) return await this._executeQuery(layerId);
 
-        if (this.SelectedMapMiner === null)
-        {
+        if (this.SelectedMapMiner === null) {
             throw gettext("Please, select a Map Miner to continue.");
         }
-        if (this.SelectedMapFeature === null)
-        {
+        if (this.SelectedMapFeature === null) {
             throw gettext("Please, select a Feature to continue.");
         }
 
@@ -1608,10 +1464,8 @@ class UIModel extends Subject
      * from the FeaturesByLayerId index.
      * @param {GeoJSONFeatureCollection} GeoJSONFeatureCollection 
      */
-    _updateFeatureCollectionFromLayerIdIndex(GeoJSONFeatureCollection)
-    {
-        for (let fId in GeoJSONFeatureCollection.features)
-        {
+    _updateFeatureCollectionFromLayerIdIndex(GeoJSONFeatureCollection) {
+        for (let fId in GeoJSONFeatureCollection.features) {
             let feature = GeoJSONFeatureCollection.features[fId];
             this._updateFeatureFromLayerIdIndex(feature);
         }
@@ -1622,11 +1476,9 @@ class UIModel extends Subject
      * @param {GeoJSONFeature} GeoJSONFeature - This GeoJSONFeature must
      * contain at its properties the layerId that it belongs to.
      */
-    _updateFeatureFromLayerIdIndex(GeoJSONFeature)
-    {
+    _updateFeatureFromLayerIdIndex(GeoJSONFeature) {
         let layerId = GeoJSONFeature.properties.layerId;
-        if (this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id])
-        {
+        if (this._featuresByLayerId[layerId.toString()][GeoJSONFeature.id]) {
             let newFeature = GeoJSONHelper.olGeoJson.readFeature(GeoJSONFeature);
 
             newFeature.setStyle(
@@ -1638,8 +1490,7 @@ class UIModel extends Subject
                 featureId: GeoJSONFeature.id
             });
         }
-        else
-        {
+        else {
             throw new Error(gettext("Invalid layerId, the GeoJSONFeature must contain at its properties the layerId that it belongs to."));
         }
 
@@ -1654,33 +1505,33 @@ class UIModel extends Subject
      * @param {GeoJSON} GeoJSONFeatureCollection - Feature collection retrieved
      * from some MapMiner
      */
-    _updateFeaturesByLayerIdIndex(regionId, layerId, GeoJSONFeatureCollection)
-    {
+    _updateFeaturesByLayerIdIndex(regionId, layerId, GeoJSONFeatureCollection) {
         if (!this._featuresByLayerId) this._featuresByLayerId = {};
         if (!this._featuresByLayerId[layerId]) this._featuresByLayerId[layerId] = {};
-        for (let idx in GeoJSONFeatureCollection.features)
-        {
+        let maxAbort = 1000;
+        for (let idx in GeoJSONFeatureCollection.features) {
+            if (maxAbort-- <= 0) 
+            {
+                console.warn('Too many features too be displayed!');
+                break;
+            }
             let feature = GeoJSONFeatureCollection.features[idx];
             feature.properties.layerId = LayerId.createFromJSON(layerId);
 
             // Updates the feature
-            if (this._featuresByLayerId[layerId][feature.id])
-            {
-                if (this._featuresByLayerId[layerId][feature.id].regions.indexOf(regionId) === -1)
-                {
+            if (this._featuresByLayerId[layerId][feature.id]) {
+                if (this._featuresByLayerId[layerId][feature.id].regions.indexOf(regionId) === -1) {
                     this._featuresByLayerId[layerId][feature.id].regions.push(regionId);
                 }
 
-                if (feature.geometry.type.startsWith('Multi'))
-                {
+                if (feature.geometry.type.startsWith('Multi')) {
                     let oldFeature =
                         GeoJSONHelper.writeFeature(
                             this._featuresByLayerId[layerId.toString()][feature.id].feature);
 
                     if (
                         JSON.stringify(oldFeature) !==
-                        JSON.stringify(feature))
-                    {
+                        JSON.stringify(feature)) {
                         this._syncFeatureProperties(oldFeature,
                             feature);
                     }
@@ -1734,21 +1585,18 @@ class UIModel extends Subject
      * @param {LayerId} layerId - The kind of layer that should be queried
      *                            (e.g. "OpenStreetMap - Streets")
      */
-    async _executeQuery(layerId)
-    {
+    async _executeQuery(layerId) {
         let noSelectedRegions = true;
         let noNewFeatures = true;
 
         const olGeoJson = new ol.format.GeoJSON({ featureProjection: 'EPSG:3857' });
         let activeRegions = this.getActiveRegions();
 
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             noSelectedRegions = false;
             let region = activeRegions[regionIdx];
             let layer = getPropPath(region, ["layers", layerId.toString()]);//region.getLayerById(layerId);
-            if (!layer)
-            {
+            if (!layer) {
                 layer = region.createLayer(layerId);
             }
 
@@ -1775,12 +1623,10 @@ class UIModel extends Subject
 
             layer.featureCollection = newFeatureCollection;
             //if (layer.featureCollection.features.length === 0)
-            if (newFeatureCollection.features.length === 0)
-            {
+            if (newFeatureCollection.features.length === 0) {
                 alert(gettext(`No ${layerId.Feature.name} were found inside the region ${region.name} using the GIS ${layerId.MapMiner.name}.`));
             }
-            else
-            {
+            else {
                 alert(
                     ngettext(
                         `There is ${newFeatureCollection.features.length} ${layerId.Feature.name} found for the region`,
@@ -1790,12 +1636,10 @@ class UIModel extends Subject
             }
         }
 
-        if (noSelectedRegions)
-        {
+        if (noSelectedRegions) {
             alert(gettext("No region selected. Please, select or activate a region before making the request."));
         }
-        if (noNewFeatures)
-        {
+        if (noNewFeatures) {
             alert(gettext("No new features inserted, displaying already found data."));
         }
     }
@@ -1817,11 +1661,9 @@ class UIModel extends Subject
      * @param {int} featureId - Feature's id
      * @returns {Boolean} - True if the feature and layer belongs to at least 1 active region
      */
-    isFeatureActive(layerId, featureId)
-    {
+    isFeatureActive(layerId, featureId) {
         if (!this.featuresByLayerId[layerId]) return false;
-        for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions)
-        {
+        for (let regionIdx in this.featuresByLayerId[layerId][featureId].regions) {
             let regionId = this.featuresByLayerId[layerId][featureId].regions[regionIdx];
             if (this.regions[regionId].active) return true;
         }
@@ -1832,16 +1674,13 @@ class UIModel extends Subject
      * Search into all active regions all the active layers
      * @returns {Layer[]} A list of all active layers
      */
-    getActiveLayers()
-    {
+    getActiveLayers() {
         let activeLayers = [];
         let activeRegions = this.getActiveRegions();
-        for (let regionIdx in activeRegions)
-        {
+        for (let regionIdx in activeRegions) {
             const region = activeRegions[regionIdx];
 
-            for (let layerIdx in region.layers)
-            {
+            for (let layerIdx in region.layers) {
                 const layer = region.layers[layerIdx];
 
                 activeLayers.push(layer);
@@ -1854,11 +1693,9 @@ class UIModel extends Subject
      * Search for all active regions at [UIModel.regions]{@link module:UIModel~UIModel#regions}.
      * @returns {Region[]} An array of all active regions
      */
-    getActiveRegions()
-    {
+    getActiveRegions() {
         let activeRegions = [];
-        for (let regionIdx in this.regions)
-        {
+        for (let regionIdx in this.regions) {
             const region = this.regions[regionIdx];
             if (!region.active) continue;
             activeRegions.push(region);
@@ -1866,18 +1703,15 @@ class UIModel extends Subject
         return activeRegions;
     }
 
-    setTarget(regionsDivId)
-    {
+    setTarget(regionsDivId) {
         this._target = $(`#${regionsDivId}`);
         this._target.addClass('list-group');
     }
 
-    updateRegionsDiv()
-    {
+    updateRegionsDiv() {
         this._target.empty();
 
-        for (let regionIdx in this._regions)
-        {
+        for (let regionIdx in this._regions) {
             let region = this._regions[regionIdx];
 
             let item = $(document.createElement('a'));
@@ -1893,8 +1727,7 @@ class UIModel extends Subject
 
     }
 
-    _regionListItemClickHandler(event)
-    {
+    _regionListItemClickHandler(event) {
         let element = $(event.target);
         element.toggleClass("active");
         let region = event.data;
@@ -1902,12 +1735,26 @@ class UIModel extends Subject
         UIModel.notify('regionlistitemclick', region);
     }
 
-    createRegion(boundaries, active, name = null, pre_regionid = null)
+    /**
+     * Creates a region with features. This call was
+     * created to be used by the "Load Shapefile" component.
+     * @param {Array<Array<Array<float, float[, float]>>>} boundariesArray - Array of 2D or 3D coordinates for a Polygon
+     * @param {FeatureCollection} geoJSONFeatureCollection - geoJSONFeatureCollection with features as Point objects
+     * @return {Region} - The newly created region.
+     */
+    createCustomRegion(boundariesArray, geoJSONFeatureCollection)
     {
+        let newRegion = this.createRegion(boundariesArray, true);
+        let customLayerId = new LayerId("custom", "custom");
+        let newLayer = newRegion.createLayer(customLayerId);
+        this._updateFeaturesByLayerIdIndex(newRegion.id, customLayerId, geoJSONFeatureCollection);
+        return newRegion;
+    }
+
+    createRegion(boundaries, active, name = null, pre_regionid = null) {
         let idNumber = getNewId();
         let regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
-        while (regionId in this._regions)
-        {
+        while (regionId in this._regions) {
             console.warn(`regionId: '${regionId}' ` + gettext("already present in regions list!"));
             idNumber = getNewId();
             regionId = (pre_regionid !== null) ? pre_regionid : 'region' + idNumber;
@@ -1926,19 +1773,15 @@ class UIModel extends Subject
 
     }
 
-    removeRegion(id)
-    {
-        if ((id in this._regions))
-        {
+    removeRegion(id) {
+        if ((id in this._regions)) {
             let detetedRegion = this._regions[id];
-            if (delete this._regions[id])
-            {
+            if (delete this._regions[id]) {
                 UIModel.notify('regiondeleted', detetedRegion);
                 return true;
             }
         }
-        else
-        {
+        else {
             throw Error(`id: '${id}' ` + gettext("not found in regions list!"));
         }
     }
@@ -1967,19 +1810,14 @@ class UIModel extends Subject
      * @param {GeoJSONFeature} feature2 
      * @todo move this to the Helpers module
      */
-    _syncFeatureProperties(feature1, feature2)
-    {
-        for (let key in feature1.properties)
-        {
-            if (!feature2.properties[key])
-            {
+    _syncFeatureProperties(feature1, feature2) {
+        for (let key in feature1.properties) {
+            if (!feature2.properties[key]) {
                 feature2.properties[key] = feature1.properties[key];
             }
         }
-        for (let key in feature2.properties)
-        {
-            if (!feature1.properties[key])
-            {
+        for (let key in feature2.properties) {
+            if (!feature1.properties[key]) {
                 feature1.properties[key] = feature2.properties[key];
             }
         }
@@ -1990,8 +1828,7 @@ class UIModel extends Subject
      * @param {GeoJSONFeature} updatedFeature 
      * @returns {Boolean} True if the _featuresByLayerId is updated. False otherwise.
      */
-    _syncAndMergeMultiFeature(updatedFeature)
-    {
+    _syncAndMergeMultiFeature(updatedFeature) {
         //let featureRegionsIndex = this._featuresByLayerId[updatedFeature.properties.layerId];
         let featuresInLayer = this._featuresByLayerId[updatedFeature.properties.layerId.toString()];
         let geoJSONFeatureRegion = GeoJSONHelper.writeFeature(featuresInLayer[updatedFeature.id].feature);
@@ -2004,14 +1841,12 @@ class UIModel extends Subject
          * are updated, that is, replaced with the ones from updatedFeature.
          * */
         if (JSON.stringify(geoJSONFeatureRegion) !==
-            JSON.stringify(updatedFeature))
-        {
+            JSON.stringify(updatedFeature)) {
             this._syncFeatureProperties(geoJSONFeatureRegion,
                 updatedFeature);
         }
         // Otherwise nothing has to be done.
-        else
-        {
+        else {
             return false;
         }
 
@@ -2058,10 +1893,8 @@ class UIModel extends Subject
      * @param {string} layerIdStr - The id of the layer with untracked features. See [LayerId.toString]{@link module:UIModel~LayerId.toString}.
      * @fires module:UIModel~UIModel.featuresmerged
      */
-    updateFeatureIndex(layerIdStr)
-    {
-        for (let regionIdx in this.regions)
-        {
+    updateFeatureIndex(layerIdStr) {
+        for (let regionIdx in this.regions) {
             let region = this.regions[regionIdx];
 
             let triggerFeaturesMerged = false;
@@ -2069,13 +1902,11 @@ class UIModel extends Subject
             let layer = region.layers[layerIdStr];
 
             if (!layer || !layer.featureCollection) continue;
-            if (!this._featuresByLayerId[layerIdStr])
-            {
+            if (!this._featuresByLayerId[layerIdStr]) {
                 this._featuresByLayerId[layerIdStr] = {};
             }
 
-            for (let featureIdx in layer.featureCollection.features)
-            {
+            for (let featureIdx in layer.featureCollection.features) {
                 let feature = layer.featureCollection.features[featureIdx];
                 /**
                  * Here if the _featuresByLayerId index doesn't contain
@@ -2083,23 +1914,20 @@ class UIModel extends Subject
                  * id 'layerIdStr' then this entry will be created.
                  * 
                  */
-                if (!this._featuresByLayerId[layerIdStr][feature.id])
-                {
+                if (!this._featuresByLayerId[layerIdStr][feature.id]) {
                     this._featuresByLayerId[layerIdStr][feature.id] =
                         new FeatureRegions(feature, [region.id]);
                 }
                 else if (
                     this._featuresByLayerId[layerIdStr][feature.id]
                         .regions.indexOf(region.id) === -1
-                )
-                {
+                ) {
                     this._featuresByLayerId[layerIdStr][feature.id].regions.push(region.id);
                 }
                 triggerFeaturesMerged = triggerFeaturesMerged || this._syncAndMergeMultiFeature(feature);
             }
 
-            if (triggerFeaturesMerged)
-            {
+            if (triggerFeaturesMerged) {
                 UIModel.notify('featuresmerged', layer);
             }
         }
@@ -2130,8 +1958,7 @@ class UIModel extends Subject
 * @property {string} filterId - If undefined then it's the original image
 * otherwise it's an image processed by a filter whose id is filterId (e.g. greenery)
 */
-if (!UIModel.init)
-{
+if (!UIModel.init) {
     UIModel.init = true;
     UIModel.registerEventNames([
         'regionlistitemclick',

@@ -1,4 +1,17 @@
-﻿#alertDiv
+﻿.shapefilesdiv
+{
+     height: 188px; /* 38px default + 150px for 3 files*/
+    max-height: 188px;
+}
+
+#ulSelectedFiles
+{
+    height: 150px;
+    max-height: 150px;
+    overflow:auto;
+}
+
+#alertDiv
 {
     display: none;
 }

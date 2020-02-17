@@ -15,22 +15,26 @@ one commented bellow -->
         </div>
         <div class="modal-body">
             <p>{% trans "A shapefile (.shp) can be used to define a set of features of interest" %}
-                {% trans "(e.g. the location of trees). Notice that the shapefile must contain a" %} 
-                {% trans "set of Point geometries." %}
+                {% trans "(e.g. the location of trees). Notice that the shapefile must contain" %} 
+                {% trans "a set of Point geometries." %}
             </p>
             <p>{% trans "Besides the '.shp' file the files '.dbf' and '.prj' can also be selected." %}
-                {% trans "The assumed projection is WGS84, so if the data is in another coodinates" %} 
-                {% trans "reference system it is important to provide a '.prj' file with the proper" %} 
-                {% trans "PROJ or WKT string." %}
+                {% trans "The assumed projection is WGS84, so if the data uses" %} 
+                {% trans "another coordinate reference system it is important" %}
+                {% trans "to provide a '.prj' file with" %} 
+                {% trans "the proper PROJ or WKT string." %}
             </p>
             <a href="http://proj4js.org/">{% trans "More information on '.prj' files and projections." %}</a>
-            <div class="custom-file">
+            <div class="custom-file shapefilesdiv">
                 <input type="file"
                 class="custom-file-input"
                 id="inputShapefiles"
                 accept=".shp,.dbf,.prj"
                 multiple>
                 <label class="custom-file-label" for="inputShapefiles">{% trans "Select files" %}</label>
+                <ul id="ulSelectedFiles" class="list-group">
+
+                </ul>
               </div>
         </div>
         <div class="modal-footer">

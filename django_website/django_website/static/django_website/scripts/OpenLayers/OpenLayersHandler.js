@@ -83,9 +83,6 @@ class OpenLayersHandler extends Subject
             return instance;
         }
 
-        var ime_usp_location = { lat: -23.5595116, lon: -46.731304 };
-        var initial_zoom_level = 16;
-
         //this.sources = {
         //    'osm_tiles': new ol.layer.Tile({ source: new ol.source.OSM() }),
         //    'google_roadmap_tiles': new ol.layer.Tile({ source: new ol.source.TileImage({ url: 'http://mt1.google.com/vt/lyrs=m@113&hl=en&&x={x}&y={y}&z={z}' }) })
