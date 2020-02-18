@@ -1748,6 +1748,7 @@ class UIModel extends Subject {
         let customLayerId = new LayerId("custom", "custom");
         let newLayer = newRegion.createLayer(customLayerId);
         this._updateFeaturesByLayerIdIndex(newRegion.id, customLayerId, geoJSONFeatureCollection);
+        newLayer.featureCollection = geoJSONFeatureCollection;
         return newRegion;
     }
 
