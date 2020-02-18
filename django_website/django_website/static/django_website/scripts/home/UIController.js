@@ -187,6 +187,7 @@
                 GeoJSONHelper.olGeoJson.writeFeature(
                     new ol.Feature(new ol.geom.MultiPoint([]))))
             multipoint.id = uuid();
+            multipoint.properties = {};
 
             geoJson.features.forEach((f) => {
                 //if (!f.id) f.id = uuid();
