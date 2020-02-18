@@ -167,8 +167,6 @@
 
             let minLat = geoJson.features[0].geometry.coordinates[1];
             let maxLat = geoJson.features[0].geometry.coordinates[1];
-            debugger;
-
 
             let badFeature = null;
             do {
@@ -183,15 +181,34 @@
                 }
             } while (badFeature);
 
+            //With this it is possible to instantiate a
+            //GeoJSON MultiPoint geometry structured as an OpenLayer one.
+            let multipoint = JSON.parse(
+                GeoJSONHelper.olGeoJson.writeFeature(
+                    new ol.Feature(new ol.geom.MultiPoint([]))))
+            multipoint.id = uuid();
+
             geoJson.features.forEach((f) => {
-                if (!f.id) f.id = uuid();
+                //if (!f.id) f.id = uuid();
+                //f.geometry is already a point.
+                multipoint
+                    .geometry
+                    .coordinates
+                    .push(f.geometry.coordinates);
                 let lon = f.geometry.coordinates[0];
                 let lat = f.geometry.coordinates[1];
+
                 if (lon < minLon) minLon = lon;
                 else if (lon > maxLon) maxLon = lon;
                 if (lat < minLat) minLat = lat;
                 else if (lat > maxLat) maxLat = lat;
             });
+
+            //geoJson.features = new ol.Feature(multipoint);
+            geoJson.features = [multipoint];
+
+
+
             //A polygon is a collection of LinearRings
             //Counter-clock wise rings = inner area
             //Clock-wise rings = holes

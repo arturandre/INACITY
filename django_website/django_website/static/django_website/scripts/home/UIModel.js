@@ -1524,7 +1524,7 @@ class UIModel extends Subject {
                     this._featuresByLayerId[layerId][feature.id].regions.push(regionId);
                 }
 
-                if (feature.geometry.type.startsWith('Multi')) {
+                if (feature.geometry.type.toLowerCase().startsWith('multilinestring')) {
                     let oldFeature =
                         GeoJSONHelper.writeFeature(
                             this._featuresByLayerId[layerId.toString()][feature.id].feature);
