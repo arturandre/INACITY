@@ -4,6 +4,28 @@
  * @module UIModel
  */
 
+/**
+ * A MapFeature is something that can be collected from a MapMiner (e.g. Streets).
+ * Notice that a MapMiner object contains an Array of MapFeature objects.
+ * @typedef {Object} MapFeature
+ * @property {string} id - Identifier of feature to be collected using some
+ * map miner.
+ * @property {string} name - Display name to be used in the User Interface.
+ */
+
+ /**
+  * A MapMiner object is a Data Transfer Object (DTO) used
+  * to display in the front-end the available map miners in the
+  * back-end and also to select one of them in a request to the back-end.
+  * Notice that if the user supply a shapefile then the MapMiner will be set to "Shapefile"
+  * with a single MapFeature also named as "Shapefile" and in this case any request will
+  * be fulfilled according to the data supplied in the shapefile.
+  * @typedef {Object} MapMiner
+  * @property {string} id - Identifier of the map miner used to reference it in the backend
+  * @property {string} name - Name parameter used to display the map miner in the User Interface.
+  * @property {Array<MapFeature>} - The MapFeatures available for this specific MapMiner.
+  */
+
 
 class RegionLayer extends Subject {
 
@@ -676,6 +698,9 @@ class UIModel extends Subject {
     }
 
     get SelectedMapMiner() { return this._SelectedMapMiner; }
+    /**
+     * @param {MapMiner} mapMiner - The selected map miner to be used.
+     */
     set SelectedMapMiner(mapMiner) {
         this._SelectedMapMiner = mapMiner;
         if (!mapMiner) return;
@@ -685,6 +710,9 @@ class UIModel extends Subject {
     }
 
     get SelectedMapFeature() { return this._SelectedMapFeature; }
+    /**
+     * @param {MapFeature} mapFeature - The selected map feature to be collected.
+     */
     set SelectedMapFeature(mapFeature) { this._SelectedMapFeature = mapFeature; }
 
     get SelectedImageProvider() { return this._SelectedImageProvider; }

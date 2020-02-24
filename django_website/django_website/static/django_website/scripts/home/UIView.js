@@ -22,7 +22,8 @@ class UIView
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
         this.streetSelect = streetSelect;
-
+        
+        this.onCloseShapefileModal = null;
         this.onClickLoadShapefilesBtn = null;
         this.onChangeInputShapefiles = null;
 
@@ -54,8 +55,11 @@ class UIView
          */
         this.jqinputShapefiles = $("#inputShapefiles");
         this.jqbtnLoadShapefiles = $("#btnLoadShapefiles");
+        this.jqulSelectedFiles = $("#ulSelectedFiles");
+        this.jqshapefile_modal = $("#shapefile_modal");
+        
 
-
+        
         this.jqlabelSelectedFeature = $(`#lblSelectedFeature`);
 
         this.jqimgUrbanPicture = $(`#imgUrbanPicture`);
@@ -108,6 +112,8 @@ class UIView
 
     initialize()
     {
+        
+        this.jqshapefile_modal.on("hidden.bs.modal", this.onCloseShapefileModal.bind(this));
         this.jqbtnLoadShapefiles.on("click", this.onClickLoadShapefilesBtn.bind(this));
         this.jqinputShapefiles.on("change", this.onChangeInputShapefiles.bind(this));
 
@@ -265,6 +271,12 @@ class UIView
             }
         }
 
+    }
+
+    clearSelectedShapefiles()
+    {
+        this.jqinputShapefiles[0].value = "";
+        this.jqulSelectedFiles.empty();
     }
 
     askSessionName(currentSessionName = "")

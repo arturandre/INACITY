@@ -19,6 +19,7 @@
     }
 
     initialize() {
+        this.uiView.onCloseShapefileModal = this.onCloseShapefileModal.bind(this);
         this.uiView.onChangeInputShapefiles = this.onChangeInputShapefiles.bind(this);
         this.uiView.onClickLoadShapefilesBtn = this.onClickLoadShapefilesBtn.bind(this);
 
@@ -67,11 +68,16 @@
 
     }
 
+    onCloseShapefileModal(event)
+    {
+        this.uiView.clearSelectedShapefiles();
+    }
+
     onChangeInputShapefiles(event) {
-        uiView.jqinputShapefiles[0].filesArray = [];
+        this.uiView.jqinputShapefiles[0].filesArray = [];
         for (let i = 0; i < uiView.jqinputShapefiles[0].files.length; i++) {
-            let file = uiView.jqinputShapefiles[0].files[i];
-            uiView.jqinputShapefiles[0].filesArray[file.name] = file;
+            let file = this.uiView.jqinputShapefiles[0].files[i];
+            this.uiView.jqinputShapefiles[0].filesArray[file.name] = file;
         }
 
         let filesArray = this.uiView.jqinputShapefiles[0].filesArray;
@@ -97,7 +103,7 @@
                 $li.remove();
             }.bind(this));
             $li.append($removeButton);
-            $("#ulSelectedFiles").append($li);
+            this.uiView.jqulSelectedFiles.append($li);
         }
         //<button type="button" class="close" data-dismiss="modal" aria-label="Close">
         //    <span aria-hidden="true">&times;</span>
@@ -227,6 +233,23 @@
 
 
             this.uiModel.createCustomRegion(boundingBox, geoJson);
+            let mapFeature = 
+            {
+                id: "Shapefile",
+                name: "Shapefile",
+            };
+            let mapMiner = 
+            {
+                id: "Shapefile",
+                name: "Shapefile",
+                features: [mapFeature]
+            };
+            this.uiModel.SelectedMapMiner = mapMiner;
+            this.uiModel.SelectedMapFeature = mapFeature;
+            this.uiView.updateMapMinerView(mapMiner);
+            this.uiView.updateFeatureView(mapFeature);
+    
+            this.uiView.jqshapefile_modal.modal('hide');
 
 
 
