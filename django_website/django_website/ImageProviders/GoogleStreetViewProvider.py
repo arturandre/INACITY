@@ -15,6 +15,7 @@ from GSVPanoramaManager import settings
 from django_website import settings_secret
 from django_website.LogGenerator import write_to_log
 
+from django_website.geofunctions import calculate_initial_compass_bearing
 
 import hashlib
 import hmac
@@ -31,8 +32,6 @@ class Size():
 
 
 class GoogleStreetViewProvider(ImageProvider):
-    """Google Street View wrapper (DEPRECATED)
-    GSV is now managed by javascript (home/GSVService.js)"""
 
     __all__ = ["imageProviderName", "imageProviderId", "getImageFromLocation"]
 
@@ -87,7 +86,7 @@ class GoogleStreetViewProvider(ImageProvider):
 
             pointAtCoordinate: If true then the heading
             will be defined to be one that points to the
-            coordinate rather then the frontal direction
+            coordinate rather than the frontal direction
             from the camera.
             """
             #Try to retrieve or collect the panorama
@@ -96,7 +95,13 @@ class GoogleStreetViewProvider(ImageProvider):
             if panorama:
                 #Get view and consequently the stored image or its url
                 pano_id = panorama['pano']
-                heading = panorama['centerHeading']
+                if pointAtCoordinate:
+                    originP = [panorama['location']['lng'],
+                        panorama['location']['lat']]
+                    destinationP = coordinates
+                    heading = calculate_initial_compass_bearing(originP, destinationP)
+                else:
+                    heading = panorama['centerHeading']
                 pitch = panorama['originPitch']
                 
                 # Optional: Just used to keep track of which views
