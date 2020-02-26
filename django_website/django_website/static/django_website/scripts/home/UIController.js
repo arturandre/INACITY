@@ -188,12 +188,9 @@
             } while (badFeature);
 
             //With this it is possible to instantiate a
-            //GeoJSON MultiPoint geometry structured as an OpenLayer one.
-            let multipoint = JSON.parse(
-                GeoJSONHelper.olGeoJson.writeFeature(
-                    new ol.Feature(new ol.geom.MultiPoint([]))))
-            multipoint.id = uuid();
-            multipoint.properties = {};
+            //GeoJSON Feature with MultiPoint geometry structured as an OpenLayer one.
+            let multipoint = GeoJSONHelper.GeoJSONFeatureWithGeometry(
+                new ol.geom.MultiPoint([]));
 
             geoJson.features.forEach((f) => {
                 //if (!f.id) f.id = uuid();
@@ -232,18 +229,19 @@
             ]];
 
 
-            this.uiModel.createCustomRegion(boundingBox, geoJson);
             let mapFeature = 
             {
                 id: "Shapefile",
-                name: "Shapefile",
+                name: "Shapefile"
             };
             let mapMiner = 
             {
                 id: "Shapefile",
                 name: "Shapefile",
+                local: true,
                 features: [mapFeature]
             };
+            this.uiModel.createCustomRegion(boundingBox, geoJson, mapMiner, mapFeature);
             this.uiModel.SelectedMapMiner = mapMiner;
             this.uiModel.SelectedMapFeature = mapFeature;
             this.uiView.updateMapMinerView(mapMiner);

@@ -13,18 +13,18 @@
  * @property {string} name - Display name to be used in the User Interface.
  */
 
- /**
-  * A MapMiner object is a Data Transfer Object (DTO) used
-  * to display in the front-end the available map miners in the
-  * back-end and also to select one of them in a request to the back-end.
-  * Notice that if the user supply a shapefile then the MapMiner will be set to "Shapefile"
-  * with a single MapFeature also named as "Shapefile" and in this case any request will
-  * be fulfilled according to the data supplied in the shapefile.
-  * @typedef {Object} MapMiner
-  * @property {string} id - Identifier of the map miner used to reference it in the backend
-  * @property {string} name - Name parameter used to display the map miner in the User Interface.
-  * @property {Array<MapFeature>} - The MapFeatures available for this specific MapMiner.
-  */
+/**
+ * A MapMiner object is a Data Transfer Object (DTO) used
+ * to display in the front-end the available map miners in the
+ * back-end and also to select one of them in a request to the back-end.
+ * Notice that if the user supply a shapefile then the MapMiner will be set to "Shapefile"
+ * with a single MapFeature also named as "Shapefile" and in this case any request will
+ * be fulfilled according to the data supplied in the shapefile.
+ * @typedef {Object} MapMiner
+ * @property {string} id - Identifier of the map miner used to reference it in the backend
+ * @property {string} name - Name parameter used to display the map miner in the User Interface.
+ * @property {Array<MapFeature>} - The MapFeatures available for this specific MapMiner.
+ */
 
 
 class RegionLayer extends Subject {
@@ -1538,8 +1538,7 @@ class UIModel extends Subject {
         if (!this._featuresByLayerId[layerId]) this._featuresByLayerId[layerId] = {};
         let maxAbort = 1000;
         for (let idx in GeoJSONFeatureCollection.features) {
-            if (maxAbort-- <= 0) 
-            {
+            if (maxAbort-- <= 0) {
                 console.warn('Too many features too be displayed!');
                 break;
             }
@@ -1645,7 +1644,39 @@ class UIModel extends Subject {
                 }
             };
             //let data = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
-            let newFeatureCollection = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
+            let newFeatureCollection = null;
+            if (getPropPath(layerId, ['MapMiner', 'local'])) {
+                //newFeatureCollection
+                let region_bbox = region.boundaries.getGeometry().getExtent();
+
+                let newMultiPoint = new ol.geom.MultiPoint([]);
+
+                let geometry = uiModel.featuresByLayerId[layerId.toString()];
+                let featureUUID = Object.keys(geometry)[0];
+                geometry = geometry[featureUUID].feature.getGeometry();
+                let numPoints = geometry.getPoints().length;
+                for (let i = 0; i < numPoints; i++) {
+                    let point = geometry.getPoint(i);
+
+                    let point_coords = point.getCoordinates();
+                    if (point_coords[0] >= region_bbox[0]
+                        && point_coords[0] <= region_bbox[2]
+                        && point_coords[1] >= region_bbox[1]
+                        && point_coords[1] <= region_bbox[3]) {
+                            newMultiPoint.appendPoint(point);
+                    }
+                }
+                newFeatureCollection = 
+                    GeoJSONHelper.GeoJSONFeatureWithGeometry(newMultiPoint);
+                newFeatureCollection = 
+                {
+                    'type': 'FeatureCollection',
+                    'features': [newFeatureCollection]
+                };
+            }
+            else {
+                newFeatureCollection = await this.getMapMinerFeatures(region, geoJsonFeatures, layerId);
+            }
 
             this._updateFeaturesByLayerIdIndex(region.id, layerId, newFeatureCollection);
 
@@ -1768,12 +1799,13 @@ class UIModel extends Subject {
      * created to be used by the "Load Shapefile" component.
      * @param {Array<Array<Array<float, float[, float]>>>} boundariesArray - Array of 2D or 3D coordinates for a Polygon
      * @param {FeatureCollection} geoJSONFeatureCollection - geoJSONFeatureCollection with features as Point objects
+     * @param {MapMiner} mapMiner - The custom map miner identifier
+     * @param {mapFeature} mapFeature - The custom map feature identifier
      * @return {Region} - The newly created region.
      */
-    createCustomRegion(boundariesArray, geoJSONFeatureCollection)
-    {
+    createCustomRegion(boundariesArray, geoJSONFeatureCollection, mapMiner, mapFeature) {
         let newRegion = this.createRegion(boundariesArray, true);
-        let customLayerId = new LayerId("custom", "custom");
+        let customLayerId = new LayerId(mapMiner, mapFeature);
         let newLayer = newRegion.createLayer(customLayerId);
         this._updateFeaturesByLayerIdIndex(newRegion.id, customLayerId, geoJSONFeatureCollection);
         newLayer.featureCollection = geoJSONFeatureCollection;

@@ -80,10 +80,15 @@ class GoogleStreetViewProvider(ImageProvider):
             feature['properties']['geoImages'] = clonedTree
             pass
 
-        def cfunction(coordinates):
+        def cfunction(coordinates, pointAtCoordinate=False):
             """
             cfunction - Coordinates's function
             Defines how each coordinate must be processed.
+
+            pointAtCoordinate: If true then the heading
+            will be defined to be one that points to the
+            coordinate rather then the frontal direction
+            from the camera.
             """
             #Try to retrieve or collect the panorama
             panorama = dbmanager.retrieve_nearest_panorama(coordinates)\

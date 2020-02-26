@@ -131,6 +131,20 @@ class GeoJSONHelper
         return JSON.parse(GeoJSONHelper.olGeoJson.writeFeatures(olFeatures)).features
     }
 
+    /**
+     * 
+     * @param {ol.geom.geometry} geometry - An ol.geom.geometry subclass (e.g. MultiPoint)
+     * @returns {GeoJSONFeature} - An ol.geom.geometry subclass (e.g. MultiPoint)
+     */
+    static GeoJSONFeatureWithGeometry(geometry){
+        let feature = JSON.parse(
+            GeoJSONHelper.olGeoJson.writeFeature(
+                new ol.Feature(geometry)))
+        feature.id = uuid();
+        feature.properties = {};
+        return feature;
+    }
+
 }
 
 //Ref: https://stackoverflow.com/a/32647583/3562468
