@@ -172,6 +172,17 @@ class UIView
 
         StreetSelect.on("selectedfeaturechanged", this._updateSelectedFeature.bind(this));
         StreetSelect.on("selectedfeaturechanged", this.updateLayersHintList.bind(this));
+
+        ErrorMediator.subscribe(this);
+    }
+
+    /**
+     * Interface method used by the ErrorMediator class
+     * @param {string} error_message - Error message sent by the ErrorMediator class
+     */
+    get_error(error_message)
+    {
+        this.displayMessage(error_message, "Error");
     }
 
     
@@ -464,8 +475,8 @@ class UIView
             case 'Error':
                 //alert(message);
                 this.jqalertDiv.text(message);
-                console.trace();
-                throw new Error(message);
+                console.trace(message);
+                //throw new Error(message);
                 break;
             default:
                 console.trace();

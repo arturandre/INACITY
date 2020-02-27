@@ -137,7 +137,6 @@ class GSVService extends Subject
                 {
                     reject(status);
                 }
-
             });
         });
     }
@@ -164,12 +163,30 @@ class GSVService extends Subject
     //Works in-place
     static async setPanoramaForFeature(feature)
     {
+        let pointAtCoordinate = false;
+        if (
+            feature.geometry.type.toLowerCase() === "multipoint"
+            || feature.geometry.type.toLowerCase() === "point"
+        )
+        {
+            pointAtCoordinate = true;
+        }
         feature.properties.geoImages = await GSVService.cloneTree(feature.geometry.coordinates,
             /*Not leaf function*/ undefined,
             /*Leaf function*/ async function (node)
             {
                 return await GSVService.getPanoramaByLocation(node).then(
-                    async (streetViewPanoramaData) => await streetViewPanoramaData.toGeoImage(),
+                    async function (streetViewPanoramaData)
+                    {
+                        if (typeof (streetViewPanoramaData) === "string")
+                        {
+                            return streetViewPanoramaData;
+                        }
+                        else
+                        {
+                            return await streetViewPanoramaData.toGeoImage(node, pointAtCoordinate);
+                        }
+                    },
                     function (err)
                     {
                         console.error(err);

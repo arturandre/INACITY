@@ -96,9 +96,9 @@ class GoogleStreetViewProvider(ImageProvider):
                 #Get view and consequently the stored image or its url
                 pano_id = panorama['pano']
                 if pointAtCoordinate:
-                    originP = [panorama['location']['lng'],
-                        panorama['location']['lat']]
-                    destinationP = coordinates
+                    originP = (panorama['location']['lng'],
+                        panorama['location']['lat'])
+                    destinationP = (coordinates[0], coordinates[1])
                     heading = calculate_initial_compass_bearing(originP, destinationP)
                 else:
                     heading = panorama['centerHeading']
@@ -154,7 +154,9 @@ class GoogleStreetViewProvider(ImageProvider):
             else:
                 return "NOT FOUND"
         
-        clonedTree = ImageProvider.traverseFeature(feature, cfunction)
+        pointAtCoordinate = (feature['geometry']['type'].lower() == 'multipoint')
+
+        clonedTree = ImageProvider.traverseFeature(feature, cfunction, pointAtCoordinate)
         ffunction(feature, clonedTree)
         return True
 

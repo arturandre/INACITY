@@ -1,3 +1,14 @@
+/**
+ * The GeoImageCollection is a utility class destinated to
+ * load images from GeoImages stored in GeoJSON Features and
+ * GeoJSON FeatureCollections. Besides this class also
+ * keeps track of how many valid images are present and it
+ * can be integrated with the User Session module.
+ * track of the application state, as the user interacts with it.
+ * @module GeoImageCollection
+ */
+
+
 class GeoImageCollection
 {
     constructor()
@@ -21,10 +32,14 @@ class GeoImageCollection
         return ret;
     }
 
+    /**
+     * 
+     * @param {GeoJSONFeature} newFeature - A Feature object with GeoImages stored in the 'properties' attribute.
+     */
     loadGeoImagesFromFeature(newFeature)
     {
         this._currentGeoImagesCollection = [];
-        if (getPropPath(newFeature.type === "Feature"))
+        if (getPropPath(newFeature, ['type']) === "Feature")
         {
             let geoImages = newFeature.properties.geoImages;
             if (geoImages)

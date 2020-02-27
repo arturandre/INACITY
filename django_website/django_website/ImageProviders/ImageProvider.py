@@ -37,7 +37,7 @@ class ImageProvider(ABC):
         pass
 
     @staticmethod
-    def traverseFeature(feature, cfunction):
+    def traverseFeature(feature, cfunction, pointAtCoordinate=False):
         cloneTree = []
         if type(feature) is list:
             coordinatesRoot = feature
@@ -45,13 +45,13 @@ class ImageProvider(ABC):
             coordinatesRoot = feature['geometry']['coordinates']
         if type(coordinatesRoot[0]) is not list:
             #the feature is a point
-            cloneTree.append(cfunction(coordinatesRoot))
+            cloneTree.append(cfunction(coordinatesRoot, pointAtCoordinate))
         else:
             for j in range(len(coordinatesRoot)):
                 if type(coordinatesRoot[j][0]) is list:
-                    cloneTree.append(ImageProvider.traverseFeature(coordinatesRoot[j], cfunction))
+                    cloneTree.append(ImageProvider.traverseFeature(coordinatesRoot[j], cfunction, pointAtCoordinate))
                 else:
-                    cloneTree.append(cfunction(coordinatesRoot[j]))
+                    cloneTree.append(cfunction(coordinatesRoot[j], pointAtCoordinate))
         return cloneTree
 
     

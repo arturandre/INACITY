@@ -185,7 +185,10 @@ async function initializeUI() {
             openLayersHandlerJSON: openLayersHandler
         }
     );
-    sessionManager.loadSession();
+    if (confirm(gettext("Try to load last saved session?")))
+    {
+        sessionManager.loadSession();
+    }
 
     uiController = new UIController(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager, streetSelect);
 

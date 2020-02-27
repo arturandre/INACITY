@@ -1,7 +1,8 @@
 ﻿//ref: https://medium.com/javascript-inside/safely-accessing-deeply-nested-values-in-javascript-99bf72a0855a
 
 /**
- * 
+ * Provides an optinal-chaining mechanism
+ * Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
  * @param {Object} obj - The object whose properties will be fetch.
  * @param {Array<string>} path - An array defining the properties path
  */

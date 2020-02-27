@@ -134,8 +134,7 @@ class GeoImageManager extends Subject
         }
         else
         {
-            this._displayingSingleFeature = false;
-            //this._displayingLayers = this.uiModel.getDisplayingLayers();
+            this._displayingSingleFeature = false;            
             this._displayingLayers = this.uiModel.getActiveLayers();
             if (!(this._displayingLayers.length > 0))
             {
@@ -147,7 +146,10 @@ class GeoImageManager extends Subject
 
 
 
-            this.geoImageCollection = this.uiModel.getFeatureCollectionFromFeaturesByLayerIndex(this._displayingLayers[this._currentLayer]);
+            this.geoImageCollection =
+                this.uiModel
+                    .getFeatureCollectionFromFeaturesByLayerIndex(
+                        this._displayingLayers[this._currentLayer]);
             if (!(this.geoImageCollection.validImages > 0))
             {
                 this.clear();
@@ -260,7 +262,8 @@ class GeoImageManager extends Subject
         { //Only featureCollections have a 'features' member
             this.geoImageCollection.loadGeoImagesFromFeatureCollection(newFeatureOrCollection);
             this._displayingSingleFeature = false;
-        } else
+        }
+        else
         {
             this.geoImageCollection.loadGeoImagesFromFeature(newFeatureOrCollection);
             this._displayingSingleFeature = true;

@@ -12,6 +12,7 @@ class SessionManager extends Subject
         super();
         this._sessionObjects = sessionObjects;
         this._loading = false;
+        this._autosave = false;
         // this._uiModel = uiModel;
         // this._geoImageManager = geoImageManager;
         // this._openLayersHandler = openLayersHandler;
@@ -21,22 +22,27 @@ class SessionManager extends Subject
         // this._openLayersHandler.globalVectorSource.on('addfeature', this.olFeatureChangedHandler, this);
         // this._openLayersHandler.globalVectorSource.on('removefeature', this.olFeatureChangedHandler, this);
         // this._openLayersHandler.globalVectorSource.on('changefeature', this.olFeatureChangedHandler, this);
-        UIModel.on('featurecreated', () => this.saveSession());
-        UIModel.on('featureupdated', () => this.saveSession());
-        UIModel.on('featuresmerged', () => this.saveSession());
-        UIModel.on('regioncreated', () => this.saveSession());
-        UIModel.on('regiondeleted', () => this.saveSession());
-        UIModel.on('regionlistitemclick', () => this.saveSession());
-        UIModel.on('getimages', () => this.saveSession());
-        GeoImageManager.on('geoimagecollectionchange', () => this.saveSession());
-        RegionLayer.on('featurecollectionchange', () => this.saveSession());
-        //Layer.on('featurecollectionchange', () => this.saveSession());
+        UIModel.on('featurecreated', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('featureupdated', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('featuresmerged', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('regioncreated', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('regiondeleted', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('regionlistitemclick', () => {if (this._autosave) this.saveSession(); });
+        UIModel.on('getimages', () => {if (this._autosave) this.saveSession(); });
+        GeoImageManager.on('geoimagecollectionchange', () => {if (this._autosave) this.saveSession(); });
+        RegionLayer.on('featurecollectionchange', () => {if (this._autosave) this.saveSession(); });
+        //Layer.on('featurecollectionchange', () => {if (this._autosave) this.saveSession(); });
     }
+
+    get autosave() {return this._autosave; }
+    set autosave(autosave) { this._autosave = autosave; }
 
     get currentSessionName()
     {
         return this._currentSessionName;
     }
+
+
 
 
     // async olFeatureChangedHandler(vectorevent)
@@ -70,6 +76,17 @@ class SessionManager extends Subject
             session[key] = this._sessionObjects[key].saveToJSON();
         }
 
+
+        let sessionSizeInBytes = new TextEncoder().encode(JSON.stringify(session)).length;
+
+        if (sessionSizeInBytes > SessionManager.MaxByteSize)
+        {
+            this._autosave = false;
+            ErrorMediator.notify(
+                gettext("The session size is bigger than the maximum allowed for saving! Aborting save. Auto-save disabled!"));
+            return;
+        }
+
         await $.ajax('/savesession/',
             {
                 method: 'POST',
@@ -86,9 +103,12 @@ class SessionManager extends Subject
                 if (!this._currentSessionName) this._currentSessionName = userSessionId;
                 SessionManager.notify('sessionsaved', true);
             })
-            .fail((jqXHR, textStatus, errorThrown) =>
+            .fail(function(jqXHR, textStatus, errorThrown)
             {
-                throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
+                this._autosave = false;
+                console.error(`${errorThrown}: ${jqXHR.responseText}`);
+                console.trace();
+                //throw new Error(`${errorThrown}: ${jqXHR.responseText}`);
             });
                 
             
@@ -150,7 +170,6 @@ class SessionManager extends Subject
     }
 
     /**
-     * @todo Treat cases in which session returns as a string from the server
      * @param {String} sessionId - Represents the user session id (not to be confused with Django's session)
      */
     async loadSession(sessionId)
@@ -268,8 +287,12 @@ class SessionManager extends Subject
 
 if (!SessionManager.init)
 {
-    SessionManager.init = true;
-    SessionManager.CooldownTimeout = 10; // Seconds
+    Object.defineProperties(SessionManager,
+        {
+            'init': {value: true, writable:false},
+            'CooldownTimeout': {value: 10/* Seconds */, writable:false},
+            'MaxByteSize': {value: 2*(1024**2) /* 2 Megabytes */, writable:false},
+        });
     SessionManager.registerEventNames([
         'sessionloaded',
         'sessionsaved'

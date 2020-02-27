@@ -14,7 +14,7 @@
  */
 class Time
 {
-    constructor(parameters) 
+    constructor(parameters)
     {
         var defaults = {
             nf: null,
@@ -218,18 +218,42 @@ class StreetViewPanoramaData
         return newSVPano;
     }
 
-    async toGeoImage()
+    async toGeoImage(featureCoordinate, pointAtCoordinate)
     {
         let ret = new GeoImage();
         ret.id = this.location.pano;
         //ret.location = this.location;
         //GeoJson Point specification
+        ret.feature_location = {
+            type: 'Point',
+            coordinates: featureCoordinate
+        };
         ret.location = {
             type: 'Point',
             coordinates: [this.location.lon, this.location.lat]
         };
 
-        ret.heading = this.tiles.centerHeading;
+        if (pointAtCoordinate)
+        {
+            let p1 = new google.maps.LatLng(
+                {
+                    lat: this.location.lat,
+                    lng: this.location.lon
+                });
+            let p2 = new google.maps.LatLng(
+                {
+                    lat: featureCoordinate[1],
+                    lng: featureCoordinate[0]
+                });
+            ret.heading = google.maps.geometry.spherical.computeHeading(p1, p2);
+            ret.heading += 360;
+            ret.heading %= 360;
+        }
+        else
+        {
+            ret.heading = this.tiles.centerHeading;
+        }
+
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
         let userkey = (use_alternative_gsv_api_key) ? user_gsv_api_key : undefined;
