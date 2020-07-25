@@ -12,7 +12,8 @@ RUN apt update && apt-get install -y \
 	gdal-bin \
 	postgresql-client \
 	python-pygraphviz \
-	default-jre default-jre-headless
+	default-jre default-jre-headless\
+	apt-transport-https ca-certificates
 	
 #	chromium \
 

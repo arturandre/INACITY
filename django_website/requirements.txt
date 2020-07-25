@@ -19,7 +19,7 @@ configobj==5.0.6
 constantly==15.1.0
 coreapi==2.3.3
 coreschema==0.0.4
-cryptography==2.1.4
+cryptography==2.7
 cycler==0.10.0
 Cython==0.28.3
 dask==0.17.5
@@ -105,7 +105,7 @@ terminado==0.5
 toolz==0.9.0
 tornado==4.3
 traitlets==4.0.0
-Twisted==17.9.0
+Twisted==18.7.0
 uritemplate==3.0.0
 urllib3==1.22
 Werkzeug==0.14.1
