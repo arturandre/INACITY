@@ -1,8 +1,9 @@
 class GSVService extends Subject
 {
-    constructor()
+    constructor(defaultKey)
     {
         super();
+        this.defaultKey = defaultKey;
     }
 
 
@@ -241,10 +242,11 @@ class GSVService extends Subject
         return newRoot;
     }
 
-    static async imageURLBuilderForGeoImage(geoImage, key, size)
+    //static async imageURLBuilderForGeoImage(geoImage, key, size)
+    async imageURLBuilderForGeoImage(geoImage, key, size)
     {
         let _size = size || [640, 640];
-        let _key = key || GSVService.defaultKey;
+        let _key = key || this.defaultKey;
         let gsv_unsigned_url = GSVService.imageURLBuilder(
             _size,
             geoImage.id,
@@ -308,7 +310,6 @@ class GSVService extends Subject
 if (!GSVService.init)
 {
     GSVService.init = true;
-    GSVService.defaultKey = 'AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc';
     GSVService.baseurl = "https://maps.googleapis.com/maps/api/streetview";
 
     /**

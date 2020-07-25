@@ -164,7 +164,7 @@ async function initializeUI() {
 
     await uiModel.initialize();
     uiModel.setDefaults(uiModelDefaults);
-    geoImageManager = new GeoImageManager(uiModel, {defaultImageUrl: "https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"});
+    geoImageManager = new GeoImageManager(uiModel, {defaultImageUrl: `https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=${}`});
 
     let uiViewDefaults = {
         shape: OpenLayersHandler.DrawTools.Box,

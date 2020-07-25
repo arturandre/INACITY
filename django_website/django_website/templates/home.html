@@ -7,6 +7,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 <script type="text/javascript">
+    var public_gsv_key = "{{ public_gsv_key }}"
     var use_alternative_gsv_signing_secret =
         ("{{ use_alternative_gsv_signing_secret }}" == "True");
     var use_alternative_gsv_api_key = ("{{ use_alternative_gsv_api_key }}" == "True");
@@ -32,7 +33,7 @@
 
 
 <script type="text/javascript"
-    src="http://maps.google.com/maps/api/js?key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc&libraries=visualization,geometry"></script>
+    src="http://maps.google.com/maps/api/js?key={{ public_gsv_key }}&libraries=visualization,geometry"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/Primitives.js' %}"></script>
 <script type="text/javascript" src="{% static 'django_website/scripts/Observer.js' %}"></script>
 <!-- OpenLayersHandler module needs to be inserted after ol.js script-->
@@ -122,9 +123,8 @@
 
     </div>
     <div class="col-sm right-column image-div">
-        <!--<img id="imgUrbanPicture" src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc" />-->
         <img id="imgUrbanPicture"
-            src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc&signature=EPw7T48vG-6LDsEpTe7nsnSFrEo=" />
+            src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key={{ public_gsv_key }}" />
         <div id="imgSliderDiv" class="slidecontainer hidden">
             <input type="range" min="1" max="100" value="50" class="slider" id="imgSlider">
         </div>

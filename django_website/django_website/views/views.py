@@ -129,6 +129,7 @@ def home(request):
     """
     htmlfile = 'home.html'
     local_vars = {'sample_key': 'sample_data'}
+    local_vars['public_gsv_key'] = settings_secret.GSV_KEY
     if request.user.is_authenticated:
         try:
             # Note that the signing url key must be used exclusively
