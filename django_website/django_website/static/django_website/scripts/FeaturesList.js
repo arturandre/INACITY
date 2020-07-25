@@ -26,6 +26,8 @@ class FeaturesList extends ItemsList {
         this._container.addClass("containerDiv btn-group-vertical btn-group-toggle");
         this._container.attr("data-toggle","buttons");
         this._outerContainer.append(this._container);
+
+
     }
 
     static fromFeatureCollection(featureCollection){
