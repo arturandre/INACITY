@@ -20,9 +20,14 @@ sed -i 's/#dbms.connectors.default_listen_address/dbms.connectors.default_listen
 # Starting the neo4j daemon
 neo4j start
 
-# Setting the default user and pass to 'neo4j' and '1234' (without quote marks)
-while  ! curl -H "Content-Type: application/json" -XPOST -d '{"password":"1234"}' -u neo4j:neo4j http://localhost:7474/user/neo4j/password 
-do
-  sleep 2
-done
+# NEW 26-07-2020 Setting the default user and pass to 'neo4j' and '1234' (without quote marks)
+rm /var/lib/neo4j/data/dbms/auth
+neo4j-admin set-initial-password 1234
+
+# OLD Setting the default user and pass to 'neo4j' and '1234' (without quote marks)
+
+#while  ! curl -H "Content-Type: application/json" -XPOST -d '{"password":"1234"}' -u neo4j:neo4j http://localhost:7474/user/neo4j/password 
+#do
+#  sleep 2
+#done
 
