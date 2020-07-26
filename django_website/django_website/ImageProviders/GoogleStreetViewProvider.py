@@ -37,9 +37,6 @@ class GoogleStreetViewProvider(ImageProvider):
 
     _baseurl = "https://maps.googleapis.com/maps/api/streetview"
     _key = settings_secret.GSV_KEY
-    #_key = "AIzaSyD5HdIiGhBEap1V9hHPjhq87wB07Swg-Gc"
-    #_GSVNodeBaseURL = "http://localhost:3000/"
-    #_GSVNodeCollectFCPanoramasURL = "http://localhost:3000/collectfcpanoramas"
     
     def __init__(self):
         raise Exception("This is a static class and should not be instantiated.")
@@ -406,7 +403,7 @@ class GoogleStreetViewProvider(ImageProvider):
         return original_url + "&signature=" + encoded_signature.decode('utf8')
         
     
-    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=<<GSV KEY>>
     @staticmethod
     def _imageURLBuilderLocation(size: Size, location: Point, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilderLocation')
@@ -432,7 +429,7 @@ class GoogleStreetViewProvider(ImageProvider):
             geoImage.pitch,
             GoogleStreetViewProvider._key)
  
-    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=AIzaSyCzw_81uL52LSQVYvXEpweaBsr3m%20-%20xHYac
+    #https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key=<<GSV KEY>>
     @staticmethod
     def _imageURLBuilder(size: Size, panoid: str, heading: float, pitch: float, key: str):
         write_to_log(f'_imageURLBuilder')

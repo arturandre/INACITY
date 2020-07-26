@@ -174,7 +174,8 @@ class StreetViewPanoramaData
             copyright: null,
             links: [],
             tiles: null,
-            time: []
+            time: [],
+            gsv_key: null
         };
         parameters = parameters || defaults;
         this.location = (parameters.LatLng || defaults.LatLng);
@@ -182,6 +183,7 @@ class StreetViewPanoramaData
         this.links = (parameters.links || defaults.links);
         this.tiles = (parameters.tiles || defaults.tiles);
         this.time = (parameters.time || defaults.time);
+        this.gsv_key = (parameters.gsv_key || defaults.gsv_key);
     }
 
     /**
@@ -200,9 +202,9 @@ class StreetViewPanoramaData
      * @returns {StreetViewPanoramaData} - An instance fufilled of StreetViewPanoramaData
      * @see [Google's LatLng]{@link https://developers.google.com/maps/documentation/javascript/reference/3/coordinates#LatLng}
      */
-    static fromStreetViewServiceData(data)
+    static fromStreetViewServiceData(data, gsv_key=null)
     {
-        let newSVPano = new StreetViewPanoramaData();
+        let newSVPano = new StreetViewPanoramaData({ gsv_key: gsv_key });
         newSVPano.location = new LatLng({
             lon: data.location.latLng.lng(),
             lat: data.location.latLng.lat(),
@@ -257,7 +259,8 @@ class StreetViewPanoramaData
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
         let userkey = (use_alternative_gsv_api_key) ? user_gsv_api_key : undefined;
-        let url = await GSVService.imageURLBuilderForGeoImage(ret, userkey);
+        let gsvService = GSVService(gsv_key);
+        let url = await gsvService.imageURLBuilderForGeoImage(ret, userkey);
         if (!url)
         {
             return "Error";
