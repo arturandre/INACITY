@@ -153,6 +153,7 @@ class OpenLayersHandler extends Subject
 
         this._heatmapVectorLayer = new ol.layer.Heatmap({
             radius: 20,
+            gradient: ["#000","#00f","#ff0","#0f0","#fff"]
         });
 
 
