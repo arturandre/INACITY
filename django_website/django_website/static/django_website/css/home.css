@@ -183,6 +183,42 @@ span.badge
     border-width:1px;
 }
 
+.image-overlay-textarea-div
+{
+    margin-left: 10px;
+    margin-right: 10px;
+    background-color:rgba(77,77,77,0.5);
+    position: relative;
+    top: -220px;
+    margin-bottom: -200px;
+    z-index: 3;
+}
+
+.image-overlay-buttons-div
+{
+    display: flex;
+    justify-content: flex-end;
+    background-color:rgba(77,77,77,0.3);
+    z-index: 3;
+}
+
+#imgOverlayBtnDiv > i
+{
+    color: #FFFFFF;
+}
+
+#writingDiv
+{
+    padding: 5px;
+}
+
+#commentTextArea
+{
+    background: rgba(255, 255, 255, 0.7);
+    height: 120px;
+    width: 98%;
+}
+
 #imgUrbanPicture
 {
     width: 100%;

@@ -465,6 +465,7 @@ class UIView
      */
     displayMessage(message, type = 'Alert')
     {
+        message = message.substring(0, 200);
         this.jqalertDiv.show();
         switch (type)
         {

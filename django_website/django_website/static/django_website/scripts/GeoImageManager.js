@@ -25,6 +25,7 @@ class GeoImageManager extends Subject
         this._geoImageCollection = new GeoImageCollection();
         this._currentLayer = -1;
         this._currentIndex = -1;
+        this._currentDisplayedGeoImage = null;
 
         this._DOMImage = $('#imgUrbanPicture');
 
@@ -46,6 +47,16 @@ class GeoImageManager extends Subject
         {
             this._defaultImageUrl = options.defaultImageUrl;
         }
+    }
+
+    get currentDisplayedGeoImage()
+    {
+        return this._currentDisplayedGeoImage;
+    }
+
+    set currentDisplayedGeoImage(value)
+    {
+        throw new Error("currentDisplayedGeoImage is a private property!");
     }
 
     saveToJSON()
@@ -356,6 +367,8 @@ class GeoImageManager extends Subject
         {
             throw new Error("Tried to display an invalid GeoImage!");
         }
+
+        this._currentDisplayedGeoImage = geoImage;
 
         if (this._imageFilterId && geoImage.getProcessedDataList(this._imageFilterId))
         {

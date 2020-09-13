@@ -182,5 +182,5 @@ def comment_view(request):
         geoImage=geoimage,
         user_id=request.user.id,
         comment=comment)
-    return HttpResponse('OK')
+    return HttpResponse(comment, status=201)
 

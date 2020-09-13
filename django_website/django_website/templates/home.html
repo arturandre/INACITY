@@ -80,7 +80,7 @@
 
 <!-- The modal dialog container -->
 <div class="modal" id="shapefile_modal" tabindex="-1" role="dialog">
-{% include 'dialogs/load_shapefile.html' %}
+    {% include 'dialogs/load_shapefile.html' %}
 </div>
 
 <div class="row">
@@ -125,6 +125,22 @@
     <div class="col-sm right-column image-div">
         <img id="imgUrbanPicture"
             src="https://maps.googleapis.com/maps/api/streetview?size=640x640&location=-23.560271,-46.731295&heading=180&pitch=-0.76&key={{ public_gsv_key }}" />
+        <div id="imgOverlayDiv" class="image-overlay-buttons-div">
+            <div id="imgOverlayBtnDiv">
+                <i id="btnCreateComment" class="fas fa-user-edit fa-lg"></i>
+                <i id="btnViewComments" class="far fa-comments fa-lg"></i>
+                <i id="btnStreetView" class="fas fa-street-view fa-lg"></i>
+            </div>
+            <div id="writingDiv" class="hidden">
+                <textarea id="commentTextArea"></textarea>
+                <div style="display: flex; justify-content: space-around;">
+                    <button id="btnSaveComment" type="button" class="btn btn-success"
+                        role="button">{% trans "Save comment" %}</button>
+                    <button id="btnCancelComment" type="button" class="btn btn-primary"
+                        role="button">{% trans "Cancel comment" %}</button>
+                </div>
+            </div>
+        </div>
         <div id="imgSliderDiv" class="slidecontainer hidden">
             <input type="range" min="1" max="100" value="50" class="slider" id="imgSlider">
         </div>
@@ -152,9 +168,8 @@
                     </div>
 
                 </div>
-                <button id="btnUploadCustomFeatures" type="button"
-                    class="btn btn-primary"
-                    data-toggle="modal" data-target="#shapefile_modal">
+                <button id="btnUploadCustomFeatures" type="button" class="btn btn-primary" data-toggle="modal"
+                    data-target="#shapefile_modal">
                     {% trans "Load Shapefile" %}
                 </button>
                 <button id="btnClearSelections" type="button"
@@ -242,7 +257,8 @@
                         {% trans "Using user&#39;s Google Street View key" %}
                     </span>
                 </span>
-                {% endif %}            </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

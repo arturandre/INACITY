@@ -48,8 +48,8 @@
 
         this.openLayersHandler.onDrawEnd = this.onDrawEnd.bind(this);
 
-
-
+        this.uiView.onClickSaveCommentBtn = this.onClickSaveCommentBtn.bind(this);
+        this.uiView.onClickCancelCommentBtn = this.onClickCancelCommentBtn.bind(this);
 
 
         /*UIModel Event Handlers*/
@@ -65,6 +65,47 @@
 
         GeoImageManager.on('geoimagecollectionchange', this.onGeoImageCollectionChange.bind(this));
         GeoImageManager.on('imagechange', this.onImageChange.bind(this));
+
+    }
+
+    onClickSaveCommentBtn()
+    {
+        if (!user_is_logged)
+        {
+            alert(gettext("Please log in to make a comment in this image."));
+            this.uiView.hideWritingInterface();
+            return;
+        }
+        let commentText = this.uiView.jqcommentTextArea[0].value;
+        let geoImageJSON = this.geoImageManager.currentDisplayedGeoImage.toSimpleJSON()
+        this.uiModel.insertCommentForGeoImage(commentText, geoImageJSON);
+        this.uiView.hideWritingInterface();
+    }
+
+    onClickCancelCommentBtn()
+    {
+        this.uiView.hideWritingInterface();
+    }
+
+    onClickCreateCommentBtn()
+    {
+        //user_is_logged is defined at base.html (template file)
+        if (!user_is_logged)
+        {
+            alert(gettext("Please log in to make a comment in this image."));
+            return;
+        }
+        this.uiView.displayWritingInterface();
+        //this.jqbtnCreateComment.on("click", this.onClickCreateCommentBtn.bind(this));
+        //this.jqbtnViewComments.on("click", this.onClickViewCommentsBtn.bind(this));
+    }
+    onClickViewCommentsBtn()
+    {
+        
+    }
+    
+    onClickStreetViewBtn()
+    {
 
     }
 
