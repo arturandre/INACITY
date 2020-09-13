@@ -467,14 +467,23 @@ class UIView
     {
         message = message.substring(0, 200);
         this.jqalertDiv.show();
+        this.jqalertDiv.removeClass("alert-success");
+        this.jqalertDiv.removeClass("alert-warning");
+        this.jqalertDiv.removeClass("alert-danger");
         switch (type)
         {
+            case 'Success':
+                this.jqalertDiv.addClass("alert-success");
+                this.jqalertDiv.text(message);
+                break;
             case 'Alert':
                 //alert(message);
+                this.jqalertDiv.addClass("alert-warning");
                 this.jqalertDiv.text(message);
                 break;
             case 'Error':
                 //alert(message);
+                this.jqalertDiv.addClass("alert-danger");
                 this.jqalertDiv.text(message);
                 console.trace(message);
                 //throw new Error(message);

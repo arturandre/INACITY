@@ -82,8 +82,8 @@
         promise.then(function (ret)
         {
             let successMessage=gettext("Comment created with success: ")
-            this.uiView.displayMessage(successMessage + ret, 'Alert');
-        });
+            this.uiView.displayMessage(successMessage + ret, 'Success');
+        }.bind(this));
         this.uiView.hideWritingInterface();
     }
 
