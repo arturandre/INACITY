@@ -85,3 +85,15 @@ class Quota(models.Model):
     function_name = models.CharField(max_length=256, unique=False)
     quota_available = models.IntegerField()
     last_update = models.DateField()
+
+class UserViewComments(models.Model):
+    user = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
+    last_update = models.DateField()
+    # View ID registered in the Neo4j, may be inconsistent
+    viewid = models.IntegerField()
+    # The comment is replicated here and in Neo4j for performance
+    comment = models.TextField()

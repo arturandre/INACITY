@@ -1,11 +1,12 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
 import sys
+from .db import DBManager
 
 import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.utils.translation import gettext
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
@@ -15,6 +16,7 @@ import ast
 import json
 import datetime
 #from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.auth.decorators import login_required
 import geojson
 from geojson import Polygon, Feature, FeatureCollection
 from django_website.Primitives.GeoImage import GeoImage, CustomJSONEncoder
@@ -24,7 +26,7 @@ from django_website.Managers.ImageProviderManager import ImageProviderManager
 from django_website.Managers.ImageFilterManager import ImageFilterManager
 from django_website.Managers.UserManager import UserManager
 
-from django_website.models import Session
+from django_website.models import Session, UserViewComments
 from django.core.exceptions import MultipleObjectsReturned
 
 #Translation & Internationalization
@@ -158,3 +160,27 @@ def processimagesfromfeature(request):
     ret = {}
     ret['feature'] = imageFilterManager.processImageFromFeature(imageFilterId, feature)
     return JsonResponse(ret, CustomJSONEncoder)
+
+@api_view(['POST'])
+#@login_required
+def comment_view(request):
+    jsondata = request.data
+    geoimage = jsondata['geoimage']
+    comment = jsondata['comment']
+    dbmanager = DBManager()
+    view = dbmanager.get_view_from_geoimage(geoImage=geoimage, include_id=True)
+    if not view:
+        return HttpResponseNotFound('View associated with GeoImage not found!')
+    view_id = view[0]
+    UserViewComments.objects.create(
+        user=request.user,
+        last_update=datetime.date.today(),
+        viewid=view_id,
+        comment=comment
+        )
+    dbmanager.insert_comment_for_view(
+        geoImage=geoimage,
+        user_id=request.user.id,
+        comment=comment)
+    return HttpResponse('OK')
+

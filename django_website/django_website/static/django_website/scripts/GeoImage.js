@@ -19,7 +19,8 @@
  * @param {string} data - May contain either a base64 string with an image, or an url for an image
  * @param {string} dataType - Defines if the data field is a base64 or an "URL"
  * @param {Array} processedDataList - Contains ProcessedImages
- */class GeoImage
+*/
+class GeoImage
 {
     constructor() {
         this.id = null;
@@ -29,9 +30,19 @@
         this.metadata = null;
         this.data = null;
         this.dataType = null;
-        this.metadata = null;
         this.processedDataList = null;
     }
+     
+     toSimpleJSON()
+     {
+         let ret = {}
+         ret.id = this.id;
+         ret.location = this.location;
+         ret.heading = this.heading;
+         ret.pitch = this.pitch;
+         ret.metadata = this.metadata;
+         return ret;
+     }
 
     getProcessedDataList(filterId){
         if (this.processedDataList === null)

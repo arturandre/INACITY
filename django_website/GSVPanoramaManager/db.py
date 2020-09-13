@@ -140,21 +140,108 @@ class DBManager(object):
         # pitchs = [record.get('r.pitch') for record in result.records()]
         return headings_pitchs
 
-    def load_processed_data_for_geoImage(self, geoImage: GeoImage, filter_type: str):
+    def get_view_from_geoimage(self, geoImage: GeoImage, include_id=False):
+        """
+        Return a "view" node connected to the panorama with
+        pano_id = geoImage.id and whose pitch and heading
+        matches those of the given GeoImage.
+        
+        If include_id=True then returns a tuple:
+        RETURN: (VIEW_ID, VIEW_DICT)
+        """
         pano_id = geoImage.id
         pitch = geoImage.pitch
         heading = geoImage.heading
-        # lon = geoImage.location.coordinates[0]
-        # lat = geoImage.location.coordinates[1]
-        #processedDataList = geoImage.processedDataList
 
         view = self.retrieve_panorama_view(
             pano_id,
             target_heading=heading,
             heading_tolerance=10,
             target_pitch=pitch,
-            pitch_tolerance=1
+            pitch_tolerance = 1,
+            include_id = include_id
         )
+
+        if not view:
+            return False
+        
+        return view
+    
+    def insert_comment_for_view(self, geoImage: GeoImage, user_id: str, comment: str):
+        view = self.get_view_from_geoimage(geoImage, include_id=True)
+        
+        if not view:
+            return False
+        
+        view_id = view[0]
+        #view_data = view[1]
+
+        with self._driver.session() as session:
+            query = ((
+                f"MATCH (v:View) WHERE id(v) = {view_id} "
+                f"CREATE (v)-[:comment]-(vc:ViewComment "
+                f'{{user_id: {user_id}, comment: "{comment}" }}) '
+                ))
+            session.run(query)
+        return True
+    
+    def get_comments_for_view(self, geoImage: GeoImage, user_id: str = None):
+        """
+        Get the COMMENT nodes associated with a given view
+        defined by the given geoImage (check 'get_view_from_geoimage'
+        for more details about how a view is defined by a geoImage).
+
+        If used_id is given then the comments are filtered based on the used_id.
+        """
+        view = self.get_view_from_geoimage(geoImage, include_id=True)
+        
+        if not view:
+            return False
+        
+        view_id = view[0]
+        #view_data = view[1]
+        user_id_query = ""
+        if user_id is not None:
+            user_id_query = f"WHERE vc.user_id = {user_id}"
+
+        with self._driver.session() as session:
+            query = ((
+                f"MATCH (v:View)-[:comment]-(vc:ViewComment) WHERE id(v) = {view_id} "
+                f"{user_id_query} "
+                f"RETURN vc.comment "
+                ))
+            ret = session.run(query)
+            return ret
+        
+
+
+    def create_update_view(self, pano_id, target_heading, target_pitch):
+        pano = self.retrieve_panorama_by_panoid(pano_id)
+        if not pano:
+            self._seed_panorama(pano_id)
+        with self._driver.session() as session:
+            return session.write_transaction(self._create_update_view, pano_id, target_heading, target_pitch)
+
+    @staticmethod
+    def _create_update_view(tx, pano_id, target_heading, target_pitch):
+        result = tx.run((
+            f"MATCH (p:Panorama {{pano: '{pano_id}'}}) "
+            f"MERGE (p)-[:view]-(v:View {{heading: {target_heading}, pitch: {target_pitch}}}) "
+            "RETURN properties(v) "
+        ))
+        result = result.single()
+        if result is not None:
+            return result[0]
+        else:
+            return False
+
+    def load_processed_data_for_geoImage(self, geoImage: GeoImage, filter_type: str):
+        pano_id = geoImage.id
+        # lon = geoImage.location.coordinates[0]
+        # lat = geoImage.location.coordinates[1]        
+        #processedDataList = geoImage.processedDataList
+
+        view = self.get_view_from_geoimage(geoImage)
 
         if not view:
             return False
@@ -196,13 +283,7 @@ class DBManager(object):
         # lat = geoImage.location.coordinates[1]
         processedDataList = geoImage.processedDataList
 
-        view = self.retrieve_panorama_view(
-            pano_id,
-            target_heading=heading,
-            heading_tolerance=10,
-            target_pitch=pitch,
-            pitch_tolerance=1
-        )
+        view = self.get_view_from_geoimage(geoImage)
         
         if not view:
             view = self.create_update_view(pano_id, heading, pitch)
@@ -402,22 +483,39 @@ class DBManager(object):
         else:
             return False
 
-    def retrieve_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+    def retrieve_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance, include_id=False):
         # 7Ewkd2wQqDGGOcFlUZMfjw
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_panorama_view, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance)
+            return session.write_transaction(self._retrieve_panorama_view,
+                pano_id, target_heading,
+                heading_tolerance,
+                target_pitch,
+                pitch_tolerance,
+                include_id)
 
     @staticmethod
-    def _retrieve_panorama_view(tx, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance):
+    def _retrieve_panorama_view(tx,
+        pano_id,
+        target_heading,
+        heading_tolerance,
+        target_pitch,
+        pitch_tolerance,
+        include_id=False):
+        returnStatement = "RETURN properties(v)"
+        if include_id:
+            returnStatement = "RETURN id(v), properties(v)"
         result = tx.run((
             f"MATCH (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View) "
             f"WHERE {target_heading} - {heading_tolerance} "
             f"<= v.heading <= {target_heading} + {heading_tolerance} "
-            f"RETURN properties(v)"
+            f"{returnStatement}"
         ))
         result = result.single()
         if result is not None:
-            return result[0]
+            if include_id:
+                return (result[0], result[1])
+            else:
+                return result[0]
         else:
             return False
 
