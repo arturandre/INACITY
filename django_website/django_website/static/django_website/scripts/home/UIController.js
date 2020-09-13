@@ -78,7 +78,12 @@
         }
         let commentText = this.uiView.jqcommentTextArea[0].value;
         let geoImageJSON = this.geoImageManager.currentDisplayedGeoImage.toSimpleJSON()
-        this.uiModel.insertCommentForGeoImage(commentText, geoImageJSON);
+        let promise = this.uiModel.insertCommentForGeoImage(commentText, geoImageJSON);
+        promise.then(function (ret)
+        {
+            let successMessage=gettext("Comment created with success: ")
+            this.uiView.displayMessage(successMessage + ret, 'Alert');
+        });
         this.uiView.hideWritingInterface();
     }
 
