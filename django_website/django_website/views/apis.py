@@ -1,7 +1,7 @@
 #from django.template.loader import get_template
 #from django.http import HttpResponse
 import sys
-from .db import DBManager
+from GSVPanoramaManager.db import DBManager
 
 import requests
 from rest_framework.decorators import api_view
