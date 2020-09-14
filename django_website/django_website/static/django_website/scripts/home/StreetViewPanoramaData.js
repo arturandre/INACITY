@@ -259,7 +259,7 @@ class StreetViewPanoramaData
         ret.pitch = this.tiles.originPitch;
         ret.metadata = this;
         let userkey = (use_alternative_gsv_api_key) ? user_gsv_api_key : undefined;
-        let gsvService = GSVService(gsv_key);
+        let gsvService = new GSVService(userkey);
         let url = await gsvService.imageURLBuilderForGeoImage(ret, userkey);
         if (!url)
         {
