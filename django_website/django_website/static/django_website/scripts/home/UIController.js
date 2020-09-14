@@ -44,7 +44,15 @@
         this.uiView.onClickCancelDrawingBtn = this.onClickCancelDrawingBtn.bind(this);
         this.uiView.onClickChangeImageFilter = this.onClickChangeImageFilter.bind(this);
         this.uiView.onClickChangeViewMode = this.onClickChangeViewMode.bind(this);
+        
         this.uiView.onImageSliderInput = this.onImageSliderInput.bind(this);
+        
+        this.uiView.onClickSaveCommentBtn = this.onClickSaveCommentBtn.bind(this);
+        this.uiView.onClickCancelCommentBtn = this.onClickCancelCommentBtn.bind(this);
+
+        this.uiView.onClickCreateCommentBtn = this.onClickCreateCommentBtn.bind(this);
+        this.uiView.onClickViewCommentsBtn = this.onClickViewCommentsBtn.bind(this);
+        this.uiView.onClickStreetViewBtn = this.onClickStreetViewBtn.bind(this);
 
         this.openLayersHandler.onDrawEnd = this.onDrawEnd.bind(this);
 
