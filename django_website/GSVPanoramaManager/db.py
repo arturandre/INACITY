@@ -211,6 +211,7 @@ class DBManager(object):
                 f"RETURN vc.comment "
                 ))
             ret = session.run(query)
+            ret = ret.value()
             return ret
         
 

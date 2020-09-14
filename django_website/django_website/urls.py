@@ -70,7 +70,8 @@ urlpatterns = [
     
     # Allows a connected user to post a comment on a GeoImage (e.g. VIEW node)
     path('comment_view/', comment_view, name='comment_view'),
-
+    path('get_comments_view/', get_comments_view, name='get_comments_view'),
+    
     path('users/', users, name='users'),
 
     #Receives a geoImage and returns its version filtered

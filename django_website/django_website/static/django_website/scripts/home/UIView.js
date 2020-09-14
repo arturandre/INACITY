@@ -22,7 +22,7 @@ class UIView
         this.geoImageManager = geoImageManager;
         this.openLayersHandler = openLayersHandler;
         this.streetSelect = streetSelect;
-        
+
         this.onCloseShapefileModal = null;
         this.onClickLoadShapefilesBtn = null;
         this.onChangeInputShapefiles = null;
@@ -48,7 +48,15 @@ class UIView
         this.onClickChangeImageFilter = null;
 
 
+        /**
+         * Image visualization control handlers
+         */
         this.onImageSliderInput = null;
+        this.onClickSaveCommentBtn = null;
+        this.onClickCancelCommentBtn = null;
+        this.onClickCreateCommentBtn = null;
+        this.onClickViewCommentsBtn = null;
+        this.onClickStreetViewBtn = null;
 
         /**
          * Shapefile selection modal dialog
@@ -57,9 +65,9 @@ class UIView
         this.jqbtnLoadShapefiles = $("#btnLoadShapefiles");
         this.jqulSelectedFiles = $("#ulSelectedFiles");
         this.jqshapefile_modal = $("#shapefile_modal");
-        
 
-        
+
+
         this.jqlabelSelectedFeature = $(`#lblSelectedFeature`);
 
         this.jqimgUrbanPicture = $(`#imgUrbanPicture`);
@@ -97,8 +105,25 @@ class UIView
         this.jqbtnCollectImages = $(`#btnCollectImages`);
         this.jqbtnClearSelections = $(`#btnClearSelections`);
 
+        /**
+         * Image visualization controls
+         */
+        //Divs
+        this.jqimgOverlayDiv = $('#imgOverlayDiv');
+        this.jqimgOverlayBtnDiv = $('#imgOverlayBtnDiv');
+        this.jqwritingDiv = $('#writingDiv');
+
+        //Editing controls
+        this.jqbtnSaveComment = $('#btnSaveComment');
+        this.jqbtnCancelComment = $('#btnCancelComment');
+        this.jqcommentTextArea = $('#commentTextArea');
+
+        //Menu buttons
+        this.jqbtnCreateComment = $('#btnCreateComment');
+        this.jqbtnViewComments = $('#btnViewComments');
+        this.jqbtnStreetView = $('#btnStreetView');
         this.jqimgSliderDiv = $('#imgSliderDiv');
-        this.jqimgSlider = $('#imgSlider')
+        this.jqimgSlider = $('#imgSlider');
 
         this.jqimageDiv = $(".image-div");
         this.jqregionDiv = $(".region-div");
@@ -112,7 +137,7 @@ class UIView
 
     initialize()
     {
-        
+
         this.jqshapefile_modal.on("hidden.bs.modal", this.onCloseShapefileModal.bind(this));
         this.jqbtnLoadShapefiles.on("click", this.onClickLoadShapefilesBtn.bind(this));
         this.jqinputShapefiles.on("change", this.onChangeInputShapefiles.bind(this));
@@ -133,7 +158,17 @@ class UIView
         this.jqbtnAddressBar.on("click", this.onClickAddressBarBtn);
         this.jqtxtAddressBar = $("#txtAddressBar");
 
+        /**
+        * Image visualization control handlers
+        */
         this.jqimgSlider.on("input", this.onImageSliderInput);
+        this.jqbtnSaveComment.on("click", this.onClickSaveCommentBtn);
+        this.jqbtnCancelComment.on("click", this.onClickCancelCommentBtn);
+
+        this.jqbtnCreateComment.on("click", this.onClickCreateCommentBtn);
+        this.jqbtnViewComments.on("click", this.onClickViewCommentsBtn);
+        this.jqbtnStreetView.on("click", this.onClickStreetViewBtn);
+
 
         //this.populateShapeDiv();
         this.createSelectionButton(this.jqshapeSelectorDiv, OpenLayersHandler.DrawTools, this.onClickChangeShapeBtn);
@@ -176,6 +211,33 @@ class UIView
         ErrorMediator.subscribe(this);
     }
 
+    hideWritingInterface()
+    {
+        this.jqimgOverlayBtnDiv.removeClass("hidden");
+        this.jqwritingDiv.addClass("hidden");
+        this.jqimgOverlayDiv.addClass("image-overlay-buttons-div");
+        this.jqimgOverlayDiv.removeClass("image-overlay-textarea-div");
+    }
+
+    displayWritingInterface(comments, readonly = false)
+    {
+        this.jqimgOverlayBtnDiv.addClass("hidden");
+        this.jqwritingDiv.removeClass("hidden");
+        this.jqimgOverlayDiv.removeClass("image-overlay-buttons-div");
+        this.jqimgOverlayDiv.addClass("image-overlay-textarea-div");
+        this.jqcommentTextArea.val(comments);
+        if (readonly)
+        {
+            this.jqbtnSaveComment.addClass("hidden");
+            this.jqbtnCancelComment.text(gettext("Close"));
+        }
+        else
+        {
+            this.jqbtnSaveComment.removeClass("hidden");
+            this.jqbtnCancelComment.text(gettext("Cancel"));
+        }
+    }
+
     /**
      * Interface method used by the ErrorMediator class
      * @param {string} error_message - Error message sent by the ErrorMediator class
@@ -185,7 +247,7 @@ class UIView
         this.displayMessage(error_message, "Error");
     }
 
-    
+
 
     /**
      * 
@@ -229,11 +291,11 @@ class UIView
     {
         // if (region.active)
         // {
-            for (let layerIdx in region.layers)
-            {
-                let layer = region.layers[layerIdx];
-                this.drawRegionLayer(layer);
-            }
+        for (let layerIdx in region.layers)
+        {
+            let layer = region.layers[layerIdx];
+            this.drawRegionLayer(layer);
+        }
         // }
         // else
         // {
@@ -401,7 +463,7 @@ class UIView
             if (mapMiner.features.length === 1)
             {
                 this.updateFeatureView(mapMiner.features[0]);
-                
+
             }
         }
     }
@@ -564,7 +626,7 @@ class UIView
             let featureId = featureCollection.features[idx];
 
             let OLFeature = this.uiModel.featuresByLayerId[regionLayer.layerId.toString()][featureId].feature;
-            
+
             if (this.uiModel.isFeatureActive(regionLayer.layerId.toString(), featureId))
             {
                 OLFeature.setStyle(null);
@@ -575,7 +637,7 @@ class UIView
                 OLFeature.setStyle(OpenLayersHandler.Styles['transparentStyle']);
                 //FEATURE SHOULD HAVE STYLE TRANSPARENT
             }
-            
+
             if (!this.openLayersHandler.globalVectorSource.getFeatureById(featureId))
             {
                 this.openLayersHandler.globalVectorSource.addFeature(OLFeature);
@@ -920,24 +982,24 @@ if (!UIView.init)
     UIView.init = true;
 
     UIView.ViewModes =
-        {
-            ImageMode: {
-                id: "Image Mode",
-                name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
-                viewmode: "Image",
-                hint: "Collect images for the selected regions"
-                // name: gettext("Image Mode"),
-                // viewmode: "Image"
-            },
-            MapMode: {
-                id: "Map Mode",
-                name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
-                viewmode: "Map",
-                hint: gettext("Edit or remove selected regions.")
-                // name: gettext("Map Mode"),
-                // viewmode: "Map"
-            },
-        };
+    {
+        ImageMode: {
+            id: "Image Mode",
+            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Image Mode")}`,
+            viewmode: "Image",
+            hint: "Collect images for the selected regions"
+            // name: gettext("Image Mode"),
+            // viewmode: "Image"
+        },
+        MapMode: {
+            id: "Map Mode",
+            name: `<i class="fas fa-map-marked-alt"></i> ${gettext("Map Mode")}`,
+            viewmode: "Map",
+            hint: gettext("Edit or remove selected regions.")
+            // name: gettext("Map Mode"),
+            // viewmode: "Map"
+        },
+    };
 }
 
 

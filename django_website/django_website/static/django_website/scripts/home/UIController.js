@@ -104,10 +104,14 @@
         //this.jqbtnCreateComment.on("click", this.onClickCreateCommentBtn.bind(this));
         //this.jqbtnViewComments.on("click", this.onClickViewCommentsBtn.bind(this));
     }
-    onClickViewCommentsBtn()
-    {
         
+    async onClickViewCommentsBtn()
+    {
+        let geoImageJSON = this.geoImageManager.currentDisplayedGeoImage.toSimpleJSON()
+        let comments = await this.uiModel.getCommentsForGeoImage(geoImageJSON);
+        this.uiView.displayWritingInterface(comments['comments'].join("\n---\n"), true);
     }
+
     
     onClickStreetViewBtn()
     {

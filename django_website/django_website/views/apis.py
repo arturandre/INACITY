@@ -10,7 +10,7 @@ from django.http import Http404, HttpResponse, HttpResponseNotFound, JsonRespons
 from django.utils.translation import gettext
 from uuid import uuid4
 from urllib.parse import unquote, urlparse
-
+from django_website.LogGenerator import write_to_log
 
 import ast
 import json
@@ -162,10 +162,12 @@ def processimagesfromfeature(request):
     return JsonResponse(ret, CustomJSONEncoder)
 
 @api_view(['POST'])
-#@login_required
+@login_required
 def comment_view(request):
     jsondata = request.data
     geoimage = jsondata['geoimage']
+    geoimage = json.loads(geoimage)
+    geoimage = GeoImage.fromJSON(geoimage)
     comment = jsondata['comment']
     dbmanager = DBManager()
     view = dbmanager.get_view_from_geoimage(geoImage=geoimage, include_id=True)
@@ -184,3 +186,17 @@ def comment_view(request):
         comment=comment)
     return HttpResponse(comment, status=201)
 
+@api_view(['POST'])
+def get_comments_view(request):
+    jsondata = request.data
+    geoimage = jsondata['geoimage']
+    geoimage = json.loads(geoimage)
+    geoimage = GeoImage.fromJSON(geoimage)
+    filteruserid = jsondata.get('filteruserid')
+    dbmanager = DBManager()
+    comments = dbmanager.get_comments_for_view(
+        geoImage=geoimage,
+        user_id=filteruserid)
+    comments = {"comments": comments}
+    #write_to_log(comments)
+    return JsonResponse(comments, CustomJSONEncoder)

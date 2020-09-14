@@ -1993,6 +1993,61 @@ class UIModel extends Subject {
             }
         }
     }
+
+    /**
+     * Insert the comment (of a logged user) into the database
+     * associated with the a GeoImage (i.e. VIEW node).
+     * @param {string} comment - Comment to be inserted
+     * @param {string} geoImageJSON - GeoImageJSON obtained by calling GeoImage.toSimpleJSON()
+     */
+    async insertCommentForGeoImage(comment, geoImageJSON)
+    {
+        return await $.ajax({
+            type: "POST",
+            url: "/comment_view/",
+            data: {
+                "comment": comment,
+                "geoimage": JSON.stringify(geoImageJSON),
+            },
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log("Comment registered!");
+                return data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+            }
+        });
+    }
+
+    /**
+     * Get the comments associated with the given
+     * GeoImage (i.e. VIEW node). If a user id is given
+     * then only the comments of that user are retrived.
+     * @param {string} geoImageJSON - GeoImageJSON obtained by calling GeoImage.toSimpleJSON()
+     * @param {string} [filteruserid] - Optional user id to filter comments
+     */
+    async getCommentsForGeoImage(geoImageJSON, filteruserid=undefined)
+    {
+        let data = { "geoimage": JSON.stringify(geoImageJSON) };
+        if (filteruserid !== undefined)
+            data["filteruserid"] = filteruserid;
+        return await $.ajax({
+            type: "POST",
+            url: "/get_comments_view/",
+            data: data,
+            success: function (data, textStatus, jqXHR)
+            {
+                return data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                throw new Error(`${errorThrown}: ${jqXHR.responseText}`)
+            }
+        });
+    }
+
 }
 
 /**
