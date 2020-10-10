@@ -1,4 +1,6 @@
 from django_website import settings
+from django_website.LogGenerator import write_to_log
+import subprocess
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import redis
@@ -156,12 +158,33 @@ def clear_inactive_browsers():
     
 
 
-def get_registered_browser_channel_names():
+def get_registered_browser_channel_names(num_tries=1):
     redisCon = get_default_redis_connection()
     clear_inactive_browsers()
     registered_browsers = redisCon.get('registered_browsers')
     if registered_browsers is None:
-        return None
+        # Try to launch a headless browser
+        # using the script at "scripts/launch_headless_chrome.sh"
+        # Besides launching the script also opens the default
+        # page http://localhost/gsvpanoramacollector/link_browser/default/
+        # where the browser is registered as available for Redis.
+        if num_tries > 0:
+            try:
+                subprocess.check_call('scripts/launch_headless_chrome.sh')
+                write_to_log("(Re)launching headless chrome:\n")
+                # sleep for 1 second to wait for the browser to load
+                time.sleep(5)
+                return get_registered_browser_channel_names(num_tries-1)
+            except subprocess.CalledProcessError as error:
+                write_to_log("Error while (re)launching headless chrome:\n")
+                write_to_log(f"err_code: {error.returncode}\n")
+                write_to_log(f"cmd: {error.cmd}\n")
+                write_to_log(f"output: {error.stdout}\n")
+                write_to_log(f"err_output: {error.stderr}\n")
+            finally:
+                return None
+        else:
+            return None
     else:
         registered_browsers = registered_browsers.decode('ascii')
         registered_browsers = registered_browsers.split(',')
