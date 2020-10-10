@@ -51,6 +51,12 @@ services:
 
     command: >
         sh -c "cd /var/www/html/
+        && mkdir /var/log/inacity
+        && chown root:www-data /var/log/inacity
+        && chmod 775 /var/log/inacity/
+        && touch /var/log/inacity/messages.log
+        && chown root:www-data /var/log/inacity/messages.log
+        && chmod 775 /var/log/inacity/messages.log
         && chmod +x /var/www/html/install_script.sh 
         && bash /var/www/html/install_script.sh
         && chmod +x /var/www/html/wait-for-postgres.sh

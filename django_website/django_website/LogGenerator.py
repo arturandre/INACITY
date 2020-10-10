@@ -16,5 +16,8 @@ def write_to_log(message):
     -------
     none
     """
-    f=open(os.path.join(settings.BASE_DIR, "messages.log"), "a+")
-    f.write(message + '\n')
+
+    message = str(message).encode('utf-8')
+    #f=open(os.path.join(settings.BASE_DIR, "messages.log"), "a+")
+    f=open(settings.MESSAGE_LOG_FILEPATH, "a+")
+    f.writelines(str(message) + '\n')

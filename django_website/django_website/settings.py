@@ -174,3 +174,5 @@ ASGI_APPLICATION = "GSVPanoramaCollector.routing.application"
 # and every call decorated with it will be executed regardless of the
 # user having available quota or not.
 SKIP_QUOTAS = True
+
+MESSAGE_LOG_FILEPATH = '/var/log/inacity/messages.log'

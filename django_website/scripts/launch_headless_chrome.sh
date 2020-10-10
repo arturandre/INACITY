@@ -1,9 +1,9 @@
 #!/bin/sh
-FILE=./google-chrome_PID
+FILE=/var/log/inacity/google-chrome_PID
 if test -f "$FILE"; then
-        kill $(cat ./google-chrome_PID)
-        rm -f ./google-chrome_PID
+        kill $(cat "$FILE")
+        rm -f "$FILE"
         echo "$FILE found, restarting headless chrome!"
 fi
-google-chrome --no-sandbox --headless --remote-debugging-port=9222 http://localhost/gsvpanoramacollector/link_browser/default/ &
-echo $! > ./google-chrome_PID
+google-chrome --no-sandbox --headless http://localhost/gsvpanoramacollector/link_browser/default/ &
+echo $! > "$FILE"
