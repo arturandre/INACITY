@@ -523,10 +523,21 @@ class UIView
     /**
      * Display messages to the user.
      * @param {String} message - The message to be displayed
-     * @param {String=Alert} type - The type of the message, can be: Error|Alert
+     * @param {String=Alert} type - The type of the message, can be: Success|Error|Alert
      */
     displayMessage(message, type = 'Alert')
     {
+        if (typeof (message) === "object")
+        {
+            if (message['responseText'] !== undefined)
+            {
+                message = message['responseText'];
+            }
+            else
+            {
+                message = "Unknow error!";
+            }
+        }
         message = message.substring(0, 200);
         this.jqalertDiv.show();
         this.jqalertDiv.removeClass("alert-success");
