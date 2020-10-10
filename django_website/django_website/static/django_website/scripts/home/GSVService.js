@@ -338,8 +338,15 @@ if (!GSVService.init)
      * when the user is using his API key without a signing key or
      * vice-versa.
      */
-    GSVService.SignURLs =
-        (use_alternative_gsv_signing_secret == use_alternative_gsv_api_key);
+    if (typeof use_alternative_gsv_api_key !== "undefined")
+    {
+        GSVService.SignURLs =
+            (use_alternative_gsv_signing_secret == use_alternative_gsv_api_key);
+    }
+    else
+    {
+        GSVService.SignURLs = false;
+    }
     GSVService.out_of_quota = false;
 
     GSVService.registerEventNames([
