@@ -11,8 +11,9 @@ export_*.csv
 #pictures folder
 pictures/
 
+#Google Chrome PID file
 #Daphne PID file
-daphne_PID
+*_PID
 
 #pycache
 __pycache__/
