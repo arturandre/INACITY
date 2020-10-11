@@ -40,7 +40,7 @@ services:
       - ./:/var/www/html/
       - /var/lib/neo4j/data
     build: .
-    shm_size: '1gb'
+    shm_size: '2gb'
     environment:
       - POSTGRES_PASS=1234
       - POSTGRES_USER=postgres
@@ -51,25 +51,8 @@ services:
 
     command: >
         sh -c "cd /var/www/html/
-        && mkdir /var/log/inacity
-        && chown root:www-data /var/log/inacity
-        && chmod 775 /var/log/inacity/
-        && touch /var/log/inacity/messages.log
-        && chown root:www-data /var/log/inacity/messages.log
-        && chmod 775 /var/log/inacity/messages.log
         && chmod +x /var/www/html/install_script.sh 
         && bash /var/www/html/install_script.sh
-        && chmod +x /var/www/html/wait-for-postgres.sh
-        && bash /var/www/html/wait-for-postgres.sh db
-        && python3 manage.py makemigrations
-        && python3 manage.py migrate
-        && python3 manage.py collectstatic --noinput
-        && python3 manage.py collectstatic_js_reverse
-        && echo 'from django_website import load; load.run(False)' | python manage.py shell
-        && chmod +x /var/www/html/scripts/daphne_starter.sh
-        && bash /var/www/html/scripts/daphne_starter.sh
-        && chmod +x /var/www/html/scripts/daphne_starter.sh
-        && bash /var/www/html/scripts/neo4j_config.sh
         && apache2ctl -D FOREGROUND
         && tail -f /dev/null"
         
