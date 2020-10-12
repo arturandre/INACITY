@@ -1,4 +1,5 @@
 #!/bin/sh
+
 FILE=/var/log/inacity/daphne_PID
 if test -f "$FILE"; then
         kill $(cat "$FILE")

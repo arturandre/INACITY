@@ -12,7 +12,7 @@ class WSConsumer(WebsocketConsumer):
         self.custom_functions = {'browser_register': self.browser_register}
 
     def browser_register(self):
-        registered_browsers = wssender.get_registered_browser_channel_names()
+        registered_browsers = wssender.get_registered_browser_channel_names(num_tries=0)
 
         redisCon = wssender.get_default_redis_connection()
         if registered_browsers is None:
@@ -20,6 +20,7 @@ class WSConsumer(WebsocketConsumer):
         else:
             registered_browsers.append(self.channel_name)
             registered_browsers = ",".join(registered_browsers)
+        #write_to_log(f"registered_browsers: {registered_browsers}")
         return redisCon.set('registered_browsers', registered_browsers)
 
     def connect(self):
