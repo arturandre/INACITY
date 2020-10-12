@@ -49,7 +49,7 @@ class WSConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        registered_browsers = wssender.get_registered_browser_channel_names()
+        registered_browsers = wssender.get_registered_browser_channel_names(num_tries=0)
         if registered_browsers is None:
             return
         registered_browsers.remove(self.channel_name)

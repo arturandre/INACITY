@@ -158,7 +158,7 @@ def clear_inactive_browsers():
     
 
 
-def get_registered_browser_channel_names(num_tries=0):
+def get_registered_browser_channel_names(num_tries=1):
     redisCon = get_default_redis_connection()
     clear_inactive_browsers()
     registered_browsers = redisCon.get('registered_browsers')
