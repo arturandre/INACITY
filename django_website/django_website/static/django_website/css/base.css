@@ -1,4 +1,15 @@
-﻿.errorlist
+﻿footer > p
+{
+    margin-bottom: 0rem;
+}
+
+.lead2
+{
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.errorlist
 {
     color: red;
 }
@@ -43,8 +54,13 @@
 
 .div-carousel
 {
-    border: 1px solid #C8C8F8;
-    background: #E8E8E8;
+    /*border: 1px solid #C8C8F8;
+    background: #E8E8E8;*/
+}
+
+.div-carousel > h5
+{
+    text-align: center;
 }
 
 #carouselSponsors {

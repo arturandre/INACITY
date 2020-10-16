@@ -1,6 +1,24 @@
-﻿.shapefilesdiv
+﻿/*
+.btn-success:not(.disabled)
 {
-     height: 188px; /* 38px default + 150px for 3 files*/
+    background-color: #6699ff;
+    border-color: #5689ef;
+}
+
+.btn-success:hover:not(.disabled)
+{
+    background-color: #4d4dff;
+    border-color: #5689ef;
+}
+*/
+.btn-group>.btn:first-child
+{
+    margin-right: 5px;
+}
+
+.shapefilesdiv
+{
+    height: 188px; /* 38px default + 150px for 3 files*/
     max-height: 188px;
 }
 
@@ -167,20 +185,20 @@ span.badge
 }
 
 .region-div{
-    border-color:#4cff00;
+    /*border-color:#4cff00;
     border-style:dashed;
-    border-width:1px;
+    border-width:1px;*/
 }
 
 .map-div {
-    border-color:#fb6868;
+    /*border-color:#fb6868;
     border-style:dashed;
-    border-width:1px;
+    border-width:1px;*/
 }
 .image-div {
-    border-color:#5e66ff;
+    /*border-color:#5e66ff;
     border-style:dashed;
-    border-width:1px;
+    border-width:1px;*/
 }
 
 .image-overlay-textarea-div
