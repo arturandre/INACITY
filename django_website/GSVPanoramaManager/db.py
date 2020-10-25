@@ -22,7 +22,7 @@ class DBManager(object):
         uri = 'bolt://' + db_settings['HOST'] + ':' + db_settings['PORT']
         auth = (db_settings['USER'], db_settings['PASSWORD'])
 
-        self._driver = GraphDatabase.driver(uri, auth=auth)
+        self._driver = GraphDatabase.driver(uri, auth=auth, max_connection_lifetime=200)
 
         # This creates an uniqueness constraint over the 'pano' (panorama id)
         # property and as a consequence an index is also created.
@@ -82,7 +82,8 @@ class DBManager(object):
                 request_ids=[request_id],
                 handler=self.redis_insert_pano_handler,
                 remove_redis_key=True)
-            t.join()
+            t.join(timeout=60.0)
+            return not t.isAlive()
 
     @staticmethod
     def _imageURLBuilderForPanoId(pano_id, view):
