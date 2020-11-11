@@ -1,3 +1,6 @@
+# SLIL Summary Files
+*.smr
+
 #nohup file
 nohup.out
 
