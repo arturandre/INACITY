@@ -268,7 +268,7 @@ def sign_gsv_url(request):
     if request.user.is_authenticated:
         try:
             if request.user.profile.use_alternative_gsv_signing_secret:
-                secret = request.user.gsv_url_signing_secret
+                secret = request.user.profile.gsv_url_signing_secret
         except AttributeError as e:
             write_to_log(f'Error: {e}')
 
