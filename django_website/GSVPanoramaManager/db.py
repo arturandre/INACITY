@@ -50,9 +50,7 @@ class DBManager(object):
         with self._driver.session() as session:
             return session.write_transaction(self._retrieve_ref_panoramas, limit, pano_seed)
 
-    def retrieve_panorama_by_panoid(self, pano):
-        with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_panorama_by_panoid, pano)
+    
 
     def insert_panorama(self, panoramadata):
         try:    
@@ -75,14 +73,16 @@ class DBManager(object):
         else:
             request_id = wssender.collect_panorama(seed_pano)
             if request_id is None:
-                raise Exception(
-                    'Invalid request_id ({request_id}), is there any browser socket available?')
+                raise Exception((
+            f"Invalid request_id ({request_id}), "
+            f"is there any browser socket available?"
+            ))
 
             t = wssender.watch_requests(
                 request_ids=[request_id],
                 handler=self.redis_insert_pano_handler,
                 remove_redis_key=True)
-            t.join(timeout=60.0)
+            t.join(timeout=10.0)
             return not t.isAlive()
 
     @staticmethod
@@ -218,11 +218,16 @@ class DBManager(object):
 
 
     def create_update_view(self, pano_id, target_heading, target_pitch):
+        # Get pano or fill from url data?
         pano = self.retrieve_panorama_by_panoid(pano_id)
         if not pano:
             self._seed_panorama(pano_id)
         with self._driver.session() as session:
-            return session.write_transaction(self._create_update_view, pano_id, target_heading, target_pitch)
+            return session.write_transaction(
+                self._create_update_view,
+                pano_id,
+                target_heading,
+                target_pitch)
 
     @staticmethod
     def _create_update_view(tx, pano_id, target_heading, target_pitch):
@@ -465,30 +470,17 @@ class DBManager(object):
                 gsv_panorama_urls.append(img_filename)
         return gsv_panorama_urls
 
-    def create_update_view(self, pano_id, target_heading, target_pitch):
-        pano = self.retrieve_panorama_by_panoid(pano_id)
-        if not pano:
-            self._seed_panorama(pano_id)
-        with self._driver.session() as session:
-            return session.write_transaction(self._create_update_view, pano_id, target_heading, target_pitch)
-
-    @staticmethod
-    def _create_update_view(tx, pano_id, target_heading, target_pitch):
-        result = tx.run((
-            f"MATCH (p:Panorama {{pano: '{pano_id}'}}) "
-            f"MERGE (p)-[:view]-(v:View {{heading: {target_heading}, pitch: {target_pitch}}}) "
-            "RETURN properties(v) "
-        ))
-        result = result.single()
-        if result is not None:
-            return result[0]
-        else:
-            return False
-
-    def retrieve_panorama_view(self, pano_id, target_heading, heading_tolerance, target_pitch, pitch_tolerance, include_id=False):
+    def retrieve_panorama_view(self,
+                                pano_id,
+                                target_heading,
+                                heading_tolerance,
+                                target_pitch,
+                                pitch_tolerance,
+                                include_id=False):
         # 7Ewkd2wQqDGGOcFlUZMfjw
         with self._driver.session() as session:
-            return session.write_transaction(self._retrieve_panorama_view,
+            return session.write_transaction(
+                self._retrieve_panorama_view,
                 pano_id, target_heading,
                 heading_tolerance,
                 target_pitch,
@@ -853,6 +845,10 @@ class DBManager(object):
         )):
             res.append(record["p.pano"])
         return res
+
+    def retrieve_panorama_by_panoid(self, pano):
+        with self._driver.session() as session:
+            return session.write_transaction(self._retrieve_panorama_by_panoid, pano)
 
     @staticmethod
     def _retrieve_panorama_by_panoid(tx, pano):

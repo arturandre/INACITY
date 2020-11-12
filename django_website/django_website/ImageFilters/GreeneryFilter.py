@@ -154,7 +154,9 @@ class GreeneryFilter(ImageFilter):
             for polygonIndex, polygon in enumerate(feature['geometry']['coordinates']):
                 for lineIndex, lineString in enumerate(polygon):
                     for coordinateIndex in range(len(lineString)):
-                        geoImage = feature['properties']['geoImages'][polygonIndex][lineIndex][coordinateIndex]
+                        geoImage = feature['properties']\
+                            ['geoImages'][polygonIndex]\
+                            [lineIndex][coordinateIndex]
                         if not isinstance(geoImage, dict):
                             continue
                         try:
@@ -163,12 +165,16 @@ class GreeneryFilter(ImageFilter):
                             print(_('Error while parsing panorama: ') +
                                   str(geoImage)[:100])
                         cls._setOutput(
-                            geoImage, feature['properties']['geoImages'][polygonIndex][lineIndex], coordinateIndex)
-        elif (feature['geometry']['type'] == 'MultiLineString') or (feature['geometry']['type'] == 'Polygon'):
+                            geoImage, feature['properties']\
+                                ['geoImages'][polygonIndex]\
+                                    [lineIndex], coordinateIndex)
+        elif (feature['geometry']['type'] == 'MultiLineString')\
+            or (feature['geometry']['type'] == 'Polygon'):
             for lineIndex, lineString in enumerate(feature['geometry']['coordinates']):
                 for coordinateIndex in range(len(lineString)):
                     try:
-                        geoImage = feature['properties']['geoImages'][lineIndex][coordinateIndex]
+                        geoImage = feature['properties']\
+                            ['geoImages'][lineIndex][coordinateIndex]
                         if not isinstance(geoImage, dict):
                             continue
                     except Exception:
@@ -184,8 +190,10 @@ class GreeneryFilter(ImageFilter):
                         raise Exception(
                             f'lineIndex: {lineIndex}, coordinateIndex: {coordinateIndex}')
                     cls._setOutput(
-                        geoImage, feature['properties']['geoImages'][lineIndex], coordinateIndex)
-        elif (feature['geometry']['type'] == 'LineString') or (feature['geometry']['type'] == 'MultiPoint'):
+                        geoImage, feature['properties']\
+                            ['geoImages'][lineIndex], coordinateIndex)
+        elif (feature['geometry']['type'] == 'LineString')\
+            or (feature['geometry']['type'] == 'MultiPoint'):
             for coordinateIndex in range(len(feature['geometry']['coordinates'])):
                 geoImage = feature['properties']['geoImages'][coordinateIndex]
                 if not isinstance(geoImage, dict):
