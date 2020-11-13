@@ -1,4 +1,4 @@
-
+import traceback
 from urllib.error import HTTPError
 
 import imageio
@@ -67,13 +67,15 @@ class GreeneryFilter(ImageFilter):
             featureLeaf[index] = geoImage
             #dbmanager.store_geoImage_as_view(geoImage)
         except HTTPError:
+            traceback.print_exc()
             write_to_log(f"Http error - Have the quota been achieved?")
         except ValueError:
+            traceback.print_exc()
             write_to_log(f'Image bytes: {ndarrayImage[:100]}')
         except Exception as e:
+            traceback.print_exc()
             write_to_log(f"Unexpected error: {sys.exc_info()[0]}")
             write_to_log(f"Error message: {e.args}")
-
             write_to_log(f'Offending url: {geoImage.data[:300]}')
 
     @classmethod
