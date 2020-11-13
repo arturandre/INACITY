@@ -240,7 +240,12 @@ class DBManager(object):
         if result is not None:
             return result[0]
         else:
-            return False
+            raise Exception(
+        (
+            f"Error while creating new view. "
+            f"Pano_id: {pano_id} "
+            f"heading: {target_heading}, pitch: {target_pitch}"
+        ))
 
     def load_processed_data_for_geoImage(self, geoImage: GeoImage, filter_type: str):
         pano_id = geoImage.id
