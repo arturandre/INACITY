@@ -313,10 +313,10 @@ class DBManager(object):
         
         if not view:
             view = self.create_update_view(pano_id, heading, pitch)
-            pano_url = self._imageURLBuilderForPanoId(
-                pano_id,
-                view
-            )
+        pano_url = self._imageURLBuilderForPanoId(
+            pano_id,
+            view
+        )
         try:
             img_filename = self.image_filename_from_panorama_parameters(
                 pano_id,
