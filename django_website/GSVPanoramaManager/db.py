@@ -231,7 +231,17 @@ class DBManager(object):
             "RETURN properties(v) "
         ))
         with self._driver.session() as session:
-            return session.run(tstr)
+            result = session.run(tstr)
+            result = result.single()
+            if result is not None:
+                return result[0]
+            else:
+                raise Exception(
+            (
+                f"Error while creating new view. "
+                f"Pano_id: {pano_id} "
+                f"heading: {target_heading}, pitch: {target_pitch}"
+            ))
 
     @staticmethod
     def _create_update_view(tx, pano_id, target_heading, target_pitch):
