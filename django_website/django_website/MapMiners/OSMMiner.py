@@ -173,9 +173,9 @@ class OSMMiner(MapMiner):
         overpassQueryUrl = OSMMiner._createCollectStreetsQuery(regions)
 
         OSMMiner._lock.acquire()
-        write_to_log("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
+        #write_to_log("Rate limit %d, current queries: %d \n" % (OSMMiner._rateLimit, OSMMiner._currentQueries))
         write_to_log(f'OSMMiner._OSMServerURL: {OSMMiner._OSMServerURL}')
-        write_to_log(f'overpassQueryUrl: {overpassQueryUrl}')
+        #write_to_log(f'overpassQueryUrl: {overpassQueryUrl}')
         
         while OSMMiner._currentQueries >= OSMMiner._rateLimit:
             time.sleep(1)

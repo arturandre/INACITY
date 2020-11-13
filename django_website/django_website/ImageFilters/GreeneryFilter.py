@@ -37,6 +37,7 @@ class GreeneryFilter(ImageFilter):
     @classmethod
     def _setOutput(cls, geoImage, featureLeaf, index):
         try:
+            write_to_log('_setOutput')
             dbmanager = DBManager()
             result = dbmanager.load_processed_data_for_geoImage(
                 geoImage,
