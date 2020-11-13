@@ -231,9 +231,9 @@ class DBManager(object):
 
     @staticmethod
     def _create_update_view(tx, pano_id, target_heading, target_pitch):
+        #f"MATCH (p:Panorama {{pano: '{pano_id}'}}) "
         result = tx.run((
-            f"MATCH (p:Panorama {{pano: '{pano_id}'}}) "
-            f"MERGE (p)-[:view]-(v:View {{heading: {target_heading}, pitch: {target_pitch}}}) "
+            f"MERGE (p:Panorama {{pano: '{pano_id}'}})-[:view]-(v:View {{heading: {target_heading}, pitch: {target_pitch}}}) "
             "RETURN properties(v) "
         ))
         result = result.single()
