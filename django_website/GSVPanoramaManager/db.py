@@ -222,12 +222,16 @@ class DBManager(object):
         pano = self.retrieve_panorama_by_panoid(pano_id)
         if not pano:
             self._seed_panorama(pano_id)
+        print(target_heading)
+        print(target_pitch)
+        tstr = ((
+            f"MERGE (p:Panorama {{pano: '{pano_id}'}})"
+            f"-[:view]-(v:View "
+            f"{{heading: {target_heading}, pitch: {target_pitch}}}) "
+            "RETURN properties(v) "
+        ))
         with self._driver.session() as session:
-            return session.write_transaction(
-                self._create_update_view,
-                pano_id,
-                target_heading,
-                target_pitch)
+            return session.run(tstr)
 
     @staticmethod
     def _create_update_view(tx, pano_id, target_heading, target_pitch):
