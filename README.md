@@ -14,8 +14,20 @@ We make available a docker-compose.yml file that can be used to instantiate a do
 
 You can get a signing key for Google Street View services [here](https://developers.google.com/maps/documentation/streetview/get-api-key).
 
-## Steps to create and run the containers
+## Running the saved image from docker-hub
 
+If no custom setup is needed, then, after making sure that all the pre-requirements are fulfilled one just need to go to the folder `./INACITY/django_website/` and run the following commands:
+
+```
+1. docker-compose pull
+2. docker-compose up --no-recreate
+```
+
+This will download the last image available of the containers with essential services for the INACITY platform (i.e. redis and postgresql) and the INACITY container already configured.
+
+## Steps to create and run a new container
+
+On the other hand, if you'd like to manually change some settings (e.g. ports or packages installed), possibly in order to create a new image then you can create a new container by executing the following steps:
 
 1. (**optional**) Edit docker-compose.yml setting up exposed/published ports and/or database name/credentials. Notice that if database settings  are changed then it'll be necessary to make reflect those changes at the file ./INACITY/**django_website**/**django_website**/settings.py as well (look for the variable *DATABASES*).
 2. Go to the folder ./INACITY/django_website
