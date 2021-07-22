@@ -4,11 +4,11 @@
 # This fixes the error:
 # The value 'stable' is invalid for APT::Default-Release...
 # Ref: https://www.linode.com/community/questions/18519/getting-an-error-when-attempting-to-apt-get-install
-echo "APT::Default-Release \"stretch\";" > /etc/apt/apt.conf.d/00local
+#echo "APT::Default-Release \"stretch\";" > /etc/apt/apt.conf.d/00local
 
 # Installing necessary packages
 apt update
-apt install -y apt-utils apt-transport-https ca-certificates apache2 apache2-dev apache2-utils binutils libproj-dev gdal-bin postgresql-client python-pygraphviz default-jre default-jre-headless
+apt install -y apt-utils apt-transport-https ca-certificates apache2 apache2-dev apache2-utils binutils libproj-dev gdal-bin postgresql-client python-pygraphviz graphviz-dev default-jre default-jre-headless
 
 # Neo4j section
 
