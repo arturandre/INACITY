@@ -36,3 +36,24 @@ On the other hand, if you'd like to manually change some settings (e.g. ports or
 By default INACITY will be running at [localhost:80](http://localhost:80) and postgreSQL will be exposed at port 25432 to the host machine.
 
 ### If you're using docker Toolbox then the address for accessing it shall be [192.168.99.100:80](http://192.168.99.100:80) assuming a default setting
+
+For more technical details about how INACITY works, or about deploying a local instance please refer to the [wiki](https://github.com/arturandre/INACITY/wiki).
+
+# Citing INACITY
+
+If you use INACITY in a scientific publication, we would appreciate citations to the following masters's thesis:
+
+Oliveira, A. A. A. M., & Hirata Jr., R.  (2018). INvestigate and Analyse a City - INACITY. Master's Dissertation, Instituto de Matemática e Estatística, University of São Paulo, São Paulo. doi:10.11606/D.45.2018.tde-04052018-170132. Retrieved 2021-07-26, from www.teses.usp.br
+
+Bibtex entry:
+
+```
+@MastersThesis{oliveirainvestigate,
+  title={INvestigate and Analyse a City-INACITY},
+  author={Oliveira, Artur Andr{\'e} Almeida de Macedo and Hirata Jr., Roberto},
+  Year={2018},
+  doi={10.11606/D.45.2018.tde-04052018-170132},
+  school={Universidade de S{\~a}o Paulo},
+  url={https://teses.usp.br/teses/disponiveis/45/45134/tde-04052018-170132/en.php}
+}
+```
