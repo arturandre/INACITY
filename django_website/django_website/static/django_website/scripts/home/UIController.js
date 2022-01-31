@@ -1,4 +1,5 @@
-﻿class UIController {
+﻿class UIController
+{
     /**
      * Following the MVC architectural pattern this class represents
      * the controller and works together the UIModel and the UIView
@@ -9,7 +10,8 @@
      * @param {OpenLayerHandler} openLayersHandler 
      * @param {SessionManager} sessionManager 
      */
-    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager, streetSelected) {
+    constructor(uiModel, uiView, geoImageManager, openLayersHandler, sessionManager, streetSelected)
+    {
         this.uiModel = uiModel;
         this.uiView = uiView;
         this.geoImageManager = geoImageManager;
@@ -18,7 +20,8 @@
         this._streetSelected = streetSelected;
     }
 
-    initialize() {
+    initialize()
+    {
         this.uiView.onCloseShapefileModal = this.onCloseShapefileModal.bind(this);
         this.uiView.onChangeInputShapefiles = this.onChangeInputShapefiles.bind(this);
         this.uiView.onClickLoadShapefilesBtn = this.onClickLoadShapefilesBtn.bind(this);
@@ -44,9 +47,9 @@
         this.uiView.onClickCancelDrawingBtn = this.onClickCancelDrawingBtn.bind(this);
         this.uiView.onClickChangeImageFilter = this.onClickChangeImageFilter.bind(this);
         this.uiView.onClickChangeViewMode = this.onClickChangeViewMode.bind(this);
-        
+
         this.uiView.onImageSliderInput = this.onImageSliderInput.bind(this);
-        
+
         this.uiView.onClickSaveCommentBtn = this.onClickSaveCommentBtn.bind(this);
         this.uiView.onClickCancelCommentBtn = this.onClickCancelCommentBtn.bind(this);
 
@@ -89,7 +92,7 @@
         let promise = this.uiModel.insertCommentForGeoImage(commentText, geoImageJSON);
         promise.then(function (ret)
         {
-            let successMessage=gettext("Comment created with success: ")
+            let successMessage = gettext("Comment created with success: ")
             this.uiView.displayMessage(successMessage + ret, 'Success');
         }.bind(this));
         this.uiView.hideWritingInterface();
@@ -112,7 +115,7 @@
         //this.jqbtnCreateComment.on("click", this.onClickCreateCommentBtn.bind(this));
         //this.jqbtnViewComments.on("click", this.onClickViewCommentsBtn.bind(this));
     }
-        
+
     async onClickViewCommentsBtn()
     {
         let geoImageJSON = this.geoImageManager.currentDisplayedGeoImage.toSimpleJSON()
@@ -120,7 +123,7 @@
         this.uiView.displayWritingInterface(comments['comments'].join("\n---\n"), true);
     }
 
-    
+
     onClickStreetViewBtn()
     {
 
@@ -131,16 +134,19 @@
         this.uiView.clearSelectedShapefiles();
     }
 
-    onChangeInputShapefiles(event) {
+    onChangeInputShapefiles(event)
+    {
         this.uiView.jqinputShapefiles[0].filesArray = [];
-        for (let i = 0; i < uiView.jqinputShapefiles[0].files.length; i++) {
+        for (let i = 0; i < uiView.jqinputShapefiles[0].files.length; i++)
+        {
             let file = this.uiView.jqinputShapefiles[0].files[i];
             this.uiView.jqinputShapefiles[0].filesArray[file.name] = file;
         }
 
         let filesArray = this.uiView.jqinputShapefiles[0].filesArray;
 
-        for (let i in filesArray) {
+        for (let i in filesArray)
+        {
             let file = filesArray[i];
             let $li = $("<li/>",
                 { "class": "list-group-item" })
@@ -155,7 +161,8 @@
                             "aria-hidden": true
                         }).html("&times;")
                 );
-            $removeButton.click(function () {
+            $removeButton.click(function ()
+            {
                 let filesArray = this.uiView.jqinputShapefiles[0].filesArray;
                 filesArray.splice(filesArray.indexOf(file), 1);
                 $li.remove();
@@ -168,30 +175,38 @@
         //</button>
     }
 
-    async onClickLoadShapefilesBtn(event) {
+    async onClickLoadShapefilesBtn(event)
+    {
         let filesArray = this.uiView.jqinputShapefiles[0].filesArray;
 
-        if (filesArray && Object.keys(filesArray).length > 0) {
+        if (filesArray && Object.keys(filesArray).length > 0)
+        {
             let sampleName = Object.keys(filesArray)[0];
             sampleName = sampleName.substr(0,
                 sampleName.lastIndexOf('.'));
-            function readFilePromise(file) {
-                return new Promise(function (resolve, reject) {
+            function readFilePromise(file)
+            {
+                return new Promise(function (resolve, reject)
+                {
                     if (!file) resolve(null);
                     const reader = new FileReader();
-                    reader.onerror = function () {
+                    reader.onerror = function ()
+                    {
                         this.abort();
                         console.trace(this.error);
                         reject(this.error);
                     };
 
-                    reader.onload = function () {
+                    reader.onload = function ()
+                    {
                         resolve(this.result);
                     };
-                    if (file.name.endsWith('.prj')) {
+                    if (file.name.endsWith('.prj'))
+                    {
                         reader.readAsText(file);
                     }
-                    else {
+                    else
+                    {
                         reader.readAsArrayBuffer(file);
                     }
                 });
@@ -201,7 +216,8 @@
             let dbfFile = filesArray[`${sampleName}.dbf`];
             let prjFile = filesArray[`${sampleName}.prj`];
 
-            if (!shpFile) {
+            if (!shpFile)
+            {
                 let errorMessage = "No .shp file uploaded error!";
                 console.trace(errorMessage);
                 throw new Error(errorMessage);
@@ -215,14 +231,16 @@
                 ]
             );
             let geoJson = null;
-            if (dbfFile) {
+            if (dbfFile)
+            {
                 geoJson = shp.combine(
                     [
                         shp.parseShp(shpFile, prjFile),
                         shp.parseDbf(dbfFile)
                     ]);
             }
-            else {
+            else
+            {
                 geoJson = shp.parseShp(shpFile, prjFile);
             }
 
@@ -233,14 +251,16 @@
             let maxLat = geoJson.features[0].geometry.coordinates[1];
 
             let badFeature = null;
-            do {
+            do
+            {
                 badFeature = geoJson.features.find((f) =>
                     (f.geometry.coordinates[0] < -180) ||
                     (f.geometry.coordinates[0] > 180) ||
                     (f.geometry.coordinates[1] < -90) ||
                     (f.geometry.coordinates[1] > 90)
                 );
-                if (badFeature) {
+                if (badFeature)
+                {
                     geoJson.features.splice(geoJson.features.indexOf(badFeature), 1);
                 }
             } while (badFeature);
@@ -250,7 +270,8 @@
             let multipoint = GeoJSONHelper.GeoJSONFeatureWithGeometry(
                 new ol.geom.MultiPoint([]));
 
-            geoJson.features.forEach((f) => {
+            geoJson.features.forEach((f) =>
+            {
                 //if (!f.id) f.id = uuid();
                 //f.geometry is already a point.
                 multipoint
@@ -287,12 +308,12 @@
             ]];
 
 
-            let mapFeature = 
+            let mapFeature =
             {
                 id: "Shapefile",
                 name: "Shapefile"
             };
-            let mapMiner = 
+            let mapMiner =
             {
                 id: "Shapefile",
                 name: "Shapefile",
@@ -304,7 +325,7 @@
             this.uiModel.SelectedMapFeature = mapFeature;
             this.uiView.updateMapMinerView(mapMiner);
             this.uiView.updateFeatureView(mapFeature);
-    
+
             this.uiView.jqshapefile_modal.modal('hide');
 
 
@@ -319,11 +340,14 @@
         }
     }
 
-    onLoadImgUrbanPicture(event) {
+    onLoadImgUrbanPicture(event)
+    {
         $(`#b_${event.target.id}`).remove();
     }
-    async onErrorImgUrbanPicture(event) {
-        await $.get(event.target.src).fail((obj) => {
+    async onErrorImgUrbanPicture(event)
+    {
+        await $.get(event.target.src).fail((obj) =>
+        {
             $(`#b_${event.target.id}`).remove();
             $(`<b id=b_${event.target.id} class="imgErrorText">${obj.responseText}</b>`).insertAfter(event.target);
         });
@@ -336,7 +360,8 @@
      * when the user changes the imgSlider value (position).
      * @param {int} value - The current position of the imgSlider as informed by itself
      */
-    onImageSliderInput(event) {
+    onImageSliderInput(event)
+    {
         let slider = event.target;
         //geoImageManager.displayGeoImageAtIndex(parseInt(slider.value), true);
         this.uiModel.imgSliderMoving = true;
@@ -345,7 +370,8 @@
         this.uiModel.imgSliderMoving = false;
     }
 
-    onDrawEnd(eventKey) {
+    onDrawEnd(eventKey)
+    {
         this.openLayersHandler.drawing = true;
         this.uiModel.createRegion(eventKey.feature, true);
 
@@ -355,14 +381,16 @@
         this.openLayersHandler.drawing = false;
     }
 
-    onClickChangeShapeBtn(event) {
+    onClickChangeShapeBtn(event)
+    {
         let drawTool = event.data;
 
         this.uiView.updateShapeToolView(drawTool);
         this.openLayersHandler.SelectedDrawTool = drawTool;
     }
 
-    onClickChangeViewMode(event) {
+    onClickChangeViewMode(event)
+    {
         let viewmode = event.data;
 
         this.uiView.changeViewMode(viewmode);
@@ -374,28 +402,32 @@
     * @param {string} mapProviderId - Id defined by OpenLayers to set a tile provider
     * @param {Event} - See [Event]{@link https://developer.mozilla.org/en-US/docs/Web/API/Event}
     */
-    onClickChangeMapProviderBtn(event) {
+    onClickChangeMapProviderBtn(event)
+    {
         let tileProvider = event.data;
 
         this.uiView.updateMapProviderView(tileProvider);
         this.openLayersHandler.SelectedMapProvider = tileProvider;
     }
 
-    onClickChangeImageProvider(event) {
+    onClickChangeImageProvider(event)
+    {
         let imageProvider = event.data;
 
         this.uiModel.SelectedImageProvider = imageProvider;
         this.uiView.updateImageProviderView();
     }
 
-    onClickChangeMapMinerBtn(event) {
+    onClickChangeMapMinerBtn(event)
+    {
         let mapMiner = event.data;
 
         this.uiView.updateMapMinerView(mapMiner);
         this.uiModel.SelectedMapMiner = mapMiner;
     }
 
-    onClickChangeMapFeatureBtn(event) {
+    onClickChangeMapFeatureBtn(event)
+    {
         let mapFeature = event.data;
 
         this.uiView.updateFeatureView(mapFeature);
@@ -404,7 +436,8 @@
 
 
 
-    onClickChangeImageFilter(event) {
+    onClickChangeImageFilter(event)
+    {
         let imageFilter = event.data;
 
         this.uiView.updateImageFilterView(imageFilter);
@@ -412,64 +445,79 @@
     }
 
     //cancelDrawing() {
-    onClickCancelDrawingBtn(event) {
+    onClickCancelDrawingBtn(event)
+    {
         this.uiView.updateShapeToolView(null);
         this.openLayersHandler.SelectedDrawTool = null;
     }
 
-    onImageChange() {
+    onImageChange()
+    {
         this.uiView.updateGeoImgSlider();
     }
 
-    onGeoImageCollectionChange() {
+    onGeoImageCollectionChange()
+    {
         this.uiView.updateGeoImgSlider();
         //this.sessionManager.saveSession();
     }
 
-    onGetImages(event) {
-        try {
+    onGetImages(event)
+    {
+        try
+        {
 
             let filterId = getPropPath(event, ['filterId']);
-            if (this._streetSelected.lastSelectedFeature) {
+            if (this._streetSelected.lastSelectedFeature)
+            {
                 this.geoImageManager.updateDisplayingLayers(filterId,
                     GeoJSONHelper.writeFeature(this._streetSelected.lastSelectedFeature));
             }
-            else {
+            else
+            {
                 this.geoImageManager.updateDisplayingLayers(filterId);
             }
-        } catch (error) {
+        } catch (error)
+        {
             this.uiView.displayMessage(error, "Error");
         }
     }
 
-    onFeatureUpdated(layerFeatureId) {
+    onFeatureUpdated(layerFeatureId)
+    {
         let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
         this.openLayersHandler.redrawFeature(OLFeature);
     }
 
-    onFeatureCreated(layerFeatureId) {
+    onFeatureCreated(layerFeatureId)
+    {
         this.uiView.updateLayersHintList();
         let OLFeature = this.uiModel.featuresByLayerId[layerFeatureId.layerId.toString()][layerFeatureId.featureId].feature;
         this.openLayersHandler.drawFeature(OLFeature);
     }
 
-    onFeatureCollectionChange(regionLayer) {
+    onFeatureCollectionChange(regionLayer)
+    {
         this.uiView.updateLayersHintList();
-        if (regionLayer) {
+        if (regionLayer)
+        {
             //this.uiModel.updateFeatureIndex(regionLayer.layerId.toString()); //Model commands should be before View commands
             this.uiView.drawRegionLayer(regionLayer, true);
         }
     }
 
-    onFeaturesMerged(layer) {
+    onFeaturesMerged(layer)
+    {
         this.uiView.drawRegionLayer(layer, true);
     }
 
-    onClickRegionListItem() {
+    onClickRegionListItem()
+    {
         this.uiView.updateLayersHintList();
     }
 
-    async onClickAddressBarBtn() {
+    async onClickAddressBarBtn()
+    {
         /**
         Implement a call to uiModel
         and at the uiModel implement an ajax request as
@@ -478,80 +526,106 @@
          */
         let address = this.uiView.jqtxtAddressBar.val();
         let addressResults = await this.uiModel.searchAddress(address);
-        if (addressResults.length > 0) {
+        if (addressResults.length > 0)
+        {
             let closestToMapCenterAddress = this.openLayersHandler.getClosestAddress(addressResults);
             this.openLayersHandler.centerMap([
                 parseFloat(closestToMapCenterAddress.lon),
                 parseFloat(closestToMapCenterAddress.lat)
             ]);
         }
-        else {
+        else
+        {
             alert(gettext("Unfortunately the requested address could not be found."));
         }
     }
 
-    onClickClearSelectionsBtn() {
+    onClickClearSelectionsBtn()
+    {
         this.uiModel.SelectedMapMiner = null;
         this.uiModel.SelectedMapFeature = null;
 
         this.uiView.clearSelections();
     }
 
-    async onClickSaveSessionBtn() {
+    async onClickSaveSessionBtn()
+    {
         let currentSessionName = this.uiModel.currentSessionName;
         let sessionName = this.uiView.askSessionName(currentSessionName);
         await this.sessionManager.saveSession(sessionName);
     }
 
-    async onClickNewSessionBtn() {
-        try {
+    async onClickNewSessionBtn()
+    {
+        try
+        {
             this._streetSelected.clear();
-            if (await this.sessionManager.newSession()) {
+            if (await this.sessionManager.newSession())
+            {
                 this.uiView.updateGeoImgSlider();
                 this.uiView.displayMessage(gettext("New blank session created!"));
             }
-        } catch (error) {
+        } catch (error)
+        {
             this.uiView.displayMessage(error, "Error");
         }
 
     }
 
-    async onClickExecuteQueryBtn() {
+    async onClickExecuteQueryBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteQuery);
-        try {
+        try
+        {
             //await this.uiModel.executeQuery.bind(this.uiModel)();
             await this.uiModel.executeQuery();
         }
-        finally {
+        finally
+        {
             this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteQuery)
         }
     }
 
-    async onClickExecuteImageFilterBtn() {
+    async onClickExecuteImageFilterBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnExecuteImageFilter);
 
-        try {
+        try
+        {
             await this.uiModel.getProcessedImages.bind(this.uiModel)()
             //Set the geoImageManager to display this collection
 
         }
-        catch (err) {
+        catch (err)
+        {
             this.uiView.displayMessage(err, "Error");
         }
-        finally {
+        finally
+        {
             this.uiView.unsetLoadingText(this.uiView.jqbtnExecuteImageFilter)
         }
     }
 
-    async onClickGetImagesBtn() {
+    async onClickGetImagesBtn()
+    {
         this.uiView.setLoadingText(this.uiView.jqbtnCollectImages);
-        try {
+        try
+        {
             await this.uiModel.getImages(this.uiModel.SelectedImageProvider.id);
         }
-        catch (err) {
-            this.uiView.displayMessage(err.message, "Error");
+        catch (err)
+        {
+            if (err.message === undefined)
+            {
+                this.uiView.displayMessage(err.responseText, "Error");            
+            }
+            else
+            {
+                this.uiView.displayMessage(err.message, "Error");
+            }
         }
-        finally {
+        finally
+        {
             this.uiView.unsetLoadingText(this.uiView.jqbtnCollectImages)
         }
     }

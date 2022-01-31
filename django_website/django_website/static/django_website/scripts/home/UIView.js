@@ -538,6 +538,10 @@ class UIView
                 message = "Unknow error!";
             }
         }
+        else if (message === undefined)
+        {
+            message = "undefined";
+        }
         message = message.substring(0, 200);
         this.jqalertDiv.show();
         this.jqalertDiv.removeClass("alert-success");
