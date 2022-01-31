@@ -45,7 +45,12 @@ If you use INACITY in a scientific publication, we would appreciate citations to
 
 Oliveira, A. A. A. M., & Hirata Jr., R.  (2018). INvestigate and Analyse a City - INACITY. Master's Dissertation, Instituto de Matemática e Estatística, University of São Paulo, São Paulo. doi:10.11606/D.45.2018.tde-04052018-170132. Retrieved 2021-07-26, from www.teses.usp.br
 
-Bibtex entry:
+and this paper on Software X:
+
+Oliveira, A. A. A. M., & Hirata Jr., R., INACITY - INvestigate and Analyze a CITY, SoftwareX, Volume 15, 2021, 100777, ISSN 2352-7110, https://doi.org/10.1016/j.softx.2021.100777. https://www.sciencedirect.com/science/article/pii/S2352711021000911) Abstract: INACITY is a platform that integrates Geo-located Imagery Databases (GIDs), Geographical Information Systems (GIS), digital maps, and Computer Vision (CV) to collect and analyze urban street-level images. The platform’s software architecture is a client–server model, where the client-side is a simple Web page that allows the user to select regions of a map and select filters to analyze and visualize urban features. The server side is a Django-powered Web service with PostgreSQL and Neo4j databases. Users can select a region of a map, an image filter, and geographical features to analyze relevant urban characteristics as trees, for instance, using the platform. An open-source implementation of the platform is available. The architecture is extensible, and it is easy to add new modules or replace the existing ones with new digital maps, GIS databases, other CV filters, or other GIDs. Keywords: Geographical information system; Geoportal; Computer vision
+
+
+Bibtex entries:
 
 ```
 @MastersThesis{oliveirainvestigate,
@@ -55,5 +60,19 @@ Bibtex entry:
   doi={10.11606/D.45.2018.tde-04052018-170132},
   school={Universidade de S{\~a}o Paulo},
   url={https://teses.usp.br/teses/disponiveis/45/45134/tde-04052018-170132/en.php}
+}
+
+@article{ALMEIDADEMACEDOOLIVEIRA2021100777,
+title = {INACITY - INvestigate and Analyze a CITY},
+journal = {SoftwareX},
+volume = {15},
+pages = {100777},
+year = {2021},
+issn = {2352-7110},
+doi = {https://doi.org/10.1016/j.softx.2021.100777},
+url = {https://www.sciencedirect.com/science/article/pii/S2352711021000911},
+author = {Artur André {Almeida de Macedo Oliveira} and Roberto Hirata},
+keywords = {Geographical information system, Geoportal, Computer vision},
+abstract = {INACITY is a platform that integrates Geo-located Imagery Databases (GIDs), Geographical Information Systems (GIS), digital maps, and Computer Vision (CV) to collect and analyze urban street-level images. The platform’s software architecture is a client–server model, where the client-side is a simple Web page that allows the user to select regions of a map and select filters to analyze and visualize urban features. The server side is a Django-powered Web service with PostgreSQL and Neo4j databases. Users can select a region of a map, an image filter, and geographical features to analyze relevant urban characteristics as trees, for instance, using the platform. An open-source implementation of the platform is available. The architecture is extensible, and it is easy to add new modules or replace the existing ones with new digital maps, GIS databases, other CV filters, or other GIDs.}
 }
 ```
