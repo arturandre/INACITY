@@ -14,17 +14,6 @@ We make available a docker-compose.yml file that can be used to instantiate a do
 
 You can get a signing key for Google Street View services [here](https://developers.google.com/maps/documentation/streetview/get-api-key).
 
-## Running the saved image from docker-hub
-
-If no custom setup is needed, then, after making sure that all the pre-requirements are fulfilled one just need to go to the folder `./INACITY/django_website/` and run the following commands:
-
-```
-1. docker-compose pull
-2. docker-compose up --no-recreate
-```
-
-This will download the last image available of the containers with essential services for the INACITY platform (i.e. redis and postgresql) and the INACITY container already configured.
-
 ## Steps to create and run a new container
 
 On the other hand, if you'd like to manually change some settings (e.g. ports or packages installed), possibly in order to create a new image then you can create a new container by executing the following steps:
@@ -34,6 +23,17 @@ On the other hand, if you'd like to manually change some settings (e.g. ports or
 3. Run 'docker-compose up'
 
 By default INACITY will be running at [localhost:80](http://localhost:80) and postgreSQL will be exposed at port 25432 to the host machine.
+
+## (OUTDATED DON'T USE IT!) ~Running the saved image from docker-hub~
+
+~If no custom setup is needed, then, after making sure that all the pre-requirements are fulfilled one just need to go to the folder `./INACITY/django_website/` and run the following commands:~
+
+~```~
+~1. docker-compose pull~
+~2. docker-compose up --no-recreate~
+~```~ 
+
+~This will download the last image available of the containers with essential services for the INACITY platform (i.e. redis and postgresql) and the INACITY container already configured.~
 
 ### If you're using docker Toolbox then the address for accessing it shall be [192.168.99.100:80](http://192.168.99.100:80) assuming a default setting
 
