@@ -1,4 +1,4 @@
-certifi==2018.4.16
+certifi==2022.12.7
 channels==2.3.0
 channels-redis==2.4.0
 daphne==2.3.0
