@@ -21,7 +21,7 @@ pygraphviz==1.5
 pyproj==2.4.2
 python-Levenshtein==0.12.2
 redis==3.3.11
-requests==2.18.4
+requests==2.31.0
 scikit-image==0.14.0
 scipy==1.1.0
 shapely==1.7.0
